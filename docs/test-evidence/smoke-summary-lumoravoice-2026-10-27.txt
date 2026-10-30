@@ -1,0 +1,23 @@
+LumoraVoice 0.8.0 + Lumora API 1.1.0 - in-game smoke test (LV=lumora sh .t/smoke-all.sh), 2026-10-27
+Checks per profile: addon enabled, widget lumoravoice:voice registered/moved/saved, both LumoraVoice menus opened through AddonScreens (AddonViewScreen), voice HUD in the demo world, name tag mixins applied (defaultRequire 1). 26.1.2 additionally: preview players with name tag icons and the channel line.
+
+26.3 SMOKE TEST PASSED
+26.2 SMOKE TEST PASSED
+26.1.2 SMOKE TEST PASSED
+26.1.1 SMOKE TEST PASSED
+26.1 SMOKE TEST PASSED
+1.21.11 SMOKE TEST PASSED
+1.21.8 SMOKE TEST PASSED
+1.21.4 SMOKE TEST PASSED
+1.21 SMOKE TEST PASSED
+1.20.6 SMOKE TEST PASSED
+1.20.4 SMOKE TEST PASSED
+1.20.1 SMOKE TEST PASSED
+1.19.4 SMOKE TEST PASSED
+1.18.2 SMOKE TEST PASSED
+1.17.1 SMOKE TEST PASSED
+1.16.5 SMOKE TEST PASSED
+1.12.2 SMOKE TEST PASSED
+1.8.9 SMOKE TEST PASSED
+
+Note: the first 26.3 run failed with 'insufficient memory for the Java Runtime Environment' (0.4 GB free RAM); the rerun passed. 26.1.2/26.2/26.3 were run again after the AvatarSubtitleMixin fix: all PASSED.

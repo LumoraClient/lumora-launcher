@@ -1,0 +1,78 @@
+/*
+ * Swing animation formulas ported from LiquidBounce
+ * (src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/render/animations/SwingAnimations.kt,
+ * https://github.com/CCBlueX/LiquidBounce, branch nextgen, retrieved 2026-10-18).
+ * Copyright (c) 2015 - 2026 CCBlueX. Licensed under the GNU General Public License v3.0 or later,
+ * the same license as the Lumora client. Changes: translated from Kotlin to Java, adapted to the
+ * Minecraft 26.1.2 PoseStack API (mulPose), for 1.12.2 the fixed-function GL matrix (GlStateManager), added the VANILLA mode, kept only the Smooth, Spin and Slap modes.
+ *
+ * Purely cosmetic: only the first-person item transform of the local player changes. Nothing is sent to the
+ * server and hit timing/reach are untouched.
+ */
+package dev.lumora.client.anim;
+
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.util.math.MathHelper;
+
+import java.util.Locale;
+
+public final class SwingAnimation {
+    public enum Mode {
+        VANILLA, SMOOTH, SPIN, SLAP;
+
+        public String displayName() {
+            String n = name().toLowerCase(Locale.ROOT);
+            return Character.toUpperCase(n.charAt(0)) + n.substring(1);
+        }
+
+        public Mode next() {
+            Mode[] all = values();
+            return all[(ordinal() + 1) % all.length];
+        }
+
+        public static Mode parse(String s) {
+            // unknown or removed modes fall back to the default
+            try {
+                return s == null ? SMOOTH : Mode.valueOf(s.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                return SMOOTH;
+            }
+        }
+    }
+
+    private static final float PI = (float) Math.PI;
+
+    private SwingAnimation() {
+    }
+
+    private static float sin(float v) {
+        return MathHelper.sin(v);
+    }
+
+    /**
+     * Applies the swing transform of {@code mode} (not VANILLA) for the given swing progress 0..1 to the current GL
+     * matrix; {@code right} is the side of the swinging hand (1.12.2 has a main-hand option).
+     */
+    public static void apply(Mode mode, float swing, boolean right) {
+        float i = right ? 1f : -1f;
+        float g = sin(MathHelper.sqrt(swing) * PI);
+        float sin1 = sin(swing * swing * PI);
+
+        switch (mode) {
+            case VANILLA -> {
+            }
+            case SMOOTH -> {
+                GlStateManager.rotate(i * (45.0f + sin1 * -20.0f), 0f, 1f, 0f);
+                GlStateManager.rotate(i * g * -20.0f, 0f, 0f, 1f);
+                GlStateManager.rotate(g * -80.0f, 1f, 0f, 0f);
+                GlStateManager.rotate(i * -45.0f, 0f, 1f, 0f);
+                GlStateManager.translate(0.0, -0.1, 0.0);
+            }
+            case SPIN -> GlStateManager.rotate(swing * -360f, 1f, 0f, 0f);
+            case SLAP -> {
+                GlStateManager.rotate(-sin(swing * 3f) * 60f, 1f, 0f, 0f);
+                GlStateManager.rotate(i * -60f * g, 0f, 0f, 1f);
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "session-timer.title": "Session Timer",
+  "session-timer.started": "Your session is running.",
+  "session-timer.reset": "Timer restarted.",
+  "session-timer.key.reset": "Restart session timer",
+  "session-timer.setting.notify_on_join": "Notify when joining a world",
+  "session-timer.widget.timer": "Session time",
+  "session-timer.widget.timer.description": "Time since joining the current world",
+  "session-timer.widget.timer.label": "Label",
+  "session-timer.widget.timer.format": "Format",
+  "session-timer.widget.timer.format.hms": "h:mm:ss",
+  "session-timer.widget.timer.format.hm": "h:mm",
+  "session-timer.widget.timer.format.minutes": "Minutes",
+  "session-timer.widget.timer.background": "Background",
+  "session-timer.widget.timer.color": "Color"
+}

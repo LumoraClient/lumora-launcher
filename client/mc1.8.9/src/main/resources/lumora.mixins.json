@@ -1,0 +1,33 @@
+{
+  "required": true,
+  "package": "dev.lumora.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MinecraftClientMixin",
+    "GameRendererMixin",
+    "ScreenMixin",
+    "ChatScreenMixin",
+    "MouseScrollMixin",
+    "HeldItemSwingMixin",
+    "ButtonSkinMixin",
+    "SliderWidgetSkinMixin",
+    "OptionSliderWidgetSkinMixin",
+    "NameTagIconMixin",
+    "TabListIconMixin"
+  ,
+    "CrosshairMixin",
+    "ScoreboardMixin",
+    "TabPingMixin",
+    "ChatMixin",
+    "BlockOutlineMixin",
+    "BrowserScreenMixin",
+    "JoinMultiplayerScreenAccessor",
+    "SelectWorldScreenAccessor",
+    "ButtonStyleMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

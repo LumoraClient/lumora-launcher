@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-10-20T09:48:32.492803500Z",
+  "profile": "26.3",
+  "launcherVersion": "0.1.0",
+  "minecraft": "26.3",
+  "java": "25.0.1+8-LTS",
+  "os": "Windows 11 10.0 amd64",
+  "maxHeapMb": 4096,
+  "usedHeapMb": 705,
+  "cpuCores": 16,
+  "uptimeMs": 96987,
+  "renderer": {
+    "sodiumLoaded": true,
+    "gpuDevice": {
+      "backend": "OpenGL",
+      "renderer": "Radeon RX Vega",
+      "vendor": "ATI Technologies Inc.",
+      "version": "3.3.0 Core Profile Context 25.8.1.250617"
+    }
+  },
+  "protocol": {
+    "viafabricplusLoaded": true,
+    "targetVersion": "26.3"
+  },
+  "mods": [
+    "fabric-api 0.164.0+26.3",
+    "fabricloader 0.19.5",
+    "java 25",
+    "labyvoice 0.7.1",
+    "lumora 0.1.0",
+    "lumora-session-timer 1.0.0",
+    "minecraft 26.3",
+    "sodium 0.9.2+mc26.3",
+    "viafabricplus 5.1.2",
+    "voicechat 2.6.24+26.3"
+  ],
+  "smokeTest": "PASSED: main menu reached, Lumora API checked",
+  "lumoraApi": {
+    "apiVersion": "1.0.0",
+    "profile": "default",
+    "addons": [
+      "lumora 1.0.0 ENABLED",
+      "labyvoice 0.7.1 ENABLED",
+      "session-timer 1.0.0 ENABLED"
+    ],
+    "widgets": [
+      "lumora:fps on x=0.430 y=0.000 scale=1.000",
+      "lumora:cps on x=0.005 y=0.075 scale=1.000",
+      "lumora:coords on x=0.005 y=0.140 scale=1.000",
+      "lumora:keystrokes on x=0.995 y=0.860 scale=1.000",
+      "lumora:ping on x=0.995 y=0.075 scale=1.000",
+      "lumora:clock off x=0.995 y=0.010 scale=1.000",
+      "lumora:speed off x=0.005 y=0.220 scale=1.000",
+      "lumora:armor off x=0.995 y=0.600 scale=1.000",
+      "lumora:server off x=0.995 y=0.140 scale=1.000",
+      "labyvoice:voice on x=0.015 y=0.561 scale=1.000",
+      "session-timer:timer on x=0.500 y=0.010 scale=1.000"
+    ],
+    "problems": []
+  },
+  "mainMenu": "LumoraTitleScreen",
+  "titleScreenFrameStats": "frames=300 duration=5.0s avgFPS=60.0 1%low=57.4 0.1%low=56.0 frametime p50=16.67ms p95=16.73ms p99=17.10ms max=17.84ms",
+  "screenshots": [
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-menu.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hub.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-options.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-worlds.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-multiplayer.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-transition.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hub-modules.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hub-settings.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hud-editor.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hud-editor-move.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-widget-settings.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hub-addons.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-loading.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-loading-done.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-font.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-font-off.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-swing-vanilla.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-swing-smooth.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-swing-spin.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-swing-slap.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-zoom-before.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-zoom.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-pause.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hub-ingame.png",
+    "<LUMORA_HOME>\\instances\\26.3\\screenshots\\smoke-26.3-hud-ingame.png"
+  ],
+  "inWorld": "PASSED: demo world, 4 swing modes, pause menu, hub, HUD"
+}

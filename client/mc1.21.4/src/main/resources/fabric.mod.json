@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "lumora",
+  "version": "${version}",
+  "name": "Lumora Client",
+  "description": "Companion mod of the Lumora client distribution: client hub, renderer/protocol status, frame-time benchmark, diagnostics and automated smoke test.",
+  "authors": ["Lumora Client contributors"],
+  "license": "GPL-3.0-or-later",
+  "icon": "assets/lumora/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.lumora.client.LumoraClient"]
+  },
+  "mixins": [
+    {
+      "config": "lumora.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-screen-api-v1": "*",
+    "fabric-lifecycle-events-v1": "*",
+    "fabric-key-binding-api-v1": "*",
+    "fabric-resource-loader-v0": "*",
+    "fabric-rendering-v1": "*"
+  },
+  "suggests": {
+    "viafabricplus": "*"
+  }
+}

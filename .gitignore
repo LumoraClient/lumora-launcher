@@ -1,0 +1,11 @@
+.gradle/
+build/
+*/build/
+client/*/build/
+client/*/run/
+.idea/
+*.iml
+out/
+.vscode/
+.t/
+.lumora-test-home/

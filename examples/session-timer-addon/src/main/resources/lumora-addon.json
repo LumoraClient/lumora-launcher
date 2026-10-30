@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "id": "session-timer",
+  "name": "Session Timer",
+  "version": "${version}",
+  "description": "Zeit in der aktuellen Welt als HUD-Widget",
+  "authors": ["Lumora"],
+  "api": "1.0.0",
+  "minecraft": ["*"],
+  "entrypoint": "dev.lumora.example.timer.SessionTimerAddon",
+  "depends": { "lumora": ">=1.0.0" },
+  "permissions": ["hud", "keybinds", "notifications", "game"]
+}

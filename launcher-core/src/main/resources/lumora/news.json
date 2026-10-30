@@ -1,0 +1,158 @@
+{
+  "news": [
+    {
+      "id": "lumora-server-list",
+      "date": "2026-10-29",
+      "author": "Lumora",
+      "title": "Neue Server- und Weltliste, Block-Overlay und Button-Designs",
+      "text": "Mehrspieler und Einzelspieler haben in allen 18 Versionen ein eigenes Lumora-Menü: Kontokarte, Suche, „Nur online“ und Versionsfilter, Serverkarten mit Icon, MOTD, Spielern, Version und Ping sowie Hinzufügen, Bearbeiten, Sortieren und Direkt verbinden. Welten zeigen Modus, Version und zuletzt gespielt. „Klassisch“ öffnet jederzeit das Vanilla-Menü, auch für ViaFabricPlus. Neu sind außerdem das Block-Overlay nach FDPClient und BThack (gefüllte Box und Umrandung, Gleiten zwischen Blöcken, nur die angesehene Seite, Regenbogen, Blockinfo), sechs Button-Designs und das Ausblenden beim Schließen von Menüs.",
+      "image": "browser.png"
+    },
+    {
+      "id": "lumora-modules",
+      "date": "2026-10-29",
+      "author": "Lumora",
+      "title": "Fadenkreuz, Toggle Sprint, Fullbright und neue Widgets",
+      "text": "Neue Lumora-Module in allen 18 Versionen, jedes mit eigenem Schalter im Hub unter Addons: eigenes Fadenkreuz, Toggle Sprint und Sneak, Fullbright, Chat mit Zeitstempeln und gestapelten Nachrichten, Ping in Millisekunden in der Tab-Liste und ein frei verschiebbares Scoreboard. Dazu Widgets für Effekte, Pfeile & Items, Kompass, Speicher, Tag, Ressourcenpakete und Combo. Im Launcher: Skin und Umhang wechseln, Freunden mit einem Klick auf ihren Server folgen und automatische Updates.",
+      "image": "modules.png"
+    },
+    {
+      "id": "lumora-launcher-look",
+      "date": "2026-10-29",
+      "author": "Lumora",
+      "title": "Neuer Launcher-Look, Performance-Seite und Vanilla/Fabric",
+      "text": "Der Launcher ist neu gestaltet: große Startseite mit Logo, Versionsauswahl und „Spiel starten“, eine Seitenleiste mit Zählern für Freunde und News und eine wählbare Akzentfarbe. Neu sind die Performance-Seite mit Grafik-Profilen, die Speicherübersicht, Vanilla und Fabric als eigene Startarten, Filter in „Entdecken“ und viele Einstellungen wie Discord Rich Presence, Aktion nach dem Start und Debug-Modus.",
+      "image": "launcher.png"
+    },
+    {
+      "id": "lumora-logo-yin-yang",
+      "date": "2026-10-27",
+      "author": "Lumora",
+      "title": "Neues Logo: Tag und Nacht in Balance",
+      "text": "Lumora hat ein neues Logo: ein Yin & Yang in den Lumora-Farben. Die helle Hälfte trägt den türkis-violetten Verlauf, die dunkle Hälfte das Nachtblau, und statt des hellen Punkts leuchtet dort der Lumora-Stern. Zu sehen im Launcher, in der Taskleiste, im Spiel und auf dem Ladebildschirm aller Versionen.",
+      "image": "logo.png"
+    },
+    {
+      "id": "lumora-launcher-pages",
+      "date": "2026-10-27",
+      "author": "Lumora",
+      "title": "Server-Liste, Neuigkeiten und neue Einstellungen",
+      "text": "Die Server-Liste zeigt beliebte und eigene Server mit Live-Spielerzahlen, Server-Icon, Verlauf und Wochentrend; Beitreten geht direkt per Quick Play. Neu sind auch diese Seite mit Lumora- und Minecraft-News samt Changelog, Einstellungen mit Suche und erweitertem Modus (u. a. Mit Windows starten, Im Tray bleiben) und eine Versionsauswahl nach Hauptversionen.",
+      "image": "versions.png"
+    },
+    {
+      "id": "lumora-social",
+      "date": "2026-10-27",
+      "author": "Lumora",
+      "title": "Lumora Social: Freunde, Gruppen und Chat",
+      "text": "Freunde mit Live-Status, Gruppen mit eigenen Rollen und Chat mit Lesebestätigung, im Launcher unter „Freunde“ und im Spiel mit der Taste U, in allen Versionen von 1.8.9 bis 26.3. Läuft über einen eigenen, selbst gehosteten Lumora-Social-Server.",
+      "image": "social.png"
+    },
+    {
+      "id": "lumora-social-ingame",
+      "date": "2026-10-27",
+      "author": "Lumora",
+      "title": "Chat im Spiel, auch auf 1.8.9",
+      "text": "Die Freunde-Ansicht im Spiel ist versionsunabhängig gebaut und sieht in 1.8.9 genauso aus wie in 26.3. Neue Nachrichten, Freundschaftsanfragen und Freunde, die online kommen, erscheinen als Lumora-Hinweis.",
+      "image": "social-ingame.png"
+    },
+    {
+      "id": "lumora-18-versions",
+      "date": "2026-10-20",
+      "author": "Lumora",
+      "title": "Die Lumora-Oberfläche in 18 Versionen",
+      "text": "Hauptmenü, Hub, HUD-Editor, Widgets, Zoom und Schlaganimationen gibt es jetzt von 1.8.9 bis 26.3. Ältere Versionen starten dafür mit Java 21.",
+      "image": "hud-editor.png"
+    }
+  ],
+  "changelog": [
+    {
+      "version": "0.1.0",
+      "date": "2026-10-29",
+      "title": "Lumora-Module, Skins und Selbst-Update",
+      "items": [
+        "Fadenkreuz-Editor: Kreuz mit Lücke, Kreuz, T, X, Kreis, Punkt; Größe, Abstand, Dicke, Farbe, Umrandung, Mittelpunkt",
+        "Toggle Sprint und Sneak mit HUD-Anzeige, Fullbright mit Taste zum Umschalten",
+        "Chat: Zeitstempel (14:05, 14:05:09, 2:05 PM) und gleiche Nachrichten als eine Zeile (x2, x3 …)",
+        "Tab-Liste: Ping in Millisekunden, farbig; Scoreboard ausblenden, verschieben, skalieren, rote Zahlen ausblenden (ab 1.20.4)",
+        "Neue Widgets: Effekte mit Restzeit, Pfeile & Items, Kompass, Speicher, Tag & Uhrzeit, Ressourcenpakete, Combo",
+        "Launcher: Skin hochladen mit Vorschau, Standard-Skin, Umhang wählen, Skin-Bibliothek",
+        "Launcher: Freunden auf ihren Server folgen – jetzt auch für Versionen vor 1.20 und direkt aus der Freundesliste",
+        "Launcher: Selbst-Update über GitHub Releases, nur mit gültiger Signatur"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-29",
+      "title": "Launcher im neuen Look",
+      "items": [
+        "Startseite mit großem Logo, Slogan, Funktionsleiste und „Spiel starten“; der Pfeil daneben öffnet die Versionsauswahl mit Startart",
+        "Seitenleiste mit Logo, Online-Freunden und neuen News; Lila als Standard, Akzentfarbe frei wählbar, Pixel-Stil",
+        "Startbildschirm mit Fortschritt beim Laden des Launchers",
+        "Startarten Lumora Client, Vanilla und Fabric, jeweils mit eigenem Spielordner",
+        "Neue Seite „Performance“: Grafik-Profile für options.txt, Performance-Mods, Java und Speicher",
+        "Speicherübersicht mit Belegung je Kategorie und „Ungenutzte Daten löschen“",
+        "„Entdecken“ mit Filtern für Kategorien, Loader und Spielversionen",
+        "Neue Einstellungen: Mehrere Instanzen, Aktion nach dem Start, Vollbild, Umgebungsvariablen, Performance-Verbesserungen, Benachrichtigungen, Ungelesen-Zähler, Discord Rich Presence, Heap-Dump und Debug-Modus",
+        "Freundesliste: Namen in der Statusfarbe, der Server fett hinter „spielt auf“",
+        "Behoben: Versionskacheln zeichneten beim Scrollen über die Spielleiste"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-29",
+      "title": "Lila Design auch im Spiel",
+      "items": [
+        "Lumora-Hub, Hauptmenü, HUD-Editor, Widgets, Freunde-Ansicht und Ladebildschirm in den Lila-Farben des Launchers, in allen 18 Versionen",
+        "Lumora Theme (Knöpfe, Slider, Tabs, Listen der Minecraft-Menüs) und Polarlicht-Effekt im Hauptmenü in Lila",
+        "Neuer Menü-Hintergrund: Abendlandschaft mit Schloss wie auf der Launcher-Startseite",
+        "Addons: Colors.ACCENT der Lumora-API ist jetzt Lila",
+        "Behoben: Lumora Theme war in 26.2 und 26.3 inaktiv (falsches Paketformat), die Minecraft-Menüs blieben dort grau"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-27",
+      "title": "Neues Logo",
+      "items": [
+        "Logo als Yin & Yang in den Lumora-Farben, der Lumora-Stern als helles Auge",
+        "Neu in Launcher, Windows-Symbol und Installer, Lumora-Hub und Hauptmenü aller 18 Versionen",
+        "Ladebildschirm im Spiel zeigt das Yin & Yang als Pixelgrafik"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-27",
+      "title": "Neuigkeiten, Server, Einstellungen, Versionsauswahl",
+      "items": [
+        "Seite „Neuigkeiten“: Lumora-News und Changelog, Minecraft-News und Patch Notes (Quelle: Mojangs Launcher-Inhalte), Filter Alle/Lumora/Minecraft",
+        "Seite „Server“: beliebte Server und eigene Server mit Live-Spielerzahl, Server-Icon, Version, Verlauf und Wochentrend aus eigenen Messungen, eigene Bewertung, Quick Play",
+        "Einstellungen neu: Kategorien, Suche, erweiterter Modus, sofortiges Speichern; neu „Mit Windows starten“, „Im Tray bleiben“, „Gleichzeitige Downloads“, Startseite",
+        "Versionsauswahl als Raster nach Hauptversionen mit Unterversionen"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-27",
+      "title": "Lumora Social",
+      "items": [
+        "Freunde, Anfragen, Status (Launcher, Hauptmenü, Einzelspieler, Server)",
+        "Gruppen mit Banner, Beschreibung und eigenen Rollen (Symbol, Farbe, Verwalten-Recht)",
+        "Direkt- und Gruppenchat mit Ungelesen-Zähler und ✓✓-Lesebestätigung",
+        "Im Spiel in allen 18 Versionen (Taste U), Benachrichtigungen",
+        "Selbst hostbarer Server (lumora-social-server.jar) mit Anmeldung über den offiziellen Mojang-Sitzungsdienst"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-20",
+      "title": "Lumora-Oberfläche in 18 Versionen",
+      "items": [
+        "Lumora-Mod für 1.8.9, 1.12.2, 1.16.5–1.21.11 und 26.1–26.3",
+        "Ältere Versionen starten mit Java 21",
+        "1.12.2: Absturz beim Erstellen einer Welt behoben",
+        "Mod-Prüfung kennt die von Fabric Loader mitgelieferten Mods (MixinExtras)"
+      ]
+    }
+  ]
+}

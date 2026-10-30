@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-10-20T10:13:54.177557900Z",
+  "profile": "1.12.2",
+  "launcherVersion": "0.1.0",
+  "minecraft": "1.12.2",
+  "java": "21.0.7+6-LTS",
+  "os": "Windows 11 10.0 amd64",
+  "maxHeapMb": 4096,
+  "usedHeapMb": 516,
+  "cpuCores": 16,
+  "uptimeMs": 52245,
+  "renderer": {
+    "sodiumLoaded": false,
+    "gpuDevice": {
+      "backend": "OpenGL",
+      "renderer": "Radeon RX Vega",
+      "vendor": "ATI Technologies Inc.",
+      "version": "4.6.0 Compatibility Profile Context 25.8.1.250617"
+    }
+  },
+  "protocol": {
+    "viafabricplusLoaded": false,
+    "viafabricLoaded": true
+  },
+  "mods": [
+    "fabricloader 0.19.5",
+    "java 21",
+    "legacy-fabric-api 1.13.5",
+    "lumora 0.1.0",
+    "lumora-session-timer 1.0.0",
+    "minecraft 1.12.2",
+    "viafabric 0.4.18+108-legacy"
+  ],
+  "smokeTest": "PASSED: main menu reached, Lumora API checked",
+  "lumoraApi": {
+    "apiVersion": "1.0.0",
+    "profile": "default",
+    "addons": [
+      "lumora 1.0.0 ENABLED",
+      "session-timer 1.0.0 ENABLED"
+    ],
+    "widgets": [
+      "lumora:fps on x=0.854 y=0.000 scale=1.000",
+      "lumora:cps on x=0.005 y=0.075 scale=1.000",
+      "lumora:coords on x=0.005 y=0.140 scale=1.000",
+      "lumora:keystrokes on x=0.995 y=0.860 scale=1.000",
+      "lumora:ping on x=0.995 y=0.075 scale=1.000",
+      "lumora:clock off x=0.995 y=0.010 scale=1.000",
+      "lumora:speed off x=0.005 y=0.220 scale=1.000",
+      "lumora:armor off x=0.995 y=0.600 scale=1.000",
+      "lumora:server off x=0.995 y=0.140 scale=1.000",
+      "session-timer:timer on x=1.000 y=0.000 scale=1.000"
+    ],
+    "problems": []
+  },
+  "mainMenu": "LumoraTitleScreen",
+  "titleScreenFrameStats": "frames=150 duration=5.0s avgFPS=30.0 1%low=28.7 0.1%low=28.7 frametime p50=33.29ms p95=34.61ms p99=34.71ms max=34.86ms",
+  "screenshots": [
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-menu.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hub.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-options.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-worlds.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-multiplayer.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-transition.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hub-modules.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hub-settings.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hud-editor.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hud-editor-move.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-widget-settings.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hub-addons.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-swing-vanilla.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-swing-smooth.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-swing-spin.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-swing-slap.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-zoom-before.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-zoom.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-pause.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hub-ingame.png",
+    "<LUMORA_HOME>\\instances\\1.12.2\\screenshots\\smoke-1.12.2-hud-ingame.png"
+  ],
+  "inWorld": "PASSED: demo world, 4 swing modes, pause menu, hub, HUD"
+}

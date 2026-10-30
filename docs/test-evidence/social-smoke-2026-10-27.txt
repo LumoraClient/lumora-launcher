@@ -1,0 +1,39 @@
+# LV=1 .t/social-smoke.sh <18 Profile>, 2026-10-26/27: Lumora-Social-Testserver (--dev-auth, 127.0.0.1) mit Test-Bots
+26.3 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+26.2 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+26.1.2 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+26.1.1 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+26.1 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+1.21.11 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+1.21.8 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 3 addon(s), 11 widget(s)
+1.21.4 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.21 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.20.6 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.20.4 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.20.1 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.19.4 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.18.2 exit=0 SMOKE TEST PASSED | 
+1.17.1 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.16.5 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.12.2 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+1.8.9 exit=0 SMOKE TEST PASSED | Lumora API 1.0.0: 2 addon(s), 10 widget(s)
+DONE
+# Ergebnis "social" je Profil (Smoke-Bericht):
+26.3: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+26.2: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+26.1.2: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+26.1.1: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+26.1: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.21.11: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.21.8: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.21.4: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.21: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.20.6: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.20.4: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.20.1: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.19.4: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.18.2: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.17.1: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.16.5: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.12.2: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"
+1.8.9: "PASSED: online as DemoSmokeTest, 1 friend(s), group "BedWars Squad", message delivered, 1 reply(s)"

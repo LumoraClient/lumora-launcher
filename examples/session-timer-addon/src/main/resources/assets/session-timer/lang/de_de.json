@@ -1,0 +1,16 @@
+{
+  "session-timer.title": "Session Timer",
+  "session-timer.started": "Die Sitzung läuft.",
+  "session-timer.reset": "Timer neu gestartet.",
+  "session-timer.key.reset": "Session-Timer neu starten",
+  "session-timer.setting.notify_on_join": "Hinweis beim Betreten einer Welt",
+  "session-timer.widget.timer": "Sitzungszeit",
+  "session-timer.widget.timer.description": "Zeit seit dem Betreten der aktuellen Welt",
+  "session-timer.widget.timer.label": "Beschriftung",
+  "session-timer.widget.timer.format": "Format",
+  "session-timer.widget.timer.format.hms": "Std:Min:Sek",
+  "session-timer.widget.timer.format.hm": "Std:Min",
+  "session-timer.widget.timer.format.minutes": "Minuten",
+  "session-timer.widget.timer.background": "Hintergrund",
+  "session-timer.widget.timer.color": "Farbe"
+}

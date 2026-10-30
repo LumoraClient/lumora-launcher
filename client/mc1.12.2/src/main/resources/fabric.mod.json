@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "lumora",
+  "version": "${version}",
+  "name": "Lumora Client",
+  "description": "Lumora companion mod: main menu, hub, HUD editor and widgets in the Lumora design.",
+  "authors": ["Lumora"],
+  "license": "GPL-3.0-or-later",
+  "icon": "assets/lumora/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.lumora.client.LumoraClient"]
+  },
+  "mixins": ["lumora.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "1.12.2",
+    "java": ">=21",
+    "legacy-fabric-api": "*"
+  }
+}

@@ -1,0 +1,90 @@
+# Central version management. All versions are exact (no ranges) and were verified
+# against Maven Central / maven.fabricmc.net / Modrinth on 2026-10-15.
+
+[versions]
+gson = "2.14.0"
+flatlaf = "3.7.2"
+flatlaf-inter = "4.1"
+jna = "5.19.1"
+junit = "6.1.3"
+loom = "1.18.4"
+
+# Minecraft 26.1.2 profile (see docs/COMPATIBILITY.md)
+mc26-minecraft = "26.1.2"
+mc26-fabric-loader = "0.19.5"
+mc26-fabric-api = "0.155.3+26.1.2"
+
+# Minecraft 26.2 and 26.3 profiles (unobfuscated like 26.1.2)
+mc262-minecraft = "26.2"
+mc262-fabric-api = "0.161.0+26.2"
+mc263-minecraft = "26.3"
+mc263-fabric-api = "0.164.0+26.3"
+
+# Minecraft 1.21.11 profile (obfuscated: Mojang mappings + remapping)
+mc1211-minecraft = "1.21.11"
+mc1211-fabric-api = "0.141.6+1.21.11"
+
+# Minecraft 1.21.8 profile (obfuscated: Mojang mappings + remapping)
+mc1218-minecraft = "1.21.8"
+mc1218-fabric-api = "0.136.1+1.21.8"
+
+# Minecraft 1.21.4 profile (obfuscated: Mojang mappings + remapping)
+mc1214-minecraft = "1.21.4"
+mc1214-fabric-api = "0.119.4+1.21.4"
+
+# Minecraft 1.21 profile (obfuscated: Mojang mappings + remapping)
+mc121-minecraft = "1.21"
+mc121-fabric-api = "0.102.0+1.21"
+
+# Minecraft 1.20.6 profile (obfuscated: Mojang mappings + remapping)
+mc1206-minecraft = "1.20.6"
+mc1206-fabric-api = "0.100.8+1.20.6"
+
+# Minecraft 1.20.4 profile (obfuscated: Mojang mappings + remapping)
+mc1204-minecraft = "1.20.4"
+mc1204-fabric-api = "0.97.3+1.20.4"
+
+# Minecraft 1.20.1 profile (obfuscated: Mojang mappings + remapping)
+mc1201-minecraft = "1.20.1"
+mc1201-fabric-api = "0.92.12+1.20.1"
+
+# Minecraft 1.19.4 profile (obfuscated: Mojang mappings + remapping)
+mc1194-minecraft = "1.19.4"
+mc1194-fabric-api = "0.87.2+1.19.4"
+
+# Minecraft 1.18.2 profile (obfuscated: Mojang mappings + remapping)
+mc1182-minecraft = "1.18.2"
+mc1182-fabric-api = "0.77.0+1.18.2"
+
+# Minecraft 1.17.1 profile (obfuscated: Mojang mappings + remapping)
+mc1171-minecraft = "1.17.1"
+mc1171-fabric-api = "0.46.1+1.17"
+
+# Minecraft 1.16.5 profile (obfuscated: Mojang mappings + remapping)
+mc1165-minecraft = "1.16.5"
+mc1165-fabric-api = "0.42.0+1.16"
+
+# Minecraft 1.8.9 profile (Legacy Fabric: Legacy intermediary + Yarn, remapping)
+mc189-minecraft = "1.8.9"
+mc189-yarn = "1.8.9+build.604"
+mc189-legacy-fabric-api = "1.13.5+1.8.9"
+
+# Minecraft 1.12.2 profile (Legacy Fabric: Legacy intermediary + Yarn, remapping)
+mc1122-minecraft = "1.12.2"
+mc1122-yarn = "1.12.2+build.604"
+mc1122-legacy-fabric-api = "1.13.5+1.12.2"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# oldest Gson that Minecraft ships (2.2.4 in 1.8.9 and 1.12.2): lumora-core compiles against it, so it runs on every version
+gson-minecraft-min = { module = "com.google.code.gson:gson", version = "2.2.4" }
+flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
+flatlaf-inter = { module = "com.formdev:flatlaf-fonts-inter", version.ref = "flatlaf-inter" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+[plugins]
+fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }
+fabric-loom-remap = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }

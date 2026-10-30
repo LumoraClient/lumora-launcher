@@ -1,0 +1,256 @@
+package dev.lumora.client.api;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import dev.lumora.api.i18n.Translations;
+import dev.lumora.api.resource.Resources;
+import dev.lumora.client.LumoraClient;
+import dev.lumora.client.hud.HudEditorScreen;
+import dev.lumora.core.CoreLogger;
+import dev.lumora.core.Platform;
+import dev.lumora.core.input.KeyPlatform;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import org.lwjgl.glfw.GLFW;
+
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+/** Minecraft 26.1.2 implementation of the core's {@link Platform}. */
+final class McPlatform implements Platform {
+    private final McGameContext game = new McGameContext();
+    private final McWorld world = new McWorld();
+    private final McChannels channels = new McChannels();
+    private final CoreLogger logger = new CoreLogger() {
+        @Override
+        public void info(String message) {
+            LumoraClient.LOG.info(message);
+        }
+
+        @Override
+        public void warn(String message) {
+            LumoraClient.LOG.warn(message);
+        }
+
+        @Override
+        public void warn(String message, Throwable error) {
+            LumoraClient.LOG.warn(message, error);
+        }
+
+        @Override
+        public void error(String message, Throwable error) {
+            LumoraClient.LOG.error(message, error);
+        }
+    };
+    private final Translations translations = new Translations() {
+        @Override
+        public String translate(String key, Object... args) {
+            return I18n.get(key, args);
+        }
+
+        @Override
+        public boolean has(String key) {
+            return I18n.exists(key);
+        }
+
+        @Override
+        public String language() {
+            Minecraft mc = Minecraft.getInstance();
+            return mc != null && mc.options != null ? mc.options.languageCode : "en_us";
+        }
+    };
+    private final Resources resources = (namespace, path) -> {
+        try {
+            return Minecraft.getInstance().getResourceManager().getResource(Identifier.fromNamespaceAndPath(namespace, path)).isPresent();
+        } catch (RuntimeException e) {
+            return false;
+        }
+    };
+    private final KeyPlatform keys = new KeyPlatform() {
+        @Override
+        public boolean isDown(int key) {
+            return GLFW.glfwGetKey(Minecraft.getInstance().getWindow().handle(), key) == GLFW.GLFW_PRESS;
+        }
+
+        @Override
+        public String keyName(int key) {
+            return InputConstants.Type.KEYSYM.getOrCreate(key).getDisplayName().getString();
+        }
+
+        @Override
+        public Map<Integer, String> minecraftBindings() {
+            Map<Integer, String> out = new HashMap<>();
+            Minecraft mc = Minecraft.getInstance();
+            if (mc == null || mc.options == null) {
+                return out;
+            }
+            for (KeyMapping km : mc.options.keyMappings) {
+                if (km.isUnbound()) {
+                    continue;
+                }
+                // F3 debug combinations (own key mappings since 1.21.9) only fire with F3 held: no conflict for addon keys
+                if (km.getCategory() == KeyMapping.Category.DEBUG) {
+                    continue;
+                }
+                InputConstants.Key k = InputConstants.getKey(km.saveString());
+                if (k.getType() == InputConstants.Type.KEYSYM) {
+                    out.putIfAbsent(k.getValue(), Component.translatable(km.getName()).getString());
+                }
+            }
+            return out;
+        }
+
+        @Override
+        public boolean acceptsKeybinds() {
+            Minecraft mc = Minecraft.getInstance();
+            return mc.screen == null && mc.player != null && mc.isWindowActive();
+        }
+    };
+
+    McGameContext gameContext() {
+        return game;
+    }
+
+    @Override
+    public String minecraftVersion() {
+        // the running version (one mod build can serve several patch versions, e.g. 26.1 - 26.1.2)
+        return FabricLoader.getInstance().getModContainer("minecraft")
+                .map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("unknown");
+    }
+
+    @Override
+    public String clientVersion() {
+        return FabricLoader.getInstance().getModContainer("lumora")
+                .map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("dev");
+    }
+
+    @Override
+    public Path configDir() {
+        return FabricLoader.getInstance().getConfigDir();
+    }
+
+    @Override
+    public CoreLogger logger() {
+        return logger;
+    }
+
+    @Override
+    public McGameContext game() {
+        return game;
+    }
+
+    @Override
+    public Translations translations() {
+        return translations;
+    }
+
+    @Override
+    public Resources resources() {
+        return resources;
+    }
+
+    @Override
+    public KeyPlatform keys() {
+        return keys;
+    }
+
+    @Override
+    public void openHudEditor() {
+        Minecraft mc = Minecraft.getInstance();
+        dev.lumora.client.gui.AddonViewScreen.keepCurrent();
+        mc.setScreen(new HudEditorScreen(mc.screen));
+    }
+
+    @Override
+    public boolean hudEditorOpen() {
+        return Minecraft.getInstance().screen instanceof HudEditorScreen;
+    }
+
+    @Override
+    public java.util.Optional<dev.lumora.core.social.GameSession> session() {
+        net.minecraft.client.User u = Minecraft.getInstance().getUser();
+        String uuid = u == null ? null : u.getProfileId() == null ? null : u.getProfileId().toString();
+        if (uuid == null) {
+            return java.util.Optional.empty();
+        }
+        // the token is read only when the Mojang session join needs it
+        return java.util.Optional.of(new dev.lumora.core.social.GameSession(u.getName(), uuid, u::getAccessToken));
+    }
+
+    @Override
+    public void openSocial() {
+        Minecraft mc = Minecraft.getInstance();
+        if (!(mc.screen instanceof dev.lumora.client.gui.SocialScreen)) {
+            mc.setScreen(new dev.lumora.client.gui.SocialScreen(mc.screen));
+        }
+    }
+
+    // --- Lumora API 1.1 ---
+
+    @Override
+    public dev.lumora.api.game.WorldAccess world() {
+        return world;
+    }
+
+    @Override
+    public dev.lumora.core.net.ChannelRegistry.Platform channels() {
+        return channels;
+    }
+
+    @Override
+    public dev.lumora.core.screen.ViewManager.Platform views() {
+        return new dev.lumora.core.screen.ViewManager.Platform() {
+            @Override
+            public void show(dev.lumora.api.screen.AddonView view) {
+                dev.lumora.client.gui.AddonViewScreen.show(view);
+            }
+
+            @Override
+            public void close(dev.lumora.api.screen.AddonView view) {
+                dev.lumora.client.gui.AddonViewScreen.close(view);
+            }
+
+            @Override
+            public String clipboard() {
+                String s = net.minecraft.client.Minecraft.getInstance().keyboardHandler.getClipboard();
+                return s == null ? "" : s;
+            }
+
+            @Override
+            public void openAddonSettings(String addonId) {
+                var core = LumoraRuntime.core();
+                var record = core.addonManager().record(addonId).orElse(null);
+                if (record == null || record.configuration() == null) {
+                    return;
+                }
+                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+                dev.lumora.client.gui.AddonViewScreen.keepCurrent();
+                mc.setScreen(new dev.lumora.client.gui.SettingsScreen(mc.screen, net.minecraft.network.chat.Component.literal(record.descriptor().name()),
+                        record.configuration().settings(), core.keybindManager().of(addonId), record.configuration()::save));
+            }
+        };
+    }
+
+    private final McBrowsers browsers = new McBrowsers();
+
+    @Override
+    public dev.lumora.core.browser.BrowserPlatform browsers() {
+        return browsers;
+    }
+
+    private final McExtras extras = new McExtras();
+
+    @Override
+    public dev.lumora.core.extras.GameExtras extras() {
+        return extras;
+    }
+
+    @Override
+    public boolean modLoaded(String modId) {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(modId);
+    }
+}

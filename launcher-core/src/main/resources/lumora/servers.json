@@ -1,0 +1,23 @@
+{
+  "_comment": "Public Minecraft servers shown on the launcher's server page. Player counts, icons and versions are NOT stored here: the launcher asks every server itself (Server List Ping).",
+  "servers": [
+    {"name": "Hypixel Network", "address": "mc.hypixel.net", "modes": ["SkyBlock", "BedWars", "SkyWars", "Duels", "Murder Mystery"], "languages": ["EN"]},
+    {"name": "DonutSMP", "address": "donutsmp.net", "modes": ["SMP"], "languages": ["EN"]},
+    {"name": "HugoSMP", "address": "hugosmp.net", "modes": ["SMP"], "languages": ["EN", "DE"]},
+    {"name": "PvP Club", "address": "mcpvp.club", "modes": ["Duels", "FFA"], "languages": ["EN"]},
+    {"name": "Minehut", "address": "mc.minehut.com", "modes": ["Player Servers"], "languages": ["EN"]},
+    {"name": "PvPHQ", "address": "pvphq.com", "modes": ["Sword", "Axe", "Crystal"], "languages": ["EN"]},
+    {"name": "WildNetwork", "address": "wildprison.net", "modes": ["Survival", "Prison"], "languages": ["EN"]},
+    {"name": "KoksCraft", "address": "kokscraft.pl", "modes": ["KitPvP"], "languages": ["PL"]},
+    {"name": "Minemen Club", "address": "minemen.club", "modes": ["Practice", "Duels"], "languages": ["EN"]},
+    {"name": "TalonMC", "address": "talonmc.net", "modes": ["Prison", "SkyBlock"], "languages": ["EN"]},
+    {"name": "GommeHD.net", "address": "gommehd.net", "modes": ["BedWars", "SkyWars", "Cores", "Survival Games"], "languages": ["DE", "EN"]},
+    {"name": "GrieferGames", "address": "griefergames.net", "modes": ["Survival", "Citybuild"], "languages": ["DE"]},
+    {"name": "CubeCraft", "address": "play.cubecraft.net", "modes": ["SkyWars", "EggWars", "BedWars"], "languages": ["EN"]},
+    {"name": "Wynncraft", "address": "play.wynncraft.com", "modes": ["MMORPG"], "languages": ["EN"]},
+    {"name": "ManaCube", "address": "play.manacube.com", "modes": ["SkyBlock", "Parkour", "Survival"], "languages": ["EN"]},
+    {"name": "PikaNetwork", "address": "play.pika-network.net", "modes": ["BedWars", "SkyWars", "Prison"], "languages": ["EN"]},
+    {"name": "BlocksMC", "address": "blocksmc.com", "modes": ["BedWars", "SkyWars"], "languages": ["EN"]},
+    {"name": "2b2t", "address": "2b2t.org", "modes": ["Anarchy"], "languages": ["EN"]}
+  ]
+}

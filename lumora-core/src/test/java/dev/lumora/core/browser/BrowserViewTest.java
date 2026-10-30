@@ -93,6 +93,17 @@ class BrowserViewTest {
         Text find(String label) {
             return texts.stream().filter(t -> t.text().equals(label)).findFirst().orElse(null);
         }
+
+        /** The last drawn text with this label (a dialog is drawn after the screen below it). */
+        Text findLast(String label) {
+            Text found = null;
+            for (Text t : texts) {
+                if (t.text().equals(label)) {
+                    found = t;
+                }
+            }
+            return found;
+        }
     }
 
     static final class FakeGame implements BrowserPlatform {
@@ -217,6 +228,60 @@ class BrowserViewTest {
         // search filters
         "mein".chars().forEach(c -> v.charTyped((char) c));
         assertEquals(1, v.rowCount());
+    }
+
+    /** Everything with the mouse, like a player: dialog buttons and fields, delete, cancel, toolbar while scrolled. */
+    @Test
+    void dialogsAndToolbarWorkWithTheMouse(@TempDir Path dir) throws IOException {
+        Path config = Files.createDirectories(dir.resolve("config"));
+        Servers seed = new Servers(dir.resolve("servers.dat"));
+        for (int i = 1; i <= 10; i++) {
+            seed.entries().add(new Servers.Entry("Server " + i, "127.0.0.1:" + i));
+        }
+        seed.save();
+        FakeGame game = new FakeGame();
+        ServerBrowserView v = new ServerBrowserView(platform(config), game);
+        FakeGraphics g = render(v);
+        click(v, g.find("Hinzufügen") != null ? g.find("Hinzufügen") : g.find("Neu"));
+        assertNotNull(v.dialog);
+        g = render(v);
+        // click into the address field (its placeholder) and type, then click the dialog's "Hinzufügen"
+        click(v, g.findLast("play.example.net"));
+        "127.0.0.1:99".chars().forEach(c -> v.charTyped((char) c));
+        click(v, g.findLast("Hinzufügen"));
+        assertNull(v.dialog, "the save button of the dialog closes it");
+        assertEquals("127.0.0.1:99", new Servers(dir.resolve("servers.dat")).load().entries().get(10).address);
+        // cancel with the mouse
+        g = render(v);
+        click(v, g.find("Hinzufügen") != null ? g.find("Hinzufügen") : g.find("Neu"));
+        g = render(v);
+        click(v, g.findLast("Abbrechen"));
+        assertNull(v.dialog);
+        assertEquals(11, new Servers(dir.resolve("servers.dat")).load().entries().size(), "cancel saves nothing");
+        // delete the first server: hover the row, click its delete button, confirm with the mouse
+        g = new FakeGraphics();
+        v.render(g, W, H, W / 2, v.listTop + 10);
+        FakeGraphics.Text del = g.find("§c✕");
+        assertNotNull(del, "row actions on hover");
+        v.mouseClicked(del.x() + 2, del.y() + 3, 0);
+        assertNotNull(v.dialog);
+        g = render(v);
+        click(v, g.findLast("Entfernen"));
+        assertNull(v.dialog);
+        assertEquals("Server 2", new Servers(dir.resolve("servers.dat")).load().entries().get(0).name);
+        // scrolled so that a row is cut off at the top: the toolbar still gets its clicks
+        v.mouseScrolled(10, 100, -1.35); // first row starts 32 px above the list, its play button lies under the toolbar
+        g = render(v);
+        boolean before = ServerBrowserView.compatibleOnly;
+        click(v, g.find("Alle Versionen ▾"));
+        assertEquals(!before, ServerBrowserView.compatibleOnly, "version filter works over a cut-off row");
+        ServerBrowserView.compatibleOnly = before;
+        g = render(v);
+        boolean online = ServerBrowserView.onlineOnly;
+        click(v, g.find("Nur online"));
+        assertEquals(!online, ServerBrowserView.onlineOnly);
+        ServerBrowserView.onlineOnly = online;
+        assertTrue(game.calls.isEmpty(), "no server was joined by clicking the toolbar");
     }
 
     @Test

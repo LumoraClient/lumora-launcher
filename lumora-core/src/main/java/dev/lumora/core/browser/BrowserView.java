@@ -278,8 +278,24 @@ abstract class BrowserView implements AddonView {
             int index = i;
             int rowsBefore = hits.size();
             drawRow(g, i, x + 4, ry, rowW, ROW_H, hover, mx, my);
-            // row buttons were added by drawRow; the row click goes below them
-            hits.add(rowsBefore, new Hit(x + 4, Math.max(ry, y + 4), x + 4 + rowW, Math.min(ry + ROW_H, y + h - 4), () -> clickRow(index)));
+            // buttons of a row that is partly scrolled out only count inside the list, never over the toolbar or
+            // the bottom bar
+            int top = y + 4;
+            int bottom = y + h - 4;
+            for (int k = hits.size() - 1; k >= rowsBefore; k--) {
+                Hit b = hits.get(k);
+                int y1 = Math.max(b.y1(), top);
+                int y2 = Math.min(b.y2(), bottom);
+                if (y1 >= y2) {
+                    hits.remove(k);
+                } else {
+                    hits.set(k, new Hit(b.x1(), y1, b.x2(), y2, b.action()));
+                }
+            }
+            // the row click goes below its buttons
+            if (Math.max(ry, top) < Math.min(ry + ROW_H, bottom)) {
+                hits.add(rowsBefore, new Hit(x + 4, Math.max(ry, top), x + 4 + rowW, Math.min(ry + ROW_H, bottom), () -> clickRow(index)));
+            }
         }
         g.disableScissor();
         if (bar) {
@@ -472,6 +488,8 @@ abstract class BrowserView implements AddonView {
         int x = (width - w) / 2;
         int y = (height - h) / 2;
         g.card(x, y, w, h, 7, 0xFA17131F, BORDER);
+        // the dialog itself swallows clicks that hit nothing in it; added first, so its fields and buttons win
+        hits.add(new Hit(x, y, x + w, y + h, () -> { }));
         g.text("§l" + d.title, x + 12, y + 12, TEXT, false);
         int cy = y + 28;
         for (String line : msg) {
@@ -495,7 +513,6 @@ abstract class BrowserView implements AddonView {
         int by = y + h - 28;
         button(g, x + 12, by, bw, 20, t("Abbrechen", "Cancel"), Style.SECONDARY, mx, my, this::closeDialog);
         button(g, x + w - 12 - bw, by, bw, 20, d.okLabel, d.danger ? Style.DANGER : Style.PRIMARY, mx, my, () -> d.onOk.accept(d));
-        hits.add(new Hit(x, y, x + w, y + h, () -> { }));
     }
 
     static List<String> wrap(HudGraphics g, String text, int max) {

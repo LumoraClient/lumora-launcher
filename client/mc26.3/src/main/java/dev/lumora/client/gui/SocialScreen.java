@@ -87,7 +87,14 @@ public final class SocialScreen extends Screen {
     }
 
     @Override
+    protected void init() {
+        // 26.3 (SDL) only sends typed text while a text input is started; the chat field is drawn by the view
+        minecraft.textInputManager().startTextInput(this);
+    }
+
+    @Override
     public void removed() {
+        minecraft.textInputManager().stopTextInput(this);
         view.removed();
     }
 

@@ -209,6 +209,12 @@ public final class SmokeTest {
                             && dev.lumora.core.browser.BrowserModule.enabled() && !dev.lumora.client.gui.AddonViewScreen.isShowing()) {
                         extraProblems.add(current.name() + ": Lumora list did not replace the vanilla screen");
                     }
+                    if (current.name().equals("multiplayer")) {
+                        LOG.info("Smoke test: Lumora list showing={}, SDL text input on={}", dev.lumora.client.gui.AddonViewScreen.isShowing(), textInputOn(mc));
+                    }
+                    if (current.name().equals("multiplayer") && dev.lumora.client.gui.AddonViewScreen.isShowing() && !textInputOn(mc)) {
+                        extraProblems.add("multiplayer: SDL text input is off, typing in Lumora fields would not work");
+                    }
                     if (current.name().startsWith("voice-") && !dev.lumora.client.gui.AddonViewScreen.isShowing()) {
                         extraProblems.add(current.name() + ": LumoraVoice menu did not open");
                     }
@@ -389,6 +395,17 @@ public final class SmokeTest {
             screenshot(mc, "blockoverlay");
             phase = Phase.DONE;
             finish(mc);
+        }
+    }
+
+    /** Whether SDL text input is started (26.3 only delivers typed characters then). */
+    private static boolean textInputOn(Minecraft mc) {
+        try {
+            java.lang.reflect.Field f = mc.textInputManager().getClass().getDeclaredField("textInputEnabled");
+            f.setAccessible(true);
+            return f.getBoolean(mc.textInputManager());
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return true; // cannot tell: no false alarm
         }
     }
 

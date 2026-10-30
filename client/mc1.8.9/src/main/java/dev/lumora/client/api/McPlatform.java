@@ -221,6 +221,11 @@ final class McPlatform implements Platform {
             }
 
             @Override
+            public void setClipboard(String text) {
+                net.minecraft.client.gui.screen.Screen.setClipboard(text);
+            }
+
+            @Override
             public void openAddonSettings(String addonId) {
                 var core = LumoraRuntime.core();
                 var record = core.addonManager().record(addonId).orElse(null);

@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -135,6 +136,32 @@ class BrowserViewTest {
         }
     }
 
+    /** Clipboard of the fake views platform. */
+    static final String[] CLIP = {""};
+    static final dev.lumora.core.screen.ViewManager.Platform VIEWS = new dev.lumora.core.screen.ViewManager.Platform() {
+        @Override
+        public void show(dev.lumora.api.screen.AddonView view) {
+        }
+
+        @Override
+        public void close(dev.lumora.api.screen.AddonView view) {
+        }
+
+        @Override
+        public String clipboard() {
+            return CLIP[0];
+        }
+
+        @Override
+        public void setClipboard(String text) {
+            CLIP[0] = text;
+        }
+
+        @Override
+        public void openAddonSettings(String addonId) {
+        }
+    };
+
     /** A Platform with a config dir, German language and nothing else (every other call returns a default). */
     static Platform platform(Path config) {
         Object translations = Proxy.newProxyInstance(BrowserViewTest.class.getClassLoader(),
@@ -144,6 +171,7 @@ class BrowserViewTest {
             case "translations" -> translations;
             case "minecraftVersion" -> "1.21.11";
             case "modLoaded" -> false;
+            case "views" -> VIEWS;
             default -> defaults(proxy, m, args);
         };
         return (Platform) Proxy.newProxyInstance(BrowserViewTest.class.getClassLoader(), new Class<?>[]{Platform.class}, h);
@@ -282,6 +310,51 @@ class BrowserViewTest {
         assertEquals(!online, ServerBrowserView.onlineOnly);
         ServerBrowserView.onlineOnly = online;
         assertTrue(game.calls.isEmpty(), "no server was joined by clicking the toolbar");
+    }
+
+    /** Text fields: select with Shift, mouse and Ctrl+A; copy, cut, paste; typing replaces the selection. */
+    @Test
+    void textFieldsSelectCopyAndPaste(@TempDir Path dir) throws IOException {
+        Path config = Files.createDirectories(dir.resolve("config"));
+        ServerBrowserView v = new ServerBrowserView(platform(config), new FakeGame());
+        render(v);
+        "hello world".chars().forEach(c -> v.charTyped((char) c));
+        assertEquals("hello world", v.search.value());
+        // Shift+Ctrl+Left selects the last word, typing replaces it
+        v.keyPressed(Keys.LEFT, true, true);
+        assertEquals("world", v.search.selected());
+        "lumora".chars().forEach(c -> v.charTyped((char) c));
+        assertEquals("hello lumora", v.search.value());
+        // Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V
+        v.keyPressed(Keys.A, true, false);
+        v.keyPressed(Keys.C, true, false);
+        assertEquals("hello lumora", CLIP[0]);
+        v.keyPressed(Keys.X, true, false);
+        assertEquals("", v.search.value());
+        v.keyPressed(Keys.V, true, false);
+        v.keyPressed(Keys.V, true, false);
+        assertEquals("hello lumorahello lumora", v.search.value());
+        // Shift+Home selects to the start, Delete removes it
+        v.keyPressed(Keys.HOME, false, true);
+        assertEquals(24, v.search.selected().length());
+        v.keyPressed(Keys.DELETE, false, false);
+        assertEquals("", v.search.value());
+        // the mouse: click places the cursor, dragging selects, double click selects all
+        "abcdef".chars().forEach(c -> v.charTyped((char) c));
+        render(v);
+        int[] xs = v.search.xs;
+        v.mouseClicked(xs[2], v.listTop - 20, 0);
+        assertEquals(2, v.search.cursor);
+        assertFalse(v.search.hasSelection());
+        v.mouseDragged(xs[5], v.listTop - 20, 0);
+        v.mouseReleased(xs[5], v.listTop - 20, 0);
+        assertEquals("cde", v.search.selected());
+        v.mouseClicked(xs[1], v.listTop - 20, 0);
+        v.mouseClicked(xs[1], v.listTop - 20, 0);
+        assertEquals("abcdef", v.search.selected(), "double click selects everything");
+        // Backspace removes the selection
+        v.keyPressed(Keys.BACKSPACE, false, false);
+        assertEquals("", v.search.value());
     }
 
     @Test

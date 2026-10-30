@@ -25,6 +25,10 @@ public final class ViewManager {
 
         String clipboard();
 
+        /** Puts {@code text} on the clipboard (copy and cut in Lumora text fields). */
+        default void setClipboard(String text) {
+        }
+
         /** Lumora hub settings of the addon (addon settings and keybinds). */
         void openAddonSettings(String addonId);
 

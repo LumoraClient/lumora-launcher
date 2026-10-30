@@ -65,6 +65,8 @@ public final class AddonViewScreen extends Screen {
     @Override
     protected void init() {
         keepView = false; // shown (again)
+        // 26.3 (SDL) only sends typed text while a text input is started; the views have their own text fields
+        minecraft.textInputManager().startTextInput(this);
     }
 
     @Override
@@ -121,6 +123,7 @@ public final class AddonViewScreen extends Screen {
 
     @Override
     public void removed() {
+        minecraft.textInputManager().stopTextInput(this);
         if (keepView) {
             return;
         }

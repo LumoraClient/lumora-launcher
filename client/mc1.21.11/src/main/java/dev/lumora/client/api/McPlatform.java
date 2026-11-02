@@ -134,6 +134,12 @@ final class McPlatform implements Platform {
     }
 
     @Override
+    public Path addonsDir() {
+        // Lumora addons as plain jars, loaded by Lumora itself (next to mods/, not by Fabric)
+        return FabricLoader.getInstance().getGameDir().resolve("addons");
+    }
+
+    @Override
     public CoreLogger logger() {
         return logger;
     }

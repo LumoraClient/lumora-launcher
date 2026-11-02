@@ -24,7 +24,7 @@ import java.util.Set;
  * </ul>
  */
 public final class ResolvedVersion {
-    /** {@code path} is relative to the libraries directory; {@code url} is null for files a loader installer created. */
+    /** {@code path} is relative to the libraries directory. */
     public record Library(String name, String path, String url, String sha1, long size) {
     }
 
@@ -175,8 +175,7 @@ public final class ResolvedVersion {
                 size = l.size != null ? l.size : 0;
             }
             if (url == null || url.isEmpty()) {
-                // no download: the loader installer put the file there (Forge jar of 1.12.2, patched client)
-                url = null;
+                continue;
             }
             taken.add(key);
             out.put(key, new Library(l.name, path, url, sha1, size));

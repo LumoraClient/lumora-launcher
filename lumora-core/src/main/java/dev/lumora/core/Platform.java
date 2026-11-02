@@ -19,6 +19,19 @@ public interface Platform {
     /** {@code .minecraft/config}; the core writes below {@code config/lumora/}. */
     Path configDir();
 
+    /**
+     * Folder of addon jars that Lumora loads itself (see {@link dev.lumora.core.addon.JarAddonLoader}), normally
+     * {@code .minecraft/addons}; null = none (tests).
+     */
+    default Path addonsDir() {
+        return null;
+    }
+
+    /** Parent of the addon jar class loaders: the game's class loader, which sees the Lumora API, Minecraft and mods. */
+    default ClassLoader addonParentLoader() {
+        return Platform.class.getClassLoader();
+    }
+
     CoreLogger logger();
 
     GameContext game();

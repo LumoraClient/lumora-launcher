@@ -95,7 +95,7 @@
   "lumora.hub.zoom.hint": "Taste %s (änderbar unter Steuerung) · Mausrad beim Zoomen bis 50×",
   "lumora.hub.tab.addons": "Addons",
   "lumora.hub.modules.from": "Aus dem Addon: %s",
-  "lumora.hub.addons.none": "Keine Addons installiert.",
+  "lumora.hub.addons.none": "Keine Addons installiert. Addon-Jars kommen in den Addon-Ordner.",
   "lumora.hub.addons.hint": "Addons sind Fabric-Mods mit lumora-addon.json · ⚙ = Einstellungen und Tasten",
   "lumora.addon.state.loaded": "geladen",
   "lumora.addon.state.resolved": "bereit",
@@ -277,5 +277,6 @@
   "lumora.extras.connection.reconnect_attempts": "Versuche hintereinander",
   "lumora.extras.connection.timeout": "Abbrechen, wenn eine Phase hängt (Sekunden)",
   "lumora.extras.connection.hide_address": "Serveradressen verbergen (Stream-Modus)",
-  "lumora.extras.connection.ping_preview": "Server beim Verbinden anpingen"
+  "lumora.extras.connection.ping_preview": "Server beim Verbinden anpingen",
+  "lumora.hub.addonfolder": "Addon-Ordner"
 }

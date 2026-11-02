@@ -58,6 +58,7 @@ public final class LumoraCore implements Lumora {
     private final WidgetRegistryImpl widgets;
     private final HudRenderer renderer;
     private final AddonManager addons;
+    private final dev.lumora.core.addon.JarAddonLoader jarAddons;
     private final HudEditor hudEditor;
     private final dev.lumora.core.net.ChannelRegistry channels;
     private final dev.lumora.core.render.NameTagRegistry nameTags;
@@ -94,6 +95,7 @@ public final class LumoraCore implements Lumora {
         this.session = new dev.lumora.core.session.SessionServiceImpl(platform::session);
         this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
+        this.jarAddons = new dev.lumora.core.addon.JarAddonLoader(platform.addonsDir(), platform.addonParentLoader(), log);
         this.hudEditor = new HudEditor() {
             @Override
             public void open() {
@@ -142,6 +144,8 @@ public final class LumoraCore implements Lumora {
         if (candidates.stream().noneMatch(c -> c.descriptor() != null && c.descriptor().id().equals("lumora-info"))) {
             all.addAll(Math.min(1, all.size()), dev.lumora.core.extras.Extras.candidates(platform));
         }
+        // addon jars from the addons folder, loaded by Lumora itself (after the adapter's own candidates)
+        all.addAll(jarAddons.discover());
         addons.offByDefault(dev.lumora.core.extras.Extras.OFF_BY_DEFAULT);
         addons.load(all);
         addons.initializeAll();
@@ -228,6 +232,7 @@ public final class LumoraCore implements Lumora {
             social.stop();
         }
         addons.shutdown();
+        jarAddons.close();
         if (widgets.dirty()) {
             widgets.saveNow();
         }
@@ -279,6 +284,11 @@ public final class LumoraCore implements Lumora {
 
     public NotificationCenter notificationCenter() {
         return notifications;
+    }
+
+    /** Lumora's own loader for addon jars in the addons folder. */
+    public dev.lumora.core.addon.JarAddonLoader jarAddons() {
+        return jarAddons;
     }
 
     public AddonManager addonManager() {

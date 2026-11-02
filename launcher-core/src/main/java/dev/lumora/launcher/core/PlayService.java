@@ -149,14 +149,6 @@ public final class PlayService {
                 sysProps.add("-Dlumora.social.shareServer=" + config.socialShareServer);
             }
             List<String> jvmArgs = new ArrayList<>(config.extraJvmArgs);
-        if (flavor.loaderId() != null && config.loaderJvmArgs != null && config.loaderJvmArgs.get(flavor.loaderId()) != null) {
-            // the loader's own extra arguments (loader page), same rules as the general ones
-            for (String a : config.loaderJvmArgs.get(flavor.loaderId()).strip().split("\\s+")) {
-                if (!a.isEmpty() && !a.startsWith("-cp") && !a.startsWith("-classpath") && !a.startsWith("-Xmx") && !a.startsWith("-Xms")) {
-                    jvmArgs.add(a);
-                }
-            }
-        }
             jvmArgs.addAll(dev.lumora.launcher.core.launch.LaunchOptions.jvmArgs(config, paths.diagnostics()));
             List<String> cmd = LaunchCommandBuilder.build(new LaunchCommandBuilder.Request(
                     prepared.version(), prepared.javaExecutable(), paths.libraries(), prepared.clientJar(),

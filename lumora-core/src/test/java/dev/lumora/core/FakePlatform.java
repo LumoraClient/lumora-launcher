@@ -25,6 +25,9 @@ public final class FakePlatform implements Platform {
     public boolean acceptKeys = true;
     public boolean editorOpen;
     public String mc = "26.1.2";
+    /** Addon jar folder (null = none) and the parent loader of its class loaders. */
+    public Path addons;
+    public ClassLoader addonParent = FakePlatform.class.getClassLoader();
 
     public FakePlatform(Path dir) {
         this.dir = dir;
@@ -43,6 +46,16 @@ public final class FakePlatform implements Platform {
     @Override
     public Path configDir() {
         return dir;
+    }
+
+    @Override
+    public Path addonsDir() {
+        return addons;
+    }
+
+    @Override
+    public ClassLoader addonParentLoader() {
+        return addonParent;
     }
 
     @Override

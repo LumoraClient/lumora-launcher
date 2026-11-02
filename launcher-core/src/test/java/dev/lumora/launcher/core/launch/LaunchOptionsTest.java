@@ -95,7 +95,10 @@ class LaunchOptionsTest {
     void flavorInstances() {
         assertEquals("26.1.2", Flavor.LUMORA.instanceId("26.1.2"));
         assertEquals("26.1.2-vanilla", Flavor.VANILLA.instanceId("26.1.2"));
-        assertEquals("26.1.2-fabric", Flavor.FABRIC.instanceId("26.1.2"));
+        // selectable mod loaders are removed: stored ids of them start Lumora
+        for (String removed : new String[]{"fabric", "quilt", "forge", "neoforge"}) {
+            assertEquals(Flavor.LUMORA, Flavor.of(removed), removed);
+        }
         assertEquals(Flavor.VANILLA, Flavor.of("Vanilla"));
         assertEquals(Flavor.LUMORA, Flavor.of("rift"));
         assertEquals(Flavor.LUMORA, Flavor.of(null));

@@ -69,46 +69,11 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 3. **LAUNCHING**: `LaunchCommandBuilder` erzeugt den Befehl aus den Argument-Templates der Versions-JSON (Regeln, Features, Platzhalter).
 4. **PLAYING**: `GameProcess` hält eine Dateisperre auf der Instanz (kein Doppelstart), schreibt die Spielausgabe geschwärzt nach `logs/lumora-game-output.log` und erkennt bei Absturz den Crash-Report. `CrashAnalyzer` liefert Hinweise, etwa zu Speichermangel oder inkompatiblen Mods.
 
-## Mod-Loader (`launcher-core/.../loader`)
+## Startarten
 
-Jeder Loader ist eine Klasse `ModLoader` und wird in `ModLoaders.standard` registriert. Ein neuer Loader ist eine weitere
-Klasse, sonst ändert sich nichts. Der Loader kann nur zwei Dinge:
+Der Launcher startet ein Profil als **Lumora** (Fabric mit den Lumora-Mods, Fabric wird dabei nie vom Spieler gewählt) oder als **Vanilla** (reines Minecraft, eigener Spielordner `instances/<version>-vanilla`). Wählbare Mod-Loader (Fabric, Quilt, Forge, NeoForge) sind vorerst entfernt (bis 0.2.0 unter `launcher-core/.../loader`, siehe Git-Verlauf). Eine gespeicherte Auswahl eines Loaders startet Lumora. Alte Spielordner `instances/<version>-<loader>` bleiben unangetastet liegen.
 
-- **Versionen auflisten** (`versions(mc)`, neueste zuerst, mit „stabil“ und „empfohlen“)
-- **Launch-Profil liefern** (`install(...)`): eine Versions-JSON, die von Vanilla erbt
-
-Vanilla-Dateien, Assets, Java, Prüfung, Start und Absturzanalyse sind für alle gleich (`ClientInstaller`, `LaunchCommandBuilder`).
-
-| Loader | Versionen | Profil |
-|---|---|---|
-| `FabricModLoader` | meta.fabricmc.net (vor 1.14: meta.legacyfabric.net) | Fabric-Profil-JSON |
-| `QuiltModLoader` | meta.quiltmc.org/v3 | Quilt-Profil-JSON (ab 1.14) |
-| `ForgeModLoader` | maven-metadata.xml und promotions_slim.json | `ForgeInstaller` |
-| `NeoForgeModLoader` | maven-metadata.xml; 1.20.1 = Artefakt `forge`, sonst `neoforge` („21.4.x“ für 1.21.4, „26.3.0.x“ für 26.3) | `ForgeInstaller` |
-
-`ForgeInstaller` liest den offiziellen Installer, startet ihn aber nicht. Unterstützt sind drei Formate:
-
-- altes `install`+`versionInfo` (1.8.9), Bibliotheken mit den Prüfsummen aus dem Profil
-- spec 0 (1.12.2)
-- spec 1 (ab 1.13, NeoForge)
-
-Der Ablauf:
-
-1. Bibliotheken mit der angegebenen SHA-1 laden, oder aus `maven/` im Installer nehmen.
-2. Die Client-„Processors“ der Projekte (Binärpatches, Mapping-Werkzeuge) mit der Java-Version des Spiels ausführen und jede angegebene Ausgabe per SHA-1 prüfen.
-3. `DOWNLOAD_MOJMAPS` erledigt der Launcher selbst: über den geprüften Download und die SHA-1 aus der Versions-JSON.
-
-Forge und NeoForge bekommen wie beim offiziellen Launcher eine Kopie des Vanilla-JARs unter ihrer ID. Ihr `ignoreList` nimmt sie aus der Modulschicht.
-
-`LoaderManager` verwaltet die Auswahl je „Loader@Minecraft-Version“:
-
-- **Version**: ohne festgelegte Version gilt die empfohlene, der Loader aktualisiert sich also selbst. Eine festgelegte bleibt (`loaderVersions`).
-- **Installiert**: erkannt am Marker `.lumora-loader.json` neben dem Profil.
-- **Update**: eine neuere Empfehlung als die installierte Version.
-- **Entfernen**: löscht nur `versions/<id>`.
-- **Offline**: Versionslisten werden auf der Platte zwischengespeichert.
-
-Eigene JVM-Argumente je Loader stehen in `loaderJvmArgs`. Jede Startart außer Lumora hat einen eigenen Spielordner (`instances/<version>-<loader>`).
+Lumora-Addons lädt der Client selbst aus dem Ordner `addons` der Instanz (siehe Abschnitt Client-Framework).
 
 ## Verbindungssystem im Client (`lumora-core/.../connection`)
 
@@ -182,12 +147,14 @@ Bestehende Minecraft-Menüs werden nicht ersetzt. Es kommen nur Widgets über `S
 ## Client-Framework: Lumora-API
 
 ```
-Addon-JAR (Fabric-Mod + lumora-addon.json)          z. B. LabyVoice, examples/session-timer-addon
+Addon-JAR (lumora-addon.json; in addons/ oder   z. B. LumoraVoice, LabyVoice,
+           als Fabric-Mod in mods/)                 examples/session-timer-addon
    │ kompiliert nur gegen
    ▼
 lumora-api   (Java 21, keine Abhängigkeiten)        Schnittstellen, Events, HudWidget, Settings, HudGraphics
    ▲ implementiert von
-lumora-core  (Java 21, Gson von Minecraft)          LumoraCore, AddonManager, SimpleEventBus, WidgetRegistryImpl,
+lumora-core  (Java 21, Gson von Minecraft)          LumoraCore, AddonManager, JarAddonLoader,
+   │                                                 SimpleEventBus, WidgetRegistryImpl,
    │                                                 LayoutStore/HudLayout, HudRenderer, HudEditorModel,
    │                                                 KeybindManager, TaskService, NotificationCenter
    │ Platform-Schnittstelle
@@ -199,11 +166,19 @@ client/mc<version>/…/api   (je Minecraft-Version)   McPlatform, McGameContext,
 
 - `lumora-api` und `lumora-core` werden als Klassen in jede `lumora-client-mc<version>.jar` kopiert (Konfiguration
   `bundled`), nicht verschachtelt. Addons finden `dev.lumora.api.*` zur Laufzeit über den gemeinsamen Fabric-Klassenlader.
+- **Addon-Loader** (`lumora-core/.../addon/JarAddonLoader`): Lumora lädt Addon-JARs aus `.minecraft/addons` selbst,
+  ohne dass sie Fabric-Mods sind.
+  - **Beim Start** wird nur die `lumora-addon.json` gelesen (höchstens 64 KB, JAR höchstens 128 MB). Die Einstiegsklasse lädt erst `AddonManager.initialize`, nachdem API-Version, Minecraft-Version und Abhängigkeiten geprüft sind.
+  - **Class-Loader:** Jede JAR hat einen eigenen `AddonClassLoader`. Die Reihenfolge ist Spiel (Fabric-Klassenlader) → eigene JAR → JARs der Addons aus `depends`/`optional`.
+  - **Gesperrte Pakete:** Klassen in den Paketen von Java, Minecraft, Fabric, LWJGL und Lumora darf ein Addon nicht definieren.
+  - **Ressourcen** kommen zuerst aus der eigenen JAR. Sprachdateien der JAR liefert `AddonTranslations` hinter den Texten des Spiels.
+  - **Beim Beenden** werden die JARs geschlossen, unter Windows sind sie danach nicht mehr gesperrt.
+  - **Ordner:** Den Pfad gibt `Platform.addonsDir()` vor. Jede der 16 Versionen gibt `FabricLoader.getGameDir()/addons` zurück, im Hub öffnet ihn der Knopf „Addon-Ordner“.
 - **Trennung**: Addons sehen nur `lumora-api`. Der Core enthält keine Minecraft-Klasse und ist mit einer
   `FakePlatform` vollständig unit-getestet (`lumora-core/src/test`). Was sich je Version unterscheidet (Renderer,
   Tasten, Fensterhandle, Hooks), steckt in den Adaptern unter `client/mc<version>/…/api`.
 - **Lebenszyklus**: Fabric `CLIENT_STARTED` → Kandidaten (eingebautes Addon `lumora` mit den 9 HUD-Widgets +
-  `lumora-addon.json` aller Mods) → `AddonManager.load` (Validierung, Abhängigkeiten, Zyklen, Reihenfolge) →
+  `lumora-addon.json` aller Mods + die JARs in `addons/` über `JarAddonLoader`) → `AddonManager.load` (Validierung, Abhängigkeiten, Zyklen, Reihenfolge) →
   `initializeAll` → `enableAll` → `ClientStartedEvent`. Beim Beenden: `ClientStoppingEvent`, Addons in umgekehrter
   Reihenfolge aus, offene Dateien sofort schreiben, Threads stoppen.
 - **Besitz**: Jede Registrierung eines Addons (Listener, Widget, Keybind, Timer, Hintergrundaufgabe) landet in

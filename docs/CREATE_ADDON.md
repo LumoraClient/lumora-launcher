@@ -1,8 +1,21 @@
 # Ein Lumora-Addon erstellen
 
-Ein Lumora-Addon ist eine normale Fabric-Mod, die zusätzlich eine `lumora-addon.json` mitbringt. Der Lumora-Client
-findet sie beim Start, prüft die Metadaten und Abhängigkeiten und ruft die Einstiegsklasse auf. Ohne Lumora wird die
-Einstiegsklasse nie geladen; eine Mod kann also mit und ohne Lumora laufen (so macht es LabyVoice).
+Ein Lumora-Addon ist eine JAR mit einer `lumora-addon.json` und Klassen, die gegen die Lumora-API gebaut sind. Der
+Lumora-Client lädt Addons mit seinem **eigenen Addon-Loader**. Beim Start findet er sie, prüft Metadaten und
+Abhängigkeiten und ruft die Einstiegsklasse auf. Es gibt zwei Wege:
+
+| Weg | Ordner | Wann |
+|---|---|---|
+| **Addon-JAR** (empfohlen) | `addons/` der Instanz, z. B. `%APPDATA%\LumoraClient\instances\<version>\addons` | reine API-Addons. Kein Mod-Loader nötig: keine `fabric.mod.json` und keine Fabric-Abhängigkeit. |
+| **Fabric-Mod mit Addon** | `mods/` | Das Addon braucht Mixins, die Fabric-API oder eigene Texturen im Ressourcenpaket des Spiels, oder die Mod soll auch ohne Lumora laufen (wie LabyVoice). |
+
+Im Ordner `addons/` bekommt jede JAR einen eigenen Class-Loader:
+- **Spielklassen zuerst:** Klassen der API, des Spiels und der Mods kommen immer aus dem Spiel. Ein Addon kann sie also nicht ersetzen.
+- **Gesperrte Pakete:** Eigene Klassen in den Paketen von Java, Minecraft, Fabric und Lumora (`dev.lumora.api`, `dev.lumora.core` …) sind gesperrt.
+- **Andere Addons:** Klassen eines anderen Addons sieht ein Addon nur, wenn es dieses unter `depends` oder `optional` angibt.
+- **Fehler:** Eine fehlerhafte JAR (keine `lumora-addon.json`, kaputtes Archiv, Fabric-Mod im falschen Ordner) steht mit Grund in der Addon-Liste. Die anderen Addons laufen weiter.
+
+Eine ID darf nur einmal vorkommen, egal in welchem der beiden Ordner.
 
 Das vollständige, kompilierte Beispiel liegt in [`examples/session-timer-addon`](../examples/session-timer-addon):
 ein Widget mit der Zeit in der aktuellen Welt, ein Keybind zum Neustarten, eine Addon-Einstellung und eine
@@ -43,7 +56,10 @@ Minecraft-Version (wie LabyVoice) und nutzt `HudGraphics.unwrap(...)`. Seit API 
 Minecraft-Klassen aus: Spieler, Plugin-Kanäle, Menüs und Namensschild-Symbole gibt es über die API (Abschnitt 8).
 LumoraVoice ist so eine JAR für alle 18 Profile.
 
-## 2. fabric.mod.json
+## 2. fabric.mod.json (nur für den Weg als Fabric-Mod)
+
+Eine Addon-JAR für den Ordner `addons/` braucht diese Datei nicht. Liegt sie trotzdem bei, schadet das nicht: Dieselbe
+JAR läuft dann in beiden Ordnern (das Beispiel macht es so).
 
 ```json
 {
@@ -134,8 +150,15 @@ Spielobjekte, die `onDisable` überleben. Für Hintergrundarbeit `context.tasks(
 
 ## 5. Übersetzungen und Texturen
 
-`src/main/resources/assets/<namespace>/lang/de_de.json` und `en_us.json`. Fabric macht die Assets jeder Mod zum
-Ressourcenpaket, eine Registrierung ist nicht nötig. Schlüssel, die Lumora erwartet:
+`src/main/resources/assets/<namespace>/lang/de_de.json` und `en_us.json` (bis 1.12 auch `.lang`). Wie die Dateien
+gefunden werden, hängt vom Weg ab:
+- **Fabric-Mod:** Fabric macht die Assets jeder Mod zum Ressourcenpaket.
+- **Addon-JAR aus `addons/`:**
+  - `context.translations()` liest die Sprachdateien direkt aus der JAR. Erst kommt das Spiel (Ressourcenpakete können Texte überschreiben), dann die JAR, dann `en_us`.
+  - Eigene Dateien liest das Addon mit `getClass().getResourceAsStream("/…")`. Die JAR wird dabei zuerst durchsucht.
+  - Texturen (`TextureRef`) und Schriften kommen weiterhin nur aus den Ressourcenpaketen des Spiels. Ein Addon mit eigenen Bildern braucht deshalb vorerst den Weg als Fabric-Mod oder ein Ressourcenpaket.
+
+Schlüssel, die Lumora erwartet:
 
 | Schlüssel | wofür |
 |---|---|
@@ -150,10 +173,18 @@ Ressourcenpaket, eine Registrierung ist nicht nötig. Schlüssel, die Lumora erw
 gradlew :examples:session-timer-addon:jar
 ```
 
-Die JAR (`examples/session-timer-addon/build/libs/lumora-session-timer-1.0.0.jar`) in den `mods`-Ordner der
-Lumora-Instanz kopieren (`%APPDATA%\LumoraClient\instances\<version>\mods`). Der Launcher lässt eigene Mods dort
-liegen und zeigt sie unter „Mods“. Nach dem Start erscheint das Addon im Lumora-Hub unter **Addons** (an/aus,
-Einstellungen, Fehlermeldung), sein Widget im **HUD-Editor**.
+Die JAR (`examples/session-timer-addon/build/libs/lumora-session-timer-1.0.0.jar`) in den Ordner `addons` der
+Lumora-Instanz kopieren (`%APPDATA%\LumoraClient\instances\<version>\addons`). Im Spiel öffnet der Lumora-Hub unter
+**Addons** → **Addon-Ordner** genau diesen Ordner. Er wird beim ersten Start angelegt. Als Fabric-Mod gehört die JAR
+stattdessen in den Ordner `mods`.
+
+Nach dem Neustart erscheint das Addon im Lumora-Hub unter **Addons** (an/aus, Einstellungen, Fehlermeldung), sein
+Widget im **HUD-Editor**. Die Quelle steht unter dem Namen: `addons/<datei>.jar` bzw. die Mod-ID. Lumora gibt die
+JARs beim Beenden des Spiels frei, danach lassen sie sich ersetzen oder löschen.
+
+Addons sind Programmcode mit denselben Rechten wie das Spiel. Die Berechtigungen in `lumora-addon.json` regeln
+nur, welche Lumora-Dienste ein Addon nutzen darf, sie sind keine Sandbox. Installiere nur Addons aus Quellen, denen du
+vertraust.
 
 ## 7. Prüfen
 

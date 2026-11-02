@@ -217,6 +217,19 @@ public final class LumoraHubScreen extends Screen {
                         () -> core.views().openMenu(a.id())));
             }
         }
+        // Lumora's own addon folder (jars loaded without a mod loader)
+        java.nio.file.Path addonDir = core.jarAddons().directory();
+        if (addonDir != null) {
+            addButton(new LumoraButton(x + w - 110, y + perPage * rowH + 2, 110, 18, new TranslatableComponent("lumora.hub.addonfolder"), LumoraButton.Style.SECONDARY, null,
+                    () -> {
+                        try {
+                            java.nio.file.Files.createDirectories(addonDir);
+                            Util.getPlatform().openFile((addonDir).toFile());
+                        } catch (java.io.IOException e) {
+                            status = new TextComponent(e.getMessage());
+                        }
+                    }));
+        }
         if (pages > 1) {
             int py = y + perPage * rowH + 2;
             LumoraButton prev = new LumoraButton(x, py, 24, 18, new TextComponent("‹"), LumoraButton.Style.SECONDARY, null, () -> {

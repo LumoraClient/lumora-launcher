@@ -3,27 +3,23 @@ package dev.lumora.launcher.core.profile;
 import java.util.Locale;
 
 /**
- * What the launcher starts for a profile's Minecraft version. {@link #LUMORA} is the profile as defined (Fabric with the
- * Lumora mods); {@link #VANILLA} is plain Minecraft; the others are a mod loader without any Lumora mods
- * ({@link #loaderId()} names the loader in {@code dev.lumora.launcher.core.loader.ModLoaders}). Every flavor except
- * Lumora gets its own game folder, so worlds, options and mods never mix.
+ * What the launcher starts for a profile's Minecraft version. {@link #LUMORA} is the profile as defined (the Lumora
+ * client with its mods and addons; Fabric runs underneath and is never chosen by the player); {@link #VANILLA} is
+ * plain Minecraft in its own game folder, so worlds and options of the two never mix.
+ * <p>
+ * Selectable mod loaders (Fabric, Quilt, Forge, NeoForge) are removed for now; a stored id of one of them falls back
+ * to {@link #LUMORA}. Their old instance folders ("&lt;profile&gt;-fabric" ...) are left untouched on disk.
  */
 public enum Flavor {
-    LUMORA("lumora", "Lumora Client", null),
-    VANILLA("vanilla", "Vanilla", null),
-    FABRIC("fabric", "Fabric", "fabric"),
-    QUILT("quilt", "Quilt", "quilt"),
-    FORGE("forge", "Forge", "forge"),
-    NEOFORGE("neoforge", "NeoForge", "neoforge");
+    LUMORA("lumora", "Lumora Client"),
+    VANILLA("vanilla", "Vanilla");
 
     private final String id;
     private final String label;
-    private final String loaderId;
 
-    Flavor(String id, String label, String loaderId) {
+    Flavor(String id, String label) {
         this.id = id;
         this.label = label;
-        this.loaderId = loaderId;
     }
 
     public String id() {
@@ -34,12 +30,7 @@ public enum Flavor {
         return label;
     }
 
-    /** The mod loader this flavor starts, null for Lumora (its own Fabric setup) and Vanilla. */
-    public String loaderId() {
-        return loaderId;
-    }
-
-    /** Instance folder name: the profile id for Lumora, else "&lt;profile&gt;-&lt;flavor&gt;". */
+    /** Instance folder name: the profile id for Lumora, else "&lt;profile&gt;-vanilla". */
     public String instanceId(String profileId) {
         return this == LUMORA ? profileId : profileId + "-" + id;
     }
@@ -54,15 +45,5 @@ public enum Flavor {
             }
         }
         return LUMORA;
-    }
-
-    /** The flavor of a mod loader id, or null. */
-    public static Flavor ofLoader(String loaderId) {
-        for (Flavor f : values()) {
-            if (f.loaderId != null && f.loaderId.equals(loaderId)) {
-                return f;
-            }
-        }
-        return null;
     }
 }

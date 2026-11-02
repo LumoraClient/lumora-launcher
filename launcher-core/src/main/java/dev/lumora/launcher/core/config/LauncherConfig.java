@@ -112,14 +112,6 @@ public final class LauncherConfig {
     /** Lumora news the user has seen (ids), for the counter on "News". */
     public List<String> seenNews = new ArrayList<>();
 
-    /**
-     * Mod loader version per "loader@minecraft" (e.g. "forge@1.20.1" -> "1.20.1-47.4.28"). Missing = follow the
-     * loader's recommended version (updates by itself).
-     */
-    public java.util.Map<String, String> loaderVersions = new java.util.LinkedHashMap<>();
-    /** Extra JVM arguments per loader id, separated by spaces (only for that loader's instances). */
-    public java.util.Map<String, String> loaderJvmArgs = new java.util.LinkedHashMap<>();
-
     private static final Pattern HEX_COLOR = Pattern.compile("^#[0-9a-fA-F]{6}$");
     private static final Pattern ENV_VAR = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]{0,127}=[^\\r\\n\\x00]{0,4096}$");
     private static final Pattern SNOWFLAKE = Pattern.compile("^[0-9]{15,21}$");
@@ -286,20 +278,6 @@ public final class LauncherConfig {
             seenNews = new ArrayList<>();
         }
         seenNews.removeIf(s -> s == null || s.length() > 100);
-        if (loaderVersions == null) {
-            loaderVersions = new java.util.LinkedHashMap<>();
-        }
-        if (loaderVersions.entrySet().removeIf(e -> e.getKey() == null || e.getValue() == null
-                || !e.getKey().matches("[a-z][a-z0-9-]{1,31}@[0-9][0-9A-Za-z._-]{0,31}") || !e.getValue().matches("[A-Za-z0-9._+-]{1,80}"))) {
-            notes.add("dropped invalid loader versions");
-        }
-        if (loaderJvmArgs == null) {
-            loaderJvmArgs = new java.util.LinkedHashMap<>();
-        }
-        if (loaderJvmArgs.entrySet().removeIf(e -> e.getKey() == null || e.getValue() == null || !e.getKey().matches("[a-z][a-z0-9-]{1,31}")
-                || e.getValue().length() > 2000 || e.getValue().contains("\n") || e.getValue().contains("\r"))) {
-            notes.add("dropped invalid loader JVM arguments");
-        }
         if (socialServer != null) {
             try {
                 socialServer = dev.lumora.social.Endpoint.parse(socialServer).toString();

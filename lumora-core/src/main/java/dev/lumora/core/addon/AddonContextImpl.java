@@ -36,6 +36,7 @@ final class AddonContextImpl implements AddonContext {
     private final dev.lumora.api.net.PluginChannels channels;
     private final dev.lumora.api.render.NameTags nameTags;
     private final dev.lumora.api.screen.AddonScreens screens;
+    private volatile Translations ownTranslations;
 
     AddonContextImpl(AddonRecord record, LumoraCore core) {
         this.record = record;
@@ -170,7 +171,14 @@ final class AddonContextImpl implements AddonContext {
 
     @Override
     public Translations translations() {
-        return core.translations();
+        if (record.candidate.jar() == null) {
+            return core.translations();
+        }
+        // addon jar from the addons folder: its language files are not in Minecraft's resource packs
+        if (ownTranslations == null) {
+            ownTranslations = new AddonTranslations(core.translations(), record.candidate.jar());
+        }
+        return ownTranslations;
     }
 
     @Override

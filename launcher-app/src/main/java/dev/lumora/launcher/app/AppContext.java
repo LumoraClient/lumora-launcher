@@ -31,7 +31,6 @@ public final class AppContext {
     public final ProfileCatalog catalog;
     public final Downloader downloader;
     public final ClientInstaller installer;
-    public final dev.lumora.launcher.core.loader.LoaderManager loaders;
     public final AccountStore accounts;
     public final PlayService play;
 
@@ -49,15 +48,13 @@ public final class AppContext {
         InstanceMigration.migrate(paths);
         downloader = new Downloader(config.parallelDownloads);
         Path bundledDir = BundledMods.locate();
-        loaders = new dev.lumora.launcher.core.loader.LoaderManager(
-                dev.lumora.launcher.core.loader.ModLoaders.standard(downloader, paths), paths.versions());
         installer = new ClientInstaller(paths, downloader, catalog, () -> {
             try {
                 return new BundledMods(bundledDir);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-        }, os, loaders);
+        }, os);
         accounts = new AccountStore(bootstrap.authFile().getParent(), os);
         play = new PlayService(paths, installer, accounts, os);
         Log.info("Lumora launcher started; data=" + paths.root() + ", bundled=" + bundledDir + ", os=" + os);

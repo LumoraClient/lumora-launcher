@@ -53,6 +53,12 @@ Grundregeln:
 
 ### lumora-addon.json
 
+Liegt an der Wurzel der Addon-JAR. Lumora findet Addons auf zwei Wegen:
+- **Eigener Addon-Loader:** JARs im Ordner `addons` der Instanz, ohne Mod-Loader (`JarAddonLoader`, eigener Class-Loader je JAR).
+- **Fabric-Mods** im Ordner `mods`, die die Datei mitbringen.
+
+Details stehen in [CREATE_ADDON.md](CREATE_ADDON.md). Die API selbst bleibt dabei unverändert (1.2.0).
+
 ```json
 {
   "schema": 1,

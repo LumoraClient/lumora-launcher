@@ -1,12 +1,12 @@
 {
   "news": [
     {
-      "id": "lumora-loaders-connection",
+      "id": "lumora-addon-loader",
       "date": "2026-11-02",
       "author": "Lumora",
-      "title": "Fabric, Quilt, Forge und NeoForge, blaues Design und neues Verbindungssystem",
-      "text": "Neben Lumora Client und Vanilla startet der Launcher jetzt Fabric, Quilt, Forge und NeoForge, jeweils mit eigenem Spielordner. Auf der neuen Seite „Mod-Loader“ wählst du für jede Minecraft-Version die Loader-Version: die empfohlene, die sich selbst aktualisiert, oder eine feste. Dort legst du auch eigene JVM-Argumente fest und kannst installieren, reparieren, aktualisieren und entfernen. Der Launcher ist jetzt blau, mit fließendem Start-Knopf, Polarlicht im Banner, gleitender Navigation und weichen Seitenwechseln. Im Spiel zeigt der neue Verbindungsbildschirm jede Phase mit Ping und Adresse. Beim Trennen siehst du den erkannten Grund mit einem Tipp und „Erneut verbinden“. Auf Wunsch verbindet Lumora automatisch neu, mit wachsenden Pausen.",
-      "image": "loaders.png"
+      "title": "Eigener Addon-Loader, blaues Design und neues Verbindungssystem",
+      "text": "Lumora lädt Addons jetzt selbst: Leg eine Addon-JAR in den Ordner „addons“ deiner Instanz, fertig. Im Spiel öffnet der Lumora-Hub unter Addons → „Addon-Ordner“ genau diesen Ordner. Jedes Addon läuft getrennt von den anderen und vom Spiel, und eine fehlerhafte Datei steht mit Grund in der Liste. Die wählbaren Mod-Loader (Fabric, Quilt, Forge, NeoForge) sind vorerst aus dem Launcher entfernt, gestartet wird Lumora Client oder Vanilla. Der Launcher ist blau, mit fließendem Start-Knopf, Polarlicht im Banner und weichen Seitenwechseln. Im Spiel zeigt der Verbindungsbildschirm jede Phase mit Ping und Adresse. Beim Trennen siehst du den erkannten Grund mit einem Tipp und „Erneut verbinden“.",
+      "image": "connecting.png"
     },
     {
       "id": "lumora-server-list",

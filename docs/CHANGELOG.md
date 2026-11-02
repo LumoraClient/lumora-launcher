@@ -1,5 +1,26 @@
 # Änderungen
 
+## Unveröffentlicht
+
+### Launcher
+- **Mod-Loader vorerst entfernt:** Die Startarten Fabric, Quilt, Forge und NeoForge und die Seite „Mod-Loader“ gibt es nicht mehr. Gestartet wird Lumora Client oder Vanilla.
+  - Wer einen der Loader ausgewählt hatte, startet beim nächsten Mal Lumora.
+  - Alte Spielordner (`instances\<version>-forge` …) bleiben unangetastet liegen.
+  - Die Server von Quilt, Forge und NeoForge stehen nicht mehr auf der Download-Liste.
+- Lumora läuft weiter auf Fabric. Den Loader wählt aber nur noch der Launcher selbst, nicht der Spieler.
+
+### Im Spiel: eigener Addon-Loader
+- **Addon-JARs direkt in den Ordner `addons`** der Instanz legen. Eine `lumora-addon.json` genügt: keine `fabric.mod.json`, kein Mod-Loader.
+- **Getrennte Class-Loader:**
+  - Jedes Addon bekommt einen eigenen. Klassen des Spiels, von Fabric und von Lumora kann ein Addon nicht ersetzen.
+  - Klassen anderer Addons sieht es nur, wenn es sie unter `depends` oder `optional` angibt.
+- **Sprachdateien** kommen direkt aus der Addon-JAR.
+- **Fehlerhafte Dateien** stehen mit Grund in der Addon-Liste (keine `lumora-addon.json`, kaputtes Archiv, Fabric-Mod im falschen Ordner).
+- **Neuer Knopf „Addon-Ordner“** im Lumora-Hub unter Addons, in allen 16 Versionen.
+- **Freigabe beim Beenden:** Lumora schließt die JARs, sie lassen sich danach ersetzen oder löschen.
+- **Fabric-Mods** mit `lumora-addon.json` im Ordner `mods` funktionieren weiter.
+- Texturen eines Addons kommen vorerst nur über den Weg als Fabric-Mod oder ein Ressourcenpaket.
+
 ## 0.2.0 (2026-11-02)
 
 ### Neu im Launcher

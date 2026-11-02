@@ -95,7 +95,7 @@
   "lumora.hub.zoom.hint": "Key %s (change under Controls) · scroll while zooming, up to 50×",
   "lumora.hub.tab.addons": "Addons",
   "lumora.hub.modules.from": "From the addon: %s",
-  "lumora.hub.addons.none": "No addons installed.",
+  "lumora.hub.addons.none": "No addons installed. Put addon jars into the addon folder.",
   "lumora.hub.addons.hint": "Addons are Fabric mods with a lumora-addon.json · ⚙ = settings and keys",
   "lumora.addon.state.loaded": "loaded",
   "lumora.addon.state.resolved": "ready",
@@ -277,5 +277,6 @@
   "lumora.extras.connection.reconnect_attempts": "Attempts in a row",
   "lumora.extras.connection.timeout": "Cancel when a phase hangs (seconds)",
   "lumora.extras.connection.hide_address": "Hide server addresses (stream mode)",
-  "lumora.extras.connection.ping_preview": "Ping the server while connecting"
+  "lumora.extras.connection.ping_preview": "Ping the server while connecting",
+  "lumora.hub.addonfolder": "Addon folder"
 }

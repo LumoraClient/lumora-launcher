@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
  * <pre>
  *   --system-check                     print the environment check
  *   --install-only [--profile id] [--repair]   download and verify everything, do not start
- *   --launch-test [--profile id] [--loader lumora|fabric|vanilla] [--timeout seconds]
+ *   --launch-test [--profile id] [--loader lumora|vanilla] [--timeout seconds]
  *       start test without the Lumora report: waits for the sound engine, runs 15 s, stops the game
  *   --smoke-test [--profile id] [--timeout seconds]
  *       install, start the profile in the official demo mode (no account needed), wait until the companion
@@ -49,7 +49,7 @@ final class Cli {
                 return 0;
             }
             if (a.contains("--ui-shot")) {
-                return uiShot(ctx, Path.of(option(a, "--ui-shot", "ui-shots")), List.of(option(a, "--pages", "home,loaders").split(",")));
+                return uiShot(ctx, Path.of(option(a, "--ui-shot", "ui-shots")), List.of(option(a, "--pages", "home").split(",")));
             }
             if (a.contains("--launch-test")) {
                 return launchTest(ctx, profile, dev.lumora.launcher.core.profile.Flavor.of(option(a, "--loader", "lumora")),
@@ -240,8 +240,8 @@ final class Cli {
             game.stop(java.time.Duration.ofSeconds(20));
         }
         System.out.println("LAUNCH TEST PASSED: Minecraft " + profile.minecraftVersion + " (" + flavor.label()
-                + (flavor == dev.lumora.launcher.core.profile.Flavor.VANILLA ? "" : flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA
-                ? ", " + profile.loader + " " + profile.fabricLoaderVersion : " " + ctx.installer.loaderVersion(profile, flavor, ctx.config)) + ") started and ran " + STABLE_SECONDS + " s");
+                + (flavor == dev.lumora.launcher.core.profile.Flavor.VANILLA ? ""
+                : ", " + profile.loader + " " + profile.fabricLoaderVersion) + ") started and ran " + STABLE_SECONDS + " s");
         return 0;
     }
 

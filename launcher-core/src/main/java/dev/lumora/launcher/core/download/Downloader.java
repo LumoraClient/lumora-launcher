@@ -44,8 +44,6 @@ public final class Downloader {
             "meta.fabricmc.net", "maven.fabricmc.net",
             // Legacy Fabric: loader profiles, intermediary mappings and patched LWJGL 2 for 1.8.9 / 1.12.2
             "meta.legacyfabric.net", "maven.legacyfabric.net",
-            // mod loaders: Quilt meta and Maven, Forge and NeoForge Maven (installers, libraries, version lists)
-            "meta.quiltmc.org", "maven.quiltmc.org", "maven.minecraftforge.net", "files.minecraftforge.net", "maven.neoforged.net",
             "api.modrinth.com", "cdn.modrinth.com",
             // skins: official Mojang profile/texture services (read-only, public data)
             "sessionserver.mojang.com", "api.mojang.com", "api.minecraftservices.com", "textures.minecraft.net");

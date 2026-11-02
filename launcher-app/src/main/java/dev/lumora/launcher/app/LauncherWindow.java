@@ -122,7 +122,6 @@ final class LauncherWindow implements PageHost {
     private BrowserPage browserPage;
     private AccountPage accountPage;
     private dev.lumora.launcher.app.pages.PerformancePage performancePage;
-    private dev.lumora.launcher.app.pages.LoadersPage loadersPage;
     private final dev.lumora.launcher.app.ui.PageFade pageFade = new dev.lumora.launcher.app.ui.PageFade();
     private SettingsPage settingsPage;
     /** Play controls of the bottom bar; hidden on the start page, which has its own in the hero. */
@@ -255,8 +254,6 @@ final class LauncherWindow implements PageHost {
         pageHost.add(serversPage, "servers");
         performancePage = new dev.lumora.launcher.app.pages.PerformancePage(this, pageIo);
         pageHost.add(performancePage, "performance");
-        loadersPage = new dev.lumora.launcher.app.pages.LoadersPage(this, pageIo);
-        pageHost.add(loadersPage, "loaders");
         settingsPage = new SettingsPage(this, new SettingsPage.Hooks() {
             @Override
             public void socialChanged() {
@@ -309,8 +306,6 @@ final class LauncherWindow implements PageHost {
                 markNewsSeen();
             } else if (id.equals("performance")) {
                 performancePage.refresh();
-            } else if (id.equals("loaders")) {
-                loadersPage.refresh();
             } else if (id.equals("extensions")) {
                 modsPage.refresh();
             } else if (id.equals("library")) {
@@ -325,7 +320,6 @@ final class LauncherWindow implements PageHost {
         });
         nav.addItem("home", "Startseite", Icons.Kind.HOME);
         nav.addItem("extensions", "Mods", Icons.Kind.PUZZLE);
-        nav.addItem("loaders", "Mod-Loader", Icons.Kind.CUBE);
         nav.addItem("browser", "Entdecken", Icons.Kind.SEARCH);
         nav.addItem("performance", "Performance", Icons.Kind.CHART);
         nav.addItem("library", "Bibliothek", Icons.Kind.LIBRARY);
@@ -575,7 +569,7 @@ final class LauncherWindow implements PageHost {
     }
 
     /**
-     * Version menu of the arrow next to "Spiel starten": start type (Lumora Client / Vanilla / Fabric), every version
+     * Version menu of the arrow next to "Spiel starten": start type (Lumora Client / Vanilla), every version
      * grouped by major version (newest first) and "Dateien prüfen und starten".
      */
     private void showVersionMenu() {
@@ -602,35 +596,29 @@ final class LauncherWindow implements PageHost {
         body.add(label(ctx.catalog.profiles().size() + " Versionen · jede mit eigenem Spielordner", 12, Font.PLAIN, Theme.MUTED));
         body.add(Box.createVerticalStrut(12));
 
-        // start type
-        JPanel flavors = new JPanel(new GridLayout(2, 3, 6, 6));
+        // start type: Lumora or plain Minecraft (selectable mod loaders are removed for now)
+        JPanel flavors = new JPanel(new GridLayout(1, 2, 6, 0));
         flavors.setOpaque(false);
         flavors.setAlignmentX(Component.LEFT_ALIGNMENT);
         javax.swing.ButtonGroup fg = new javax.swing.ButtonGroup();
-        dev.lumora.launcher.core.profile.Flavor[] all = dev.lumora.launcher.core.profile.Flavor.values();
-        String mc = ctx.selectedProfile().minecraftVersion;
-        for (dev.lumora.launcher.core.profile.Flavor fl : all) {
+        for (dev.lumora.launcher.core.profile.Flavor fl : dev.lumora.launcher.core.profile.Flavor.values()) {
             Icons.Kind kind = switch (fl) {
                 case LUMORA -> Icons.Kind.R_STAR;
                 case VANILLA -> Icons.Kind.CUBE;
-                default -> Icons.Kind.PUZZLE;
             };
-            boolean supported = fl.loaderId() == null || ctx.loaders.loaders().byId(fl.loaderId()).map(l -> l.supports(mc)).orElse(false);
             javax.swing.JToggleButton b = new javax.swing.JToggleButton(fl.label(), Icons.of(kind, 14, Theme.TEXT), fl == currentFlavor());
             b.setFont(Theme.font(Font.BOLD, 12.5f));
             b.setFocusable(false);
             b.setIconTextGap(7);
-            b.setEnabled(supported);
-            b.setToolTipText(!supported ? fl.label() + " gibt es nicht für Minecraft " + mc : switch (fl) {
+            b.setToolTipText(switch (fl) {
                 case LUMORA -> "Lumora-Oberfläche, Performance-Mods und Addons";
                 case VANILLA -> "Reines Minecraft ohne Mods, eigener Spielordner";
-                default -> fl.label() + " ohne Lumora-Mods, eigener Spielordner für deine Mods (Version unter „Mod-Loader“)";
             });
             b.addActionListener(e -> setFlavor(fl));
             fg.add(b);
             flavors.add(b);
         }
-        flavors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 74));
+        flavors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         body.add(flavors);
         body.add(Box.createVerticalStrut(12));
 
@@ -693,11 +681,6 @@ final class LauncherWindow implements PageHost {
             saveConfigQuietly();
         }
         refreshVersionInfo(ctx.selectedProfile());
-    }
-
-    @Override
-    public void selectFlavor(String flavorId) {
-        setFlavor(dev.lumora.launcher.core.profile.Flavor.of(flavorId));
     }
 
     private void updateSocialBadge() {
@@ -778,12 +761,7 @@ final class LauncherWindow implements PageHost {
         if (heroOverline != null) {
             heroOverline.setText("MINECRAFT " + p.minecraftVersion + "  ·  " + switch (fl) {
                 case LUMORA -> isLegacy(p) ? "LUMORA · LEGACY FABRIC" : "LUMORA CLIENT";
-                case FABRIC -> (isLegacy(p) ? "LEGACY FABRIC " : "FABRIC ") + java.util.Optional.ofNullable(
-                        dev.lumora.launcher.core.loader.LoaderManager.pinned(ctx.config, "fabric", p.minecraftVersion)).orElse(p.fabricLoaderVersion);
                 case VANILLA -> "VANILLA";
-                default -> fl.label().toUpperCase(java.util.Locale.ROOT) + java.util.Optional.ofNullable(
-                        dev.lumora.launcher.core.loader.LoaderManager.pinned(ctx.config, fl.loaderId(), p.minecraftVersion))
-                        .map(v -> " " + v).orElse(" · EMPFOHLEN");
             });
         }
         if (heroChips != null) {

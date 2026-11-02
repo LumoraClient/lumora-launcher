@@ -67,6 +67,20 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.2.0 (2026-11-02):**
+- **Build:** `gradlew build` erfolgreich, 363/363 Unit-Tests.
+- **Mod-Loader:** Starttests (`--launch-test --loader <id>`, Demo-Modus, Testdatenordner) bestanden für Forge 1.8.9, 1.12.2, 1.16.5, 1.20.1 und 26.3, NeoForge 1.20.1, 1.21.4 und 26.3 sowie Quilt 1.21.4 und 1.21.11.
+- **Smoke-Tests im Spiel:** bestanden für 26.3, 1.21.4, 1.20.6, 1.20.1, 1.17.1, 1.16.5, 1.12.2 und 1.8.9.
+- **Verbindungssystem:** In diesen Smoke-Tests geprüft, auf 26.3, 1.20.6 und 1.17.1 zusätzlich mit dem stillen Testserver `.t/SilentMc`. Geprüft wurden:
+  - Verbindungsbildschirm mit Phasen
+  - Abbruch
+  - Trennungsbildschirm mit erkanntem Grund `REFUSED`
+  - „Erneut verbinden“
+- **Nicht geprüft:** Beitritt zu einem echten Online-Server mit Microsoft-Konto.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft.
+
+Ältere Stände:
+
 Build-Datum 2026-10-27 (Lumora-API 1.1 mit LumoraVoice 0.8.0 in allen 18 Profilen; Lumora Social: Freunde, Gruppen, Chat in Launcher und allen 18 Profilen; davor: Lumora-Oberfläche in allen 18 Profilen 1.8.9–26.3, Lumora-API 1.0, HUD-Editor, LabyVoice als Addon), Stand dieses Arbeitsverzeichnisses. Ausgeführt auf: Windows 11 Pro
 (10.0.26200), AMD Radeon RX Vega (Treiber 31.0.21923.11000, Vulkan 1.3.260), 16 GB RAM, JDK 25.0.3 (Corretto).
 

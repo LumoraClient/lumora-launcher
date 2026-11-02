@@ -67,6 +67,15 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.2.2 (2026-11-02):**
+- **Build:** `gradlew build` erfolgreich, 371/371 Unit-Tests, darunter 6 neue für das Update-Ziel (Starter, gemerkter Pfad, eigene Kopie, Schalter aus, kein portabler Ordner).
+- **Anheften:** an einem echten Fenster geprüft. `RelaunchCommand` wird gesetzt, richtig zurückgelesen und beim Beenden gelöscht.
+- **Portabler Start** (Testordner über `LUMORA_PORTABLE_DIR`, Testdatenordner):
+  - `LumoraClient.exe` entpackt den Launcher und schreibt `starter-path.txt`. Der Launcher setzt das Anheften auf die EXE (`STARTER`).
+  - Direkter Start des entpackten `LumoraLauncher.exe` ohne den Starter: Der Launcher findet die gemerkte EXE (`RECORDED`) und setzt das Anheften darauf.
+- **Nicht geprüft:** ein echtes Selbst-Update über GitHub beim direkten Start. Das geht erst, wenn es eine neuere Version als 0.2.2 gibt. Die Installation selbst ist dieselbe wie beim Start über den Starter (`LauncherUpdate.install`, Tests vorhanden).
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft.
+
 **0.2.1 (2026-11-02):**
 - **Build:** `gradlew build` erfolgreich, 365/365 Unit-Tests, darunter 10 neue für den Addon-Loader.
 - **Smoke-Tests im Spiel** (stumm, Testdatenordner) bestanden für 26.3, 1.21.4 und 1.8.9. Das Beispiel-Addon „Session Timer“ lag dabei nur im Ordner `addons`, nicht in `mods`, und wurde gestartet und beim Beenden sauber ausgeschaltet.

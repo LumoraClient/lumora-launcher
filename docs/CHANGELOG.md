@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.2.2 (2026-11-02)
+
+### Launcher
+- **Update auch beim direkten Start:** Bisher hat sich der Launcher nicht selbst aktualisiert, wenn er über ein angeheftetes Taskleisten-Symbol oder eine eigene Verknüpfung gestartet wurde (Hinweis „aktualisiert sich nicht selbst“). Jetzt aktualisiert er sich auch dann.
+  - `LumoraClient.exe` merkt sich ihren Ort.
+  - Fehlt diese Angabe (ältere Versionen), legt der Launcher die neue Version als `%LOCALAPPDATA%\LumoraClient\LumoraClient.exe` ab.
+- **Anheften:** Ein angeheftetes Lumora-Symbol startet jetzt `LumoraClient.exe` statt des entpackten Programms. Es bleibt deshalb auch nach Updates gültig. Ein schon vorhandenes altes Symbol einmal lösen und neu anheften.
+- **Neuer Schalter** „Update auch beim direkten Start“ unter Einstellungen → Allgemein (Standard: an). Aus: Nur ein Start über `LumoraClient.exe` aktualisiert.
+
 ## 0.2.1 (2026-11-02)
 
 ### Launcher

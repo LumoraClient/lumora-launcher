@@ -1318,9 +1318,14 @@ final class LauncherWindow implements PageHost {
 
     private void offerLauncherUpdate(dev.lumora.launcher.core.update.LauncherUpdate u, dev.lumora.launcher.core.update.LauncherUpdate.Release r) {
         var portable = dev.lumora.launcher.core.update.LauncherUpdate.portableExe();
-        String notes = r.notes().strip();
-        if (notes.length() > 700) {
-            notes = notes.substring(0, 698) + "…";
+        // release notes are Markdown: show them as plain text
+        String notes = r.notes().strip()
+                .replaceAll("(?m)^#{1,6}\\s*", "")
+                .replace("**", "")
+                .replace("`", "")
+                .replaceAll("(?m)^\\|.*\\|\\s*$\\n?", "");
+        if (notes.length() > 2000) {
+            notes = notes.substring(0, 1998) + "…";
         }
         JTextArea text = new JTextArea("Lumora " + r.version() + " ist verfügbar (du hast " + BuildInfo.VERSION + ")."
                 + (notes.isEmpty() ? "" : "\n\n" + notes)
@@ -1329,10 +1334,19 @@ final class LauncherWindow implements PageHost {
         text.setEditable(false);
         text.setLineWrap(true);
         text.setWrapStyleWord(true);
-        text.setColumns(52);
         text.setOpaque(false);
+        text.setCaretPosition(0);
+        // fixed size with a scroll bar: long notes never push the buttons out of the window (any font size or scaling)
+        JScrollPane notesPane = new JScrollPane(text, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        notesPane.setBorder(BorderFactory.createEmptyBorder());
+        notesPane.setOpaque(false);
+        notesPane.getViewport().setOpaque(false);
+        notesPane.getVerticalScrollBar().setUnitIncrement(16);
+        int maxHeight = Math.max(160, Math.min(320, frame.getGraphicsConfiguration().getBounds().height / 3));
+        notesPane.setPreferredSize(new Dimension(520, maxHeight));
         Object[] options = portable.isPresent() ? new Object[]{"Jetzt aktualisieren", "Später"} : new Object[]{"Release-Seite öffnen", "Später"};
-        int choice = JOptionPane.showOptionDialog(frame, text, "Launcher-Update", JOptionPane.DEFAULT_OPTION,
+        int choice = JOptionPane.showOptionDialog(frame, notesPane, "Launcher-Update", JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
         if (choice != 0) {
             return;

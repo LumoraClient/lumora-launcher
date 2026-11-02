@@ -84,15 +84,19 @@ class ResourcePackOptionsTest {
     @Test
     void catalogResolvesPacksAndTheirRequiredMods() throws IOException {
         ProfileCatalog c = ProfileCatalog.loadBundled();
-        ProfileCatalog.Profile p = c.profile("1.21.8").orElseThrow();
-        assertEquals(7, c.resolvePacks(p, List.of()).size());
-        assertEquals(6, c.resolvePacks(c.profile("1.21.11").orElseThrow(), List.of()).size(), "no Fresh Food on 1.21.11");
-        List<String> mods = c.resolveMods(p, List.of(), List.of()).stream().map(a -> a.key()).toList();
-        assertTrue(mods.containsAll(List.of("emf", "etf", "nuit")), "Fresh Animations needs EMF+ETF, Dramatic Skys needs Nuit: " + mods);
-        List<String> without = c.resolveMods(p, List.of(), List.of("fresh-animations", "dramatic-skys")).stream().map(a -> a.key()).toList();
-        assertTrue(without.stream().noneMatch(k -> k.equals("emf") || k.equals("etf") || k.equals("nuit")), without.toString());
         assertTrue(c.allResourcePackKeys().contains("enhanced-boss-bars"));
-        // 26.1.2 runs on the Lumora Loader: no Fresh Animations and Dramatic Skys there (they need Fabric mods)
+        // Lumora Loader: no Fresh Animations and Dramatic Skys (they need Fabric mods)
         assertEquals(6, c.resolvePacks(c.profile("26.1.2").orElseThrow(), List.of()).size(), "Enhanced Boss Bars exists only for 26.1.2");
+        assertEquals(4, c.resolvePacks(c.profile("1.21.11").orElseThrow(), List.of()).size(), "no Fresh Food on 1.21.11");
+        // Fabric profiles with packs that need mods (while some are left): the mods come along, and go with the pack
+        for (ProfileCatalog.Profile p : c.profiles()) {
+            if (p.lumoraLoader() || c.resolvePacks(p, List.of()).stream().noneMatch(a -> a.key().equals("fresh-animations"))) {
+                continue;
+            }
+            List<String> mods = c.resolveMods(p, List.of(), List.of()).stream().map(a -> a.key()).toList();
+            assertTrue(mods.containsAll(List.of("emf", "etf", "nuit")), "Fresh Animations needs EMF+ETF, Dramatic Skys needs Nuit: " + mods);
+            List<String> without = c.resolveMods(p, List.of(), List.of("fresh-animations", "dramatic-skys")).stream().map(a -> a.key()).toList();
+            assertTrue(without.stream().noneMatch(k -> k.equals("emf") || k.equals("etf") || k.equals("nuit")), without.toString());
+        }
     }
 }

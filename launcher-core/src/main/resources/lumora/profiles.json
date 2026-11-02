@@ -78,30 +78,18 @@
     {
       "id": "1.21.11",
       "displayName": "Minecraft 1.21.11",
-      "description": "Letzte 1.21-Version mit großer Mod-Auswahl. Sodium, ViaFabricPlus und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.21.11",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.21.11",
-        "sodium-1.21.11",
-        "viafabricplus-1.21.11",
         "lumora-client-1.21.11"
       ],
-      "extensions": [
-        "modmenu-1.21.11",
-        "ferritecore-1.21.11",
-        "lithium-1.21.11",
-        "voicechat-1.21.11",
-        "emf-1.21.11",
-        "etf-1.21.11",
-        "nuit-1.21.11"
-      ],
+      "extensions": [],
       "resourcePacks": [
         "better-leaves-1.21.11",
-        "dramatic-skys-1.21.11",
         "enhanced-audio-1.21.11",
         "even-better-enchants-1.21.11",
-        "fresh-animations-1.21.11",
         "icons-1.21.11"
       ]
     },

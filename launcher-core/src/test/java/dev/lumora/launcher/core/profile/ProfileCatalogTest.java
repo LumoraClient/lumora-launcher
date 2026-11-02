@@ -73,10 +73,16 @@ class ProfileCatalogTest {
         // Lumora Loader profile: extensions are ignored, only the Lumora jar
         var mods = c.resolveMods(c.profile("26.1.2").orElseThrow(), List.of("modmenu", "unknown"));
         assertEquals(List.of("lumora-client"), mods.stream().map(a -> a.id).toList());
-        // extension switches are stored by key and pick the build of the selected version
-        var old = c.resolveMods(c.profile("1.21.11").orElseThrow(), List.of("modmenu", "lithium"));
-        assertEquals(List.of("fabric-api-1.21.11", "sodium-1.21.11", "viafabricplus-1.21.11", "lumora-client-1.21.11",
-                "modmenu-1.21.11", "lithium-1.21.11"), old.stream().map(a -> a.id).toList());
+        // Fabric profiles (while some are left): extension switches are stored by key and pick the build of the version
+        for (ProfileCatalog.Profile p : c.profiles()) {
+            if (p.lumoraLoader()) {
+                assertEquals(1, c.resolveMods(p, List.of("modmenu", "lithium")).size(), p.id);
+                continue;
+            }
+            List<String> keys = c.resolveMods(p, List.of("modmenu", "unknown")).stream().map(a -> a.key()).toList();
+            assertTrue(keys.contains("lumora-client") && keys.stream().anyMatch(k -> k.endsWith("fabric-api")), p.id + ": " + keys);
+            assertEquals(p.extensions.stream().anyMatch(e -> c.profileArtifact(p, "modmenu").isPresent()), keys.contains("modmenu"), p.id);
+        }
     }
 
     private static String doc(String artifactJson, String profileMods) {

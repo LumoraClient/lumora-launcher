@@ -55,11 +55,16 @@ public final class LaunchCommandBuilder {
      * it loads itself together with {@code jars} (the Lumora client); Minecraft's main class becomes the loader's
      * target.
      */
-    public record Loader(Path jar, List<Path> jars) {
+    public record Loader(Path jar, List<Path> jars, Path mappings) {
         public static final String MAIN_CLASS = "dev.lumora.loader.Main";
 
         public Loader {
             jars = List.copyOf(jars);
+        }
+
+        /** For unobfuscated Minecraft (26.1 and later): no mappings. */
+        public Loader(Path jar, List<Path> jars) {
+            this(jar, jars, null);
         }
     }
 
@@ -133,6 +138,10 @@ public final class LaunchCommandBuilder {
             cmd.add("-Dlumora.loader.jars=" + String.join(File.pathSeparator,
                     r.loader().jars().stream().map(p -> p.toAbsolutePath().toString()).toList()));
             cmd.add("-Dlumora.loader.target=" + r.version().mainClass());
+            if (r.loader().mappings() != null) {
+                // obfuscated Minecraft: Mojang's official names, applied by the loader before the game starts
+                cmd.add("-Dlumora.loader.mappings=" + r.loader().mappings().toAbsolutePath());
+            }
         }
         cmd.addAll(r.extraJvmArgs());
         if (r.loggingConfig() != null && r.version().logging() != null && r.version().logging().argument != null) {

@@ -192,12 +192,19 @@ public final class ClientInstaller {
         if (lumoraLoader) {
             // no mod loader, no Fabric metadata to check: the loader starts exactly the verified Lumora jar(s)
             Path loaderJar = bundled.get().verified(LOADER_JAR);
+            // obfuscated versions (up to 1.21.11): Mojang's official client mappings from the version JSON (SHA-1 checked)
+            Path mappings = null;
+            VersionJson.Download cm = vanilla.downloads == null ? null : vanilla.downloads.get("client_mappings");
+            if (cm != null && cm.url != null) {
+                mappings = FileUtil.resolveInside(paths.versions(), vanilla.id + "/" + vanilla.id + "-client-mappings.txt");
+                downloader.download(new Downloader.Task(URI.create(cm.url), mappings, Hashing.Expected.sha1(cm.sha1), cm.size), null, verify);
+            }
             FileUtil.writeAtomically(verifiedMarker, version.id().getBytes(StandardCharsets.UTF_8));
             Files.createDirectories(natives);
             NativeExtractor.extract(version.natives(), paths.libraries(), natives);
             progress.progress(1, "");
             return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, List.of(), List.of(),
-                    new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles()));
+                    new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles(), mappings));
         }
 
         progress.stage("Prüfe Mod-Kompatibilität");

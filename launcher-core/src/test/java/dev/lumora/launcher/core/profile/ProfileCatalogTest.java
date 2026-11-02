@@ -30,8 +30,12 @@ class ProfileCatalogTest {
             boolean legacy = p.id.equals("1.8.9") || p.id.equals("1.12.2");
             if (p.lumoraLoader()) {
                 // Lumora Loader: Minecraft plus the Lumora client only, no mod loader and no Fabric mods
-                assertEquals(List.of("lumora-client-" + p.id), p.mods, p.id);
+                assertEquals(1, p.mods.size(), p.id);
+                assertEquals("lumora-client", c.profileArtifact(p, "lumora-client").orElseThrow().key(), p.id);
                 assertTrue(p.extensions.isEmpty(), p.id + " has no extensions without a mod loader");
+                for (ProfileCatalog.Artifact pack : c.resolvePacks(p, List.of())) {
+                    assertTrue(pack.requires == null || pack.requires.isEmpty(), p.id + ": " + pack.id + " needs a mod");
+                }
                 continue;
             }
             assertEquals(legacy ? "legacy-fabric" : "fabric", p.loader, p.id);
@@ -66,8 +70,9 @@ class ProfileCatalogTest {
     @Test
     void resolveModsAddsOnlySupportedEnabledExtensions() throws IOException {
         ProfileCatalog c = ProfileCatalog.loadBundled();
+        // Lumora Loader profile: extensions are ignored, only the Lumora jar
         var mods = c.resolveMods(c.profile("26.1.2").orElseThrow(), List.of("modmenu", "unknown"));
-        assertEquals(List.of("fabric-api", "sodium", "viafabricplus", "lumora-client", "modmenu"), mods.stream().map(a -> a.id).toList());
+        assertEquals(List.of("lumora-client"), mods.stream().map(a -> a.id).toList());
         // extension switches are stored by key and pick the build of the selected version
         var old = c.resolveMods(c.profile("1.21.11").orElseThrow(), List.of("modmenu", "lithium"));
         assertEquals(List.of("fabric-api-1.21.11", "sodium-1.21.11", "viafabricplus-1.21.11", "lumora-client-1.21.11",

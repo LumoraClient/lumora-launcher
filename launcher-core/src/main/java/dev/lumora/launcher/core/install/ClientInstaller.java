@@ -168,8 +168,9 @@ public final class ClientInstaller {
 
         // mods: Lumora's own (verified), the player's own jars in mods/ stay
         progress.stage("Installiere Client-Komponenten (" + profile.displayName + ")");
-        List<ProfileCatalog.Artifact> mods = flavor == Flavor.LUMORA
-                ? catalog.resolveMods(profile, config.enabledExtensions, config.disabledResourcePacks) : List.of();
+        // Lumora Loader: only the profile's own Lumora jar(s); no extensions and no mods that resource packs ask for
+        List<ProfileCatalog.Artifact> mods = lumoraLoader ? catalog.resolveMods(profile, List.of(), null)
+                : flavor == Flavor.LUMORA ? catalog.resolveMods(profile, config.enabledExtensions, config.disabledResourcePacks) : List.of();
         ModInstaller modInstaller = new ModInstaller(downloader, paths.modCache(), bundled.get());
         // with the Lumora Loader the client jar lives in .lumora/client: mods/ (old Fabric mods, own files) is left alone
         Path modsDir = lumoraLoader ? gameDir.resolve(".lumora").resolve("client") : gameDir.resolve("mods");
@@ -178,6 +179,10 @@ public final class ClientInstaller {
         // resource packs: same verified download into resourcepacks/, then switched on in options.txt
         if (flavor == Flavor.LUMORA) {
             List<ProfileCatalog.Artifact> packs = catalog.resolvePacks(profile, config.disabledResourcePacks);
+            if (lumoraLoader) {
+                // packs that need a mod (Fresh Animations: EMF/ETF) would do nothing without a mod loader
+                packs = packs.stream().filter(a -> a.requires == null || a.requires.isEmpty()).toList();
+            }
             progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
             modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
             ResourcePackOptions.apply(gameDir, packs, THEME_ONCE.contains(profile.minecraftVersion)

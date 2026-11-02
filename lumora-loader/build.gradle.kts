@@ -28,6 +28,7 @@ dependencies {
     compileOnlyApi("net.fabricmc:sponge-mixin:$mixinVersion")
     compileOnly("org.ow2.asm:asm:$asmVersion")
     compileOnly("org.ow2.asm:asm-tree:$asmVersion")
+    compileOnly("org.ow2.asm:asm-commons:$asmVersion")
     compileOnly(libs.gson.minecraft.min)
     shade("net.fabricmc:sponge-mixin:$mixinVersion")
     for (m in listOf("asm", "asm-tree", "asm-commons", "asm-util", "asm-analysis")) {
@@ -37,6 +38,7 @@ dependencies {
     testImplementation("net.fabricmc:sponge-mixin:$mixinVersion")
     testImplementation("org.ow2.asm:asm:$asmVersion")
     testImplementation("org.ow2.asm:asm-tree:$asmVersion")
+    testImplementation("org.ow2.asm:asm-commons:$asmVersion")
     testImplementation(libs.gson)
     testImplementation("com.google.guava:guava:33.4.8-jre")
     testImplementation(platform(libs.junit.bom))

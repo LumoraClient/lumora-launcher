@@ -32,7 +32,16 @@
     "ConnectScreenAccessor",
     "DisconnectedScreenAccessor",
     "JoinMultiplayerScreenAccessor",
-    "SelectWorldScreenAccessor"
+    "SelectWorldScreenAccessor",
+    "platform.MinecraftLifecycleMixin",
+    "platform.ScreenHooksMixin",
+    "platform.ScreenWidgetsInvoker",
+    "platform.HudLayerMixin",
+    "platform.ChatScreenClickMixin",
+    "platform.OptionsKeysMixin",
+    "platform.BuiltInPackSourceMixin",
+    "platform.DiscardedPayloadMixin",
+    "platform.ClientCustomPayloadMixin"
   ],
   "injectors": {
     "defaultRequire": 1

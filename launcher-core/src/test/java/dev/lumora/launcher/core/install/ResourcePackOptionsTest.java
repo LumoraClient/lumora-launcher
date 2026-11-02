@@ -92,6 +92,7 @@ class ResourcePackOptionsTest {
         List<String> without = c.resolveMods(p, List.of(), List.of("fresh-animations", "dramatic-skys")).stream().map(a -> a.key()).toList();
         assertTrue(without.stream().noneMatch(k -> k.equals("emf") || k.equals("etf") || k.equals("nuit")), without.toString());
         assertTrue(c.allResourcePackKeys().contains("enhanced-boss-bars"));
-        assertEquals(8, c.resolvePacks(c.profile("26.1.2").orElseThrow(), List.of()).size(), "Enhanced Boss Bars exists only for 26.1.2");
+        // 26.1.2 runs on the Lumora Loader: no Fresh Animations and Dramatic Skys there (they need Fabric mods)
+        assertEquals(6, c.resolvePacks(c.profile("26.1.2").orElseThrow(), List.of()).size(), "Enhanced Boss Bars exists only for 26.1.2");
     }
 }

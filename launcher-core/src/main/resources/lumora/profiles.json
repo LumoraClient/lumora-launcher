@@ -19,50 +19,31 @@
     {
       "id": "26.2",
       "displayName": "Minecraft 26.2",
-      "description": "Sodium, ViaFabricPlus und Erweiterungen.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "26.2",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-26.2",
-        "sodium-26.2",
-        "viafabricplus-26.2",
         "lumora-client-26.2"
       ],
-      "extensions": [
-        "modmenu-26.2",
-        "ferritecore-26.2",
-        "lithium-26.2",
-        "voicechat-26.2"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {
       "id": "26.1.2",
       "displayName": "Minecraft 26.1.2",
-      "description": "Neueste Version. Sodium, ViaFabricPlus (Server von 1.7 bis 26.x) und die volle Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "26.1.2",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api",
-        "sodium",
-        "viafabricplus",
         "lumora-client"
       ],
-      "extensions": [
-        "modmenu",
-        "ferritecore",
-        "lithium",
-        "voicechat",
-        "emf-26.1.2",
-        "etf-26.1.2",
-        "nuit-26.1.2"
-      ],
+      "extensions": [],
       "resourcePacks": [
         "better-leaves-26.1.2",
-        "dramatic-skys-26.1.2",
         "enhanced-audio-26.1.2",
         "even-better-enchants-26.1.2",
-        "fresh-animations-26.1.2",
         "fresh-food-26.1.2",
         "icons-26.1.2",
         "enhanced-boss-bars-26.1.2"
@@ -71,41 +52,27 @@
     {
       "id": "26.1.1",
       "displayName": "Minecraft 26.1.1",
-      "description": "Sodium, ViaFabricPlus und Erweiterungen.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "26.1.1",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-26.1.1",
-        "sodium-26.1.1",
-        "viafabricplus-26.1.1",
         "lumora-client-26.1.1"
       ],
-      "extensions": [
-        "modmenu-26.1.1",
-        "ferritecore-26.1.1",
-        "lithium-26.1.1",
-        "voicechat-26.1.1"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {
       "id": "26.1",
       "displayName": "Minecraft 26.1",
-      "description": "Sodium, ViaFabricPlus und Erweiterungen.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "26.1",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-26.1",
-        "sodium-26.1",
-        "viafabricplus-26.1",
         "lumora-client-26.1"
       ],
-      "extensions": [
-        "modmenu-26.1",
-        "ferritecore-26.1",
-        "lithium-26.1",
-        "voicechat-26.1"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {

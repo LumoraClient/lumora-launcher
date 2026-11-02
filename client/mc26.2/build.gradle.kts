@@ -15,8 +15,8 @@ val bundled: Configuration by configurations.creating {
 
 dependencies {
     minecraft("com.mojang:minecraft:${libs.versions.mc262.minecraft.get()}")
-    implementation("net.fabricmc:fabric-loader:${libs.versions.mc26.fabric.loader.get()}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${libs.versions.mc262.fabric.api.get()}")
+    // no mod loader: started by the Lumora Loader (its API and the Mixin annotations at compile time only)
+    compileOnly(project(":lumora-loader"))
     // Sodium and ViaFabricPlus are deliberately NOT compile dependencies: the mod talks to ViaFabricPlus through
     // reflection on its public API classes, so it loads without it and does not link GPL code.
 
@@ -35,7 +35,7 @@ dependencies {
 tasks.processResources {
     val v = project.version.toString()
     inputs.property("version", v)
-    filesMatching("fabric.mod.json") {
+    filesMatching("lumora.loader.json") {
         expand("version" to v)
     }
 }

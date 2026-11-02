@@ -38,6 +38,13 @@ public final class Boot {
     public static void main(String[] args) throws Throwable {
         long start = System.nanoTime();
         Path game = existing(require("lumora.loader.game"), "Minecraft jar");
+        String mappings = System.getProperty("lumora.loader.mappings");
+        if (mappings != null && !mappings.isBlank()) {
+            // obfuscated Minecraft: Mojang's names first (the Lumora client is compiled against them), cached
+            game = GameRemapper.remapCached(game, existing(mappings, "Mojang mappings"), game.toAbsolutePath().getParent());
+        }
+        // the client jar already uses the game's runtime names; refmaps (intermediary names) must not apply
+        System.setProperty("mixin.env.disableRefMap", "true");
         List<JarDescriptor> jars = new ArrayList<>();
         String list = System.getProperty("lumora.loader.jars", "");
         for (String p : list.split(java.util.regex.Pattern.quote(File.pathSeparator))) {

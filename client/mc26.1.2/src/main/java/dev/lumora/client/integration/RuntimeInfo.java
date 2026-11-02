@@ -2,8 +2,6 @@ package dev.lumora.client.integration;
 
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,15 +27,15 @@ public final class RuntimeInfo {
     }
 
     public static Optional<String> modVersion(String id) {
-        return FabricLoader.getInstance().getModContainer(id).map(ModContainer::getMetadata).map(m -> m.getVersion().getFriendlyString());
+        return dev.lumora.client.platform.LoaderEnv.version(id);
     }
 
     public static boolean sodiumLoaded() {
-        return FabricLoader.getInstance().isModLoaded("sodium");
+        return dev.lumora.client.platform.LoaderEnv.isLoaded("sodium");
     }
 
     public static boolean viaFabricPlusLoaded() {
-        return FabricLoader.getInstance().isModLoaded("viafabricplus");
+        return dev.lumora.client.platform.LoaderEnv.isLoaded("viafabricplus");
     }
 
     /** Renderer as reported by Minecraft's GpuDevice abstraction (OpenGL). */

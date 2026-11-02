@@ -32,8 +32,16 @@ public final class ProfileCatalog {
         public String description;
         public String minecraftVersion;
         public String fabricLoaderVersion;
-        /** "fabric" (default) or "legacy-fabric" (Minecraft before 1.14, loader profile from meta.legacyfabric.net). */
+        /**
+         * "lumora" (the Lumora Loader: plain Minecraft plus the Lumora client, no mod loader), "fabric" (default) or
+         * "legacy-fabric" (Minecraft before 1.14, loader profile from meta.legacyfabric.net).
+         */
         public String loader = "fabric";
+
+        /** Started by the Lumora Loader instead of Fabric. */
+        public boolean lumoraLoader() {
+            return "lumora".equals(loader);
+        }
         /**
          * Optional Mojang Java runtime component to use instead of the one in the version JSON, e.g.
          * "java-runtime-delta" (Java 21) so the Lumora mod and API (Java 21) can load on an older Minecraft version.
@@ -220,8 +228,8 @@ public final class ProfileCatalog {
             if (p.minecraftVersion == null || p.fabricLoaderVersion == null) {
                 errors.add(p.id + ": minecraftVersion and fabricLoaderVersion are required");
             }
-            if (!"fabric".equals(p.loader) && !"legacy-fabric".equals(p.loader)) {
-                errors.add(p.id + ": loader must be fabric or legacy-fabric");
+            if (!"fabric".equals(p.loader) && !"legacy-fabric".equals(p.loader) && !"lumora".equals(p.loader)) {
+                errors.add(p.id + ": loader must be lumora, fabric or legacy-fabric");
             }
             if (p.javaComponent != null && !p.javaComponent.matches("(java-runtime-[a-z]+|jre-legacy)")) {
                 errors.add(p.id + ": invalid javaComponent " + p.javaComponent);

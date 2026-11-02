@@ -24,6 +24,7 @@ include(":lumora-api")
 include(":lumora-core")
 include(":lumora-social")
 include(":lumora-social-server")
+include(":lumora-loader")
 // Example addon that only uses the public API (no Minecraft classes) and therefore runs on every version.
 include(":examples:session-timer-addon")
 

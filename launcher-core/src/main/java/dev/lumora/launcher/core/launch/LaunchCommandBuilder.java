@@ -39,7 +39,28 @@ public final class LaunchCommandBuilder {
             Integer width,
             Integer height,
             List<String> extraSystemProperties,
-            QuickPlay quickPlay) {
+            QuickPlay quickPlay,
+            Loader loader) {
+        public Request(ResolvedVersion version, Path javaExecutable, Path librariesDir, Path clientJar, Path assetsDir, Path gameDir,
+                       Path nativesDir, Path loggingConfig, Identity identity, int minMemoryMb, int maxMemoryMb,
+                       List<String> extraJvmArgs, Integer width, Integer height, List<String> extraSystemProperties,
+                       QuickPlay quickPlay) {
+            this(version, javaExecutable, librariesDir, clientJar, assetsDir, gameDir, nativesDir, loggingConfig, identity,
+                    minMemoryMb, maxMemoryMb, extraJvmArgs, width, height, extraSystemProperties, quickPlay, null);
+        }
+    }
+
+    /**
+     * The Lumora Loader instead of a mod loader: its jar is put on the class path in place of the Minecraft jar, which
+     * it loads itself together with {@code jars} (the Lumora client); Minecraft's main class becomes the loader's
+     * target.
+     */
+    public record Loader(Path jar, List<Path> jars) {
+        public static final String MAIN_CLASS = "dev.lumora.loader.Main";
+
+        public Loader {
+            jars = List.copyOf(jars);
+        }
     }
 
     /**
@@ -107,12 +128,18 @@ public final class LaunchCommandBuilder {
         for (String p : r.extraSystemProperties()) {
             cmd.add(p);
         }
+        if (r.loader() != null) {
+            cmd.add("-Dlumora.loader.game=" + r.clientJar().toAbsolutePath());
+            cmd.add("-Dlumora.loader.jars=" + String.join(File.pathSeparator,
+                    r.loader().jars().stream().map(p -> p.toAbsolutePath().toString()).toList()));
+            cmd.add("-Dlumora.loader.target=" + r.version().mainClass());
+        }
         cmd.addAll(r.extraJvmArgs());
         if (r.loggingConfig() != null && r.version().logging() != null && r.version().logging().argument != null) {
             cmd.add(r.version().logging().argument.replace("${path}", r.loggingConfig().toAbsolutePath().toString()));
         }
         cmd.addAll(expand(r.version().jvmArgs(), vars, os, features));
-        cmd.add(r.version().mainClass());
+        cmd.add(r.loader() != null ? Loader.MAIN_CLASS : r.version().mainClass());
         List<String> game = expand(r.version().gameArgs(), vars, os, features);
         if (r.quickPlay() != null && r.quickPlay().kind() == QuickPlay.Kind.MULTIPLAYER && !game.contains("--quickPlayMultiplayer")) {
             // versions before 1.20 have no Quick Play, but every version since 1.6 understands --server/--port
@@ -139,10 +166,16 @@ public final class LaunchCommandBuilder {
 
     static String classpath(Request r) {
         List<String> entries = new ArrayList<>();
+        if (r.loader() != null) {
+            // the loader first; the Minecraft jar is loaded by the loader itself (with the mixins applied), not from here
+            entries.add(r.loader().jar().toAbsolutePath().toString());
+        }
         for (ResolvedVersion.Library lib : r.version().libraries()) {
             entries.add(r.librariesDir().resolve(lib.path()).toAbsolutePath().toString());
         }
-        entries.add(r.clientJar().toAbsolutePath().toString());
+        if (r.loader() == null) {
+            entries.add(r.clientJar().toAbsolutePath().toString());
+        }
         return String.join(File.pathSeparator, entries);
     }
 

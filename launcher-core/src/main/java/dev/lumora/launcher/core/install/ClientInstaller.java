@@ -39,8 +39,16 @@ import java.util.function.Supplier;
 public final class ClientInstaller {
     public record Prepared(ProfileCatalog.Profile profile, ResolvedVersion version, Path javaExecutable,
                            Path clientJar, Path gameDir, Path nativesDir, Path loggingConfig,
-                           List<DependencyChecker.Problem> warnings, List<Path> unmanagedMods) {
+                           List<DependencyChecker.Problem> warnings, List<Path> unmanagedMods,
+                           dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader loader) {
+        public Prepared(ProfileCatalog.Profile profile, ResolvedVersion version, Path javaExecutable, Path clientJar, Path gameDir,
+                        Path nativesDir, Path loggingConfig, List<DependencyChecker.Problem> warnings, List<Path> unmanagedMods) {
+            this(profile, version, javaExecutable, clientJar, gameDir, nativesDir, loggingConfig, warnings, unmanagedMods, null);
+        }
     }
+
+    /** The Lumora Loader in the launcher's bundled folder (started instead of a mod loader, profile loader "lumora"). */
+    public static final String LOADER_JAR = "lumora-loader.jar";
 
     public static final class DependencyException extends IOException {
         private static final long serialVersionUID = 1L;
@@ -87,11 +95,13 @@ public final class ClientInstaller {
                             ProgressListener progress) throws IOException {
         MetadataService meta = new MetadataService(downloader, paths.versions());
         boolean vanillaOnly = flavor == Flavor.VANILLA;
+        // Lumora Loader: plain Minecraft plus the Lumora client, no mod loader
+        boolean lumoraLoader = !vanillaOnly && profile.lumoraLoader();
         progress.stage("Lade Versionsinformationen (Minecraft " + profile.minecraftVersion
-                + (vanillaOnly ? ", Vanilla" : ", Fabric " + profile.fabricLoaderVersion) + ")");
+                + (vanillaOnly ? ", Vanilla" : lumoraLoader ? ", Lumora Loader" : ", Fabric " + profile.fabricLoaderVersion) + ")");
         progress.progress(-1, "");
         VersionJson vanilla = meta.vanilla(profile.minecraftVersion);
-        VersionJson fabric = vanillaOnly ? null
+        VersionJson fabric = vanillaOnly || lumoraLoader ? null
                 : meta.fabricProfile(profile.minecraftVersion, profile.fabricLoaderVersion, "legacy-fabric".equals(profile.loader));
         ResolvedVersion version = ResolvedVersion.merge(fabric, vanilla, os);
         String instanceId = flavor.instanceId(profile.id);
@@ -161,7 +171,9 @@ public final class ClientInstaller {
         List<ProfileCatalog.Artifact> mods = flavor == Flavor.LUMORA
                 ? catalog.resolveMods(profile, config.enabledExtensions, config.disabledResourcePacks) : List.of();
         ModInstaller modInstaller = new ModInstaller(downloader, paths.modCache(), bundled.get());
-        ModInstaller.Result modResult = modInstaller.install(mods, gameDir.resolve("mods"), progressAdapter(progress, "Mods"));
+        // with the Lumora Loader the client jar lives in .lumora/client: mods/ (old Fabric mods, own files) is left alone
+        Path modsDir = lumoraLoader ? gameDir.resolve(".lumora").resolve("client") : gameDir.resolve("mods");
+        ModInstaller.Result modResult = modInstaller.install(mods, modsDir, progressAdapter(progress, "Mods"));
 
         // resource packs: same verified download into resourcepacks/, then switched on in options.txt
         if (flavor == Flavor.LUMORA) {
@@ -170,6 +182,17 @@ public final class ClientInstaller {
             modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
             ResourcePackOptions.apply(gameDir, packs, THEME_ONCE.contains(profile.minecraftVersion)
                     && catalog.profileArtifact(profile, "lumora-client").isPresent());
+        }
+
+        if (lumoraLoader) {
+            // no mod loader, no Fabric metadata to check: the loader starts exactly the verified Lumora jar(s)
+            Path loaderJar = bundled.get().verified(LOADER_JAR);
+            FileUtil.writeAtomically(verifiedMarker, version.id().getBytes(StandardCharsets.UTF_8));
+            Files.createDirectories(natives);
+            NativeExtractor.extract(version.natives(), paths.libraries(), natives);
+            progress.progress(1, "");
+            return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, List.of(), List.of(),
+                    new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles()));
         }
 
         progress.stage("Prüfe Mod-Kompatibilität");

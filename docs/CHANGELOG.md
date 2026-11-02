@@ -1,5 +1,21 @@
 # Änderungen
 
+## Unveröffentlicht
+
+### Lumora Loader: Minecraft ohne Mod-Loader (zuerst 26.3)
+- **Eigener Lumora Loader** statt Fabric. Er startet Minecraft, lädt den Lumora Client und wendet dessen Eingriffe ins Spiel (Mixins) selbst an. Lumora-Addons kommen wie bisher aus dem Ordner `addons`.
+- **26.3 läuft jetzt ohne Fabric:** kein Fabric Loader, keine Fabric API, keine Fabric-Mods. Alles, was vorher die Fabric API lieferte, bringt der Client selbst mit:
+  - Menü- und HUD-Ereignisse
+  - Tastenbelegungen
+  - Lumoras Ressourcenpakete (Theme und Schrift wie gewohnt)
+  - Plugin-Kanäle für Addons
+- **Entfallen für 26.3:** Sodium, Lithium, FerriteCore, ViaFabricPlus, Simple Voice Chat und Mod Menu, weil das Fabric-Mods sind. Ein vorhandener `mods`-Ordner bleibt unangetastet, wird aber nicht mehr geladen.
+- Die anderen 15 Versionen laufen vorerst noch über Fabric und werden nach und nach umgestellt.
+
+### Launcher
+- **Seite „Mods“ entfernt.**
+- **„Entdecken“** zeigt nur noch Ressourcenpakete von Modrinth.
+
 ## 0.2.2 (2026-11-02)
 
 ### Launcher

@@ -6,21 +6,14 @@
     {
       "id": "26.3",
       "displayName": "Minecraft 26.3",
-      "description": "Aktuellste Version. Sodium, ViaFabricPlus, Simple Voice Chat (Beta) als Erweiterung.",
+      "description": "Aktuellste Version. Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "26.3",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-26.3",
-        "sodium-26.3",
-        "viafabricplus-26.3",
         "lumora-client-26.3"
       ],
-      "extensions": [
-        "modmenu-26.3",
-        "ferritecore-26.3",
-        "lithium-26.3",
-        "voicechat-26.3"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {

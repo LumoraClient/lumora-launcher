@@ -17,6 +17,8 @@ Im Ordner `addons/` bekommt jede JAR einen eigenen Class-Loader:
 
 Eine ID darf nur einmal vorkommen, egal in welchem der beiden Ordner.
 
+**Minecraft 26.3** läuft mit dem Lumora Loader, ohne Fabric. Dort gibt es nur den Weg über den Ordner `addons`. JARs im Ordner `mods` werden nicht geladen.
+
 Das vollständige, kompilierte Beispiel liegt in [`examples/session-timer-addon`](../examples/session-timer-addon):
 ein Widget mit der Zeit in der aktuellen Welt, ein Keybind zum Neustarten, eine Addon-Einstellung und eine
 Benachrichtigung. Es verwendet nur die API und läuft deshalb auf 26.1.2, 1.21.11 und 1.21.8 mit derselben JAR.

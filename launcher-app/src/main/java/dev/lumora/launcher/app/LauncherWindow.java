@@ -8,7 +8,6 @@ import dev.lumora.launcher.app.pages.AccountPage;
 import dev.lumora.launcher.app.pages.BrowserPage;
 import dev.lumora.launcher.app.pages.CrashPage;
 import dev.lumora.launcher.app.pages.LibraryPage;
-import dev.lumora.launcher.app.pages.ModsPage;
 import dev.lumora.launcher.app.pages.PageHost;
 import dev.lumora.launcher.app.ui.NavRail;
 import dev.lumora.launcher.app.ui.PlayButton;
@@ -109,7 +108,6 @@ final class LauncherWindow implements PageHost {
         return t;
     });
     private final AtomicBoolean busy = new AtomicBoolean();
-    private ModsPage modsPage;
     private LibraryPage libraryPage;
     private CrashPage crashPage;
     private final dev.lumora.launcher.app.social.SocialController social;
@@ -241,9 +239,7 @@ final class LauncherWindow implements PageHost {
 
         pageHost.setOpaque(false);
         pageHost.add(scroll((JComponent) homePage()), "home");
-        modsPage = new ModsPage(this, pageIo);
         libraryPage = new LibraryPage(this, pageIo);
-        pageHost.add(modsPage, "extensions");
         pageHost.add(libraryPage, "library");
         accountPage = new AccountPage(this, pageIo);
         pageHost.add(accountPage, "account");
@@ -311,8 +307,6 @@ final class LauncherWindow implements PageHost {
                 markNewsSeen();
             } else if (id.equals("performance")) {
                 performancePage.refresh();
-            } else if (id.equals("extensions")) {
-                modsPage.refresh();
             } else if (id.equals("library")) {
                 libraryPage.refresh();
             } else if (id.equals("account")) {
@@ -324,7 +318,6 @@ final class LauncherWindow implements PageHost {
             }
         });
         nav.addItem("home", "Startseite", Icons.Kind.HOME);
-        nav.addItem("extensions", "Mods", Icons.Kind.PUZZLE);
         nav.addItem("browser", "Entdecken", Icons.Kind.SEARCH);
         nav.addItem("performance", "Performance", Icons.Kind.CHART);
         nav.addItem("library", "Bibliothek", Icons.Kind.LIBRARY);

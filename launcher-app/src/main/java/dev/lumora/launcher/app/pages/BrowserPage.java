@@ -41,9 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
- * "Entdecken": mod browser on Modrinth. Search Fabric mods or resource packs for the selected Minecraft version and
- * install them with one click (SHA-512 checked, required dependencies included). Installed mods then show up on
- * the Mods page under "Eigene Mods" and go through the compatibility check before every start.
+ * "Entdecken": resource pack browser on Modrinth. Search resource packs for the selected Minecraft version and
+ * install them with one click (SHA-512 checked). Mods are not offered any more: Lumora runs without a mod loader.
  */
 public final class BrowserPage extends JPanel {
     private static final int PAGE = 20;
@@ -58,13 +57,13 @@ public final class BrowserPage extends JPanel {
     private final java.util.Set<String> categories = new java.util.LinkedHashSet<>();
     private boolean allCategories;
     private boolean allVersions;
-    private final JPanel kindBar = Ui.row(0);
     private final JTextField search = new JTextField();
     private final JComboBox<String> sort = new JComboBox<>(SORTS);
     private final JLabel summary = Ui.label(" ", 13, Font.PLAIN, Theme.MUTED);
     private final JPanel list = Ui.column();
     private final Timer debounce;
-    private ModrinthBrowser.Kind kind = ModrinthBrowser.Kind.MOD;
+    /** Only resource packs: they work without a mod loader. */
+    private final ModrinthBrowser.Kind kind = ModrinthBrowser.Kind.RESOURCE_PACK;
     private final List<ModrinthBrowser.Hit> hits = new ArrayList<>();
     private int total;
     private int generation;
@@ -76,13 +75,12 @@ public final class BrowserPage extends JPanel {
         this.modrinth = new ModrinthBrowser(host.ctx().downloader);
         setOpaque(false);
         JPanel head = Ui.column();
-        head.add(Ui.pageTitle("Entdecken", "Mods und Ressourcenpakete von Modrinth – passend zur Version, mit Prüfsumme installiert."));
+        head.add(Ui.pageTitle("Entdecken", "Ressourcenpakete von Modrinth – passend zur Version, mit Prüfsumme installiert."));
         head.add(Box.createVerticalStrut(14));
         JPanel tools = new JPanel(new BorderLayout(10, 0));
         tools.setOpaque(false);
         tools.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel left = Ui.row(12);
-        left.add(kindBar);
         tools.add(left, BorderLayout.WEST);
         JPanel right = Ui.row(8);
         search.putClientProperty("JTextField.placeholderText", "Auf Modrinth suchen…");
@@ -133,23 +131,10 @@ public final class BrowserPage extends JPanel {
     /** Called when the page is shown. */
     public void refresh() {
         buildFilters();
-        kindBar.removeAll();
-        kindBar.add(Ui.segmented(List.of("MOD", "RESOURCE_PACK"), List.of("Mods", "Ressourcenpakete"), kind.name(), id -> {
-            kind = ModrinthBrowser.Kind.valueOf(id);
-            categories.clear();
-            refresh();
-        }));
-        kindBar.revalidate();
         reload();
     }
 
     /** Modrinth category slugs with German names, in the order shown (first six visible, the rest behind "Mehr"). */
-    private static final String[][] MOD_CATEGORIES = {
-            {"optimization", "Optimierung"}, {"utility", "Werkzeuge"}, {"decoration", "Dekoration"}, {"adventure", "Abenteuer"},
-            {"equipment", "Ausrüstung"}, {"food", "Essen"}, {"game-mechanics", "Spielmechanik"}, {"library", "Bibliothek"},
-            {"magic", "Magie"}, {"management", "Verwaltung"}, {"minigame", "Minispiele"}, {"mobs", "Kreaturen"},
-            {"social", "Soziales"}, {"storage", "Lager"}, {"technology", "Technik"}, {"transportation", "Transport"},
-            {"worldgen", "Weltgenerierung"}, {"economy", "Wirtschaft"}, {"cursed", "Verflucht"}};
     private static final String[][] PACK_CATEGORIES = {
             {"vanilla-like", "Vanilla-ähnlich"}, {"simplistic", "Schlicht"}, {"realistic", "Realistisch"}, {"themed", "Thema"},
             {"combat", "PvP"}, {"gui", "Oberfläche"}, {"16x", "16x"}, {"32x", "32x"}, {"64x", "64x"}, {"128x", "128x"},
@@ -159,7 +144,7 @@ public final class BrowserPage extends JPanel {
     /** Left filter column: categories, loader, game versions (like modrinth.com). */
     private void buildFilters() {
         filters.removeAll();
-        String[][] cats = kind == ModrinthBrowser.Kind.MOD ? MOD_CATEGORIES : PACK_CATEGORIES;
+        String[][] cats = PACK_CATEGORIES;
         filters.add(filterTitle("Kategorien"));
         JPanel grid = new JPanel(new java.awt.GridLayout(0, 2, 8, 8));
         grid.setOpaque(false);
@@ -182,18 +167,6 @@ public final class BrowserPage extends JPanel {
                 allCategories = !allCategories;
                 buildFilters();
             }));
-        }
-        if (kind == ModrinthBrowser.Kind.MOD) {
-            filters.add(Box.createVerticalStrut(10));
-            filters.add(filterTitle("Loader"));
-            JPanel loaders = new JPanel(new java.awt.GridLayout(0, 2, 8, 8));
-            loaders.setOpaque(false);
-            JComponent fabric = filterChip("Fabric", true, on -> { });
-            fabric.setEnabled(false);
-            fabric.setToolTipText("Lumora läuft auf Fabric – Mods anderer Loader würden nicht laden");
-            loaders.add(fabric);
-            loaders.setAlignmentX(Component.LEFT_ALIGNMENT);
-            filters.add(loaders);
         }
         filters.add(Box.createVerticalStrut(10));
         filters.add(filterTitle("Spielversionen"));

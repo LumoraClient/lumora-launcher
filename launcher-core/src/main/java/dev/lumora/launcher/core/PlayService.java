@@ -154,7 +154,7 @@ public final class PlayService {
                     prepared.version(), prepared.javaExecutable(), paths.libraries(), prepared.clientJar(),
                     paths.assets(), prepared.gameDir(), prepared.nativesDir(), prepared.loggingConfig(), identity,
                     config.minMemoryMb, config.maxMemoryMb, jvmArgs,
-                    config.windowWidth, config.windowHeight, sysProps, quickPlay), os);
+                    config.windowWidth, config.windowHeight, sysProps, quickPlay, prepared.loader()), os);
 
             cmd = new ArrayList<>(cmd);
             cmd.addAll(dev.lumora.launcher.core.launch.LaunchOptions.gameArgs(config));

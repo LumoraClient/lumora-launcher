@@ -28,6 +28,12 @@ class ProfileCatalogTest {
             assertEquals(p.id, p.minecraftVersion, "profile id is the Minecraft version");
             assertEquals("0.19.5", p.fabricLoaderVersion);
             boolean legacy = p.id.equals("1.8.9") || p.id.equals("1.12.2");
+            if (p.lumoraLoader()) {
+                // Lumora Loader: Minecraft plus the Lumora client only, no mod loader and no Fabric mods
+                assertEquals(List.of("lumora-client-" + p.id), p.mods, p.id);
+                assertTrue(p.extensions.isEmpty(), p.id + " has no extensions without a mod loader");
+                continue;
+            }
             assertEquals(legacy ? "legacy-fabric" : "fabric", p.loader, p.id);
             assertTrue(c.profileArtifact(p, legacy ? "legacy-fabric-api" : "fabric-api").isPresent(), p.id + " lacks its Fabric API");
             if (!legacy) {

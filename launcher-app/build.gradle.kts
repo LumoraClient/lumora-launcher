@@ -35,6 +35,8 @@ dependencies {
     for (v in gradle.extra["lumoraClientVersions"] as List<String>) {
         bundledMod(project(path = ":client-mc$v", configuration = "runtimeElements")) { isTransitive = false }
     }
+    // the Lumora Loader (starts profiles with loader "lumora" without a mod loader)
+    bundledMod(project(path = ":lumora-loader", configuration = "runtimeElements")) { isTransitive = false }
 }
 
 fun sha(file: File, algorithm: String): String =

@@ -75,6 +75,40 @@ Der Launcher startet ein Profil als **Lumora** (Fabric mit den Lumora-Mods, Fabr
 
 Lumora-Addons lädt der Client selbst aus dem Ordner `addons` der Instanz (siehe Abschnitt Client-Framework).
 
+## Lumora Loader (`lumora-loader`, ersetzt Fabric)
+
+Profile mit `"loader": "lumora"` in `profiles.json` starten **ohne Mod-Loader**: nur Minecraft (Vanilla-Versions-JSON), der Lumora Client und die Lumora-Addons. Derzeit gilt das für **26.3**. Die übrigen 15 Versionen laufen noch über Fabric und werden Schritt für Schritt umgestellt.
+
+```
+java -cp lumora-loader.jar;<Bibliotheken von Minecraft>  dev.lumora.loader.Main  <Minecraft-Argumente>
+     -Dlumora.loader.game=versions/26.3/26.3.jar            (nicht auf dem Klassenpfad)
+     -Dlumora.loader.jars=instances/26.3/.lumora/client/lumora-client-mc26.3.jar
+     -Dlumora.loader.target=net.minecraft.client.main.Main
+```
+
+1. **`Boot`** liest die `lumora.loader.json` jeder Lumora-JAR (`id`, `version`, `entrypoints`, `mixins`).
+2. **`GameClassLoader`** lädt die Minecraft-JAR und die Lumora-JAR selbst. Jede Klasse läuft vor dem Definieren durch den Mixin-Transformer, von Mixin erzeugte Klassen (`org.spongepowered.asm.synthetic.*`) entstehen dort. Java, die Bibliotheken des Spiels, der Loader, Mixin und ASM kommen vom übergeordneten Klassenlader.
+3. **Mixin:**
+   - **Dienst:** `LumoraMixinService` liefert die Klassen-Bytes, das Laden von Klassen und die Mixin-Konfigurationen, `LumoraGlobalPropertyService` ist der globale Speicher. Beide sind über `META-INF/services` angemeldet.
+   - **Start:** `MixinBootstrap.init`, dann die Konfigurationen der JARs, dann die Phasen INIT und DEFAULT.
+   - **Lieferung:** Mixin und ASM stecken in der Loader-JAR. Der ASM-Version im Manifest entnimmt Mixin, welche Java-Klassenversionen es unterstützt.
+4. **Start:** Die Einstiegspunkte (`dev.lumora.loader.api.ClientEntrypoint`) laufen vor Minecraft. Danach folgt `net.minecraft.client.main.Main.main` mit den Original-Argumenten.
+
+Was vorher die Fabric-API lieferte, bringt der Client selbst mit (`client/mc26.3/.../platform` und `mixin/platform`):
+
+| Bisher (Fabric) | Jetzt (Lumora) |
+|---|---|
+| Lebenszyklus, Tick (`ClientLifecycleEvents`, `ClientTickEvents`) | `MinecraftLifecycleMixin`: `run` (Spiel gestartet), `tick` (Ende), `exitWorldAndClose` |
+| Bildschirm-Ereignisse, Knöpfe in fremden Menüs (`ScreenEvents`, `Screens`) | `ScreenHooksMixin` (`init`, nach dem Zeichnen), `ScreenWidgetsInvoker` |
+| HUD-Ebene (`HudElementRegistry`) | `HudLayerMixin` am Ende von `Hud.extractRenderState` |
+| Klicks im Chat (`ScreenMouseEvents`) | `ChatScreenClickMixin` |
+| Tastenbelegungen (`KeyMappingHelper`) | `OptionsKeysMixin`: Lumoras Tasten werden vor dem Lesen von `options.txt` an `keyMappings` angehängt |
+| Mod-Ressourcen, eingebaute Pakete (`ResourceLoader`) | `BuiltInPackSourceMixin` + `Packs`: Paket „lumora“ (eigene `assets/`, immer an) und „lumora:lumora_theme“ / „lumora:lumora_font“ (abschaltbar, dieselben IDs wie vorher) |
+| Plugin-Kanäle (`PayloadTypeRegistry`, `ClientPlayNetworking`) | `Channels` + `DiscardedPayloadMixin` (Bytes registrierter Kanäle bleiben erhalten), `ClientCustomPayloadMixin`. Beim Betreten einer Welt meldet `minecraft:register` die Kanäle an. |
+| `FabricLoader` (Ordner, Versionen, `isModLoaded`) | `LoaderEnv` über `dev.lumora.loader.api.LumoraLoader`. Andere Mods gibt es nicht, Sodium und ViaFabricPlus gelten als „nicht geladen“. |
+
+Der Launcher legt die Lumora-JAR in `instances/<version>/.lumora/client` ab und lässt den alten `mods`-Ordner liegen. Fabric-Mods aus dem Profil (Sodium, Lithium, ViaFabricPlus, Simple Voice Chat …) entfallen für diese Versionen, ebenso die Seite „Mods“. „Entdecken“ zeigt nur noch Ressourcenpakete.
+
 ## Verbindungssystem im Client (`lumora-core/.../connection`)
 
 Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weiterhin selbst auf und macht auch Handshake, Login, Verschlüsselung und Sitzungsbeitritt bei Mojang. Lumora öffnet keine eigene Verbindung und fasst keine Tokens an.

@@ -96,7 +96,7 @@
   "lumora.hub.tab.addons": "Addons",
   "lumora.hub.modules.from": "Aus dem Addon: %s",
   "lumora.hub.addons.none": "Keine Addons installiert. Addon-Jars kommen in den Addon-Ordner.",
-  "lumora.hub.addons.hint": "Addons sind Fabric-Mods mit lumora-addon.json · ⚙ = Einstellungen und Tasten",
+  "lumora.hub.addons.hint": "Addons: JARs im Addon-Ordner · ⚙ = Einstellungen und Tasten",
   "lumora.addon.state.loaded": "geladen",
   "lumora.addon.state.resolved": "bereit",
   "lumora.addon.state.initialized": "bereit",

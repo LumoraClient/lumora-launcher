@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.2.1 (2026-11-02):**
+- **Build:** `gradlew build` erfolgreich, 365/365 Unit-Tests, darunter 10 neue für den Addon-Loader.
+- **Smoke-Tests im Spiel** (stumm, Testdatenordner) bestanden für 26.3, 1.21.4 und 1.8.9. Das Beispiel-Addon „Session Timer“ lag dabei nur im Ordner `addons`, nicht in `mods`, und wurde gestartet und beim Beenden sauber ausgeschaltet.
+- **Mod-Loader:** entfernt. Es gibt keine Starttests mehr für Forge, NeoForge und Quilt.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft.
+
 **0.2.0 (2026-11-02):**
 - **Build:** `gradlew build` erfolgreich, 363/363 Unit-Tests.
 - **Mod-Loader:** Starttests (`--launch-test --loader <id>`, Demo-Modus, Testdatenordner) bestanden für Forge 1.8.9, 1.12.2, 1.16.5, 1.20.1 und 26.3, NeoForge 1.20.1, 1.21.4 und 26.3 sowie Quilt 1.21.4 und 1.21.11.

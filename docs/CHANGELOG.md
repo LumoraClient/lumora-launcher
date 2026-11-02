@@ -1,8 +1,9 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.2.1 (2026-11-02)
 
 ### Launcher
+- **Update-Dialog:** feste Größe mit Scrollbereich. Die Knöpfe „Jetzt aktualisieren“ und „Später“ bleiben bei langen Versionshinweisen sichtbar.
 - **Mod-Loader vorerst entfernt:** Die Startarten Fabric, Quilt, Forge und NeoForge und die Seite „Mod-Loader“ gibt es nicht mehr. Gestartet wird Lumora Client oder Vanilla.
   - Wer einen der Loader ausgewählt hatte, startet beim nächsten Mal Lumora.
   - Alte Spielordner (`instances\<version>-forge` …) bleiben unangetastet liegen.

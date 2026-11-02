@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.lumora.client.integration.RuntimeInfo;
 import dev.lumora.client.perf.FrameStats;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.SharedConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,7 @@ public final class Diagnostics {
 
     public static Path directory() {
         String prop = System.getProperty("lumora.diagnosticsDir");
-        return prop != null && !prop.isBlank() ? Path.of(prop) : FabricLoader.getInstance().getGameDir().resolve("lumora-diagnostics");
+        return prop != null && !prop.isBlank() ? Path.of(prop) : dev.lumora.client.platform.LoaderEnv.gameDir().resolve("lumora-diagnostics");
     }
 
     public static String profile() {
@@ -63,12 +61,8 @@ public final class Diagnostics {
         r.put("protocol", protocol);
 
         List<String> mods = new ArrayList<>();
-        // Top-level mods only; jar-in-jar libraries (e.g. Fabric API modules) would drown the list.
-        FabricLoader.getInstance().getAllMods().stream()
-                .filter(c -> c.getContainingMod().isEmpty())
-                .map(ModContainer::getMetadata)
-                .sorted(Comparator.comparing(m -> m.getId()))
-                .forEach(m -> mods.add(m.getId() + " " + m.getVersion().getFriendlyString()));
+        // what the Lumora Loader started (no mod loader: no other mods)
+        mods.addAll(dev.lumora.client.platform.LoaderEnv.loadedList());
         r.put("mods", mods);
         return r;
     }

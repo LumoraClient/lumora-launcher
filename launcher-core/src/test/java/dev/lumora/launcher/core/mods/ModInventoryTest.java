@@ -70,19 +70,22 @@ class ModInventoryTest {
     @Test
     void inventoryListsCoreExtensionsAndUserModsAndTogglesUserMods() throws IOException {
         ProfileCatalog c = ProfileCatalog.loadBundled();
-        ProfileCatalog.Profile p = c.profile("1.21.8").orElseThrow();
-        Path mods = tmp.resolve("instances/1.21.8/mods");
+        // a Fabric profile with Sodium and Lithium (skipped once every version runs on the Lumora Loader)
+        var fabric = c.profiles().stream().filter(x -> !x.lumoraLoader() && c.profileArtifact(x, "sodium").isPresent()
+                && c.profileArtifact(x, "lithium").isPresent()).findFirst();
+        org.junit.jupiter.api.Assumptions.assumeTrue(fabric.isPresent(), "no Fabric profile left");
+        ProfileCatalog.Profile p = fabric.get();
+        Path mods = tmp.resolve("instances/" + p.id + "/mods");
         // sodium installed, the rest not yet; one user mod and one disabled user mod
-        jar(mods.resolve(c.artifact("sodium-1.21.8").fileName), "{\"id\":\"sodium\",\"version\":\"0.7.3\",\"name\":\"Sodium\"}", false);
+        jar(mods.resolve(c.profileArtifact(p, "sodium").orElseThrow().fileName), "{\"id\":\"sodium\",\"version\":\"0.7.3\",\"name\":\"Sodium\"}", false);
         jar(mods.resolve("journeymap.jar"), "{\"id\":\"journeymap\",\"version\":\"6\",\"name\":\"JourneyMap\"}", false);
         jar(mods.resolve("zoom.jar.disabled"), "{\"id\":\"zoom\",\"version\":\"1\",\"name\":\"Zoom\"}", false);
         Files.writeString(mods.resolve("readme.txt"), "not a mod");
 
         List<ModInventory.Entry> all = ModInventory.scan(c, p, List.of("lithium"), mods, a -> null);
-        assertEquals(4, all.stream().filter(e -> e.kind() == ModInventory.Kind.CORE).count());
-        assertEquals(4, all.stream().filter(e -> e.kind() == ModInventory.Kind.EXTENSION).count());
-        assertEquals(3, all.stream().filter(e -> e.kind() == ModInventory.Kind.DEPENDENCY).count(), "EMF, ETF, Nuit");
-        assertEquals(7, all.stream().filter(e -> e.kind() == ModInventory.Kind.RESOURCE_PACK).count());
+        assertEquals(p.mods.size(), all.stream().filter(e -> e.kind() == ModInventory.Kind.CORE).count());
+        assertTrue(all.stream().anyMatch(e -> e.kind() == ModInventory.Kind.EXTENSION));
+        assertEquals(c.resolvePacks(p, List.of()).size(), all.stream().filter(e -> e.kind() == ModInventory.Kind.RESOURCE_PACK).count());
         assertTrue(all.stream().filter(e -> e.kind() == ModInventory.Kind.DEPENDENCY).allMatch(ModInventory.Entry::enabled),
                 "helper mods are loaded because their packs are on by default");
         List<ModInventory.Entry> user = all.stream().filter(e -> e.kind() == ModInventory.Kind.USER).toList();

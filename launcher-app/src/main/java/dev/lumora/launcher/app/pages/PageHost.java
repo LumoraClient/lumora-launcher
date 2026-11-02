@@ -40,4 +40,7 @@ public interface PageHost {
 
     /** The active account changed (switch / remove). */
     void accountsChanged();
+
+    /** Makes a start type (Lumora, Vanilla or a mod loader, see Flavor ids) the selected one. */
+    void selectFlavor(String flavorId);
 }

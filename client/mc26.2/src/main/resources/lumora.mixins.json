@@ -28,6 +28,10 @@
     "ChatMixin",
     "BlockOutlineMixin",
     "BrowserScreenMixin",
+    "ConnectionScreenMixin",
+    "ConnectStartMixin",
+    "ConnectScreenAccessor",
+    "DisconnectedScreenAccessor",
     "JoinMultiplayerScreenAccessor",
     "SelectWorldScreenAccessor"],
   "injectors": {

@@ -1,6 +1,6 @@
-# Lumora-API – Referenz (Version 1.1.0)
+# Lumora-API – Referenz (Version 1.2.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.1.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.2.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
 
@@ -234,6 +234,34 @@ Methoden leere Werte.
 Records: `ViewPoint(id, x, y, z, lookX, lookY, lookZ, inWater)`, `PlayerInfo(id, name, x, y, z, inWater, skyVisible,
 teamColor)` (Augenposition; `skyVisible` = Block an der Position sieht den Himmel; `teamColor` = `OptionalInt` mit der
 RGB-Teamfarbe), `TabEntry(id, name)`. `WorldAccess.NONE` ist die leere Implementierung.
+
+## dev.lumora.api.connection und event.connection (seit 1.2)
+
+Lumora verfolgt jede Serververbindung, auch wenn das Modul „Verbindung“ aus ist. Die Events kommen auf dem
+Client-Thread über den normalen Event-Bus (`context.events().subscribe(...)`) und brauchen keine Berechtigung.
+
+| Event | Wann | Inhalt |
+|---|---|---|
+| `ServerConnectingEvent` | Minecraft beginnt zu verbinden (Serverliste, Direktverbindung, Quick Play, Transfer, Neuverbinden) | `connection()`, `attempt()` (0 = erster Versuch, sonst automatisches Neuverbinden) |
+| `ConnectionPhaseEvent` | nächste Phase erreicht | `connection()` (mit neuer `phase()`), `previous()`, `previousMillis()` |
+| `ServerJoinedEvent` | Welt des Servers erreicht | `connection()`, `connectMillis()` |
+| `ServerDisconnectedEvent` | Verbindung beendet oder gescheitert | `connection()`, `lastPhase()`, `kind()` (`DisconnectKind`), `message()`, `reconnectIn()` (ms, −1 = kein automatisches Neuverbinden) |
+
+`ServerConnection(name, address, phase, startedMillis, joinedMillis)`. Phasen (`ConnectionPhase`), in dieser Reihenfolge:
+`CONNECTING`, `LOGIN`, `AUTHENTICATING`, `ENCRYPTING`, `CONFIGURING`, `JOINING`, `PLAYING`, `DISCONNECTED`.
+Offline-Server überspringen Kontoprüfung und Verschlüsselung; vor 1.20.2 gibt es keine Konfiguration.
+
+`DisconnectKind`: `USER`, `TIMEOUT`, `REFUSED`, `UNKNOWN_HOST`, `LOST`, `AUTH`, `BANNED`, `WHITELIST`, `FULL`, `OUTDATED`,
+`THROTTLED`, `SHUTDOWN`, `DUPLICATE_LOGIN`, `KICKED`, `PROTOCOL`, `OTHER`. `retryable()` sagt, ob ein neuer Versuch ohne
+Änderung helfen kann.
+
+```java
+context.events().subscribe(ServerDisconnectedEvent.class, e -> {
+    if (e.kind() == DisconnectKind.FULL) {
+        context.notifications().info("Server voll", "Lumora versucht es gleich noch einmal");
+    }
+});
+```
 
 ## dev.lumora.api.session (seit 1.1)
 

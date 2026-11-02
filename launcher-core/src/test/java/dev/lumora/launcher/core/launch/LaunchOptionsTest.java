@@ -73,7 +73,7 @@ class LaunchOptionsTest {
     @Test
     void newSettingsAreRepaired() {
         LauncherConfig c = new LauncherConfig();
-        c.selectedFlavor = "forge";
+        c.selectedFlavor = "rift";
         c.accentColor = "lila";
         c.notificationLevel = "loud";
         c.discordAppId = "not-a-snowflake";
@@ -81,7 +81,7 @@ class LaunchOptionsTest {
         c.debugMode = "remote";
         repaired(c);
         assertEquals("lumora", c.selectedFlavor);
-        assertEquals("#8B5CF6", c.accentColor);
+        assertEquals(LauncherConfig.DEFAULT_ACCENT, c.accentColor);
         assertEquals("all", c.notificationLevel);
         assertNull(c.discordAppId);
         assertEquals("hide", c.afterLaunch, "old minimise setting carries over");
@@ -97,7 +97,7 @@ class LaunchOptionsTest {
         assertEquals("26.1.2-vanilla", Flavor.VANILLA.instanceId("26.1.2"));
         assertEquals("26.1.2-fabric", Flavor.FABRIC.instanceId("26.1.2"));
         assertEquals(Flavor.VANILLA, Flavor.of("Vanilla"));
-        assertEquals(Flavor.LUMORA, Flavor.of("forge"));
+        assertEquals(Flavor.LUMORA, Flavor.of("rift"));
         assertEquals(Flavor.LUMORA, Flavor.of(null));
     }
 }

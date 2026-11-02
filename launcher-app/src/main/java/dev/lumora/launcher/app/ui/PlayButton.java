@@ -11,7 +11,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-/** Large accent play button with a gradient, play glyph and an optional progress fill. */
+/**
+ * Large accent play button: a slowly flowing blue gradient with a light sweep and a breathing glow, play glyph and an
+ * optional progress fill with moving stripes. Animated by {@link Motion} only while it is visible.
+ */
 public final class PlayButton extends JButton {
     private double progress = -1;
     /** Square right corners: an {@link Arrow} sits directly next to it (split button). */
@@ -27,6 +30,18 @@ public final class PlayButton extends JButton {
         setPreferredSize(new Dimension(240, 56));
         setFont(Theme.font(Font.BOLD, 20f));
         setForeground(Color.WHITE);
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        Motion.loop(this);
+    }
+
+    @Override
+    public void removeNotify() {
+        Motion.stop(this);
+        super.removeNotify();
     }
 
     /** Right corners square, for a split button with {@link Arrow}. */
@@ -57,8 +72,18 @@ public final class PlayButton extends JButton {
         boolean hover = getModel().isRollover();
         fill(g, w, h, enabled, pressed, hover, split ? 0 : 2);
         if (progress >= 0) {
-            g.setColor(Theme.alpha(Color.WHITE, 45));
-            g.fillRoundRect(0, 0, (int) (w * Math.min(1, progress)), h - 4, Theme.arc(16), Theme.arc(16));
+            int pw = (int) (w * Math.min(1, progress));
+            java.awt.Shape clip = g.getClip();
+            g.clip(new java.awt.geom.RoundRectangle2D.Float(0, 0, pw, h - 4, Theme.arc(16), Theme.arc(16)));
+            g.setColor(Theme.alpha(Color.WHITE, 40));
+            g.fillRect(0, 0, pw, h - 4);
+            // moving stripes: the download is alive even when the percentage hardly changes
+            int off = (int) (Motion.seconds() * 28) % 24;
+            g.setColor(Theme.alpha(Color.WHITE, 26));
+            for (int sx = -h + off - 24; sx < pw; sx += 24) {
+                g.fillPolygon(new int[]{sx, sx + 12, sx + 12 + h, sx + h}, new int[]{h, h, 0, 0}, 4);
+            }
+            g.setClip(clip);
         }
         String text = getText();
         g.setFont(getFont());
@@ -84,20 +109,46 @@ public final class PlayButton extends JButton {
      * @param squareSide 0 = round, 1 = square left side (arrow), 2 = square right side (split play button)
      */
     static void fill(Graphics2D g, int w, int h, boolean enabled, boolean pressed, boolean hover, int squareSide) {
-        Color top = !enabled ? Theme.SURFACE_2 : pressed ? Theme.ACCENT_PRESSED : hover ? Theme.ACCENT_HOVER : Theme.ACCENT;
-        Color bottom = !enabled ? Theme.SURFACE_2 : Theme.mix(top, Theme.mix(Theme.ACCENT, new Color(0xD946EF), 0.35), 0.55).darker();
         int arc = Theme.arc(16);
-        if (enabled) {
-            g.setColor(Theme.alpha(Theme.ACCENT, hover ? 80 : 50));
-            g.fillRoundRect(2, 6, w - 4, h - 4, arc + 2, arc + 2);
+        double t = Motion.seconds();
+        java.awt.Shape body = squareSide == 0
+                ? new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h - 4, arc, arc)
+                : unionSquare(w, h - 4, arc, squareSide);
+        if (!enabled) {
+            g.setColor(Theme.SURFACE_2);
+            g.fill(body);
+            return;
         }
-        g.setPaint(new GradientPaint(0, 0, top, w, h, bottom));
-        g.fillRoundRect(0, 0, w, h - 4, arc, arc);
-        if (squareSide == 1) {
-            g.fillRect(0, 0, arc, h - 4);
-        } else if (squareSide == 2) {
-            g.fillRect(w - arc, 0, arc, h - 4);
+        // breathing glow under the button
+        double breath = 0.5 + 0.5 * Math.sin(t * 2.1);
+        g.setColor(Theme.alpha(Theme.ACCENT, (int) ((hover ? 85 : 45) + breath * 30)));
+        g.fillRoundRect(2, 6, w - 4, h - 4, arc + 2, arc + 2);
+        // flowing gradient: accent -> ice blue -> accent, drifting slowly to the right
+        g.setPaint(Theme.flow(0, 0, w * 1.4f + 1, h * 0.6f, t * 0.12, 255));
+        g.fill(body);
+        if (hover || pressed) {
+            g.setColor(pressed ? Theme.alpha(Color.BLACK, 50) : Theme.alpha(Color.WHITE, 26));
+            g.fill(body);
         }
+        // light sweep every few seconds
+        double cycle = (t % 3.6) / 3.6;
+        float sx = (float) (-0.4 * w + cycle * 1.8 * w);
+        java.awt.Shape clip = g.getClip();
+        g.clip(body);
+        g.setPaint(new java.awt.LinearGradientPaint(sx, 0, sx + w * 0.35f + 1, h * 0.5f,
+                new float[]{0f, 0.5f, 1f}, new Color[]{Theme.alpha(Color.WHITE, 0), Theme.alpha(Color.WHITE, 55), Theme.alpha(Color.WHITE, 0)}));
+        g.fillRect(0, 0, w, h);
+        // top highlight
+        g.setPaint(new GradientPaint(0, 0, Theme.alpha(Color.WHITE, 40), 0, h * 0.5f, Theme.alpha(Color.WHITE, 0)));
+        g.fillRect(0, 0, w, h / 2);
+        g.setClip(clip);
+    }
+
+    /** Round rectangle with one square side (split button halves). */
+    private static java.awt.Shape unionSquare(int w, int h, int arc, int squareSide) {
+        java.awt.geom.Area a = new java.awt.geom.Area(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, arc, arc));
+        a.add(new java.awt.geom.Area(squareSide == 1 ? new java.awt.Rectangle(0, 0, arc, h) : new java.awt.Rectangle(w - arc, 0, arc, h)));
+        return a;
     }
 
     /** Small accent button with a down arrow that opens a menu; placed right next to a split {@link PlayButton}. */
@@ -110,6 +161,18 @@ public final class PlayButton extends JButton {
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setPreferredSize(new Dimension(46, 56));
             setToolTipText("Weitere Startoptionen");
+        }
+
+        @Override
+        public void addNotify() {
+            super.addNotify();
+            Motion.loop(this);
+        }
+
+        @Override
+        public void removeNotify() {
+            Motion.stop(this);
+            super.removeNotify();
         }
 
         @Override

@@ -25,6 +25,7 @@ von Sodium und zu den Markenrichtlinien von Mojang/Microsoft.
 | ↳ darin: Button-Stile Blackout, Hyperium, Liquid, Lunar, PvPClient, Rounded (`dev.lumora.core.extras.ButtonStyleModule`), nachgebaut nach FDPClient `features/module/modules/client/button` (Farben, Alphawerte, Animationsschritte; auf Lumoras HudGraphics neu geschrieben) | – | GPL-3.0-or-later | SkidderMC (FDPClient), auf Basis von LiquidBounce (CCBlueX) | Quellenhinweis im Dateikopf; Lizenz wie Lumora |
 | ↳ darin: Block-Overlay (`dev.lumora.core.extras.BlockOverlayModule`): eigene Umsetzung, Funktionsumfang angelehnt an FDPClient `BlockOverlay.kt` und BThack-Legacy `BlockHighlight.java`; kein Code übernommen | – | GPL-3.0-or-later (Lumora) · Vorbilder: GPL-3.0 (FDPClient), MIT (BThack-Legacy, Ferra13671) | Lumora Client contributors | Quellenhinweis im Dateikopf |
 | ↳ darin: Server- und Weltliste (`dev.lumora.core.browser`): eigene Umsetzung, Aufbau angelehnt an das Mehrspieler-Menü von LiquidBounce (nur Gestaltung, kein Code); Server List Ping nach der öffentlichen Protokollbeschreibung | – | GPL-3.0-or-later | Lumora Client contributors | – |
+| ↳ darin: Verbindungssystem (`dev.lumora.core.connection`, Verbindungs- und Trennungsbildschirm, automatisches Neuverbinden): eigene Umsetzung, Konzept angelehnt an LiquidBounce (`MixinConnectScreen`, `MixinDisconnectedScreen`, `ServerObserver.reconnect`, nextgen, Stand 2026-11-02: Verbindungsweg im Verbindungsbildschirm, letzter Server für Neuverbinden); kein Code übernommen | – | GPL-3.0-or-later | Lumora Client contributors | – |
 
 ## B. Nicht enthalten: zur Laufzeit aus der offiziellen Quelle geladen
 
@@ -37,6 +38,9 @@ gelten unmittelbar zwischen Nutzer und Rechteinhaber.
 | Minecraft: Java Edition (Client, Assets, Bibliotheken) | 26.1.2, 1.21.11, 1.21.8 | proprietär, [Minecraft EULA](https://www.minecraft.net/eula) | Mojang AB / Microsoft | piston-data.mojang.com, libraries.minecraft.net, resources.download.minecraft.net |
 | Java-Laufzeit für das Spiel (`java-runtime-epsilon` bzw. `java-runtime-delta`) | 25 bzw. 21 | OpenJDK-Build, Lizenztexte liegen der Runtime unter `legal/` bei | von Mojang bereitgestellt | launchermeta.mojang.com / piston-meta.mojang.com |
 | Fabric Loader + Bibliotheken (ASM, Sponge Mixin) | 0.19.5 | Apache-2.0 (Loader, Mixin: MIT; ASM: BSD-3-Clause) | FabricMC u. a. | maven.fabricmc.net |
+| Quilt Loader + Bibliotheken (nur Startart „Quilt“) | vom Spieler gewählt | Apache-2.0 | The Quilt Project | meta.quiltmc.org, maven.quiltmc.org |
+| Minecraft Forge + Bibliotheken und Installer-Werkzeuge (nur Startart „Forge“) | vom Spieler gewählt | LGPL-2.1 (Forge), Bibliotheken eigene Lizenzen | Forge Development LLC | maven.minecraftforge.net; Forge bittet Launcher, die es automatisch installieren, auf die Unterstützungsseite des Projekts zu verweisen (Link auf der Mod-Loader-Seite) |
+| NeoForge + Bibliotheken und Installer-Werkzeuge (nur Startart „NeoForge“) | vom Spieler gewählt | LGPL-2.1 | NeoForged | maven.neoforged.net |
 | Fabric API | 0.155.3+26.1.2, 0.141.6+1.21.11, 0.136.1+1.21.8 | Apache-2.0 | FabricMC | cdn.modrinth.com |
 | Sodium | 0.9.2+mc26.1.2, 0.8.14+mc1.21.11, 0.7.3+mc1.21.8 | **PolyForm Shield 1.0.0** | JellySquid (jellysquid3), CaffeineMC und Mitwirkende | cdn.modrinth.com · Quellcode: github.com/CaffeineMC/sodium |
 | ViaFabricPlus | 4.5.6, 4.4.15, 4.2.5 | **GPL-3.0** | Florian Reuth (EnZaXD), RK_01 und Mitwirkende | cdn.modrinth.com · Quellcode: github.com/ViaVersion/ViaFabricPlus |

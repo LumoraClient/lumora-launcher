@@ -126,10 +126,22 @@ public final class SmokeTest {
                         dev.lumora.core.browser.BrowserModule.smoke("create");
                         return null;
                     }));
+                    // Lumora connection screens: the connecting view while the test server that accepts and never answers (.t/SilentMc on 25602)
+                    pending.add(new Shot("connecting", parent -> {
+                        dev.lumora.core.browser.BrowserModule.smoke("join:127.0.0.1:25602");
+                        return null;
+                    }, 40));
                     pending.add(new Shot("browser-join", parent -> {
+                        dev.lumora.core.connection.ConnectionTracker.get().cancelActive();
                         dev.lumora.core.browser.BrowserModule.smoke("join:127.0.0.1:25601");
                         return null;
                     }, 100));
+                    pending.add(new Shot("connection-check", parent -> {
+                        dev.lumora.core.connection.ConnectionTracker t = dev.lumora.core.connection.ConnectionTracker.get();
+                        LOG.info("Smoke test: connection tracking last={} screens={}", t == null || t.last() == null ? "none"
+                                : t.last().kind() + "@" + t.last().lastPhase(), dev.lumora.core.connection.ConnectionModule.enabled());
+                        return null;
+                    }, 1));
                     // about 100 ms into the cross-fade from the main menu to the options
                     pending.add(new Shot("transition", parent -> new OptionsScreen(parent, mc.options, false), 2));
                     pending.add(new Shot("hub-modules", parent -> LumoraHubScreen.withTab(parent, 0)));

@@ -69,6 +69,57 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 3. **LAUNCHING**: `LaunchCommandBuilder` erzeugt den Befehl aus den Argument-Templates der Versions-JSON (Regeln, Features, Platzhalter).
 4. **PLAYING**: `GameProcess` hält eine Dateisperre auf der Instanz (kein Doppelstart), schreibt die Spielausgabe geschwärzt nach `logs/lumora-game-output.log` und erkennt bei Absturz den Crash-Report. `CrashAnalyzer` liefert Hinweise, etwa zu Speichermangel oder inkompatiblen Mods.
 
+## Mod-Loader (`launcher-core/.../loader`)
+
+Jeder Loader ist eine Klasse `ModLoader` und wird in `ModLoaders.standard` registriert. Ein neuer Loader ist eine weitere
+Klasse, sonst ändert sich nichts. Der Loader kann nur zwei Dinge:
+
+- **Versionen auflisten** (`versions(mc)`, neueste zuerst, mit „stabil“ und „empfohlen“)
+- **Launch-Profil liefern** (`install(...)`): eine Versions-JSON, die von Vanilla erbt
+
+Vanilla-Dateien, Assets, Java, Prüfung, Start und Absturzanalyse sind für alle gleich (`ClientInstaller`, `LaunchCommandBuilder`).
+
+| Loader | Versionen | Profil |
+|---|---|---|
+| `FabricModLoader` | meta.fabricmc.net (vor 1.14: meta.legacyfabric.net) | Fabric-Profil-JSON |
+| `QuiltModLoader` | meta.quiltmc.org/v3 | Quilt-Profil-JSON (ab 1.14) |
+| `ForgeModLoader` | maven-metadata.xml und promotions_slim.json | `ForgeInstaller` |
+| `NeoForgeModLoader` | maven-metadata.xml; 1.20.1 = Artefakt `forge`, sonst `neoforge` („21.4.x“ für 1.21.4, „26.3.0.x“ für 26.3) | `ForgeInstaller` |
+
+`ForgeInstaller` liest den offiziellen Installer, startet ihn aber nicht. Unterstützt sind drei Formate:
+
+- altes `install`+`versionInfo` (1.8.9), Bibliotheken mit den Prüfsummen aus dem Profil
+- spec 0 (1.12.2)
+- spec 1 (ab 1.13, NeoForge)
+
+Der Ablauf:
+
+1. Bibliotheken mit der angegebenen SHA-1 laden, oder aus `maven/` im Installer nehmen.
+2. Die Client-„Processors“ der Projekte (Binärpatches, Mapping-Werkzeuge) mit der Java-Version des Spiels ausführen und jede angegebene Ausgabe per SHA-1 prüfen.
+3. `DOWNLOAD_MOJMAPS` erledigt der Launcher selbst: über den geprüften Download und die SHA-1 aus der Versions-JSON.
+
+Forge und NeoForge bekommen wie beim offiziellen Launcher eine Kopie des Vanilla-JARs unter ihrer ID. Ihr `ignoreList` nimmt sie aus der Modulschicht.
+
+`LoaderManager` verwaltet die Auswahl je „Loader@Minecraft-Version“:
+
+- **Version**: ohne festgelegte Version gilt die empfohlene, der Loader aktualisiert sich also selbst. Eine festgelegte bleibt (`loaderVersions`).
+- **Installiert**: erkannt am Marker `.lumora-loader.json` neben dem Profil.
+- **Update**: eine neuere Empfehlung als die installierte Version.
+- **Entfernen**: löscht nur `versions/<id>`.
+- **Offline**: Versionslisten werden auf der Platte zwischengespeichert.
+
+Eigene JVM-Argumente je Loader stehen in `loaderJvmArgs`. Jede Startart außer Lumora hat einen eigenen Spielordner (`instances/<version>-<loader>`).
+
+## Verbindungssystem im Client (`lumora-core/.../connection`)
+
+Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weiterhin selbst auf und macht auch Handshake, Login, Verschlüsselung und Sitzungsbeitritt bei Mojang. Lumora öffnet keine eigene Verbindung und fasst keine Tokens an.
+
+- **Hook je Version** (`ConnectionScreenMixin` auf `setScreen`): Öffnet Minecraft seinen Verbindungs- oder Trennungsbildschirm, meldet der Hook das an `ConnectionModule.connecting` bzw. `.disconnected`. Den Verbindungsbildschirm von Minecraft tickt Lumoras Bildschirm weiter (`AddonViewScreen.connecting`), so läuft die Verbindung unverändert. `McConnection` liest den Zustand: Packet-Listener (Login, Konfiguration, Spiel), Statuszeile (`connect.authorizing`, `connect.encrypting` …) und aufgelöste Adresse. Abbrechen wirkt wie Minecrafts eigener Knopf.
+- **`ConnectionTracker`** (immer aktiv) macht daraus Phasen, die nur vorwärts laufen: `CONNECTING → LOGIN → AUTHENTICATING → ENCRYPTING → CONFIGURING → JOINING → PLAYING → DISCONNECTED`. Er misst die Dauer jeder Phase und sendet Events für Addons (`ServerConnectingEvent`, `ConnectionPhaseEvent`, `ServerJoinedEvent`, `ServerDisconnectedEvent`). Ein **Wächter** bricht hängende Phasen vor der Konfiguration ab. Die Konfiguration selbst ist ausgenommen, weil Ressourcenpaket-Fragen dauern können. Verlässt der Spieler die Welt ohne Trennungsbildschirm, gilt das als eigener Wunsch. Kommt der Bildschirm doch noch, wird der echte Grund nachgereicht.
+- **`DisconnectClassifier`** erkennt den Grund zuerst an den Übersetzungsschlüsseln, also unabhängig von der Sprache, dann an bekannten Texten von Serversoftware.
+- **`ReconnectPolicy`**: Neuverbinden nur bei wiederholbaren Gründen, mit verdoppelter Pause bis 1 min und begrenzten Versuchen. Server, die drosseln, voll sind oder neu starten, bekommen Mindestpausen. Bei Sperre, Whitelist, falscher Version, Kontofehler oder Anmeldung an anderer Stelle wird nie automatisch neu verbunden.
+- **`ConnectionModule`** (Modul „Verbindung“) steuert nur, was der Spieler sieht: Bildschirme, Auto-Reconnect, Zeitlimit, Stream-Modus und Ping-Vorschau. Ins Log kommen nur Grund und Phase, keine Adressen und keine Servernachricht.
+
 ## Sicherheit
 
 - **Download-Allow-List** (`Downloader.DEFAULT_TRUSTED_HOSTS`): nur HTTPS zu Mojang-, Fabric- und Modrinth-Hosts. Jede Datei braucht einen erwarteten Hash. Erst nach erfolgreicher Prüfung wird die Datei an ihren Zielort verschoben.

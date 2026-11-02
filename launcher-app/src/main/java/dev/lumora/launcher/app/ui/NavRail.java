@@ -30,6 +30,9 @@ public final class NavRail extends JPanel {
     private final List<Item> items = new ArrayList<>();
     private final Consumer<String> onSelect;
     private String selected;
+    /** Sliding selection pill (y and height glide to the selected entry). */
+    private final Motion.Tween pillY = new Motion.Tween(-1, 280);
+    private final Motion.Tween pillH = new Motion.Tween(0, 280);
 
     private final java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
 
@@ -134,6 +137,17 @@ public final class NavRail extends JPanel {
 
     public void select(String id) {
         selected = id;
+        Item target = items.stream().filter(i -> i.id.equals(id)).findFirst().orElse(null);
+        if (target != null && target.getHeight() > 0) {
+            if (pillY.value() < 0) {
+                pillY.jump(target.getY());
+                pillH.jump(target.getHeight());
+            } else {
+                pillY.set(target.getY());
+                pillH.set(target.getHeight());
+                Motion.during(this, pillY.millis() + 40);
+            }
+        }
         for (Item it : items) {
             it.repaint();
         }
@@ -142,6 +156,42 @@ public final class NavRail extends JPanel {
 
     public String selected() {
         return selected;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g0) {
+        super.paintComponent(g0);
+        Graphics2D g = (Graphics2D) g0.create();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        int w = getWidth();
+        int h = getHeight();
+        // faint accent light at the top and a glowing edge towards the page
+        g.setPaint(new java.awt.RadialGradientPaint(new java.awt.geom.Point2D.Float(w / 2f, 40), w * 0.9f,
+                new float[]{0f, 1f}, new Color[]{Theme.alpha(Theme.ACCENT, 38), Theme.alpha(Theme.ACCENT, 0)}));
+        g.fillRect(0, 0, w, h / 2);
+        g.setPaint(new GradientPaint(0, 0, Theme.alpha(Theme.ACCENT_2, 70), 0, h, Theme.alpha(Theme.BORDER, 160)));
+        g.fillRect(w - 1, 0, 1, h);
+        Item sel = items.stream().filter(i -> i.id.equals(selected)).findFirst().orElse(null);
+        if (sel != null && sel.getHeight() > 0) {
+            if (pillY.value() < 0 || (pillY.value() == pillY.target() && pillY.target() != sel.getY())) {
+                // first paint or layout change (window resized): no glide
+                pillY.jump(sel.getY());
+                pillH.jump(sel.getHeight());
+            }
+            int x = sel.getX();
+            int y = (int) Math.round(pillY.value());
+            int pw = sel.getWidth();
+            int ph = (int) Math.round(pillH.value());
+            int arc = Theme.arc(12);
+            g.setPaint(new GradientPaint(x, 0, Theme.alpha(Theme.ACCENT, 125), x + pw, 0, Theme.alpha(Theme.ACCENT_2, 22)));
+            g.fillRoundRect(x, y, pw, ph, arc, arc);
+            g.setColor(Theme.alpha(Theme.ACCENT_HOVER, 95));
+            g.drawRoundRect(x, y, pw - 1, ph - 1, arc, arc);
+            // flowing accent bar on the left edge of the pill
+            g.setPaint(Theme.flow(0, y, 0.01f, y + ph * 2f, Motion.seconds() * 0.25, 255));
+            g.fillRoundRect(x + 4, y + 9, 3, Math.max(4, ph - 18), 3, 3);
+        }
+        g.dispose();
     }
 
     private final class Item extends JComponent {
@@ -189,12 +239,8 @@ public final class NavRail extends JPanel {
             int w = getWidth();
             int h = getHeight();
             int arc = Theme.arc(12);
-            if (sel) {
-                g.setPaint(new GradientPaint(0, 0, Theme.alpha(Theme.ACCENT, 120), w, 0, Theme.alpha(Theme.ACCENT, 28)));
-                g.fillRoundRect(0, 0, w, h, arc, arc);
-                g.setColor(Theme.alpha(Theme.ACCENT_HOVER, 90));
-                g.drawRoundRect(0, 0, w - 1, h - 1, arc, arc);
-            } else if (hover) {
+            if (!sel && hover) {
+                // the selected entry's pill is painted by the rail (it slides between entries)
                 g.setColor(Theme.alpha(Theme.SURFACE_2, 190));
                 g.fillRoundRect(0, 0, w, h, arc, arc);
             }

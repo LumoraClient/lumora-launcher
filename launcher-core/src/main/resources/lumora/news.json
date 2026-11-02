@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-loaders-connection",
+      "date": "2026-11-02",
+      "author": "Lumora",
+      "title": "Fabric, Quilt, Forge und NeoForge, blaues Design und neues Verbindungssystem",
+      "text": "Neben Lumora Client und Vanilla startet der Launcher jetzt Fabric, Quilt, Forge und NeoForge, jeweils mit eigenem Spielordner. Auf der neuen Seite „Mod-Loader“ wählst du für jede Minecraft-Version die Loader-Version: die empfohlene, die sich selbst aktualisiert, oder eine feste. Dort legst du auch eigene JVM-Argumente fest und kannst installieren, reparieren, aktualisieren und entfernen. Der Launcher ist jetzt blau, mit fließendem Start-Knopf, Polarlicht im Banner, gleitender Navigation und weichen Seitenwechseln. Im Spiel zeigt der neue Verbindungsbildschirm jede Phase mit Ping und Adresse. Beim Trennen siehst du den erkannten Grund mit einem Tipp und „Erneut verbinden“. Auf Wunsch verbindet Lumora automatisch neu, mit wachsenden Pausen.",
+      "image": "loaders.png"
+    },
+    {
       "id": "lumora-server-list",
       "date": "2026-10-29",
       "author": "Lumora",

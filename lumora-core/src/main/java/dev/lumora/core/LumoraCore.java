@@ -63,6 +63,7 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.render.NameTagRegistry nameTags;
     private final dev.lumora.core.screen.ViewManager views;
     private final dev.lumora.core.session.SessionServiceImpl session;
+    private final dev.lumora.core.connection.ConnectionTracker connections;
     private HudEditorModel editor;
     private dev.lumora.core.social.LumoraSocial social;
     private boolean started;
@@ -91,6 +92,7 @@ public final class LumoraCore implements Lumora {
         this.nameTags = new dev.lumora.core.render.NameTagRegistry(log);
         this.views = new dev.lumora.core.screen.ViewManager(platform.views(), log);
         this.session = new dev.lumora.core.session.SessionServiceImpl(platform::session);
+        this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
         this.hudEditor = new HudEditor() {
             @Override
@@ -130,6 +132,7 @@ public final class LumoraCore implements Lumora {
     /** Makes this instance available through {@link LumoraAPI#get()} (once per process). */
     public void installGlobal() {
         LumoraAPI.install(this);
+        connections.installGlobal();
     }
 
     /** Validates, initializes and enables the addons (built-in ones included in the list). */
@@ -164,16 +167,24 @@ public final class LumoraCore implements Lumora {
         }
         widgets.tick();
         addons.tick();
+        try {
+            connections.tick();
+        } catch (RuntimeException | LinkageError e) {
+            // a broken version adapter must never stop the core tick
+            log.warn("Connection tracking failed: " + e);
+        }
         if (events.hasListeners(ClientTickEvent.class)) {
             events.post(new ClientTickEvent(tasks.currentTick()));
         }
     }
 
     public void worldJoin(ConnectionInfo connection) {
+        connections.worldJoined(connection != null && connection.multiplayer());
         events.post(new WorldJoinEvent(connection));
     }
 
     public void worldLeave() {
+        connections.worldLeft();
         events.post(new WorldLeaveEvent());
     }
 

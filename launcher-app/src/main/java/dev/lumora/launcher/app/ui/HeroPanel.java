@@ -13,12 +13,15 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
- * Hero banner with a procedurally generated voxel dusk landscape in the accent colour: starry sky, a glowing horizon,
- * blocky forest on the left and a castle silhouette on the right (own artwork, no third-party assets). Rendered once
- * per size into a cached image; children (logo, title, buttons) are laid out on top.
+ * Hero banner with a procedurally generated voxel night landscape in the accent colour: starry sky, an ice-blue
+ * glowing horizon, blocky forest on the left and a castle silhouette on the right (own artwork, no third-party assets).
+ * The landscape is rendered once per size into a cached image; on top of it an aurora of soft light drifts slowly and
+ * a few stars twinkle (animated while visible, off with reduce motion). Children (logo, title, buttons) lie above.
  */
 public final class HeroPanel extends JPanel {
     private BufferedImage cache;
+    /** Low-resolution buffer for the aurora (scaled up smoothly: cheap to animate). */
+    private BufferedImage veil;
 
     public HeroPanel(LayoutManager layout) {
         super(layout);
@@ -40,11 +43,67 @@ public final class HeroPanel extends JPanel {
         java.awt.Shape clip0 = g.getClip();
         g.clip(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, Theme.arc(20), Theme.arc(20)));
         g.drawImage(cache, 0, 0, null);
+        int vw = Math.max(8, w / 6);
+        int vh = Math.max(8, h / 6);
+        if (veil == null || veil.getWidth() != vw || veil.getHeight() != vh) {
+            veil = new BufferedImage(vw, vh, BufferedImage.TYPE_INT_ARGB);
+        }
+        Graphics2D vg = veil.createGraphics();
+        vg.setComposite(java.awt.AlphaComposite.Clear);
+        vg.fillRect(0, 0, vw, vh);
+        vg.setComposite(java.awt.AlphaComposite.SrcOver);
+        aurora(vg, vw, vh, Motion.seconds(), false);
+        vg.dispose();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(veil, 0, 0, w, h, null);
+        aurora(g, w, h, Motion.seconds(), true);
         g.setClip(clip0);
         g.setColor(Theme.alpha(Theme.ACCENT_HOVER, 40));
         g.drawRoundRect(0, 0, w - 1, h - 1, Theme.arc(20), Theme.arc(20));
         g.dispose();
         super.paintComponent(g0);
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        Motion.loop(this);
+    }
+
+    @Override
+    public void removeNotify() {
+        Motion.stop(this);
+        super.removeNotify();
+    }
+
+    /** Flowing light: two aurora veils drifting across the sky and twinkling stars. */
+    private static void aurora(Graphics2D g, int w, int h, double t, boolean stars) {
+        if (stars) {
+            twinkle(g, w, h, t);
+            return;
+        }
+        float r = Math.max(w, h) * 0.38f;
+        float ax = (float) (w * (0.30 + 0.18 * Math.sin(t * 0.21)));
+        float ay = (float) (h * (0.28 + 0.08 * Math.cos(t * 0.33)));
+        g.setPaint(new RadialGradientPaint(new Point2D.Float(ax, ay), r, new float[]{0f, 1f},
+                new Color[]{Theme.alpha(Theme.ACCENT, 58), new Color(0, 0, 0, 0)}));
+        g.fillRect(0, 0, w, h);
+        float bx = (float) (w * (0.68 + 0.16 * Math.cos(t * 0.17)));
+        float by = (float) (h * (0.22 + 0.10 * Math.sin(t * 0.27)));
+        g.setPaint(new RadialGradientPaint(new Point2D.Float(bx, by), r * 0.85f, new float[]{0f, 1f},
+                new Color[]{Theme.alpha(Theme.ACCENT_2, 46), new Color(0, 0, 0, 0)}));
+        g.fillRect(0, 0, w, h);
+    }
+
+    private static void twinkle(Graphics2D g, int w, int h, double t) {
+        Random rnd = new Random(7);
+        for (int i = 0; i < 26; i++) {
+            int sx = rnd.nextInt(Math.max(1, w));
+            int sy = rnd.nextInt(Math.max(1, (int) (h * 0.5)));
+            double tw = 0.5 + 0.5 * Math.sin(t * (1.2 + rnd.nextDouble() * 2.2) + rnd.nextDouble() * 6.3);
+            g.setColor(new Color(220, 238, 255, (int) (40 + 170 * tw * tw)));
+            g.fillRect(sx, sy, 2, 2);
+        }
     }
 
     static BufferedImage render(int w, int h) {
@@ -61,8 +120,8 @@ public final class HeroPanel extends JPanel {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Random rnd = new Random(26_1_2);
         Color accent = Theme.ACCENT;
-        Color deep = Theme.mix(new Color(0x0B0716), accent, 0.22);
-        Color dusk = Theme.mix(new Color(0x2A1450), accent, 0.45);
+        Color deep = Theme.mix(new Color(0x040A18), accent, 0.20);
+        Color dusk = Theme.mix(new Color(0x0E2552), accent, 0.45);
 
         // sky: deep night on top, accent dusk towards the horizon
         g.setPaint(new GradientPaint(0, 0, deep, 0, h * 0.75f, dusk));
@@ -70,7 +129,7 @@ public final class HeroPanel extends JPanel {
         // warm sunset glow on the right horizon, cool accent glow on the left
         g.setPaint(new RadialGradientPaint(new Point2D.Float(w * 0.82f, h * 0.62f), Math.max(w, h) * 0.45f,
                 new float[]{0f, 0.4f, 1f},
-                new Color[]{new Color(255, 170, 140, 150), Theme.alpha(Theme.mix(accent, new Color(0xFF7AB6), 0.5), 70), new Color(0, 0, 0, 0)}));
+                new Color[]{new Color(150, 225, 255, 130), Theme.alpha(Theme.mix(accent, new Color(0x22D3EE), 0.5), 80), new Color(0, 0, 0, 0)}));
         g.fillRect(0, 0, w, h);
         g.setPaint(new RadialGradientPaint(new Point2D.Float(w * 0.18f, h * 0.35f), Math.max(w, h) * 0.4f,
                 new float[]{0f, 1f}, new Color[]{Theme.alpha(accent, 90), new Color(0, 0, 0, 0)}));
@@ -88,12 +147,12 @@ public final class HeroPanel extends JPanel {
 
         int block = Math.max(8, h / 34);
         // far hills
-        Color far = Theme.mix(new Color(0x1C1030), accent, 0.30);
+        Color far = Theme.mix(new Color(0x0B1A36), accent, 0.30);
         hills(g, rnd, w, h, block, far, Theme.mix(far, accent, 0.35), 0.70, 0.08);
         // castle on the right
-        castle(g, w, h, block, Theme.mix(new Color(0x120A20), accent, 0.12), Theme.alpha(new Color(0xFFC58A), 200));
+        castle(g, w, h, block, Theme.mix(new Color(0x07122A), accent, 0.12), Theme.alpha(new Color(0xBFE8FF), 210));
         // near forest layer
-        Color near = Theme.mix(new Color(0x0C0716), accent, 0.10);
+        Color near = Theme.mix(new Color(0x050B1A), accent, 0.10);
         hills(g, rnd, w, h, block, near, Theme.mix(near, accent, 0.25), 0.84, 0.06);
         trees(g, rnd, w, h, block, near);
 
@@ -103,7 +162,7 @@ public final class HeroPanel extends JPanel {
         }
         // centre vignette for the text, fade into the page at the bottom
         g.setPaint(new RadialGradientPaint(new Point2D.Float(w / 2f, h * 0.45f), Math.max(w, h) * 0.42f,
-                new float[]{0f, 1f}, new Color[]{new Color(8, 5, 16, 150), new Color(8, 5, 16, 0)}));
+                new float[]{0f, 1f}, new Color[]{new Color(4, 8, 20, 150), new Color(4, 8, 20, 0)}));
         g.fillRect(0, 0, w, h);
         Color bg = Theme.BG;
         g.setPaint(new GradientPaint(0, h * 0.62f, Theme.alpha(bg, 0), 0, h, Theme.alpha(bg, 235)));

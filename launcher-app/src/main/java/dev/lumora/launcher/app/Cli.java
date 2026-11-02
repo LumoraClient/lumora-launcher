@@ -48,6 +48,9 @@ final class Cli {
                 prepared.warnings().forEach(w -> System.out.println("WARN: " + w));
                 return 0;
             }
+            if (a.contains("--ui-shot")) {
+                return uiShot(ctx, Path.of(option(a, "--ui-shot", "ui-shots")), List.of(option(a, "--pages", "home,loaders").split(",")));
+            }
             if (a.contains("--launch-test")) {
                 return launchTest(ctx, profile, dev.lumora.launcher.core.profile.Flavor.of(option(a, "--loader", "lumora")),
                         Integer.parseInt(option(a, "--timeout", "600")));
@@ -137,6 +140,35 @@ final class Cli {
         return 0;
     }
 
+    /**
+     * Developer option: opens the launcher window (test data folder recommended: LUMORA_HOME), shows the given pages
+     * one after another and saves a PNG of each into {@code dir}, then closes. Used for the documentation images.
+     */
+    private static int uiShot(AppContext ctx, Path dir, List<String> pages) throws Exception {
+        LauncherWindow[] w = new LauncherWindow[1];
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            dev.lumora.launcher.app.ui.Theme.install(ctx.config.accentColor, ctx.config.pixelStyle, ctx.config.reduceMotion);
+            w[0] = new LauncherWindow(ctx);
+            w[0].show(false);
+        });
+        Thread.sleep(2500);
+        for (String page : pages) {
+            javax.swing.SwingUtilities.invokeAndWait(() -> w[0].showPage(page.strip()));
+            Thread.sleep(2500);
+            Path file = dir.resolve("launcher-" + page.strip() + ".png");
+            javax.swing.SwingUtilities.invokeAndWait(() -> {
+                try {
+                    w[0].capture(file);
+                } catch (IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+            });
+            System.out.println("UI SHOT " + file.toAbsolutePath());
+        }
+        javax.swing.SwingUtilities.invokeAndWait(() -> w[0].window().dispose());
+        return 0;
+    }
+
     /** Log lines that every supported Minecraft version prints once the game is up (sound engine ready). */
     static final java.util.regex.Pattern STARTED = java.util.regex.Pattern.compile("Sound engine started|OpenAL initialized");
     /** How long the game must keep running after the marker. */
@@ -208,7 +240,8 @@ final class Cli {
             game.stop(java.time.Duration.ofSeconds(20));
         }
         System.out.println("LAUNCH TEST PASSED: Minecraft " + profile.minecraftVersion + " (" + flavor.label()
-                + (flavor == dev.lumora.launcher.core.profile.Flavor.VANILLA ? "" : ", " + profile.loader + " " + profile.fabricLoaderVersion) + ") started and ran " + STABLE_SECONDS + " s");
+                + (flavor == dev.lumora.launcher.core.profile.Flavor.VANILLA ? "" : flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA
+                ? ", " + profile.loader + " " + profile.fabricLoaderVersion : " " + ctx.installer.loaderVersion(profile, flavor, ctx.config)) + ") started and ran " + STABLE_SECONDS + " s");
         return 0;
     }
 

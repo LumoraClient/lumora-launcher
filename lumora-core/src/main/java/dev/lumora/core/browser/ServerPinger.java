@@ -234,7 +234,7 @@ public final class ServerPinger {
     }
 
     /** Chat components of the MOTD and the version name as § formatted text (Minecraft's font renders it). */
-    static final class Motd {
+    public static final class Motd {
         private static final Map<String, Character> COLORS = Map.ofEntries(
                 Map.entry("black", '0'), Map.entry("dark_blue", '1'), Map.entry("dark_green", '2'), Map.entry("dark_aqua", '3'),
                 Map.entry("dark_red", '4'), Map.entry("dark_purple", '5'), Map.entry("gold", '6'), Map.entry("gray", '7'),
@@ -314,7 +314,7 @@ public final class ServerPinger {
         }
 
         /** Text without § codes (for search and widths). */
-        static String strip(String s) {
+        public static String strip(String s) {
             return s.replaceAll("§.", "");
         }
     }

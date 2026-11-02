@@ -270,5 +270,12 @@
   "lumora.extras.blockoverlay.slide_easing.linear": "Linear",
   "lumora.extras.blockoverlay.slide_easing.quad": "Quad",
   "lumora.extras.blockoverlay.slide_easing.expo": "Expo",
-  "lumora.extras.blockoverlay.slide_millis": "Slide time (ms)"
+  "lumora.extras.blockoverlay.slide_millis": "Slide time (ms)",
+  "lumora.extras.connection.screens": "Lumora screens when connecting and disconnecting",
+  "lumora.extras.connection.auto_reconnect": "Reconnect automatically",
+  "lumora.extras.connection.reconnect_delay": "Delay before the first attempt (seconds)",
+  "lumora.extras.connection.reconnect_attempts": "Attempts in a row",
+  "lumora.extras.connection.timeout": "Cancel when a phase hangs (seconds)",
+  "lumora.extras.connection.hide_address": "Hide server addresses (stream mode)",
+  "lumora.extras.connection.ping_preview": "Ping the server while connecting"
 }

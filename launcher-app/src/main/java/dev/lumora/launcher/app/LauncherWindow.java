@@ -122,6 +122,8 @@ final class LauncherWindow implements PageHost {
     private BrowserPage browserPage;
     private AccountPage accountPage;
     private dev.lumora.launcher.app.pages.PerformancePage performancePage;
+    private dev.lumora.launcher.app.pages.LoadersPage loadersPage;
+    private final dev.lumora.launcher.app.ui.PageFade pageFade = new dev.lumora.launcher.app.ui.PageFade();
     private SettingsPage settingsPage;
     /** Play controls of the bottom bar; hidden on the start page, which has its own in the hero. */
     private JPanel barRight;
@@ -199,6 +201,21 @@ final class LauncherWindow implements PageHost {
         }
     }
 
+    /** Documentation screenshot of the whole window (developer option --ui-shot; Swing thread). */
+    void capture(java.nio.file.Path file) throws java.io.IOException {
+        java.awt.Container root = frame.getRootPane();
+        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(root.getWidth(), root.getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics2D g = img.createGraphics();
+        root.paint(g);
+        g.dispose();
+        java.nio.file.Files.createDirectories(file.getParent());
+        javax.imageio.ImageIO.write(img, "png", file.toFile());
+    }
+
+    JFrame window() {
+        return frame;
+    }
+
     /** Used by documentation screenshots. */
     @Override
     public void showPage(String id) {
@@ -238,6 +255,8 @@ final class LauncherWindow implements PageHost {
         pageHost.add(serversPage, "servers");
         performancePage = new dev.lumora.launcher.app.pages.PerformancePage(this, pageIo);
         pageHost.add(performancePage, "performance");
+        loadersPage = new dev.lumora.launcher.app.pages.LoadersPage(this, pageIo);
+        pageHost.add(loadersPage, "loaders");
         settingsPage = new SettingsPage(this, new SettingsPage.Hooks() {
             @Override
             public void socialChanged() {
@@ -279,6 +298,7 @@ final class LauncherWindow implements PageHost {
         List<Image> ic = icons();
         nav = new NavRail(ic.isEmpty() ? null : ic.get(ic.size() - 1), id -> {
             pages.show(pageHost, id);
+            pageFade.play();
             socialPage.setShown(id.equals("social"));
             serversPage.setShown(id.equals("servers"));
             if (barRight != null) {
@@ -289,6 +309,8 @@ final class LauncherWindow implements PageHost {
                 markNewsSeen();
             } else if (id.equals("performance")) {
                 performancePage.refresh();
+            } else if (id.equals("loaders")) {
+                loadersPage.refresh();
             } else if (id.equals("extensions")) {
                 modsPage.refresh();
             } else if (id.equals("library")) {
@@ -303,6 +325,7 @@ final class LauncherWindow implements PageHost {
         });
         nav.addItem("home", "Startseite", Icons.Kind.HOME);
         nav.addItem("extensions", "Mods", Icons.Kind.PUZZLE);
+        nav.addItem("loaders", "Mod-Loader", Icons.Kind.CUBE);
         nav.addItem("browser", "Entdecken", Icons.Kind.SEARCH);
         nav.addItem("performance", "Performance", Icons.Kind.CHART);
         nav.addItem("library", "Bibliothek", Icons.Kind.LIBRARY);
@@ -331,16 +354,16 @@ final class LauncherWindow implements PageHost {
         });
 
         JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(Theme.BG);
+        main.setOpaque(false);
         JPanel padded = new JPanel(new BorderLayout());
         padded.setOpaque(false);
-        padded.setBorder(BorderFactory.createEmptyBorder(18, 22, 14, 22));
-        padded.add(pageHost, BorderLayout.CENTER);
+        padded.setBorder(BorderFactory.createEmptyBorder(20, 26, 16, 26));
+        pageHost.setOpaque(false);
+        padded.add(pageFade.wrap(pageHost), BorderLayout.CENTER);
         main.add(padded, BorderLayout.CENTER);
         main.add(playBar(), BorderLayout.SOUTH);
 
-        JPanel root = new JPanel(new BorderLayout());
-        root.setBackground(Theme.BG);
+        JPanel root = new dev.lumora.launcher.app.ui.Backdrop();
         root.add(nav, BorderLayout.WEST);
         root.add(main, BorderLayout.CENTER);
         frame.setContentPane(root);
@@ -441,7 +464,7 @@ final class LauncherWindow implements PageHost {
         };
         wordmark.setPreferredSize(new Dimension(420, 66));
         wordmark.setMaximumSize(new Dimension(Integer.MAX_VALUE, 66));
-        JLabel slogan = label("Dein All-in-One Minecraft Client", 18, Font.PLAIN, new Color(0xE6E0F2));
+        JLabel slogan = label("Dein All-in-One Minecraft Client", 18, Font.PLAIN, new Color(0xDCE7FA));
         slogan.setHorizontalAlignment(SwingConstants.CENTER);
         for (JComponent c : List.of(logo, wordmark, slogan)) {
             c.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -524,7 +547,7 @@ final class LauncherWindow implements PageHost {
         inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
         JLabel i = new JLabel(Icons.of(icon, 26, Theme.ACCENT_HOVER));
         JLabel t = label(title, 14.5f, Font.BOLD, Color.WHITE);
-        JLabel s = label(sub, 12.5f, Font.PLAIN, new Color(0xC8C0D8));
+        JLabel s = label(sub, 12.5f, Font.PLAIN, new Color(0xB4C3DD));
         for (JComponent c : List.of(i, t, s)) {
             c.setAlignmentX(Component.CENTER_ALIGNMENT);
             inner.add(c);
@@ -580,29 +603,34 @@ final class LauncherWindow implements PageHost {
         body.add(Box.createVerticalStrut(12));
 
         // start type
-        JPanel flavors = new JPanel(new GridLayout(1, 3, 6, 0));
+        JPanel flavors = new JPanel(new GridLayout(2, 3, 6, 6));
         flavors.setOpaque(false);
         flavors.setAlignmentX(Component.LEFT_ALIGNMENT);
         javax.swing.ButtonGroup fg = new javax.swing.ButtonGroup();
-        Icons.Kind[] kinds = {Icons.Kind.R_STAR, Icons.Kind.CUBE, Icons.Kind.PUZZLE};
-        dev.lumora.launcher.core.profile.Flavor[] all = {dev.lumora.launcher.core.profile.Flavor.LUMORA,
-                dev.lumora.launcher.core.profile.Flavor.VANILLA, dev.lumora.launcher.core.profile.Flavor.FABRIC};
-        for (int i = 0; i < all.length; i++) {
-            dev.lumora.launcher.core.profile.Flavor fl = all[i];
-            javax.swing.JToggleButton b = new javax.swing.JToggleButton(fl.label(), Icons.of(kinds[i], 14, Theme.TEXT), fl == currentFlavor());
+        dev.lumora.launcher.core.profile.Flavor[] all = dev.lumora.launcher.core.profile.Flavor.values();
+        String mc = ctx.selectedProfile().minecraftVersion;
+        for (dev.lumora.launcher.core.profile.Flavor fl : all) {
+            Icons.Kind kind = switch (fl) {
+                case LUMORA -> Icons.Kind.R_STAR;
+                case VANILLA -> Icons.Kind.CUBE;
+                default -> Icons.Kind.PUZZLE;
+            };
+            boolean supported = fl.loaderId() == null || ctx.loaders.loaders().byId(fl.loaderId()).map(l -> l.supports(mc)).orElse(false);
+            javax.swing.JToggleButton b = new javax.swing.JToggleButton(fl.label(), Icons.of(kind, 14, Theme.TEXT), fl == currentFlavor());
             b.setFont(Theme.font(Font.BOLD, 12.5f));
             b.setFocusable(false);
             b.setIconTextGap(7);
-            b.setToolTipText(switch (fl) {
+            b.setEnabled(supported);
+            b.setToolTipText(!supported ? fl.label() + " gibt es nicht für Minecraft " + mc : switch (fl) {
                 case LUMORA -> "Lumora-Oberfläche, Performance-Mods und Addons";
                 case VANILLA -> "Reines Minecraft ohne Mods, eigener Spielordner";
-                case FABRIC -> "Fabric Loader ohne Lumora-Mods, eigener Spielordner für deine Mods";
+                default -> fl.label() + " ohne Lumora-Mods, eigener Spielordner für deine Mods (Version unter „Mod-Loader“)";
             });
             b.addActionListener(e -> setFlavor(fl));
             fg.add(b);
             flavors.add(b);
         }
-        flavors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        flavors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 74));
         body.add(flavors);
         body.add(Box.createVerticalStrut(12));
 
@@ -665,6 +693,11 @@ final class LauncherWindow implements PageHost {
             saveConfigQuietly();
         }
         refreshVersionInfo(ctx.selectedProfile());
+    }
+
+    @Override
+    public void selectFlavor(String flavorId) {
+        setFlavor(dev.lumora.launcher.core.profile.Flavor.of(flavorId));
     }
 
     private void updateSocialBadge() {
@@ -745,8 +778,12 @@ final class LauncherWindow implements PageHost {
         if (heroOverline != null) {
             heroOverline.setText("MINECRAFT " + p.minecraftVersion + "  ·  " + switch (fl) {
                 case LUMORA -> isLegacy(p) ? "LUMORA · LEGACY FABRIC" : "LUMORA CLIENT";
-                case FABRIC -> isLegacy(p) ? "LEGACY FABRIC" : "FABRIC " + p.fabricLoaderVersion;
+                case FABRIC -> (isLegacy(p) ? "LEGACY FABRIC " : "FABRIC ") + java.util.Optional.ofNullable(
+                        dev.lumora.launcher.core.loader.LoaderManager.pinned(ctx.config, "fabric", p.minecraftVersion)).orElse(p.fabricLoaderVersion);
                 case VANILLA -> "VANILLA";
+                default -> fl.label().toUpperCase(java.util.Locale.ROOT) + java.util.Optional.ofNullable(
+                        dev.lumora.launcher.core.loader.LoaderManager.pinned(ctx.config, fl.loaderId(), p.minecraftVersion))
+                        .map(v -> " " + v).orElse(" · EMPFOHLEN");
             });
         }
         if (heroChips != null) {

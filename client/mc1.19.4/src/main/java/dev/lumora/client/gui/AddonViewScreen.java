@@ -22,6 +22,8 @@ public final class AddonViewScreen extends Screen {
     /** A screen that returns here is being opened on top. */
     private boolean keepView;
     private boolean closed;
+    /** Ticks the screen this one replaces (Minecraft's connect screen keeps running underneath). */
+    private Runnable ticker;
 
     private AddonViewScreen(Screen parent, AddonView view) {
         super(Component.literal("Lumora"));
@@ -32,6 +34,16 @@ public final class AddonViewScreen extends Screen {
     /** A screen showing {@code view} that returns to {@code parent} (Lumora server and world lists). */
     public static Screen create(Screen parent, AddonView view) {
         return new AddonViewScreen(parent, view);
+    }
+
+    /**
+     * A screen showing {@code view} that also ticks the Minecraft screen it stands in for ({@code tick}): Lumora's
+     * connecting screen keeps Minecraft's connect screen, which drives the connection, running underneath.
+     */
+    public static Screen connecting(Screen parent, AddonView view, Runnable tick) {
+        AddonViewScreen s = new AddonViewScreen(parent, view);
+        s.ticker = tick;
+        return s;
     }
 
     /** Shows {@code view} on top of the current screen. */
@@ -127,6 +139,14 @@ public final class AddonViewScreen extends Screen {
                 s.view.removed();
                 below = s.parent;
             }
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (ticker != null) {
+            ticker.run();
         }
     }
 

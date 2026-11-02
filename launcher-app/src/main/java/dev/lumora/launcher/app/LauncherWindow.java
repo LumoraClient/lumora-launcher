@@ -228,6 +228,11 @@ final class LauncherWindow implements PageHost {
             public void windowClosing(WindowEvent e) {
                 onClose();
             }
+
+            @Override
+            public void windowOpened(WindowEvent e) {
+                applyTaskbarPin();
+            }
         });
         frame.setIconImages(icons());
         frame.setMinimumSize(new Dimension(1180, 720));
@@ -1294,8 +1299,32 @@ final class LauncherWindow implements PageHost {
         });
     }
 
+    /** Set once the window's taskbar pin points to LumoraClient.exe (cleared again on quit). */
+    private boolean taskbarPinned;
+
+    /**
+     * A pin of the launcher window starts LumoraClient.exe instead of the extracted program (setting
+     * "Update auch beim direkten Start"). Only when that EXE exists: the starter's, the one it recorded, or the copy a
+     * self-update put there.
+     */
+    private void applyTaskbarPin() {
+        if (taskbarPinned || !ctx.config.portableSelfUpdate || !dev.lumora.launcher.core.integrations.WindowsTaskbar.supported()) {
+            return;
+        }
+        var target = dev.lumora.launcher.core.update.LauncherUpdate.selfUpdateTarget(true);
+        if (target.isEmpty() || !Files.isRegularFile(target.get().exe())) {
+            return;
+        }
+        taskbarPinned = dev.lumora.launcher.core.integrations.WindowsTaskbar.pinAs(frame, target.get().exe(), BuildInfo.NAME);
+        Log.info("Taskbar pin -> " + target.get().exe() + " (" + target.get().source() + "): " + (taskbarPinned ? "set" : "not set"));
+    }
+
     private void offerLauncherUpdate(dev.lumora.launcher.core.update.LauncherUpdate u, dev.lumora.launcher.core.update.LauncherUpdate.Release r) {
-        var portable = dev.lumora.launcher.core.update.LauncherUpdate.portableExe();
+        var target = dev.lumora.launcher.core.update.LauncherUpdate.selfUpdateTarget(ctx.config.portableSelfUpdate);
+        var portable = target.map(dev.lumora.launcher.core.update.LauncherUpdate.Target::exe);
+        boolean managedCopy = target.isPresent() && !target.get().starter();
+        boolean directStartOff = target.isEmpty() && !ctx.config.portableSelfUpdate
+                && dev.lumora.launcher.core.update.LauncherUpdate.startedFromPortableFolder();
         // release notes are Markdown: show them as plain text
         String notes = r.notes().strip()
                 .replaceAll("(?m)^#{1,6}\\s*", "")
@@ -1307,7 +1336,11 @@ final class LauncherWindow implements PageHost {
         }
         JTextArea text = new JTextArea("Lumora " + r.version() + " ist verfügbar (du hast " + BuildInfo.VERSION + ")."
                 + (notes.isEmpty() ? "" : "\n\n" + notes)
-                + (portable.isPresent() ? "\n\nDas Update wird geladen, mit der Signatur geprüft und der Launcher danach neu gestartet."
+                + (managedCopy ? "\n\nDas Update wird geladen, mit der Signatur geprüft und als " + portable.get()
+                + " gespeichert, danach startet der Launcher neu. Hefte das Lumora-Symbol danach neu an."
+                : portable.isPresent() ? "\n\nDas Update wird geladen, mit der Signatur geprüft und der Launcher danach neu gestartet."
+                : directStartOff ? "\n\nDer Launcher wurde direkt gestartet, nicht über LumoraClient.exe, und „Update auch beim "
+                + "direkten Start“ ist aus (Einstellungen). Lade die neue Version von der Release-Seite."
                 : "\n\nDiese Installation aktualisiert sich nicht selbst: lade die neue Version von der Release-Seite."));
         text.setEditable(false);
         text.setLineWrap(true);
@@ -1699,6 +1732,9 @@ final class LauncherWindow implements PageHost {
         }
         social.shutdown();
         discord.close();
+        if (taskbarPinned) {
+            dev.lumora.launcher.core.integrations.WindowsTaskbar.clear(frame);
+        }
         tray.setActive(false);
         Log.close();
         frame.dispose();

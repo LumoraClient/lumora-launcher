@@ -326,6 +326,11 @@ public final class SettingsPage extends JPanel {
         add("Allgemein", Icons.Kind.ROCKET, "Launcher-Version " + BuildInfo.VERSION, "Neue Versionen kommen von github.com/"
                 + dev.lumora.launcher.core.update.LauncherUpdate.REPOSITORY + " und werden nur mit gültiger Signatur installiert.", false,
                 row(launcherUpdate));
+        add("Allgemein", Icons.Kind.BOLT, "Update auch beim direkten Start",
+                "Startest du den Launcher über ein angeheftetes Taskleisten-Symbol oder eine eigene Verknüpfung, aktualisiert er "
+                        + "sich trotzdem selbst. Neu angeheftete Symbole starten LumoraClient.exe. Aus: Nur ein Start über "
+                        + "LumoraClient.exe aktualisiert, sonst kommt nur der Hinweis auf die Release-Seite. Wirkt nach einem Neustart.",
+                false, toggle(cfg.portableSelfUpdate, on -> cfg.portableSelfUpdate = on));
         add("Allgemein", Icons.Kind.REFRESH, "Automatische Update-Prüfung",
                 "Sucht beim Start nach neuen Versionen von Fabric, Mods und Ressourcenpaketen und fragt vor jeder Änderung.", false,
                 toggle(cfg.checkForUpdates, on -> cfg.checkForUpdates = on));
@@ -648,6 +653,7 @@ public final class SettingsPage extends JPanel {
                 cfg.debugMode = d.debugMode;
                 cfg.debugAddress = d.debugAddress;
                 cfg.checkForUpdates = d.checkForUpdates;
+                cfg.portableSelfUpdate = d.portableSelfUpdate;
                 cfg.parallelDownloads = d.parallelDownloads;
                 cfg.minimizeToTray = d.minimizeToTray;
                 cfg.startPage = d.startPage;

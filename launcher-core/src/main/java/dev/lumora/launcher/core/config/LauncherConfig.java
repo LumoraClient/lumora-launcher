@@ -39,6 +39,11 @@ public final class LauncherConfig {
     public boolean closeLauncherOnGameStart = false;
     public boolean checkForUpdates = true;
     /**
+     * Launcher started directly from its extracted folder (pinned taskbar icon, own shortcut) still updates itself,
+     * and a pin of the launcher window starts LumoraClient.exe. Off: only a start through LumoraClient.exe updates.
+     */
+    public boolean portableSelfUpdate = true;
+    /**
      * Lumora Social server (friends, groups, chat), normalised ws:// or wss:// URI; null = not used. There is no default
      * server: whoever hosts one (see docs/SOCIAL.md) gives out its address.
      */

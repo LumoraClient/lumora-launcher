@@ -180,13 +180,114 @@ public final class LauncherUpdate {
 
     /** The portable EXE this launcher was started from, if any (set by packaging/windows/portable/PortableLauncher.cs). */
     public static Optional<Path> portableExe() {
-        String p = System.getenv("LUMORA_PORTABLE_EXE");
-        if (p == null || p.isBlank()) {
+        return existingExe(System.getenv("LUMORA_PORTABLE_EXE"));
+    }
+
+    /** File next to the extracted versions in which the portable starter records where it lives (one line). */
+    public static final String STARTER_RECORD = "starter-path.txt";
+    /** Marker the portable starter writes into every folder it extracted. */
+    static final String EXTRACTED_MARKER = ".lumora-extracted";
+    /** Copy of LumoraClient.exe the launcher keeps itself when it cannot find the user's one. */
+    public static final String MANAGED_EXE = "LumoraClient.exe";
+
+    /** Where a self-update writes the new LumoraClient.exe, and how that place was found. */
+    public record Target(Path exe, Source source) {
+        public enum Source {
+            /** started through LumoraClient.exe (environment variable of the starter) */
+            STARTER,
+            /** started directly from the extracted folder (pinned taskbar icon, shortcut); path the starter recorded */
+            RECORDED,
+            /** started directly and the starter left no record (versions before 0.2.2): a copy the launcher keeps */
+            MANAGED_COPY
+        }
+
+        /** True when the file is the user's own LumoraClient.exe (not the launcher's managed copy). */
+        public boolean starter() {
+            return source != Source.MANAGED_COPY;
+        }
+    }
+
+    /**
+     * Target of a self-update. Through the starter it is always the starter's EXE. With {@code directStart} (setting
+     * "Update auch beim direkten Start") a launcher started directly from {@code portable\<hash>\LumoraLauncher} also
+     * updates itself: into the EXE the starter recorded, else into {@code %LOCALAPPDATA%\LumoraClient\LumoraClient.exe}.
+     */
+    public static Optional<Target> selfUpdateTarget(boolean directStart) {
+        String app = System.getProperty("jpackage.app-path");
+        return selfUpdateTarget(System.getenv("LUMORA_PORTABLE_EXE"), app == null ? null : Path.of(app), directStart);
+    }
+
+    static Optional<Target> selfUpdateTarget(String starterEnv, Path appPath, boolean directStart) {
+        Optional<Path> starter = existingExe(starterEnv);
+        if (starter.isPresent()) {
+            return Optional.of(new Target(starter.get(), Target.Source.STARTER));
+        }
+        if (!directStart) {
             return Optional.empty();
         }
-        Path path = Path.of(p);
-        return Files.isRegularFile(path) && path.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".exe")
-                ? Optional.of(path) : Optional.empty();
+        Optional<Path> base = portableBase(appPath);
+        if (base.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<Path> recorded = recordedStarter(base.get());
+        if (recorded.isPresent()) {
+            return Optional.of(new Target(recorded.get(), Target.Source.RECORDED));
+        }
+        Path root = base.get().getParent();
+        return root == null ? Optional.empty() : Optional.of(new Target(root.resolve(MANAGED_EXE), Target.Source.MANAGED_COPY));
+    }
+
+    /** True when this launcher runs from a folder the portable starter extracted. */
+    public static boolean startedFromPortableFolder() {
+        String app = System.getProperty("jpackage.app-path");
+        return app != null && portableBase(Path.of(app)).isPresent();
+    }
+
+    /**
+     * {@code <base>} for {@code <base>\<16 hex>\LumoraLauncher\LumoraLauncher.exe} when {@code <16 hex>} carries the
+     * starter's marker; empty for every other location (installed launcher, IDE).
+     */
+    static Optional<Path> portableBase(Path appPath) {
+        if (appPath == null) {
+            return Optional.empty();
+        }
+        Path app = appPath.toAbsolutePath().normalize();
+        Path imageDir = app.getParent();
+        Path hashDir = imageDir == null ? null : imageDir.getParent();
+        if (hashDir == null || hashDir.getParent() == null || hashDir.getFileName() == null
+                || !hashDir.getFileName().toString().matches("[0-9a-f]{16}")
+                || !Files.isRegularFile(hashDir.resolve(EXTRACTED_MARKER))) {
+            return Optional.empty();
+        }
+        return Optional.of(hashDir.getParent());
+    }
+
+    /** The EXE path in {@code <base>/starter-path.txt}, if it still exists. */
+    static Optional<Path> recordedStarter(Path base) {
+        Path record = base.resolve(STARTER_RECORD);
+        try {
+            if (!Files.isRegularFile(record) || Files.size(record) > 4096) {
+                return Optional.empty();
+            }
+            String line = Files.readString(record, StandardCharsets.UTF_8).strip();
+            return line.contains("\n") ? Optional.empty() : existingExe(line);
+        } catch (IOException | RuntimeException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<Path> existingExe(String p) {
+        if (p == null || p.isBlank() || p.indexOf('\0') >= 0) {
+            return Optional.empty();
+        }
+        try {
+            Path path = Path.of(p);
+            return path.isAbsolute() && Files.isRegularFile(path)
+                    && path.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".exe")
+                    ? Optional.of(path) : Optional.empty();
+        } catch (RuntimeException e) {
+            return Optional.empty();
+        }
     }
 
     boolean verify(byte[] data, String base64Signature) {

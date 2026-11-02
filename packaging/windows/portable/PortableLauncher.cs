@@ -49,6 +49,7 @@ namespace Lumora.Portable
                     }
                     CleanupOldVersions(baseDir, target);
                 }
+                RecordStarterPath(baseDir);
                 return Launch(exe, args);
             }
             catch (Exception e)
@@ -57,6 +58,22 @@ namespace Lumora.Portable
                     Title, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 1;
             }
+        }
+
+        /// Where this starter lives, for a launcher started directly from the extracted folder (pinned icon): it then
+        /// still knows which EXE to update (LauncherUpdate.STARTER_RECORD). Failure is harmless.
+        private static void RecordStarterPath(string baseDir)
+        {
+            try
+            {
+                string file = Path.Combine(baseDir, "starter-path.txt");
+                string me = Application.ExecutablePath;
+                if (!File.Exists(file) || File.ReadAllText(file, Encoding.UTF8).Trim() != me)
+                {
+                    File.WriteAllText(file, me, new UTF8Encoding(false));
+                }
+            }
+            catch { }
         }
 
         private static int Launch(string exe, string[] args)

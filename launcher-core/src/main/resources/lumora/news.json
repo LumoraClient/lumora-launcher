@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-fonts",
+      "date": "2026-11-03",
+      "author": "Lumora",
+      "title": "Neun Schriften zur Auswahl",
+      "text": "Im Hub unter Themes → Schrift wählst du jetzt die Schrift für Lumoras Menüs und den Text im Spiel: Vanilla, Inter, Outfit (bekannt aus LiquidBounce Legacy), Manrope (im Stil von Lunar), Roboto, Poppins, Montserrat, JetBrains Mono oder die Pixel-Schrift Silkscreen. Alle sind frei lizenziert und gleich groß abgestimmt. Ein Klick genügt, Minecraft lädt die Ressourcen einmal kurz neu. Das gilt für alle Versionen ab 1.16.5.",
+      "image": "fonts.png"
+    },
+    {
       "id": "lumora-hub-2",
       "date": "2026-11-03",
       "author": "Lumora",
@@ -98,6 +106,16 @@
     }
   ],
   "changelog": [
+    {
+      "version": "0.3.3",
+      "date": "2026-11-03",
+      "title": "Schriften zur Auswahl",
+      "items": [
+        "Im Hub unter Themes → Schrift: Vanilla, Inter, Outfit, Manrope, Roboto, Poppins, Montserrat, JetBrains Mono, Silkscreen",
+        "Alle unter der SIL Open Font License, auf die gleiche Größe abgestimmt",
+        "Für 1.16.5 bis 26.3 (1.8.9 und 1.12.2 können keine TrueType-Schriften)"
+      ]
+    },
     {
       "version": "0.3.2",
       "date": "2026-11-03",

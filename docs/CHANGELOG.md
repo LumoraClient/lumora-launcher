@@ -1,6 +1,6 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.3.3 (2026-11-03)
 
 ### Im Spiel
 - **Schriften zur Auswahl** im Hub unter Themes → Schrift (1.16.5 bis 26.3): Vanilla (Minecraft), Inter (Lumora, auch LiquidBounce Nextgen), Outfit (LiquidBounce Legacy), Manrope (im Stil von Lunar), Roboto, Poppins, Montserrat, JetBrains Mono (Monospace) und Silkscreen (Pixel). Alle stehen unter der SIL Open Font License 1.1 und liegen als eigene Ressourcenpakete „Lumora Schrift: …“ im Client. Der Wechsel lädt die Ressourcen einmal neu. 1.8.9 und 1.12.2 können keine TrueType-Schriften.

@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.3 (2026-11-03):**
+- **Build:** `gradlew clean build` erfolgreich, 381 Unit-Tests ohne Fehler (1 übersprungen), darunter ein neuer für die Schriftauswahl im Hub.
+- **Schriften:** jede Datei vor dem Einbau geprüft (TrueType, Name, alle Umlaute, Strichstärke Medium, Lizenz SIL OFL 1.1), Quelle und SHA-256 in `THIRD_PARTY_NOTICES.md`.
+- **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon): 26.3 und 1.20.4 mit Outfit, 1.16.5 mit Poppins bestanden, Schrift auf den Screenshots sichtbar, Zurückschalten auf Vanilla geprüft. Mit dem fertigen 0.3.3-Build 26.3, 1.21.11 (Manrope), 1.16.5 und 1.8.9 erneut bestanden.
+- **Nicht geprüft:** Roboto, Montserrat, JetBrains Mono und Silkscreen im Spiel, Umschalten per Klick im echten Spiel, ein echtes Selbst-Update von 0.3.2 auf 0.3.3.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.2 (2026-11-03):**
 - **Build:** `gradlew clean build` erfolgreich, 380 Unit-Tests ohne Fehler (1 übersprungen), darunter neue für den Hub (alle Seiten auf kleinen und großen Bildschirmen, Kategorien, Suche, Vanilla-/Lumora-Theme, Akzentfarben, neues Profil per Klick) und die neuen Einstellungen (alle Einstellungsarten, Schieberegler ziehen, Schalter, Hex-Eingabe, Esc).
 - **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.20.4, 1.16.5, 1.12.2 und 1.8.9 mit dem neuen Hub bestanden, Hub-Screenshots (Module, Themes, Profile, im Spiel) geprüft. Mit dem fertigen 0.3.2-Build zusätzlich 26.3, 1.20.4, 1.12.2 und 1.8.9 erneut bestanden, Screenshots des Hubs und der neuen Einstellungen geprüft (1.8.9 und 1.12.2 jetzt mit übersetzten Namen). Die übrigen Versionen sind nur kompiliert und mit allen Tests gebaut.

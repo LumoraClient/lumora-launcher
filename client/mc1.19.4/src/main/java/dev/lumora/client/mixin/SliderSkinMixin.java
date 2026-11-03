@@ -29,7 +29,7 @@ public abstract class SliderSkinMixin {
         AbstractSliderButton self = (AbstractSliderButton) (Object) this;
         boolean hover = self.active && self.isHoveredOrFocused();
         if (w == HANDLE_WIDTH) {
-            LumoraUi.card(g, x, y, w, h, hover ? 0xFFA78BFA : 0xFF8B5CF6, LumoraUi.alpha(LumoraUi.ACCENT, 0xFF));
+            LumoraUi.card(g, x, y, w, h, hover ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT, LumoraUi.alpha(LumoraUi.ACCENT, 0xFF));
         } else {
             LumoraUi.card(g, x, y, w, h, hover ? 0xE8241D31 : 0xDC13101A, LumoraUi.BORDER);
         }

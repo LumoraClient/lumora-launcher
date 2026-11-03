@@ -176,7 +176,7 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 | Klasse | Aufgabe |
 |---|---|
 | `LumoraClient` | Einstieg (Lumora-Loader-Einstiegspunkt). Hängt sich über die eigenen Plattform-Hooks ein: Titelbildschirm-Button, Protokoll-Label im Multiplayer-Menü, Tastenbelegung F9, Lifecycle |
-| `gui.LumoraHubScreen` | Hub: Renderer/GPU, VFP-Version, Speicher, Schlaganimation. Buttons für Protokollauswahl (VFP-API), Benchmark, Diagnose |
+| `gui.LumoraHubScreen` | Verbindet den Hub (`lumora-core/hub/HubView`, in allen Versionen gleich) über `HubHost` mit `lumora-client.json` (Felder per Name), den Bildschirmen der Version (HUD-Editor, Einstellungen, Titelbildschirm) und den Systemdaten (Renderer, GPU, Protokoll, Benchmark, Diagnose) |
 | `integration.RuntimeInfo` | Statusabfrage über `RenderSystem.tryGetDevice()`; Sodium und ViaFabricPlus gibt es ohne Mod-Loader nicht, sie gelten als „nicht geladen“ |
 | `perf.FrameStats` + `mixin.MinecraftFrameMixin` | Frametime-Messung pro Frame (`Minecraft#runTick`, nur lesend), Auswertung: Ø-FPS, 1 %/0,1 % Lows, p50/p95/p99 |
 | `diagnostics.Diagnostics` / `SmokeTest` | JSON-Berichte. Automatischer Starttest mit `-Dlumora.smokeTest` |
@@ -201,7 +201,7 @@ lumora-core  (Java 21, Gson von Minecraft)          LumoraCore, AddonManager, Ja
    ▼
 client/mc<version>/…/api   (je Minecraft-Version)   McPlatform, McGameContext, McHudGraphics, LumoraRuntime,
                                                      Bildschirme HudEditorScreen,
-                                                     SettingsScreen, Hub-Tabs „Module“/„Addons“
+                                                     SettingsScreen, Hub-Host (LumoraHubScreen)
 ```
 
 - `lumora-api` und `lumora-core` werden als Klassen in jede `lumora-client-mc<version>.jar` kopiert (Konfiguration

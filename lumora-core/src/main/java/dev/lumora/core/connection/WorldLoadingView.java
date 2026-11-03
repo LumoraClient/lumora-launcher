@@ -1,5 +1,6 @@
 package dev.lumora.core.connection;
 
+import dev.lumora.core.theme.LumoraTheme;
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.core.Platform;
 import dev.lumora.core.connection.WorldLoadAttempt.Stage;
@@ -103,7 +104,7 @@ final class WorldLoadingView extends ConnectionView {
         String title = name == null || name.isBlank() ? t("Einzelspieler-Welt", "Singleplayer world") : name;
         String percent = Math.round(shownProgress * 100) + " %";
         g.text("§l" + ConnectingView.fit(g, title, cw - 70), px, py, TEXT, false);
-        g.rightText(percent, x + cw - 12, py, ACCENT_HOVER, false);
+        g.rightText(percent, x + cw - 12, py, LumoraTheme.accentHover(), false);
         py += 11;
         g.text(created ? t("Neue Welt  ·  Einzelspieler", "New world  ·  Singleplayer") : t("Einzelspieler", "Singleplayer"),
                 px, py, MUTED, false);
@@ -112,7 +113,7 @@ final class WorldLoadingView extends ConnectionView {
         g.roundedRect(px, py, bw, 6, 3, 0xFF2A2338);
         int fill = Math.round(bw * shownProgress);
         if (fill >= 6) {
-            g.roundedRect(px, py, fill, 6, 3, ACCENT);
+            g.roundedRect(px, py, fill, 6, 3, LumoraTheme.accent());
         }
         py += 14;
         g.fill(px, py, x + cw - 12, py + 1, BORDER);
@@ -125,7 +126,7 @@ final class WorldLoadingView extends ConnectionView {
             boolean skipped = done && !tracker.reached(s);
             int iconX = px + 4;
             if (current) {
-                spinner(g, iconX + 2, py + 4, ACCENT_HOVER);
+                spinner(g, iconX + 2, py + 4, LumoraTheme.accentHover());
             } else if (skipped) {
                 g.fill(iconX - 1, py + 3, iconX + 5, py + 5, DIM);
             } else if (done) {
@@ -138,7 +139,7 @@ final class WorldLoadingView extends ConnectionView {
             g.text(skipped ? label + t(" (nicht nötig)", " (not needed)") : label, px + 16, py, color, false);
             long ms = tracker.millis(s);
             if ((current || done) && !skipped && ms >= 0) {
-                g.rightText(duration(ms), x + cw - 12, py, current ? ACCENT_HOVER : DIM, false);
+                g.rightText(duration(ms), x + cw - 12, py, current ? LumoraTheme.accentHover() : DIM, false);
             }
             py += 12;
         }

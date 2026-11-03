@@ -65,7 +65,7 @@ public final class LumoraLoading {
         int glowCy = top + moonW / 2;
         for (int r = 6; r >= 1; r--) {
             int rr = moonW / 2 + r * px * 2;
-            g.fill(glowCx - rr, glowCy - rr, glowCx + rr, glowCy + rr, withAlpha(0x088B5CF6, alpha));
+            g.fill(glowCx - rr, glowCy - rr, glowCx + rr, glowCy + rr, withAlpha(LumoraUi.alpha(LumoraUi.ACCENT, 0x08), alpha));
         }
         for (int y = 0; y < MOON.length; y++) {
             for (int x = 0; x < MOON[y].length(); x++) {
@@ -104,8 +104,8 @@ public final class LumoraLoading {
         g.fill(x0, by + 1, x1, by + h - 1, withAlpha(0xFF221C2D, alpha));
         int fill = Math.round(barW * Math.clamp(progress, 0f, 1f));
         if (fill > 2) {
-            g.fill(x0 + 1, by, x0 + fill - 1, by + h, withAlpha(0xFF8B5CF6, alpha));
-            g.fill(x0, by + 1, x0 + fill, by + h - 1, withAlpha(0xFF8B5CF6, alpha));
+            g.fill(x0 + 1, by, x0 + fill - 1, by + h, withAlpha(LumoraUi.ACCENT, alpha));
+            g.fill(x0, by + 1, x0 + fill, by + h - 1, withAlpha(LumoraUi.ACCENT, alpha));
             g.fill(x0 + 1, by, x0 + fill - 1, by + 1, withAlpha(0xFFC4B5FD, alpha));
         }
     }

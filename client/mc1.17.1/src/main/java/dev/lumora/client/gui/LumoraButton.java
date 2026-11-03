@@ -42,7 +42,7 @@ public final class LumoraButton extends AbstractButton {
             switch (style) {
                 case PRIMARY -> {
                     LumoraShaders.glow(g, x, y, w, h, LumoraUi.ACCENT, hover ? 8 : 4);
-                    LumoraShaders.glass(g, x, y, w, h, !active ? 0xE0221C2D : hover ? 0xFFA78BFA : 0xFF8B5CF6);
+                    LumoraShaders.glass(g, x, y, w, h, !active ? 0xE0221C2D : hover ? LumoraUi.ACCENT_HOVER : LumoraUi.ACCENT);
                     textColor = 0xFFFFFFFF;
                 }
                 case NAV -> {

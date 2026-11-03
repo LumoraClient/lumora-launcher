@@ -18,11 +18,20 @@ public final class LumoraUi {
     public static final int BORDER = 0xFF2F2741;
     public static final int TEXT = 0xFFECE8F4;
     public static final int MUTED = 0xFF9D95AE;
-    public static final int ACCENT = 0xFF8B5CF6;
-    public static final int ACCENT_HOVER = 0xFFA27BFA;
-    public static final int ACCENT_DARK = 0xFF7243E0;
+    /** Accent colours; follow the theme's accent colour ({@link #applyAccent}). */
+    public static int ACCENT = 0xFF8B5CF6;
+    public static int ACCENT_HOVER = 0xFFA27BFA;
+    public static int ACCENT_DARK = 0xFF7243E0;
     public static final int OK = 0xFF3DD68C;
     public static final int WARN = 0xFFF5B342;
+
+    /** Takes the accent colour with this id (config "accentColor") for Lumora's menus and buttons. */
+    public static void applyAccent(String id) {
+        dev.lumora.core.theme.LumoraTheme.setAccent(id);
+        ACCENT = dev.lumora.core.theme.LumoraTheme.accent();
+        ACCENT_HOVER = dev.lumora.core.theme.LumoraTheme.accentHover();
+        ACCENT_DARK = dev.lumora.core.theme.LumoraTheme.accentDark();
+    }
 
     public static final ResourceLocation BACKGROUND = new ResourceLocation("lumora", "textures/gui/background.png");
     public static final ResourceLocation LOGO = new ResourceLocation("lumora", "icon.png");

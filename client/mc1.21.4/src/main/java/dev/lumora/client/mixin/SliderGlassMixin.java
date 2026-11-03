@@ -29,7 +29,7 @@ public abstract class SliderGlassMixin {
             if (highlighted) {
                 LumoraShaders.glow(g, x, y, w, h, LumoraUi.ACCENT, 5);
             }
-            LumoraShaders.glass(g, x, y, w, h, highlighted ? 0xFFA78BFA : 0xFF8B5CF6);
+            LumoraShaders.glass(g, x, y, w, h, highlighted ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT);
         } else {
             LumoraShaders.glass(g, x, y, w, h, highlighted ? 0xE8241D31 : 0xDC13101A);
         }

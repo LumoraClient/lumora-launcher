@@ -24,6 +24,10 @@ public final class LumoraConfig {
     public boolean menuBackground = true;
     /** GLSL menu effects: "auto"/"on" (enabled) or "off". */
     public String menuShaders = "auto";
+    /** Look of Lumora's menus: "lumora" or "vanilla" (Minecraft's own menus, buttons and font; the hub stays Lumora). */
+    public String theme = "lumora";
+    /** Accent colour of Lumora's menus (id of dev.lumora.core.theme.LumoraTheme.ACCENTS, e.g. "purple", "blue"). */
+    public String accentColor = "purple";
     /** Cross-fade when switching menus: "auto"/"on" (enabled) or "off". */
     public String menuTransitions = "auto";
     /** "fade", "slide" or "off". */

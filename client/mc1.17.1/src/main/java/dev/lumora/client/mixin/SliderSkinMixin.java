@@ -24,7 +24,7 @@ public abstract class SliderSkinMixin {
             return;
         }
         boolean hover = self.active && self.isHovered();
-        LumoraUi.card(GuiGraphics.of(pose), x, y, HANDLE_WIDTH, h, hover ? 0xFFA78BFA : 0xFF8B5CF6, LumoraUi.ACCENT);
+        LumoraUi.card(GuiGraphics.of(pose), x, y, HANDLE_WIDTH, h, hover ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT, LumoraUi.ACCENT);
     }
 
     @Redirect(method = "renderBg", at = @At(value = "INVOKE", target = BLIT, ordinal = 1))

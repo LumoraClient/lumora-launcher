@@ -50,6 +50,7 @@ public final class LumoraClient implements ClientEntrypoint {
     @Override
     public void onInitializeClient() {
         config = LumoraConfig.load(LoaderEnv.configDir().resolve("lumora-client.json"));
+        dev.lumora.client.gui.LumoraUi.applyAccent(config.accentColor);
         smokeTest = SmokeTest.fromSystemProperty();
         LOG.info("Lumora Client initialising (profile {}, Minecraft {}, ViaFabric {})",
                 Diagnostics.profile(), RuntimeInfo.MINECRAFT_VERSION, RuntimeInfo.viaFabricLoaded());
@@ -85,7 +86,7 @@ public final class LumoraClient implements ClientEntrypoint {
             LumoraZoom.tick(mc);
             while (hubKey.wasPressed()) {
                 if (mc.currentScreen == null) {
-                    mc.setScreen(new LumoraHubScreen(null));
+                    mc.setScreen(LumoraHubScreen.create(null));
                 }
             }
             if (FrameStats.INSTANCE.isFinished() && smokeTest == null) {
@@ -116,7 +117,7 @@ public final class LumoraClient implements ClientEntrypoint {
         if (button.id != HUB_BUTTON_ID) {
             return false;
         }
-        MinecraftClient.getInstance().setScreen(new LumoraHubScreen(screen));
+        MinecraftClient.getInstance().setScreen(LumoraHubScreen.create(screen));
         return true;
     }
 

@@ -43,7 +43,7 @@ public abstract class AbstractSliderButton extends AbstractWidget {
         boolean hover = active && isHoveredOrFocused();
         LumoraUi.card(g, getX(), getY(), width, height, hover ? 0xE8241D31 : 0xDC13101A, LumoraUi.BORDER);
         int hx = getX() + (int) (value * (width - HANDLE));
-        LumoraUi.card(g, hx, getY(), HANDLE, height, hover ? 0xFFA78BFA : 0xFF8B5CF6, LumoraUi.ACCENT);
+        LumoraUi.card(g, hx, getY(), HANDLE, height, hover ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT, LumoraUi.ACCENT);
         Font font = Font.get();
         g.drawCenteredString(font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, active ? LumoraUi.TEXT : LumoraUi.MUTED);
     }

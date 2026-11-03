@@ -46,6 +46,7 @@ public final class LumoraClient implements ClientEntrypoint {
     @Override
     public void onInitializeClient() {
         config = LumoraConfig.load(LoaderEnv.configDir().resolve("lumora-client.json"));
+        dev.lumora.client.gui.LumoraUi.applyAccent(config.accentColor);
         smokeTest = SmokeTest.fromSystemProperty();
         LOG.info("Lumora Client initialising (profile {}, Sodium {}, ViaFabricPlus {})",
                 Diagnostics.profile(), RuntimeInfo.sodiumLoaded(), RuntimeInfo.viaFabricPlusLoaded());
@@ -90,7 +91,7 @@ public final class LumoraClient implements ClientEntrypoint {
             LumoraZoom.tick(mc);
             while (hubKey.consumeClick()) {
                 if (mc.gui.screen() == null) {
-                    mc.gui.setScreen(new LumoraHubScreen(null));
+                    mc.gui.setScreen(LumoraHubScreen.create(null));
                 }
             }
             if (FrameStats.INSTANCE.isFinished() && smokeTest == null) {
@@ -104,11 +105,11 @@ public final class LumoraClient implements ClientEntrypoint {
         Hooks.afterScreenInit((mc, screen, w, h) -> {
             if (screen instanceof TitleScreen && config.titleScreenButton) {
                 Hooks.addWidget(screen, Button.builder(Component.translatable("lumora.title.button"),
-                        b -> mc.gui.setScreen(new LumoraHubScreen(screen))).bounds(4, 4, 80, 20).build());
+                        b -> mc.gui.setScreen(LumoraHubScreen.create(screen))).bounds(4, 4, 80, 20).build());
             } else if (screen instanceof PauseScreen pause && pause.showsPauseMenu() && config.pauseMenuButton) {
                 // same pill as in the Lumora main menu; the hub returns to the pause menu when closed
                 Hooks.addWidget(screen, new LumoraButton(6, 6, 74, 18, Component.translatable("lumora.menu.hub"),
-                        LumoraButton.Style.SECONDARY, "✦", () -> mc.gui.setScreen(new LumoraHubScreen(screen))));
+                        LumoraButton.Style.SECONDARY, "✦", () -> mc.gui.setScreen(LumoraHubScreen.create(screen))));
                 Hooks.addWidget(screen, new LumoraButton(84, 6, 84, 18, dev.lumora.client.gui.SocialScreen.label(),
                         LumoraButton.Style.SECONDARY, "☻", () -> mc.gui.setScreen(new dev.lumora.client.gui.SocialScreen(screen))));
             } else if (screen instanceof JoinMultiplayerScreen && config.multiplayerProtocolLabel && RuntimeInfo.viaFabricPlusLoaded()) {

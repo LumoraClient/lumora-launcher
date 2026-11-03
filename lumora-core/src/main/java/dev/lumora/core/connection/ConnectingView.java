@@ -1,5 +1,6 @@
 package dev.lumora.core.connection;
 
+import dev.lumora.core.theme.LumoraTheme;
 import dev.lumora.api.connection.ConnectionPhase;
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.core.Platform;
@@ -132,7 +133,7 @@ final class ConnectingView extends ConnectionView {
             boolean skipped = done && !tracker.reached(p);
             int iconX = px + 4;
             if (current) {
-                spinner(g, iconX + 2, py + 4, ACCENT_HOVER);
+                spinner(g, iconX + 2, py + 4, LumoraTheme.accentHover());
             } else if (skipped) {
                 g.fill(iconX - 1, py + 3, iconX + 5, py + 5, DIM);
             } else if (done) {
@@ -144,7 +145,7 @@ final class ConnectingView extends ConnectionView {
             g.text(skipped ? label + t(" (Offline-Server)", " (offline server)") : label, px + 16, py, color, false);
             long ms = tracker.millis(p);
             if ((current || done) && !skipped && ms >= 0) {
-                g.rightText(duration(ms), x + cw - 12, py, current ? ACCENT_HOVER : DIM, false);
+                g.rightText(duration(ms), x + cw - 12, py, current ? LumoraTheme.accentHover() : DIM, false);
             }
             py += 12;
         }

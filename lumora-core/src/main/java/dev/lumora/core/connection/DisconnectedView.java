@@ -1,5 +1,6 @@
 package dev.lumora.core.connection;
 
+import dev.lumora.core.theme.LumoraTheme;
 import dev.lumora.api.connection.ConnectionPhase;
 import dev.lumora.api.connection.DisconnectKind;
 import dev.lumora.api.render.HudGraphics;
@@ -89,7 +90,7 @@ final class DisconnectedView extends ConnectionView {
             long left = Math.max(0, reconnectAt - System.currentTimeMillis());
             String count = t("Neuer Versuch in ", "Retrying in ") + (left / 1000 + 1) + " s";
             button(g, right - 60, by, 60, 18, t("Stopp", "Stop"), Style.GHOST, mx, my, () -> reconnectAt = 0);
-            g.rightText(count, right - 66, by + 5, ACCENT_HOVER, false);
+            g.rightText(count, right - 66, by + 5, LumoraTheme.accentHover(), false);
         } else if (canReconnect() && kind.retryable()) {
             toggle(g, right, by + 4, t("Automatisch", "Automatic"), module.autoReconnect(), mx, my, () -> {
                 module.setAutoReconnect(!module.autoReconnect());

@@ -91,7 +91,7 @@ public final class LumoraTitleScreen extends Screen {
 
         // Lumora hub (client info, protocol, benchmark, classic menu) - small pill in the top-left corner
         addRenderableWidget(new LumoraButton(6, 6, 74, 18, Component.translatable("lumora.menu.hub"),
-                LumoraButton.Style.SECONDARY, "✦", () -> minecraft.setScreen(new LumoraHubScreen(this))));
+                LumoraButton.Style.SECONDARY, "✦", () -> minecraft.setScreen(LumoraHubScreen.create(this))));
         addRenderableWidget(new LumoraButton(84, 6, 84, 18, SocialScreen.label(), LumoraButton.Style.SECONDARY, "☻",
                 () -> minecraft.setScreen(new SocialScreen(this))));
     }
@@ -136,7 +136,7 @@ public final class LumoraTitleScreen extends Screen {
         // "edition" line like vanilla's Java Edition badge
         String edition = "CLIENT · " + SharedConstants.getCurrentVersion().name();
         int ew = font.width(edition) + 14;
-        LumoraShaders.glass(g, (width - ew) / 2, ly + logoH + 4, ew, 13, 0xB08B5CF6);
+        LumoraShaders.glass(g, (width - ew) / 2, ly + logoH + 4, ew, 13, LumoraUi.alpha(LumoraUi.ACCENT, 0xB0));
         g.drawCenteredString(font, edition, width / 2, ly + logoH + 7, 0xFFF1EBFF);
 
         // footer like vanilla: version bottom-left, copyright bottom-right

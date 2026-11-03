@@ -1,5 +1,6 @@
 package dev.lumora.core.social;
 
+import dev.lumora.core.theme.LumoraTheme;
 import dev.lumora.api.input.Keys;
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.social.Conv;
@@ -50,8 +51,6 @@ public final class SocialView {
     static final int TEXT = 0xFFECE8F4;
     static final int MUTED = 0xFF9D95AE;
     static final int DIM = 0xFF6B7280;
-    static final int ACCENT = 0xFF8B5CF6;
-    static final int ACCENT_HOVER = 0xFFA27BFA;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int FAIL = 0xFFF2555A;
@@ -324,7 +323,7 @@ public final class SocialView {
     }
 
     private void field(HudGraphics g, Field f, int x, int y, int w, int h, String placeholder, boolean focused, int mx, int my, Runnable onFocus) {
-        g.card(x, y, w, h, 3, SURFACE_2, focused ? ACCENT : BORDER);
+        g.card(x, y, w, h, 3, SURFACE_2, focused ? LumoraTheme.accent() : BORDER);
         int tx = x + 5;
         int ty = y + (h - 8) / 2;
         int room = w - 10;
@@ -407,7 +406,7 @@ public final class SocialView {
         g.card(px, py, pw, ph, 6, BG, BORDER);
         SocialClient c = social.client();
         // title bar
-        g.text("✦", px + 8, py + 7, ACCENT, false);
+        g.text("✦", px + 8, py + 7, LumoraTheme.accent(), false);
         g.text(t("Freunde & Gruppen", "Friends & groups"), px + 19, py + 7, TEXT, false);
         button(g, px + pw - 20, py + 4, 15, 14, "✕", SURFACE_2, MUTED, mx, my, host::close);
         if (c != null) {
@@ -465,7 +464,7 @@ public final class SocialView {
             String shown = fit(g, tt, tw - 12, false);
             int tx = px + (pw - tw) / 2;
             int ty = py + ph - 44;
-            g.card(tx, ty, tw, 16, 4, 0xF02A1F48, ACCENT);
+            g.card(tx, ty, tw, 16, 4, 0xF02A1F48, LumoraTheme.accent());
             g.text(shown, tx + 6, ty + 4, TEXT, false);
         }
     }
@@ -529,7 +528,7 @@ public final class SocialView {
             int textW = w - 26 - (r.incoming ? 30 : 16);
             g.text(fit(g, r.profile.name, textW, false), x + 25, ry + 3, TEXT, false);
             small(g, fit(g, r.incoming ? t("möchte dein Freund sein", "wants to be friends") : t("Anfrage gesendet", "request sent"), textW, true),
-                    x + 25, ry + 13, r.incoming ? ACCENT_HOVER : MUTED);
+                    x + 25, ry + 13, r.incoming ? LumoraTheme.accentHover() : MUTED);
             int bx = x + w - 16;
             button(g, bx, ry + 5, 12, 12, "✖", 0x55F2555A, FAIL, mx, my, () -> run(c.declineFriend(r.profile.uuid), null));
             if (r.incoming) {
@@ -598,7 +597,7 @@ public final class SocialView {
         if (selectedRow || hover) {
             g.roundedRect(x + 2, y + 1, w - 4, 20, 3, selectedRow ? SELECTED : 0x66221C2D);
             if (selectedRow) {
-                g.fill(x + 2, y + 6, x + 3, y + 16, ACCENT);
+                g.fill(x + 2, y + 6, x + 3, y + 16, LumoraTheme.accent());
             }
         }
         hits.add(new Hit(x + 2, Math.max(y, sideY1), x + w - 2, Math.min(y + 22, sideY2), action));
@@ -666,7 +665,7 @@ public final class SocialView {
         boolean canSend = gr != null || c.friend(other) != null;
         field(g, chatField, x + 6, iy, w - 12 - 20, 16, canSend ? t("Nachricht schreiben…", "Write a message…")
                 : t("Ihr seid keine Freunde mehr", "You are no longer friends"), focus == Focus.CHAT, mx, my, () -> focus = Focus.CHAT);
-        button(g, x + w - 6 - 17, iy, 17, 16, "➤", ACCENT, 0xFF0F0C17, mx, my, this::send);
+        button(g, x + w - 6 - 17, iy, 17, 16, "➤", LumoraTheme.accent(), 0xFF0F0C17, mx, my, this::send);
         // info column: beside the chat when both fit, else (small GUI) as an overlay that starts closed
         int columnW = Math.max(120, Math.min(170, (int) (w * 0.42)));
         boolean fits = w - columnW >= 220;
@@ -897,7 +896,7 @@ public final class SocialView {
             String label = fit(g, tabs[i], tw - 4, true);
             small(g, label, tx + (tw - smallWidth(g, label)) / 2, yy + 3, sel ? TEXT : hover ? TEXT : MUTED);
             if (sel) {
-                g.fill(tx + 4, yy + 11, tx + tw - 4, yy + 12, ACCENT);
+                g.fill(tx + 4, yy + 11, tx + tw - 4, yy + 12, LumoraTheme.accent());
             }
             hits.add(new Hit(tx, Math.max(yy, y), tx + tw, Math.min(yy + 13, y + h), () -> {
                 infoTab = idx;

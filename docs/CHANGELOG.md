@@ -1,5 +1,19 @@
 # Änderungen
 
+## Unveröffentlicht
+
+### Im Spiel
+- **Neuer Lumora-Hub** (Rechte Shift-Taste, „✦ Lumora“ im Haupt- und Pausenmenü), gleich in allen Versionen:
+  - **Seitenleiste:** Modul-Kategorien (Alle, Anzeige, Spieler, Kampf, Welt, Server, Zeit, Voice, Addons) mit Anzahl. Darunter „Allgemein“ mit Themes, HUD-Editor, Profile und System. Der Knopf „+ Neues Profil“ speichert das aktuelle HUD als neues Profil.
+  - **Modul-Karten** mit eigenem Pixel-Icon, Name und An/Aus-Leiste („AKTIV“ blau, „INAKTIV“ rot). Das Zahnrad öffnet die Einstellungen, ▶ das Menü eines Addons. Fährt man über eine Karte, erscheint die Beschreibung.
+  - Als Karten erscheinen alle HUD-Widgets, die eingebauten Module (Fadenkreuz, Toggle Sprint, Fullbright, Chat …), Addons und der Zoom.
+  - **Suche** (Strg + F oder einfach lostippen), Mausrad zum Blättern.
+  - **Profile:** laden, eigene löschen, neu anlegen. **System:** Renderer, Grafikkarte, Speicher, Benchmark, Diagnose, Ordner. **Zoom:** alle Zoom-Einstellungen auf einer eigenen Seite (Zahnrad der Zoom-Karte).
+- **Themes:** „Lumora“ oder „Vanilla“.
+  - Vanilla schaltet Lumoras Hauptmenü, Menü-Hintergrund, Effekte, Schrift, Ladebildschirm, Server- und Weltliste, Verbindungsbildschirme und Button-Design ab. Der Hub bleibt im Lumora-Stil.
+  - Bei Lumora wählt man eine **Akzentfarbe** (Lila, Blau, Türkis, Grün, Orange, Rot, Pink). Sie gilt für Hub, Lumora-Knöpfe, Schieberegler, Hauptmenü, Ladebildschirm, Server- und Weltliste, Verbindungs- und Social-Menüs.
+  - Neue Einträge in `lumora-client.json`: `theme` und `accentColor`.
+
 ## 0.3.1 (2026-11-03)
 
 ### Im Spiel

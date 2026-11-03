@@ -1,5 +1,6 @@
 package dev.lumora.core.browser;
 
+import dev.lumora.core.theme.LumoraTheme;
 import dev.lumora.api.input.Keys;
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.api.render.TextureRef;
@@ -29,8 +30,6 @@ abstract class BrowserView implements AddonView {
     static final int ROW_HOVER = 0xD02B2340;
     static final int ROW_SELECTED = 0xE02E2152;
     static final int BORDER = 0xFF2F2741;
-    static final int ACCENT = 0xFF8B5CF6;
-    static final int ACCENT_HOVER = 0xFFA27BFA;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int FAIL = 0xFFF2555A;
@@ -314,7 +313,7 @@ abstract class BrowserView implements AddonView {
         g.scale(1.5f);
         g.text("§lLUMORA", 0, 0, TEXT, true);
         g.pop();
-        g.text(title(), left + 28, y + 16, ACCENT_HOVER, false);
+        g.text(title(), left + 28, y + 16, LumoraTheme.accentHover(), false);
         account(g, right, y - 2);
     }
 
@@ -361,7 +360,7 @@ abstract class BrowserView implements AddonView {
             boolean hover = inList && mx >= x + 4 && mx < x + 4 + rowW && my >= ry && my < ry + ROW_H;
             g.roundedRect(x + 4, ry, rowW, ROW_H, 4, i == selected ? ROW_SELECTED : hover ? ROW_HOVER : ROW);
             if (i == selected) {
-                g.fill(x + 4, ry + 4, x + 6, ry + ROW_H - 4, ACCENT);
+                g.fill(x + 4, ry + 4, x + 6, ry + ROW_H - 4, LumoraTheme.accent());
             }
             int index = i;
             int rowsBefore = hits.size();
@@ -391,7 +390,7 @@ abstract class BrowserView implements AddonView {
             int thumb = Math.max(16, trackH * inner / contentHeight);
             int ty = y + 4 + (int) ((trackH - thumb) * (scroll / maxScroll));
             g.roundedRect(x + w - 7, y + 4, 3, trackH, 1, 0x40FFFFFF);
-            g.roundedRect(x + w - 7, ty, 3, thumb, 1, ACCENT);
+            g.roundedRect(x + w - 7, ty, 3, thumb, 1, LumoraTheme.accent());
             hits.add(new Hit(x + w - 9, y + 4, x + w, y + h - 4, () -> draggingBar = true));
         }
     }
@@ -424,9 +423,9 @@ abstract class BrowserView implements AddonView {
     final boolean button(HudGraphics g, int x, int y, int w, int h, String label, Style style, int mx, int my, Runnable action) {
         boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
         switch (style) {
-            case PRIMARY -> g.roundedRect(x, y, w, h, 4, hover ? ACCENT_HOVER : ACCENT);
+            case PRIMARY -> g.roundedRect(x, y, w, h, 4, hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
             case DANGER -> g.roundedRect(x, y, w, h, 4, hover ? 0xFFF56F73 : FAIL);
-            case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, hover ? ACCENT : BORDER);
+            case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, hover ? LumoraTheme.accent() : BORDER);
             case GHOST -> {
                 if (hover) {
                     g.roundedRect(x, y, w, h, 3, 0x40FFFFFF);
@@ -476,7 +475,7 @@ abstract class BrowserView implements AddonView {
     /** Round play button; returns its width. */
     final int playButton(HudGraphics g, int x, int y, int size, boolean enabled, int mx, int my, Runnable action) {
         boolean hover = enabled && mx >= x && mx < x + size && my >= y && my < y + size;
-        g.roundedRect(x, y, size, size, size / 2, !enabled ? 0x60FFFFFF : hover ? ACCENT_HOVER : ACCENT);
+        g.roundedRect(x, y, size, size, size / 2, !enabled ? 0x60FFFFFF : hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
         // triangle made of rows
         int th = size / 2;
         int tx = x + size / 2 - th / 4;
@@ -499,7 +498,7 @@ abstract class BrowserView implements AddonView {
         g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, BORDER);
         int sx = x + 6;
         int sy = y + (h - 10) / 2;
-        g.roundedRect(sx, sy, 18, 10, 5, on ? ACCENT : 0xFF3A3248);
+        g.roundedRect(sx, sy, 18, 10, 5, on ? LumoraTheme.accent() : 0xFF3A3248);
         g.roundedRect(on ? sx + 9 : sx + 1, sy + 1, 8, 8, 4, 0xFFFFFFFF);
         g.text(label, sx + 23, y + (h - 8) / 2, on ? TEXT : MUTED, false);
         hits.add(new Hit(x, y, right, y + h, action));
@@ -507,7 +506,7 @@ abstract class BrowserView implements AddonView {
     }
 
     final void field(HudGraphics g, Field f, int x, int y, int w, int h, boolean focused, int mx, int my, Runnable onFocus) {
-        g.card(x, y, w, h, 4, 0xE0221C2D, focused ? ACCENT : BORDER);
+        g.card(x, y, w, h, 4, 0xE0221C2D, focused ? LumoraTheme.accent() : BORDER);
         int tx = x + 6;
         int ty = y + (h - 8) / 2;
         int room = w - 24;
@@ -528,7 +527,7 @@ abstract class BrowserView implements AddonView {
             }
             f.xs = xs;
             if (f.hasSelection()) {
-                g.fill(xs[f.selStart()], ty - 1, xs[f.selEnd()], ty + 9, focused ? 0xA08B5CF6 : 0x608B5CF6);
+                g.fill(xs[f.selStart()], ty - 1, xs[f.selEnd()], ty + 9, focused ? LumoraTheme.recolor(0xA08B5CF6) : LumoraTheme.recolor(0x608B5CF6));
             }
             g.text(f.value(), tx - shift, ty, TEXT, false);
             if (blink && !f.hasSelection()) {

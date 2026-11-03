@@ -112,7 +112,7 @@ public final class SmokeTest {
                 if (FrameStats.INSTANCE.isFinished()) {
                     summary = FrameStats.INSTANCE.finish();
                     pending.add(new Shot("menu", parent -> null));
-                    pending.add(new Shot("hub", LumoraHubScreen::new));
+                    pending.add(new Shot("hub", LumoraHubScreen::create));
                     pending.add(new Shot("options", parent -> new net.minecraft.client.gui.screen.SettingsScreen(parent, mc.options)));
                     pending.add(new Shot("worlds", SelectWorldScreen::new));
                     pending.add(new Shot("multiplayer", MultiplayerScreen::new, 100));
@@ -144,7 +144,7 @@ public final class SmokeTest {
                     // about 100 ms into the cross-fade from the main menu to the options
                     pending.add(new Shot("transition", parent -> new net.minecraft.client.gui.screen.SettingsScreen(parent, mc.options), 2));
                     pending.add(new Shot("hub-modules", parent -> LumoraHubScreen.withTab(parent, 0)));
-                    pending.add(new Shot("hub-settings", parent -> LumoraHubScreen.withTab(parent, 1)));
+                    pending.add(new Shot("hub-themes", parent -> LumoraHubScreen.withTab(parent, 1)));
                     pending.add(new Shot("hud-editor", HudEditorScreen::new));
                     // Lumora API: move a widget with the editor logic (saved; the next run logs it as loaded), its
                     // generated settings screen and the addon list
@@ -152,7 +152,7 @@ public final class SmokeTest {
                     pending.add(new Shot("widget-settings", parent -> ApiSmoke.core().widgetRegistry().entry(ApiSmoke.testWidget())
                             .map(e -> (Screen) new SettingsScreen(parent, Component.translatable(e.widget().nameKey()), e.widget().settings(), List.of(), null))
                             .orElse(null)));
-                    pending.add(new Shot("hub-addons", parent -> LumoraHubScreen.withTab(parent, 3)));
+                    pending.add(new Shot("hub-profiles", parent -> LumoraHubScreen.withTab(parent, 3)));
                     if (dev.lumora.client.platform.LoaderEnv.isLoaded("lumoravoice")) {
                         // LumoraVoice menus through the Lumora screen API (Lumora API 1.1)
                         pending.add(new Shot("voice-settings", parent -> {
@@ -337,7 +337,7 @@ public final class SmokeTest {
             ticks = 0;
         } else if (worldStep == modes.length + 1 && ticks >= SCREEN_TICKS) {
             screenshot(mc, "pause");
-            mc.setScreen(new LumoraHubScreen(mc.currentScreen));
+            mc.setScreen(LumoraHubScreen.create(mc.currentScreen));
             worldStep++;
             ticks = 0;
         } else if (worldStep == modes.length + 2 && ticks >= SCREEN_TICKS) {

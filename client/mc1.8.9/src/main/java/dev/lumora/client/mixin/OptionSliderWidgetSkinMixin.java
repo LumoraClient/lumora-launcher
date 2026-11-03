@@ -22,7 +22,7 @@ public abstract class OptionSliderWidgetSkinMixin {
             self.drawTexture(x, y, u, v, w, h);
             return;
         }
-        LumoraUi.card(GuiGraphics.create(), x, y, HANDLE_WIDTH, h, self.isHovered() ? 0xFFA78BFA : 0xFF8B5CF6, LumoraUi.ACCENT);
+        LumoraUi.card(GuiGraphics.create(), x, y, HANDLE_WIDTH, h, self.isHovered() ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT, LumoraUi.ACCENT);
     }
 
     @Redirect(method = "mouseDragged", at = @At(value = "INVOKE", target = BLIT, ordinal = 1))

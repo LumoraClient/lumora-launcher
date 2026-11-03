@@ -28,7 +28,11 @@
     "DisconnectedScreenAccessor",
     "JoinMultiplayerScreenAccessor",
     "SelectWorldScreenAccessor",
-    "ButtonStyleMixin"],
+    "ButtonStyleMixin",
+    "platform.LegacyLifecycleMixin",
+    "platform.LegacyHudMixin",
+    "platform.LegacyKeysMixin",
+    "platform.LegacyPayloadMixin"],
   "injectors": {
     "defaultRequire": 1
   },

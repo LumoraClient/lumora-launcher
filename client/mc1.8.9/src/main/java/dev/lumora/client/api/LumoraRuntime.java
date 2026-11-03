@@ -1,5 +1,7 @@
 package dev.lumora.client.api;
 
+import dev.lumora.client.platform.Channels;
+import dev.lumora.client.platform.Hooks;
 import dev.lumora.api.event.client.PlayerChangedEvent;
 import dev.lumora.client.LumoraClient;
 import dev.lumora.client.hud.BuiltInHudAddon;
@@ -7,8 +9,6 @@ import dev.lumora.client.hud.ClickTracker;
 import dev.lumora.client.hud.HudEditorScreen;
 import dev.lumora.core.LumoraCore;
 import dev.lumora.core.addon.AddonCandidate;
-import net.legacyfabric.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.legacyfabric.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import dev.lumora.client.compat.GuiGraphics;
 import net.minecraft.client.util.Window;
@@ -19,9 +19,9 @@ import java.util.List;
 /**
  * Connects the Minecraft-independent {@link LumoraCore} to Minecraft 1.8.9 (Legacy Fabric). Where each API event comes from:
  * <ul>
- *   <li>ClientStarted - Legacy Fabric {@code CLIENT_STARTED} (addons are loaded right before, when options and
- *       resources exist); ClientStopping - {@code CLIENT_STOPPING}.</li>
- *   <li>ClientTick, WorldJoin/WorldLeave, PlayerChanged, ScreenChanged - {@code END_CLIENT_TICK}: the game state is
+ *   <li>ClientStarted - Legacy {@link Hooks#onStarted} (addons are loaded right before, when options and
+ *       resources exist); ClientStopping - {@link Hooks#onStopping}.</li>
+ *   <li>ClientTick, WorldJoin/WorldLeave, PlayerChanged, ScreenChanged - {@link Hooks#onEndTick}: the game state is
  *       snapshotted and compared with the previous tick.</li>
  *   <li>HUD rendering - Legacy Fabric {@code HudRenderCallback} ({@link #renderHud}); notifications additionally after
  *       every screen ({@link #afterScreenRender}, GameRendererScreenMixin - Legacy Fabric has no screen events).</li>
@@ -48,9 +48,9 @@ public final class LumoraRuntime {
         core = new LumoraCore(platform);
         core.installGlobal();
         context = new McRenderContext(platform.game(), platform.translations());
-        ClientLifecycleEvents.CLIENT_STARTED.register(LumoraRuntime::start);
-        ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> core.stopping());
-        ClientTickEvents.END_CLIENT_TICK.register(LumoraRuntime::tick);
+        Hooks.onStarted(LumoraRuntime::start);
+        Hooks.onStopping(mc -> core.stopping());
+        Hooks.onEndTick(LumoraRuntime::tick);
     }
 
     public static LumoraCore core() {
@@ -65,7 +65,6 @@ public final class LumoraRuntime {
         List<AddonCandidate> candidates = new ArrayList<>();
         candidates.add(AddonCandidate.of(LumoraCore.builtInDescriptor("lumora", "Lumora HUD",
                 "FPS, CPS, Koordinaten, Tasten, Ping, Uhr, Tempo, Rüstung, Server", BuiltInHudAddon.class), BuiltInHudAddon::new));
-        candidates.addAll(FabricAddonDiscovery.discover());
         platform.game().update(mc, 0);
         core.loadAddons(candidates);
         LumoraClient.LOG.info("Lumora API {}: {} addon(s), {} widget(s)", core.apiVersion(), core.addons().size(), core.widgets().size());
@@ -78,6 +77,7 @@ public final class LumoraRuntime {
         if (inWorld) {
             String dim = platform.game().dimension().orElse("");
             if (!wasInWorld) {
+                Channels.announce();
                 core.worldJoin(platform.game().connection());
             } else if (!dim.equals(lastDimension)) {
                 core.playerChanged(PlayerChangedEvent.Reason.DIMENSION, dim);

@@ -42,7 +42,7 @@ import java.util.zip.ZipOutputStream;
  */
 final class GameRemapper extends Remapper {
     /** Bump when the output changes, so old cache files are not used. */
-    static final int FORMAT = 1;
+    static final int FORMAT = 2;
 
     record Info(String superName, String[] interfaces) {
     }
@@ -163,7 +163,7 @@ final class GameRemapper extends Remapper {
         long start = System.nanoTime();
         MojangMappings m;
         try (var r = Files.newBufferedReader(mappingsFile, StandardCharsets.UTF_8)) {
-            m = MojangMappings.read(r);
+            m = MojangMappings.readAny(r);
         }
         Path tmp = Files.createTempFile(cacheDir, base, ".part");
         try {
@@ -222,7 +222,7 @@ final class GameRemapper extends Remapper {
             for (Map.Entry<String, byte[]> c : classes.entrySet()) {
                 ClassReader reader = new ClassReader(c.getValue());
                 ClassWriter writer = new ClassWriter(0);
-                ClassVisitor v = new ClassRemapper(writer, remapper);
+                ClassVisitor v = new ClassRemapper(m.widenAccess ? new PublicAccess(writer) : writer, remapper);
                 reader.accept(v, 0);
                 String name = remapper.map(c.getKey()) + ".class";
                 zip.putNextEntry(new ZipEntry(name));

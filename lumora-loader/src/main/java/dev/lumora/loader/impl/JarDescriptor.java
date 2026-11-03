@@ -27,6 +27,22 @@ record JarDescriptor(String id, String name, String version, String minecraft, L
     private static final String CONFIG = "[A-Za-z0-9_./-]{1,128}\\.json";
     private static final int MAX_BYTES = 64 * 1024;
 
+    /** Mappings a jar brings for an obfuscated Minecraft without Mojang mappings (Tiny v2, official -> named). */
+    static final String MAPPINGS = "lumora/mappings.tiny";
+
+    /** {@link #MAPPINGS} of the jar as a path in its zip file system, or null. */
+    static Path mappings(Path jar) throws IOException {
+        java.nio.file.FileSystem fs;
+        java.net.URI uri = java.net.URI.create("jar:" + jar.toUri());
+        try {
+            fs = java.nio.file.FileSystems.newFileSystem(uri, java.util.Map.of());
+        } catch (java.nio.file.FileSystemAlreadyExistsException e) {
+            fs = java.nio.file.FileSystems.getFileSystem(uri);
+        }
+        Path p = fs.getPath("/" + MAPPINGS);
+        return java.nio.file.Files.isRegularFile(p) ? p : null;
+    }
+
     static JarDescriptor read(Path jar) throws IOException {
         String json;
         try (ZipFile zip = new ZipFile(jar.toFile())) {

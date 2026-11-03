@@ -21,6 +21,7 @@ von Sodium und zu den Markenrichtlinien von Mojang/Microsoft.
 | Lumora Loader `bundled/lumora-loader.jar` (startet Minecraft ohne Mod-Loader; eigener Code) | 1.0.0 | GPL-3.0-or-later | Lumora Client contributors | im JAR (`LICENSE_lumora`) |
 | ↳ darin: SpongePowered **Mixin** in der von FabricMC gepflegten Fassung (`net.fabricmc:sponge-mixin`, nur die Bibliothek, kein Fabric Loader, keine Fabric API) | 0.17.4+mixin.0.8.7 | MIT | SpongePowered, FabricMC und Mitwirkende | im JAR (`LICENSE_mixin.txt`) |
 | ↳ darin: **ASM** (asm, asm-tree, asm-commons, asm-util, asm-analysis) | 9.10.1 | BSD-3-Clause | INRIA, France Telecom (OW2) | im JAR (`LICENSE_asm.txt`), `licenses/BSD-3-Clause-ASM.txt` |
+| Namensliste `lumora/mappings.tiny` in `lumora-client-mc1.8.9.jar` und `-mc1.12.2.jar` (zusammengeführt aus Legacy Fabric **Intermediary** und **Yarn** 1.8.9+build.604 / 1.12.2+build.604; keine Mojang-Namen) | – | CC0-1.0 | Legacy Fabric und Mitwirkende | im JAR |
 | Lumora Social Server `LumoraSocialServer/lumora-social-server.jar` (eigener Code mit eingebettetem **Gson 2.14.0** und Error Prone Annotations 2.48.0, beide Apache-2.0) | 0.1.0 | GPL-3.0-or-later (eigener Code), Apache-2.0 (Gson) | Lumora Client contributors; Google LLC | `licenses/Apache-2.0.txt` |
 | ↳ darin: Schrift **Inter Medium** (TTF) im eingebauten Paket „Lumora Schrift“ | 4.1 | **SIL Open Font License 1.1** | The Inter Project Authors (Rasmus Andersson) | `resourcepacks/lumora_font/OFL-Inter.txt` · Quelle: github.com/rsms/inter/releases/tag/v4.1, Inter-4.1.zip SHA-256 `9883fdd4…b11e`, Inter-Medium.ttf SHA-256 `97ad806f…a872` |
 | ↳ darin: Lumora-Logo und Ladebildschirm | – | GPL-3.0-or-later | Lumora Client contributors | generiert von `packaging/IconGen.java` bzw. Code, keine fremden Grafiken |
@@ -40,18 +41,9 @@ gelten unmittelbar zwischen Nutzer und Rechteinhaber.
 |---|---|---|---|---|
 | Minecraft: Java Edition (Client, Assets, Bibliotheken) | 26.1.2, 1.21.11, 1.21.8 | proprietär, [Minecraft EULA](https://www.minecraft.net/eula) | Mojang AB / Microsoft | piston-data.mojang.com, libraries.minecraft.net, resources.download.minecraft.net |
 | Java-Laufzeit für das Spiel (`java-runtime-epsilon` bzw. `java-runtime-delta`) | 25 bzw. 21 | OpenJDK-Build, Lizenztexte liegen der Runtime unter `legal/` bei | von Mojang bereitgestellt | launchermeta.mojang.com / piston-meta.mojang.com |
-| Fabric Loader + Bibliotheken (ASM, Sponge Mixin) | 0.19.5 | Apache-2.0 (Loader, Mixin: MIT; ASM: BSD-3-Clause) | FabricMC u. a. | maven.fabricmc.net |
-| Fabric API | 0.155.3+26.1.2, 0.141.6+1.21.11, 0.136.1+1.21.8 | Apache-2.0 | FabricMC | cdn.modrinth.com |
-| Sodium | 0.9.2+mc26.1.2, 0.8.14+mc1.21.11, 0.7.3+mc1.21.8 | **PolyForm Shield 1.0.0** | JellySquid (jellysquid3), CaffeineMC und Mitwirkende | cdn.modrinth.com · Quellcode: github.com/CaffeineMC/sodium |
-| ViaFabricPlus | 4.5.6, 4.4.15, 4.2.5 | **GPL-3.0** | Florian Reuth (EnZaXD), RK_01 und Mitwirkende | cdn.modrinth.com · Quellcode: github.com/ViaVersion/ViaFabricPlus |
-| Mod Menu (optional) | 18.0.2, 17.0.1, 15.0.2 | MIT | TerraformersMC | cdn.modrinth.com |
-| FerriteCore (optional) | 9.0.0, 8.2.0, 8.0.4 (fabric) | MIT | malte0811 | cdn.modrinth.com |
-| Lithium (optional) | 0.24.7+mc26.1.2, 0.21.4+mc1.21.11, 0.18.1+mc1.21.8 | LGPL-3.0-only | CaffeineMC | cdn.modrinth.com |
-| Simple Voice Chat (optional) | 2.6.22 (je Version eigener Build) | All Rights Reserved (laut Modrinth) – daher **nur** Download durch den Nutzer, keine Weitergabe | henkelmax (Max Henkel) | cdn.modrinth.com · github.com/henkelmax/simple-voice-chat |
-| Entity Model Features / Entity Texture Features (für Fresh Animations) | 3.3.12 / 7.2.6 | LGPL-3.0-only | Traben | cdn.modrinth.com |
-| Nuit (Himmel für Dramatic Skys) | 1.0.0-beta | laut Modrinth | Nuit-Autoren | cdn.modrinth.com |
 | Ressourcenpakete: Better Leaves (MIT, Motschen), Dramatic Skys (ARR, thebaum64), Enhanced Audio (ARR, Frawzy), Even Better Enchants (Apache-2.0, Mythitorium), Fresh Animations (Nutzungsbedingungen, FreshLX), Fresh Food (ARR, Cyber u. a.), Icons (ARR, WeNAN Studios), Enhanced Boss Bars (ARR, Naku) | je Version passend | wie angegeben | jeweilige Autoren | cdn.modrinth.com – **nur Download beim Nutzer**, keine Weitergabe, unverändert und SHA-512-geprüft |
-| Vom Nutzer im Mod-Browser gewählte Mods/Pakete | – | Lizenz des jeweiligen Projekts | jeweilige Autoren | cdn.modrinth.com (SHA-512 aus der Modrinth-API) |
+| Mojangs offizielle Namensliste (`client_mappings`) für die verschleierten Versionen 1.16.5 bis 1.21.11 | je Version | Nutzungsbedingungen von Mojang (Weitergabe nicht erlaubt): wird **nur beim Nutzer** geladen und benutzt, um die Minecraft-JAR dort umzubenennen; Lumora verteilt sie nicht | Mojang AB / Microsoft | piston-data.mojang.com (SHA-1 aus dem Versions-JSON) |
+| Vom Nutzer gewählte Ressourcenpakete (Entdecken) | – | Lizenz des jeweiligen Projekts | jeweilige Autoren | cdn.modrinth.com (SHA-512 aus der Modrinth-API) |
 
 Alle in den Fremd-JARs enthaltenen Lizenz- und Copyright-Hinweise bleiben unverändert. Die JARs werden
 bitgenau so verwendet, wie sie veröffentlicht wurden (SHA-512-Prüfung).

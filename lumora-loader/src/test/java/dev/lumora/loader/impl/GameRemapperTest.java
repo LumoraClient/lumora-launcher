@@ -57,6 +57,27 @@ class GameRemapperTest {
     }
 
     @Test
+    void readsTinyV2WithOfficialAndNamed() throws IOException {
+        String tiny = "tiny\t2\t0\tofficial\tintermediary\tnamed\n"
+                + "c\ta\tnet/minecraft/class_1\tcom/example/Base\n"
+                + "\tf\tI\tc\tfield_1\tvalue\n"
+                + "\tm\t()I\tb\tmethod_1\tcompute\n"
+                + "\t\tp\t1\t\t\tk\n"
+                + "\tm\t(La;)V\t<init>\t<init>\t<init>\n"
+                + "c\tf\tnet/minecraft/class_2\tcom/example/Fn\n"
+                + "\tm\t(La;)I\tg\tmethod_2\tapply\n"
+                + "c\tx\tnet/minecraft/class_3\t\n";
+        MojangMappings m = MojangMappings.readAny(new StringReader(tiny));
+        assertEquals("com/example/Base", m.classes.get("a"));
+        assertEquals("net/minecraft/class_3".equals(m.classes.get("x")) ? "" : "x", m.classes.get("x"), "no named name: keeps the official one");
+        assertEquals("value", m.fields.get("a.c:I"));
+        assertEquals("compute", m.methods.get("a.b:()I"));
+        assertEquals("apply", m.methods.get("f.g:(La;)I"));
+        assertNull(m.methods.get("a.<init>:(La;)V"));
+        assertEquals("compute", MojangMappings.readAny(new StringReader(MAPPINGS)).methods.get("a.b:()I"), "ProGuard still detected");
+    }
+
+    @Test
     void remappedJarRunsWithMojangNames() throws Exception {
         Path src = dir.resolve("src");
         write(src.resolve("a.java"), "public class a { public int c = 2; public String d = \"x\"; public int b() { return c + 1; } public int b(int k) { return k * c; } }");

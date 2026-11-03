@@ -7,7 +7,6 @@ import dev.lumora.client.hud.HudEditorScreen;
 import dev.lumora.core.CoreLogger;
 import dev.lumora.core.Platform;
 import dev.lumora.core.input.KeyPlatform;
-import net.fabricmc.loader.api.FabricLoader;
 import dev.lumora.client.compat.Keys;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
@@ -119,25 +118,23 @@ final class McPlatform implements Platform {
 
     @Override
     public String minecraftVersion() {
-        return FabricLoader.getInstance().getModContainer("minecraft")
-                .map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("unknown");
+        return dev.lumora.client.platform.LoaderEnv.version("minecraft").orElse("unknown");
     }
 
     @Override
     public String clientVersion() {
-        return FabricLoader.getInstance().getModContainer("lumora")
-                .map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("dev");
+        return dev.lumora.client.platform.LoaderEnv.version("lumora").orElse("dev");
     }
 
     @Override
     public Path configDir() {
-        return FabricLoader.getInstance().getConfigDir();
+        return dev.lumora.client.platform.LoaderEnv.configDir();
     }
 
     @Override
     public Path addonsDir() {
-        // Lumora addons as plain jars, loaded by Lumora itself (next to mods/, not by Fabric)
-        return FabricLoader.getInstance().getGameDir().resolve("addons");
+        // Lumora addons as plain jars, loaded by Lumora itself
+        return dev.lumora.client.platform.LoaderEnv.gameDir().resolve("addons");
     }
 
     @Override
@@ -262,6 +259,6 @@ final class McPlatform implements Platform {
 
     @Override
     public boolean modLoaded(String modId) {
-        return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(modId);
+        return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
 }

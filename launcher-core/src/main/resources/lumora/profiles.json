@@ -238,14 +238,12 @@
     {
       "id": "1.12.2",
       "displayName": "Minecraft 1.12.2",
-      "description": "Legacy Fabric mit ViaFabric und der Lumora-Oberfläche (Java 21).",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.12.2",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
-      "loader": "legacy-fabric",
+      "loader": "lumora",
       "mods": [
-        "legacy-fabric-api-1.12.2",
-        "viafabric-1.12.2",
         "lumora-client-1.12.2"
       ],
       "extensions": [],
@@ -254,14 +252,12 @@
     {
       "id": "1.8.9",
       "displayName": "Minecraft 1.8.9",
-      "description": "PvP-Klassiker. Legacy Fabric mit ViaFabric und der Lumora-Oberfläche (Java 21).",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.8.9",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
-      "loader": "legacy-fabric",
+      "loader": "lumora",
       "mods": [
-        "legacy-fabric-api-1.8.9",
-        "viafabric-1.8.9",
         "lumora-client-1.8.9"
       ],
       "extensions": [],

@@ -38,13 +38,6 @@ public final class Boot {
     public static void main(String[] args) throws Throwable {
         long start = System.nanoTime();
         Path game = existing(require("lumora.loader.game"), "Minecraft jar");
-        String mappings = System.getProperty("lumora.loader.mappings");
-        if (mappings != null && !mappings.isBlank()) {
-            // obfuscated Minecraft: Mojang's names first (the Lumora client is compiled against them), cached
-            game = GameRemapper.remapCached(game, existing(mappings, "Mojang mappings"), game.toAbsolutePath().getParent());
-        }
-        // the client jar already uses the game's runtime names; refmaps (intermediary names) must not apply
-        System.setProperty("mixin.env.disableRefMap", "true");
         List<JarDescriptor> jars = new ArrayList<>();
         String list = System.getProperty("lumora.loader.jars", "");
         for (String p : list.split(java.util.regex.Pattern.quote(File.pathSeparator))) {
@@ -52,6 +45,22 @@ public final class Boot {
                 jars.add(JarDescriptor.read(existing(p.strip(), "Lumora jar")));
             }
         }
+        // obfuscated Minecraft: first the names the Lumora client is compiled against, cached next to the game jar.
+        // Mojang's mappings come from the launcher; versions without them (1.8.9, 1.12.2) bring their own in the jar.
+        String mappings = System.getProperty("lumora.loader.mappings");
+        if (mappings != null && !mappings.isBlank()) {
+            game = GameRemapper.remapCached(game, existing(mappings, "Mojang mappings"), game.toAbsolutePath().getParent());
+        } else {
+            for (JarDescriptor d : jars) {
+                Path own = JarDescriptor.mappings(d.file());
+                if (own != null) {
+                    game = GameRemapper.remapCached(game, own, game.toAbsolutePath().getParent());
+                    break;
+                }
+            }
+        }
+        // the client jar already uses the game's runtime names; refmaps (intermediary names) must not apply
+        System.setProperty("mixin.env.disableRefMap", "true");
         String target = System.getProperty("lumora.loader.target", TARGET);
         Path gameDir = Path.of(argument(args, "--gameDir", "."));
         String minecraft = argument(args, "--version", "");

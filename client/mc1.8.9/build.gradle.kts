@@ -25,8 +25,8 @@ val bundled: Configuration by configurations.creating {
 dependencies {
     minecraft("com.mojang:minecraft:${libs.versions.mc189.minecraft.get()}")
     mappings("net.legacyfabric:yarn:${libs.versions.mc189.yarn.get()}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${libs.versions.mc26.fabric.loader.get()}")
-    modImplementation("net.legacyfabric.legacy-fabric-api:legacy-fabric-api:${libs.versions.mc189.legacy.fabric.api.get()}")
+    // no mod loader: started by the Lumora Loader (its API and the Mixin annotations at compile time only)
+    compileOnly(project(":lumora-loader"))
 
     // Lumora client API and its Minecraft-independent implementation, bundled into the jar (see tasks.jar)
     implementation(project(":lumora-core"))
@@ -42,7 +42,7 @@ dependencies {
 tasks.processResources {
     val v = project.version.toString()
     inputs.property("version", v)
-    filesMatching("fabric.mod.json") {
+    filesMatching("lumora.loader.json") {
         expand("version" to v)
     }
 }
@@ -64,5 +64,25 @@ tasks.jar {
     dependsOn(bundled)
     from(bundled.elements.map { jars -> jars.map { zipTree(it) } }) {
         exclude("META-INF/MANIFEST.MF", "LICENSE_lumora")
+    }
+}
+
+// Lumora Loader: the game runs with Mojang's names (the loader maps the obfuscated jar), so the jar keeps them too
+// and needs no refmap (no intermediary names at run time).
+loom {
+    mixin {
+        useLegacyMixinAp.set(false)
+    }
+}
+tasks.remapJar {
+    targetNamespace.set("named")
+}
+
+// No Mojang mappings for this version: the jar ships Loom's merged mappings (official -> intermediary -> named, from
+// Legacy Fabric's intermediary and Yarn, CC0). The Lumora Loader maps the obfuscated game jar to the named names.
+tasks.processResources {
+    from(provider { net.fabricmc.loom.LoomGradleExtension.get(project).mappingConfiguration.tinyMappings.toFile() }) {
+        into("lumora")
+        rename { "mappings.tiny" }
     }
 }

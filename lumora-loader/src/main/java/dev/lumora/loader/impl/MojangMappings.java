@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,11 +24,74 @@ final class MojangMappings {
     /** "owner.name:desc" (all obfuscated) -> Mojang name */
     final Map<String, String> fields = new HashMap<>();
     final Map<String, String> methods = new HashMap<>();
+    /**
+     * Community names (Yarn) put classes into other packages than Mojang's original ones, so package-private and
+     * protected access between them would fail; such mappings make every non-private class and member public.
+     */
+    boolean widenAccess;
 
     private MojangMappings() {
     }
 
     private record Member(String owner, String name, String obf, String type, String args, boolean method) {
+    }
+
+    /** ProGuard (Mojang) or Tiny v2 (first line "tiny	2	..."), detected from the content. */
+    static MojangMappings readAny(Reader in) throws IOException {
+        BufferedReader r = new BufferedReader(in);
+        r.mark(256);
+        String first = r.readLine();
+        r.reset();
+        return first != null && first.startsWith("tiny\t2\t") ? readTiny(r) : read(r);
+    }
+
+    /**
+     * Tiny v2 with the namespaces {@code official} and {@code named} (e.g. Loom's merged Legacy Fabric mappings
+     * "official intermediary named"); descriptors are in the first namespace, which must be {@code official}.
+     */
+    static MojangMappings readTiny(Reader in) throws IOException {
+        MojangMappings m = new MojangMappings();
+        m.widenAccess = true;
+        BufferedReader r = new BufferedReader(in);
+        String header = r.readLine();
+        if (header == null || !header.startsWith("tiny\t2\t")) {
+            throw new IOException("not a Tiny v2 file");
+        }
+        String[] h = header.split("\t");
+        List<String> ns = java.util.Arrays.asList(h).subList(3, h.length);
+        int from = ns.indexOf("official");
+        int to = ns.indexOf("named");
+        if (from != 0 || to < 0) {
+            throw new IOException("Tiny mappings need \"official\" first and \"named\": " + ns);
+        }
+        String owner = null;
+        String line;
+        while ((line = r.readLine()) != null) {
+            if (line.isEmpty()) {
+                continue;
+            }
+            String[] p = line.split("\t", -1);
+            if (!line.startsWith("\t") && p[0].equals("c")) {
+                owner = p[1 + from];
+                String named = p.length > 1 + to && !p[1 + to].isEmpty() ? p[1 + to] : owner;
+                m.classes.put(owner, named);
+            } else if (owner != null && line.startsWith("\t") && !line.startsWith("\t\t") && p.length >= 4 + to) {
+                // "\tf\tdesc\tofficial\t...\tnamed" / "\tm\tdesc\tofficial\t...\tnamed"
+                String kind = p[1];
+                String desc = p[2];
+                String obf = p[3 + from];
+                String named = p[3 + to];
+                if (named.isEmpty() || named.equals(obf)) {
+                    continue;
+                }
+                if (kind.equals("f")) {
+                    m.fields.put(owner + "." + obf + ":" + desc, named);
+                } else if (kind.equals("m") && !obf.startsWith("<")) {
+                    m.methods.put(owner + "." + obf + ":" + desc, named);
+                }
+            }
+        }
+        return m;
     }
 
     static MojangMappings read(Reader in) throws IOException {

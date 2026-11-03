@@ -7,7 +7,6 @@ import dev.lumora.client.compat.Component.Style;
 import dev.lumora.client.compat.GuiGraphics;
 import dev.lumora.client.compat.Screen;
 import dev.lumora.client.integration.RuntimeInfo;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.screen.SettingsScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
@@ -75,7 +74,7 @@ public final class LumoraTitleScreen extends Screen {
                 LumoraButton.Style.PRIMARY, null, () -> minecraft.setScreen(singleplayer())));
         addRenderableWidget(new LumoraButton(cx - 100, l + 24, 200, 20, Component.translatable("menu.multiplayer"),
                 LumoraButton.Style.SECONDARY, null, () -> minecraft.setScreen(new MultiplayerScreen(this))));
-        if (FabricLoader.getInstance().isModLoaded("modmenu")) {
+        if (dev.lumora.client.platform.LoaderEnv.isLoaded("modmenu")) {
             addRenderableWidget(new LumoraButton(cx - 100, l + 48, 98, 20, Component.translatable("menu.online"),
                     LumoraButton.Style.SECONDARY, null, this::openRealms));
             addRenderableWidget(new LumoraButton(cx + 2, l + 48, 98, 20, Component.translatable("lumora.menu.mods"),

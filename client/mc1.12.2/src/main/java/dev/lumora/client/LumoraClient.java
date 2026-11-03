@@ -10,12 +10,10 @@ import dev.lumora.client.gui.ScreenTransition;
 import dev.lumora.client.integration.RuntimeInfo;
 import dev.lumora.client.perf.FrameStats;
 import dev.lumora.client.zoom.LumoraZoom;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
-import net.legacyfabric.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.legacyfabric.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.legacyfabric.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.legacyfabric.fabric.api.client.rendering.v1.HudRenderCallback;
+import dev.lumora.client.platform.Hooks;
+import dev.lumora.client.platform.LoaderEnv;
+import dev.lumora.client.platform.Packs;
+import dev.lumora.loader.api.ClientEntrypoint;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
@@ -35,7 +33,7 @@ import java.util.Locale;
  * Fabric API; Legacy Fabric has no screen events, so the Lumora buttons in vanilla screens come from ScreenButtonsMixin
  * ({@link #afterScreenInit}, {@link #buttonClicked}).
  */
-public final class LumoraClient implements ClientModInitializer {
+public final class LumoraClient implements ClientEntrypoint {
     public static final Logger LOG = LogManager.getLogger("Lumora");
     /** Id of the Lumora buttons added to vanilla screens (vanilla ids are small numbers). */
     public static final int HUB_BUTTON_ID = 0x4C554D;
@@ -51,7 +49,7 @@ public final class LumoraClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        config = LumoraConfig.load(FabricLoader.getInstance().getConfigDir().resolve("lumora-client.json"));
+        config = LumoraConfig.load(LoaderEnv.configDir().resolve("lumora-client.json"));
         smokeTest = SmokeTest.fromSystemProperty();
         LOG.info("Lumora Client initialising (profile {}, Minecraft {}, ViaFabric {})",
                 Diagnostics.profile(), RuntimeInfo.MINECRAFT_VERSION, RuntimeInfo.viaFabricLoaded());
@@ -60,7 +58,7 @@ public final class LumoraClient implements ClientModInitializer {
         LumoraRuntime.init();
 
         // zoom border, HUD widgets, notifications and the fade back into the game share one HUD layer on top of everything
-        HudRenderCallback.EVENT.register((mc, delta) -> {
+        Hooks.hudLayer((mc, delta) -> {
             GuiGraphics g = GuiGraphics.create();
             LumoraZoom.overlay(g);
             LumoraRuntime.renderHud(g, delta);
@@ -70,17 +68,17 @@ public final class LumoraClient implements ClientModInitializer {
         });
 
         String category = "key.categories.lumora";
-        benchmarkKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lumora.benchmark", Keyboard.KEY_F9, category));
-        hubKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lumora.hub", Keyboard.KEY_RSHIFT, category));
-        LumoraZoom.init(KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lumora.zoom", Keyboard.KEY_C, category)));
+        benchmarkKey = Hooks.registerKey(new KeyBinding("key.lumora.benchmark", Keyboard.KEY_F9, category));
+        hubKey = Hooks.registerKey(new KeyBinding("key.lumora.hub", Keyboard.KEY_RSHIFT, category));
+        LumoraZoom.init(Hooks.registerKey(new KeyBinding("key.lumora.zoom", Keyboard.KEY_C, category)));
 
-        ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
+        Hooks.onStarted(mc -> {
             if (config.writeDiagnosticsOnStart) {
                 Diagnostics.write("game-" + Diagnostics.profile() + "-latest.json", Diagnostics.collect());
             }
         });
 
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+        Hooks.onEndTick(mc -> {
             while (benchmarkKey.wasPressed()) {
                 startBenchmark();
             }

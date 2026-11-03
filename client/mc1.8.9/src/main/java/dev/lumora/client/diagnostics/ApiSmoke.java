@@ -8,7 +8,6 @@ import dev.lumora.core.LumoraCore;
 import dev.lumora.core.hud.Bounds;
 import dev.lumora.core.hud.HudEditorModel;
 import dev.lumora.core.hud.WidgetEntry;
-import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -80,7 +79,7 @@ final class ApiSmoke {
         List<String> problems = new ArrayList<>();
         LumoraCore core = core();
         for (Map.Entry<String, String> x : EXPECTED.entrySet()) {
-            if (FabricLoader.getInstance().isModLoaded(x.getKey()) && core.widgetRegistry().entry(x.getValue()).isEmpty()) {
+            if (dev.lumora.client.platform.LoaderEnv.isLoaded(x.getKey()) && core.widgetRegistry().entry(x.getValue()).isEmpty()) {
                 problems.add(x.getKey() + " is installed but widget " + x.getValue() + " is not registered");
             }
         }

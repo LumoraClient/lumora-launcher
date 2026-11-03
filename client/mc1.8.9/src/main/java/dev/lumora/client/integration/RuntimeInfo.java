@@ -1,7 +1,5 @@
 package dev.lumora.client.integration;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import org.lwjgl.opengl.GL11;
 
 import java.util.LinkedHashMap;
@@ -20,7 +18,7 @@ public final class RuntimeInfo {
     }
 
     public static Optional<String> modVersion(String id) {
-        return FabricLoader.getInstance().getModContainer(id).map(ModContainer::getMetadata).map(m -> m.getVersion().getFriendlyString());
+        return dev.lumora.client.platform.LoaderEnv.version(id);
     }
 
     public static boolean sodiumLoaded() {
@@ -32,7 +30,7 @@ public final class RuntimeInfo {
     }
 
     public static boolean viaFabricLoaded() {
-        return FabricLoader.getInstance().isModLoaded("viafabric");
+        return dev.lumora.client.platform.LoaderEnv.isLoaded("viafabric");
     }
 
     /** Renderer as reported by the OpenGL context. Render thread only. */

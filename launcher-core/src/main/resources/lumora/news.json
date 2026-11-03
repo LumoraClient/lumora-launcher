@@ -5,7 +5,7 @@
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Neuer Lumora-Hub mit Themes und Akzentfarbe",
-      "text": "Der Hub im Spiel (Rechte Shift-Taste) ist komplett neu: links die Modul-Kategorien wie Spieler, Kampf, Welt und Server, rechts jedes Modul als Karte mit eigenem Icon, An/Aus-Leiste und Zahnrad für die Einstellungen. Mit Strg + F oder einfach Lostippen durchsuchst du alle Module. Unter „Allgemein“ findest du Themes, HUD-Editor, Profile und System. Neu sind die Themes: Lumora mit frei wählbarer Akzentfarbe von Lila über Blau bis Pink oder Vanilla mit Minecrafts eigenen Menüs. Außerdem zeigen 1.8.9 und 1.12.2 alle Lumora-Texte wieder richtig übersetzt an.",
+      "text": "Der Hub im Spiel (Rechte Shift-Taste) ist komplett neu: links die Modul-Kategorien wie Spieler, Kampf, Welt und Server, rechts jedes Modul als Karte mit eigenem Icon, An/Aus-Leiste und Zahnrad für die Einstellungen. Mit Strg + F oder einfach Lostippen durchsuchst du alle Module. Unter „Allgemein“ findest du Themes, HUD-Editor, Profile und System. Auch die Einstellungen jedes Moduls sind neu: Schieberegler über die ganze Breite, AN/AUS-Schalter in zwei Spalten, Farben mit Hex-Wert und eine Suche. Neu sind die Themes: Lumora mit frei wählbarer Akzentfarbe von Lila über Blau bis Pink oder Vanilla mit Minecrafts eigenen Menüs. Außerdem zeigen 1.8.9 und 1.12.2 alle Lumora-Texte wieder richtig übersetzt an.",
       "image": "hub.png"
     },
     {
@@ -106,6 +106,7 @@
         "Neuer Hub: Seitenleiste mit Kategorien, Modul-Karten mit eigenen Icons, An/Aus und Zahnrad, Suche mit Strg + F",
         "Themes: Lumora mit wählbarer Akzentfarbe oder Vanilla mit Minecrafts eigenen Menüs",
         "Profile, HUD-Editor und System direkt in der Seitenleiste, Zoom als eigenes Modul",
+        "Neue Einstellungen für Module, Widgets und Addons: Schieberegler, AN/AUS-Schalter, Farben mit Hex-Wert, Suche",
         "1.8.9 und 1.12.2: Lumora- und Addon-Texte wieder übersetzt"
       ]
     },

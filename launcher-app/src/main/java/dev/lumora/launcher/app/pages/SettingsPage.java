@@ -48,8 +48,8 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
- * Launcher settings: categories on the left, search, "Erweiterter Modus" for the settings marked "Erweitert". Every
- * change is saved right away (no save button). Only settings that really do something are listed.
+ * Launcher settings: one tab per category, search, "Erweiterter Modus" for the settings marked "Erweitert". Settings
+ * with their own control are shown as sections, on/off switches as boxes in two columns. Every change is saved right away (no save button). Only settings that really do something are listed.
  */
 public final class SettingsPage extends JPanel {
     /** What the window does for settings that reach beyond the config file. */
@@ -107,25 +107,53 @@ public final class SettingsPage extends JPanel {
         });
         build();
 
+        // title row: name, search, advanced mode, version
         JPanel head = new JPanel(new BorderLayout());
         head.setOpaque(false);
-        head.setBorder(BorderFactory.createEmptyBorder(0, 0, 14, 0));
+        head.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
         JLabel title = Ui.label("Einstellungen", 22, Font.BOLD, Theme.TEXT);
         head.add(title, BorderLayout.WEST);
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         right.setOpaque(false);
-        right.add(Ui.label("v" + BuildInfo.VERSION, 13, Font.PLAIN, Theme.MUTED));
+        right.add(openDirLink());
+        right.add(search);
         right.add(Ui.label("Erweitert", 13, Font.PLAIN, Theme.MUTED));
         right.add(advanced);
-        head.add(right, BorderLayout.EAST);
-        add(head, BorderLayout.NORTH);
+        right.add(Ui.label("v" + BuildInfo.VERSION, 13, Font.PLAIN, Theme.MUTED));
+        JPanel rightWrap = new JPanel(new java.awt.GridBagLayout());
+        rightWrap.setOpaque(false);
+        rightWrap.add(right);
+        head.add(rightWrap, BorderLayout.EAST);
 
-        JPanel side = new JPanel(new BorderLayout(0, 12));
-        side.setOpaque(false);
-        side.setPreferredSize(new Dimension(196, 10));
-        search.putClientProperty("JTextField.placeholderText", "Suchen");
+        // tab row: one tab per category, a line below
+        JPanel tabRow = new JPanel(new BorderLayout(12, 0));
+        tabRow.setOpaque(false);
+        categories.setLayout(new dev.lumora.launcher.app.ui.WrapLayout(FlowLayout.LEFT, 6, 6));
+        // WrapLayout starts with one gap: shift it back so the tabs line up with the content
+        categories.setBorder(BorderFactory.createEmptyBorder(-6, -6, -6, 0));
+        tabRow.add(categories, BorderLayout.CENTER);
+        JComponent line = new JComponent() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(Theme.BORDER);
+                g.fillRect(0, 0, getWidth(), 1);
+            }
+        };
+        line.setPreferredSize(new Dimension(10, 1));
+        JPanel top = new JPanel(new BorderLayout(0, 0));
+        top.setOpaque(false);
+        top.add(head, BorderLayout.NORTH);
+        top.add(tabRow, BorderLayout.CENTER);
+        JPanel lineWrap = new JPanel(new BorderLayout());
+        lineWrap.setOpaque(false);
+        lineWrap.setBorder(BorderFactory.createEmptyBorder(16, 0, 20, 0));
+        lineWrap.add(line, BorderLayout.CENTER);
+        top.add(lineWrap, BorderLayout.SOUTH);
+        add(top, BorderLayout.NORTH);
+
+        search.putClientProperty("JTextField.placeholderText", "Einstellungen suchen");
         search.putClientProperty("JTextField.leadingIcon", Icons.of(Icons.Kind.SEARCH, 16, Theme.MUTED));
-        search.setPreferredSize(new Dimension(196, 34));
+        search.setPreferredSize(new Dimension(230, 34));
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -142,9 +170,6 @@ public final class SettingsPage extends JPanel {
                 rebuild();
             }
         });
-        side.add(search, BorderLayout.NORTH);
-        side.add(categories, BorderLayout.CENTER);
-        add(side, BorderLayout.WEST);
         add(Ui.scroll(list), BorderLayout.CENTER);
         rebuild();
     }
@@ -752,45 +777,83 @@ public final class SettingsPage extends JPanel {
 
     // ------------------------------------------------------------------ layout
 
+    /** "Ordner öffnen" as an accent link (opens the data folder). */
+    private JComponent openDirLink() {
+        JLabel openDir = caps("Ordner öffnen", 11.5f, Theme.ACCENT_HOVER);
+        openDir.setIcon(Icons.of(Icons.Kind.FOLDER, 14, Theme.ACCENT_HOVER));
+        openDir.setIconTextGap(7);
+        openDir.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        openDir.setToolTipText(host.ctx().paths.root().toString());
+        openDir.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                host.openFolder(host.ctx().paths.root());
+            }
+        });
+        return openDir;
+    }
+
+    /** Tab label of a category. */
+    private static String tabName(String category) {
+        return category.equals("Chat") ? "Freunde & Chat" : category;
+    }
+
+    /**
+     * Fills the page for the chosen tab (or the search results): settings with their own control as sections (icon,
+     * title, description, control below), on/off switches as compact boxes in two columns.
+     */
     private void rebuild() {
         String q = search.getText().strip().toLowerCase(Locale.ROOT);
         boolean adv = cfg.advancedSettings;
         categories.removeAll();
         for (String c : CATEGORIES) {
-            categories.add(new CategoryRow(c));
+            categories.add(new CategoryTab(c));
         }
         categories.revalidate();
         categories.repaint();
         list.removeAll();
-        String lastCat = null;
         int shown = 0;
-        JPanel group = null;
-        for (Setting s : settings) {
-            if (s.advanced && !adv) {
+        for (String cat : CATEGORIES) {
+            List<Setting> in = new ArrayList<>();
+            for (Setting s : settings) {
+                if (!s.category.equals(cat) || (s.advanced && !adv)) {
+                    continue;
+                }
+                boolean match = q.isEmpty() ? cat.equals(category)
+                        : (s.title + " " + (s.description == null ? "" : s.description) + " " + s.category).toLowerCase(Locale.ROOT).contains(q);
+                if (match) {
+                    in.add(s);
+                }
+            }
+            if (in.isEmpty()) {
                 continue;
             }
-            boolean match = q.isEmpty() ? s.category.equals(category)
-                    : (s.title + " " + (s.description == null ? "" : s.description) + " " + s.category).toLowerCase(Locale.ROOT).contains(q);
-            if (!match) {
-                continue;
-            }
-            if (!s.category.equals(lastCat)) {
-                JLabel h = Ui.label(s.category.equals("Chat") ? "Freunde & Chat" : s.category, 15, Font.BOLD, Theme.TEXT);
-                h.setBorder(BorderFactory.createEmptyBorder(lastCat == null ? 0 : 18, 2, 8, 0));
+            if (!q.isEmpty()) {
+                JLabel h = caps(tabName(cat), 12, Theme.MUTED);
+                h.setBorder(BorderFactory.createEmptyBorder(shown == 0 ? 0 : 6, 0, 12, 0));
                 list.add(h);
-                Card box = new Card(new BorderLayout()).calm();
-                box.padding(4, 18, 4, 16);
-                box.setAlignmentX(Component.LEFT_ALIGNMENT);
-                box.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
-                group = Ui.column();
-                box.add(group, BorderLayout.CENTER);
-                list.add(box);
-                lastCat = s.category;
-            } else {
-                group.add(divider());
             }
-            group.add(card(s));
-            shown++;
+            List<Setting> switches = new ArrayList<>();
+            for (Setting s : in) {
+                if (s.control instanceof ToggleSwitch) {
+                    switches.add(s);
+                } else {
+                    list.add(section(s));
+                    list.add(Box.createVerticalStrut(24));
+                }
+                shown++;
+            }
+            if (!switches.isEmpty()) {
+                JPanel grid = new JPanel(new GridLayout(0, 2, 14, 10));
+                grid.setOpaque(false);
+                grid.setAlignmentX(Component.LEFT_ALIGNMENT);
+                for (Setting s : switches) {
+                    grid.add(switchBox(s));
+                }
+                grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, grid.getPreferredSize().height));
+                list.add(grid);
+                list.add(Box.createVerticalStrut(24));
+            }
         }
         if (shown == 0) {
             JLabel none = Ui.label(q.isEmpty() ? "Keine Einstellungen in dieser Kategorie." : "Keine Einstellung passt zu „" + search.getText().strip() + "“.",
@@ -800,76 +863,115 @@ public final class SettingsPage extends JPanel {
         long hidden = settings.stream().filter(s -> s.advanced && (q.isEmpty() ? s.category.equals(category) : true)).count();
         if (!adv && hidden > 0) {
             JLabel hint = Ui.label(hidden + " weitere im erweiterten Modus", 12.5f, Font.PLAIN, Theme.MUTED);
-            hint.setBorder(BorderFactory.createEmptyBorder(4, 2, 0, 0));
+            hint.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
             list.add(hint);
         }
         list.revalidate();
         list.repaint();
     }
 
-    /** Thin line between two settings of a group. */
-    private static JComponent divider() {
-        JComponent line = new JComponent() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                g.setColor(Theme.alpha(Theme.BORDER, 170));
-                g.fillRect(0, 0, getWidth(), 1);
-            }
-        };
-        line.setAlignmentX(Component.LEFT_ALIGNMENT);
-        line.setPreferredSize(new Dimension(10, 1));
-        line.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        return line;
+    /** Upper-case title with a little letter spacing, like the reference launcher. */
+    private static JLabel caps(String text, float size, Color color) {
+        JLabel l = new JLabel(text.toUpperCase(Locale.GERMANY));
+        l.setFont(Theme.font(Font.BOLD, size).deriveFont(java.util.Map.of(java.awt.font.TextAttribute.TRACKING, 0.08f)));
+        l.setForeground(color);
+        l.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return l;
     }
 
-    /** One setting as a row of its group: title and short description on the left, the control on the right. */
-    private JComponent card(Setting s) {
-        JPanel text = Ui.column();
-        JPanel titleLine = Ui.row(8);
-        titleLine.add(Ui.label(s.title, 14, Font.BOLD, Theme.TEXT));
-        if (s.advanced) {
-            titleLine.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
-        }
-        text.add(titleLine);
-        if (s.description != null) {
-            text.add(Box.createVerticalStrut(2));
-            text.add(Ui.wrapText(s.description, 12.5f, Theme.MUTED));
-        }
-        JPanel c = new JPanel(new BorderLayout(16, 10));
-        c.setOpaque(false);
-        c.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-        c.setAlignmentX(Component.LEFT_ALIGNMENT);
-        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
-        if (s.wide) {
-            if (s.category.equals("Speicher")) {
-                // the storage overview brings its own heading
-                c.add(s.control, BorderLayout.CENTER);
-                return c;
-            }
-            c.add(text, BorderLayout.NORTH);
+    /** A setting with its own control: icon and title, description, the control below. */
+    private JComponent section(Setting s) {
+        if (s.wide && s.category.equals("Speicher")) {
+            // the storage overview brings its own heading
+            Card c = new Card(new BorderLayout()).calm().padding(18, 20, 14, 18);
+            c.setAlignmentX(Component.LEFT_ALIGNMENT);
             c.add(s.control, BorderLayout.CENTER);
+            c.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
             return c;
         }
-        c.add(text, BorderLayout.CENTER);
-        JPanel east = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        east.setOpaque(false);
-        east.add(s.control);
-        JPanel v = new JPanel(new java.awt.GridBagLayout());
-        v.setOpaque(false);
-        v.add(east);
-        c.add(v, BorderLayout.EAST);
-        return c;
+        JPanel p = Ui.column();
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel title = Ui.row(10);
+        title.add(new JLabel(Icons.of(s.icon, 17, Theme.TEXT)));
+        title.add(caps(s.title, 13.5f, Theme.TEXT));
+        if (s.advanced) {
+            title.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
+        }
+        p.add(title);
+        if (s.description != null) {
+            p.add(Box.createVerticalStrut(8));
+            p.add(Ui.wrapText(s.description, 13.5f, Theme.MUTED));
+        }
+        p.add(Box.createVerticalStrut(12));
+        JPanel control = new JPanel(new BorderLayout());
+        control.setOpaque(false);
+        control.setAlignmentX(Component.LEFT_ALIGNMENT);
+        if (s.wide) {
+            control.add(s.control, BorderLayout.CENTER);
+        } else {
+            JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            left.setOpaque(false);
+            left.add(s.control);
+            control.add(left, BorderLayout.CENTER);
+        }
+        control.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
+        p.add(control);
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
+        return p;
     }
 
-    private final class CategoryRow extends JComponent {
+    /** An on/off setting as a compact box: name on the left, switch on the right, description as tooltip. */
+    private JComponent switchBox(Setting s) {
+        JPanel box = new JPanel(new BorderLayout(10, 0)) {
+            @Override
+            protected void paintComponent(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int arc = Theme.arc(10);
+                g.setColor(Theme.SURFACE);
+                g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+                g.setColor(Theme.BORDER);
+                g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+                g.dispose();
+            }
+        };
+        box.setOpaque(false);
+        box.setBorder(BorderFactory.createEmptyBorder(9, 14, 9, 12));
+        JPanel name = Ui.row(8);
+        JLabel l = Ui.label(s.title, 14, Font.PLAIN, Theme.TEXT);
+        name.add(l);
+        if (s.advanced) {
+            name.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
+        }
+        if (s.description != null) {
+            String tip = "<html><body style='width:280px'>" + s.description.replace("&", "&amp;").replace("<", "&lt;") + "</body></html>";
+            box.setToolTipText(tip);
+            l.setToolTipText(tip);
+        }
+        JPanel nw = new JPanel(new java.awt.GridBagLayout());
+        nw.setOpaque(false);
+        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+        c.anchor = java.awt.GridBagConstraints.WEST;
+        c.weightx = 1;
+        nw.add(name, c);
+        box.add(nw, BorderLayout.CENTER);
+        JPanel sw = new JPanel(new java.awt.GridBagLayout());
+        sw.setOpaque(false);
+        sw.add(s.control);
+        box.add(sw, BorderLayout.EAST);
+        return box;
+    }
+
+    /** Outlined tab of a category; the chosen one gets the accent. */
+    private final class CategoryTab extends JComponent {
         private final String name;
         private boolean hover;
 
-        CategoryRow(String name) {
+        CategoryTab(String name) {
             this.name = name;
-            setAlignmentX(Component.LEFT_ALIGNMENT);
-            setPreferredSize(new Dimension(196, 34));
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+            setFont(Theme.font(Font.BOLD, 11.5f).deriveFont(java.util.Map.of(java.awt.font.TextAttribute.TRACKING, 0.1f)));
+            java.awt.FontMetrics fm = getFontMetrics(getFont());
+            setPreferredSize(new Dimension(fm.stringWidth(label()) + 24, 36));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             addMouseListener(new MouseAdapter() {
                 @Override
@@ -896,19 +998,29 @@ public final class SettingsPage extends JPanel {
             });
         }
 
+        private String label() {
+            return tabName(name).toUpperCase(Locale.GERMANY);
+        }
+
         @Override
         protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
             boolean sel = name.equals(category) && search.getText().isBlank();
-            if (sel || hover) {
-                g.setColor(Theme.alpha(Theme.TEXT, sel ? 20 : 10));
-                g.fillRoundRect(0, 2, getWidth(), getHeight() - 4, Theme.arc(10), Theme.arc(10));
-            }
-            g.setFont(Theme.font(sel ? Font.BOLD : Font.PLAIN, 13.5f));
-            g.setColor(sel ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.4));
-            g.drawString(name.equals("Chat") ? "Freunde & Chat" : name, 12, getHeight() / 2 + 5);
+            int w = getWidth();
+            int h = getHeight();
+            int arc = Theme.arc(8);
+            g.setColor(sel ? Theme.alpha(Theme.ACCENT, 40) : hover ? Theme.alpha(Theme.TEXT, 12) : Theme.SURFACE);
+            g.fillRoundRect(0, 0, w - 1, h - 1, arc, arc);
+            g.setColor(sel ? Theme.ACCENT_HOVER : Theme.BORDER);
+            g.setStroke(new java.awt.BasicStroke(sel ? 1.5f : 1f));
+            g.drawRoundRect(0, 0, w - 1, h - 1, arc, arc);
+            g.setFont(getFont());
+            java.awt.FontMetrics fm = g.getFontMetrics();
+            String t = label();
+            g.setColor(sel || hover ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.35));
+            g.drawString(t, (w - fm.stringWidth(t)) / 2, (h - fm.getHeight()) / 2 + fm.getAscent());
             g.dispose();
         }
     }

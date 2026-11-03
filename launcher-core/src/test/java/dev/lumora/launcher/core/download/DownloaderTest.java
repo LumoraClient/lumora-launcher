@@ -122,7 +122,8 @@ class DownloaderTest {
         Downloader d = new Downloader();
         d.checkTrusted(URI.create("https://cdn.modrinth.com/data/x.jar"));
         d.checkTrusted(URI.create("https://piston-data.mojang.com/v1/objects/abc/client.jar"));
-        d.checkTrusted(URI.create("https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar"));
+        // no mod loader any more: Fabric's servers are not trusted
+        assertThrows(IOException.class, () -> d.checkTrusted(URI.create("https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar")));
     }
 
     @Test

@@ -2,19 +2,20 @@
 
 ## Unveröffentlicht
 
-### Lumora Loader: Minecraft ohne Mod-Loader (zuerst 26.3)
+### Lumora Loader: Minecraft ohne Mod-Loader (alle 18 Versionen)
 - **Eigener Lumora Loader** statt Fabric. Er startet Minecraft, lädt den Lumora Client und wendet dessen Eingriffe ins Spiel (Mixins) selbst an. Lumora-Addons kommen wie bisher aus dem Ordner `addons`.
-- **26.3 läuft jetzt ohne Fabric:** kein Fabric Loader, keine Fabric API, keine Fabric-Mods. Alles, was vorher die Fabric API lieferte, bringt der Client selbst mit:
+- **Alle Versionen von 1.8.9 bis 26.3 laufen ohne Fabric:** kein Fabric Loader, keine Fabric API, keine Fabric-Mods. Alles, was vorher die Fabric API lieferte, bringt der Client je Version selbst mit:
   - Menü- und HUD-Ereignisse
   - Tastenbelegungen
   - Lumoras Ressourcenpakete (Theme und Schrift wie gewohnt)
   - Plugin-Kanäle für Addons
-- **Entfallen für 26.3:** Sodium, Lithium, FerriteCore, ViaFabricPlus, Simple Voice Chat und Mod Menu, weil das Fabric-Mods sind. Ein vorhandener `mods`-Ordner bleibt unangetastet, wird aber nicht mehr geladen.
-- Die anderen 15 Versionen laufen vorerst noch über Fabric und werden nach und nach umgestellt.
+- **Lesbare Namen beim Nutzer:** Für 1.16.5 bis 1.21.11 lädt der Launcher Mojangs offizielle Namensliste (`client_mappings`, SHA-1-geprüft) und der Loader benennt die Minecraft-JAR damit einmalig auf dem eigenen Rechner um. 1.8.9 und 1.12.2 bringen ihre Namensliste (Yarn, CC0) im Lumora-Client mit. 26.x ist nicht verschleiert.
+- **Entfallen:** Sodium, Lithium, FerriteCore, ViaFabricPlus, ViaFabric, Simple Voice Chat, Mod Menu und Ressourcenpakete, die eine Mod brauchten (z. B. über EMF/ETF), weil das Fabric-Mods sind. Ein vorhandener `mods`-Ordner bleibt unangetastet, wird aber nicht mehr geladen.
 
 ### Launcher
-- **Seite „Mods“ entfernt.**
+- **Seite „Mods“ entfernt**, ebenso der Bereich „Performance-Mods“ auf der Performance-Seite.
 - **„Entdecken“** zeigt nur noch Ressourcenpakete von Modrinth.
+- Keine Downloads mehr von Fabric-Servern, keine Mod-Abhängigkeitsprüfung mehr.
 
 ## 0.2.2 (2026-11-02)
 

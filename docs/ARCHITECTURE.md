@@ -11,7 +11,7 @@ LumoraLauncher.exe (jpackage, eigene jlink-Java-Runtime)
          ├─ mojang/     Versions-Manifest, Versions-JSON, Regeln, Bibliotheken, Assets
          ├─ java/       offizielle Mojang-Java-Runtime (all.json → Manifest → Dateien, SHA-1)
          ├─ download/   verifizierte Downloads (Allow-List, Hash-Pflicht, Retry, atomare Dateien)
-         ├─ mods/       Mod-Sync in die Instanz, fabric.mod.json-Analyse, depends/breaks-Prüfung, ModInventory/ModInfo für die Mods-Seite
+         ├─ mods/       verifizierte Ablage der Lumora-JAR und der Ressourcenpakete in der Instanz
          ├─ auth/       Microsoft → Xbox Live → XSTS → Minecraft Services, DPAPI-Session-Speicher
          ├─ launch/     Startbefehl aus Versions-JSON, Prozessüberwachung, Mehrfachstart-Sperre
          ├─ install/    ClientInstaller: orchestriert alle Schritte idempotent
@@ -21,10 +21,10 @@ LumoraLauncher.exe (jpackage, eigene jlink-Java-Runtime)
          └─ update/     Update-Prüfung über die Modrinth-API (nur mit Bestätigung)
 
 Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
- └─ Fabric Loader 0.19.5 (KnotClient)
-     ├─ 26.3 … 1.19.4:   Fabric API · Sodium · ViaFabricPlus · lumora-client-mc<version>   [· Erweiterungen]
-     ├─ 1.18.2 … 1.16.5: Fabric API · Sodium · ViaFabric     · lumora-client-mc<version>   [· Erweiterungen]
-     └─ 1.12.2, 1.8.9:   Legacy Fabric API · ViaFabric (Legacy) · lumora-client-mc<version>  (Legacy-Fabric-Profil)
+ └─ Lumora Loader (dev.lumora.loader.Main, kein Mod-Loader)
+     ├─ Minecraft <version> (Vanilla-JAR; 1.8.9 … 1.21.11 beim Nutzer auf lesbare Namen umbenannt)
+     ├─ lumora-client-mc<version>   (16 Builds, 1.8.9 bis 26.3)
+     └─ Lumora-Addons aus instances/<version>/addons
      (26.1 und 26.1.1 nutzen lumora-client-mc26.1.2; Details: COMPATIBILITY.md)
 ```
 
@@ -32,10 +32,10 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 
 | Entscheidung | Begründung |
 |---|---|
-| Fabric Loader statt eigenem Mod-Loader | Alle drei Projekte sind Fabric-Mods. Ein eigener Loader brächte nur Risiko. Die Loader-Anbindung steckt vollständig im Fabric-Startprofil (`MetadataService#fabricProfile`) und lässt sich austauschen. |
+| Eigener Lumora Loader statt Fabric | Lumora läuft nur auf Vanilla plus Lumora-Addons. Der Loader ist klein (Klassenlader, Mixin, Umbenennen der Spiel-JAR), es gibt keine Fremd-Mods und keine Abhängigkeitsauflösung mehr. Bis 0.2.2 lief alles über Fabric (siehe Git-Verlauf). |
 | Ein Profil pro Minecraft-Version, Begleit-Mod pro Version portiert | Die Minecraft-APIs unterscheiden sich je Version (z. B. `GuiGraphicsExtractor` in 26.1, `GuiGraphics` in 1.21). Jede Portierung liegt unter `client/mc<version>` und wird gegen ihre Version kompiliert und getestet. Das frühere VulkanMod-Profil wurde entfernt, siehe [COMPATIBILITY.md](COMPATIBILITY.md). |
-| Fremd-Mods werden heruntergeladen, nicht gebündelt | Keine Weiterverteilung von Sodium (PolyForm Shield) und VFP-Binaries nötig. Bezug aus der offiziellen Quelle (Modrinth-CDN) mit fest hinterlegtem SHA-512. |
-| Lumora-Mod ohne Compile-Abhängigkeit auf Sodium/VFP | Er läuft mit und ohne sie, linkt keinen (L)GPL-Code und degradiert sauber, wenn eine API fehlt. Zugriff per Reflection auf geprüfte öffentliche Klassen. |
+| Ressourcenpakete werden heruntergeladen, nicht gebündelt | Bezug aus der offiziellen Quelle (Modrinth-CDN) mit fest hinterlegtem SHA-512, keine Weiterverteilung. |
+| Mojangs Namensliste nur beim Nutzer | Die verschleierten Versionen werden erst auf dem Rechner des Nutzers mit Mojangs `client_mappings` umbenannt. Lumora verteilt weder die Liste noch eine umbenannte Minecraft-JAR. |
 | Launcher in Java statt nativ | Die Logik ist mit dem Mod-Ökosystem (JSON, Maven, Hashes) teilbar und gut testbar. jpackage liefert eine native EXE mit eigener Runtime, Nutzer brauchen kein Java. |
 | Eigene Spielinstanz pro Profil | Unterschiedliche Mod-Sätze und Konfigurationen beeinflussen sich nicht. Bibliotheken, Assets und Runtimes werden geteilt. |
 
@@ -56,13 +56,12 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 ## Ablauf „Spielen“
 
 1. **INSTALLING**: `ClientInstaller.prepare`
-   1. Mojang-Manifest → Versions-JSON (SHA-1 aus dem Manifest), Fabric-Profil (HTTPS, Cache für Offline-Start)
-   2. Zusammenführen (`ResolvedVersion.merge`): Fabric-Bibliotheken haben Vorrang (z. B. ASM 9.10.1 statt der Vanilla-Version), OS-Regeln werden angewandt
-   3. Client-JAR, Bibliotheken, Asset-Index und -Objekte, Log4j-Konfiguration: alles mit SHA-1. Für `fabric-loader` fehlt der Hash im Profil, er wird aus der `.sha1`-Datei auf maven.fabricmc.net gelesen
-   4. Java-Runtime `java-runtime-epsilon` (Java 25) von Mojang, jede Datei mit SHA-1
-   5. Mods: Modrinth-Artefakte (SHA-512 aus dem Lockfile) und Lumora-Mod (SHA-512 aus `bundled-mods.json`) → `instances/<profil>/mods`
-   6. **Abhängigkeitsprüfung** aller Mod-JARs inkl. Jar-in-Jar (`depends`, `breaks`, `provides`, Versionsprädikate)
-   7. Marker `.lumora-verified`: Folgestarts prüfen nur noch Größe (QUICK). „Installation reparieren“ prüft alles erneut per Hash (FULL)
+   1. Mojang-Manifest → Versions-JSON (SHA-1 aus dem Manifest, Cache für Offline-Start); OS-Regeln werden angewandt (`ResolvedVersion.merge`)
+   2. Client-JAR, Bibliotheken, Asset-Index und -Objekte, Log4j-Konfiguration: alles mit SHA-1
+   3. Java-Runtime von Mojang (`java-runtime-epsilon` = Java 25 für 26.x, sonst `java-runtime-delta` = Java 21), jede Datei mit SHA-1
+   4. Lumora-JAR (SHA-512 aus `bundled-mods.json`) → `instances/<profil>/.lumora/client`; Ressourcenpakete (SHA-512 aus dem Lockfile) → `resourcepacks`
+   5. 1.16.5 bis 1.21.11: Mojangs `client_mappings` (SHA-1 aus dem Versions-JSON) → `versions/<v>/<v>-client-mappings.txt`
+   6. Marker `.lumora-verified`: Folgestarts prüfen nur noch Größe (QUICK). „Installation reparieren“ prüft alles erneut per Hash (FULL)
 2. **LOGGING_IN**: gespeicherte Sitzung gültig? → verwenden. Sonst Refresh-Token. Sonst interaktive Anmeldung:
    standardmäßig **im Browser** (OAuth 2.0 Authorization Code + PKCE S256, Weiterleitung auf `http://localhost:<zufälliger Port>`,
    nur Loopback, `state`-Prüfung, `LoopbackReceiver`). Auf Wunsch per **Device Code** („Mit Code anmelden“).
@@ -71,22 +70,24 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 
 ## Startarten
 
-Der Launcher startet ein Profil als **Lumora** (Fabric mit den Lumora-Mods, Fabric wird dabei nie vom Spieler gewählt) oder als **Vanilla** (reines Minecraft, eigener Spielordner `instances/<version>-vanilla`). Wählbare Mod-Loader (Fabric, Quilt, Forge, NeoForge) sind vorerst entfernt (bis 0.2.0 unter `launcher-core/.../loader`, siehe Git-Verlauf). Eine gespeicherte Auswahl eines Loaders startet Lumora. Alte Spielordner `instances/<version>-<loader>` bleiben unangetastet liegen.
+Der Launcher startet ein Profil als **Lumora** (Minecraft mit dem Lumora Client über den Lumora Loader) oder als **Vanilla** (reines Minecraft, eigener Spielordner `instances/<version>-vanilla`). Mod-Loader (Fabric, Quilt, Forge, NeoForge) gibt es nicht mehr, ebenso keine Seite „Mods“; „Entdecken“ zeigt nur Ressourcenpakete. Eine gespeicherte Auswahl eines Loaders startet Lumora. Alte Spielordner `instances/<version>-<loader>` bleiben unangetastet liegen.
 
 Lumora-Addons lädt der Client selbst aus dem Ordner `addons` der Instanz (siehe Abschnitt Client-Framework).
 
 ## Lumora Loader (`lumora-loader`, ersetzt Fabric)
 
-Profile mit `"loader": "lumora"` in `profiles.json` starten **ohne Mod-Loader**: nur Minecraft (Vanilla-Versions-JSON), der Lumora Client und die Lumora-Addons. Derzeit gilt das für **26.3**. Die übrigen 15 Versionen laufen noch über Fabric und werden Schritt für Schritt umgestellt.
+Alle 18 Profile (`"loader": "lumora"` in `profiles.json`) starten **ohne Mod-Loader**: nur Minecraft (Vanilla-Versions-JSON), der Lumora Client und die Lumora-Addons.
 
 ```
 java -cp lumora-loader.jar;<Bibliotheken von Minecraft>  dev.lumora.loader.Main  <Minecraft-Argumente>
      -Dlumora.loader.game=versions/26.3/26.3.jar            (nicht auf dem Klassenpfad)
      -Dlumora.loader.jars=instances/26.3/.lumora/client/lumora-client-mc26.3.jar
      -Dlumora.loader.target=net.minecraft.client.main.Main
+     -Dlumora.loader.mappings=versions/<v>/<v>-client-mappings.txt   (nur 1.16.5 bis 1.21.11)
 ```
 
 1. **`Boot`** liest die `lumora.loader.json` jeder Lumora-JAR (`id`, `version`, `entrypoints`, `mixins`).
+   - **Umbenennen** (`GameRemapper`): Bei verschleierten Versionen benennt der Loader die Minecraft-JAR einmal auf lesbare Namen um (ASM `ClassRemapper`, mit Vererbung und Lambdas) und legt das Ergebnis als `<name>-lumora-<hash>.jar` neben die Original-JAR. 1.16.5 bis 1.21.11 nutzen Mojangs `client_mappings` (ProGuard-Format), 1.8.9 und 1.12.2 die Datei `lumora/mappings.tiny` aus der Lumora-JAR (Intermediary + Yarn, CC0). Bei Yarn macht `PublicAccess` Felder und Methoden öffentlich, wie es Fabric dort tat. 26.1 und neuer sind nicht verschleiert.
 2. **`GameClassLoader`** lädt die Minecraft-JAR und die Lumora-JAR selbst. Jede Klasse läuft vor dem Definieren durch den Mixin-Transformer, von Mixin erzeugte Klassen (`org.spongepowered.asm.synthetic.*`) entstehen dort. Java, die Bibliotheken des Spiels, der Loader, Mixin und ASM kommen vom übergeordneten Klassenlader.
 3. **Mixin:**
    - **Dienst:** `LumoraMixinService` liefert die Klassen-Bytes, das Laden von Klassen und die Mixin-Konfigurationen, `LumoraGlobalPropertyService` ist der globale Speicher. Beide sind über `META-INF/services` angemeldet.
@@ -94,7 +95,7 @@ java -cp lumora-loader.jar;<Bibliotheken von Minecraft>  dev.lumora.loader.Main 
    - **Lieferung:** Mixin und ASM stecken in der Loader-JAR. Der ASM-Version im Manifest entnimmt Mixin, welche Java-Klassenversionen es unterstützt.
 4. **Start:** Die Einstiegspunkte (`dev.lumora.loader.api.ClientEntrypoint`) laufen vor Minecraft. Danach folgt `net.minecraft.client.main.Main.main` mit den Original-Argumenten.
 
-Was vorher die Fabric-API lieferte, bringt der Client selbst mit (`client/mc26.3/.../platform` und `mixin/platform`):
+Was vorher die Fabric-API lieferte, bringt jeder Client selbst mit (`client/mc<version>/.../platform` und `mixin/platform`). Die Tabelle zeigt 26.3; ältere Versionen hängen sich an die dort passenden Stellen (z. B. `Gui.render` statt `Hud.extractRenderState`, `Pack.create` bis 1.18.2, String-Kanäle und Yarn-Namen bei 1.8.9/1.12.2):
 
 | Bisher (Fabric) | Jetzt (Lumora) |
 |---|---|
@@ -107,7 +108,7 @@ Was vorher die Fabric-API lieferte, bringt der Client selbst mit (`client/mc26.3
 | Plugin-Kanäle (`PayloadTypeRegistry`, `ClientPlayNetworking`) | `Channels` + `DiscardedPayloadMixin` (Bytes registrierter Kanäle bleiben erhalten), `ClientCustomPayloadMixin`. Beim Betreten einer Welt meldet `minecraft:register` die Kanäle an. |
 | `FabricLoader` (Ordner, Versionen, `isModLoaded`) | `LoaderEnv` über `dev.lumora.loader.api.LumoraLoader`. Andere Mods gibt es nicht, Sodium und ViaFabricPlus gelten als „nicht geladen“. |
 
-Der Launcher legt die Lumora-JAR in `instances/<version>/.lumora/client` ab und lässt den alten `mods`-Ordner liegen. Fabric-Mods aus dem Profil (Sodium, Lithium, ViaFabricPlus, Simple Voice Chat …) entfallen für diese Versionen, ebenso die Seite „Mods“. „Entdecken“ zeigt nur noch Ressourcenpakete.
+Der Launcher legt die Lumora-JAR in `instances/<version>/.lumora/client` ab und lässt einen alten `mods`-Ordner unangetastet liegen. Fabric-Mods (Sodium, Lithium, ViaFabricPlus, Simple Voice Chat …) und Ressourcenpakete, die eine Mod brauchten, sind aus dem Katalog entfernt.
 
 ## Verbindungssystem im Client (`lumora-core/.../connection`)
 
@@ -121,7 +122,7 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 
 ## Sicherheit
 
-- **Download-Allow-List** (`Downloader.DEFAULT_TRUSTED_HOSTS`): nur HTTPS zu Mojang-, Fabric- und Modrinth-Hosts. Jede Datei braucht einen erwarteten Hash. Erst nach erfolgreicher Prüfung wird die Datei an ihren Zielort verschoben.
+- **Download-Allow-List** (`Downloader.DEFAULT_TRUSTED_HOSTS`): nur HTTPS zu Mojang- und Modrinth-Hosts (Fabric-Hosts sind entfernt). Jede Datei braucht einen erwarteten Hash. Erst nach erfolgreicher Prüfung wird die Datei an ihren Zielort verschoben.
 - **Pfad-Traversal-Schutz** (`FileUtil.resolveInside`) für alle Pfade aus entfernten Manifesten.
 - **Keine fest eingebauten Zugangsdaten.** Die Azure-Client-ID wird vom Verteiler oder Nutzer konfiguriert. Passwörter sieht der Launcher nie, die Anmeldung läuft auf Microsofts Webseite.
 - **Token-Schutz**: `Redactor` schwärzt registrierte Geheimnisse und typische Muster (Bearer, JWT, `--accessToken`) in allen Logs. Die Sitzung liegt unter Windows DPAPI-verschlüsselt. Unter Linux/macOS gilt `0600`. Das ist kein Keyring, siehe TROUBLESHOOTING.
@@ -135,7 +136,7 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 - **Anonyme Statistiken**: Es gibt keinen Lumora-Statistikserver. Der Schalter ist standardmäßig aus und wird nur gespeichert, gesendet wird nichts.
 - **Debug-Modus** erlaubt nur Loopback-Adressen (`localhost`, `127.0.0.1`, `[::1]`); ein JDWP-Port im Netzwerk wäre Codeausführung für jeden, der ihn erreicht. Ungültige Adressen setzt `LauncherConfig` zurück.
 - **Speicher freigeben** (`storage/StorageUsage`) löscht nur in Kategorien, die der Launcher neu laden kann (Java, Download-Cache, Bibliotheken, Assets, Versionen, Logs, Absturzberichte), nur innerhalb des Datenordners und ohne Verknüpfungen nach außen zu folgen. Welten, Screenshots, eigene Mods und Konfigurationen werden nur angezeigt. Jede Aktion fragt nach, und sie ist gesperrt, solange Minecraft läuft.
-- **Startarten** Vanilla und Fabric nutzen eigene Instanzordner (`<Version>-vanilla`, `<Version>-fabric`) und Mojangs Java für die Version; es werden dort keine Lumora-Mods installiert und keine Dateien der Lumora-Instanz verändert.
+- **Startart** Vanilla nutzt einen eigenen Instanzordner (`<Version>-vanilla`) und Mojangs Java für die Version; dort wird kein Lumora installiert und keine Dateien der Lumora-Instanz verändert.
 - **Selbst-Update** (`update/LauncherUpdate`): fragt nur die offizielle GitHub-API (`api.github.com/repos/LumoraClient/lumora-launcher/releases/latest`) ab. Installiert wird eine EXE nur, wenn ihre SHA-256 in einer `SHA256SUMS.txt` steht, die mit dem Release-Schlüssel (Ed25519) signiert ist. Der öffentliche Schlüssel liegt im Launcher, der private nur beim Release-Ersteller (`~/.lumora-signing/`, nie im Repository). Ein übernommenes GitHub-Konto allein kann also kein Update verteilen. Ersetzt wird nur die portable EXE, deren Pfad der Starter übergibt; Entwürfe und Vorab-Versionen werden ignoriert.
 - **Skin & Umhang** (`skin/SkinChanger`): nur `api.minecraftservices.com/minecraft/profile` (wie der offizielle Launcher), Zugriffstoken nur im Authorization-Header, nie im Log. Hochgeladen werden nur PNGs mit 64×64 oder 64×32 Pixeln bis 24 KB; Umhang-IDs werden geprüft.
 - **Lumora-Module im Spiel**: Fadenkreuz, Fullbright, Scoreboard und Tab-Ping ändern nur die eigene Anzeige. Toggle Sprint hält nur die eigene Sprint- bzw. Schleichtaste gedrückt, wie es der Spieler auch selbst könnte. Fadenkreuz, Toggle Sprint und Fullbright sind beim ersten Start aus. Fullbright stellt die eigene Helligkeit beim Ausschalten und beim Beenden wieder her.
@@ -169,20 +170,20 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 
 | Klasse | Aufgabe |
 |---|---|
-| `LumoraClient` | Einstieg. Registriert Fabric-API-Events: Titelbildschirm-Button, Protokoll-Label im Multiplayer-Menü, Tastenbelegung F9, Lifecycle |
+| `LumoraClient` | Einstieg (Lumora-Loader-Einstiegspunkt). Hängt sich über die eigenen Plattform-Hooks ein: Titelbildschirm-Button, Protokoll-Label im Multiplayer-Menü, Tastenbelegung F9, Lifecycle |
 | `gui.LumoraHubScreen` | Hub: Renderer/GPU, VFP-Version, Speicher, Schlaganimation. Buttons für Protokollauswahl (VFP-API), Benchmark, Diagnose |
-| `integration.RuntimeInfo` | Statusabfrage über `RenderSystem.tryGetDevice()` und ViaFabricPlus `ViaFabricPlusBase` |
+| `integration.RuntimeInfo` | Statusabfrage über `RenderSystem.tryGetDevice()`; Sodium und ViaFabricPlus gibt es ohne Mod-Loader nicht, sie gelten als „nicht geladen“ |
 | `perf.FrameStats` + `mixin.MinecraftFrameMixin` | Frametime-Messung pro Frame (`Minecraft#runTick`, nur lesend), Auswertung: Ø-FPS, 1 %/0,1 % Lows, p50/p95/p99 |
 | `diagnostics.Diagnostics` / `SmokeTest` | JSON-Berichte. Automatischer Starttest mit `-Dlumora.smokeTest` |
 | `config.LumoraConfig` | `config/lumora-client.json`, validiert, Backup bei Korruption |
 
-Bestehende Minecraft-Menüs werden nicht ersetzt. Es kommen nur Widgets über `ScreenEvents.AFTER_INIT` hinzu.
+Bestehende Minecraft-Menüs werden nicht ersetzt. Es kommen nur Widgets über den eigenen Hook nach `Screen.init` hinzu.
 
 ## Client-Framework: Lumora-API
 
 ```
-Addon-JAR (lumora-addon.json; in addons/ oder   z. B. LumoraVoice, LabyVoice,
-           als Fabric-Mod in mods/)                 examples/session-timer-addon
+Addon-JAR (lumora-addon.json; in addons/)       z. B. LumoraVoice, LabyVoice,
+                                                 examples/session-timer-addon
    │ kompiliert nur gegen
    ▼
 lumora-api   (Java 21, keine Abhängigkeiten)        Schnittstellen, Events, HudWidget, Settings, HudGraphics
@@ -194,25 +195,25 @@ lumora-core  (Java 21, Gson von Minecraft)          LumoraCore, AddonManager, Ja
    │ Platform-Schnittstelle
    ▼
 client/mc<version>/…/api   (je Minecraft-Version)   McPlatform, McGameContext, McHudGraphics, LumoraRuntime,
-                                                     FabricAddonDiscovery; Bildschirme HudEditorScreen,
+                                                     Bildschirme HudEditorScreen,
                                                      SettingsScreen, Hub-Tabs „Module“/„Addons“
 ```
 
 - `lumora-api` und `lumora-core` werden als Klassen in jede `lumora-client-mc<version>.jar` kopiert (Konfiguration
-  `bundled`), nicht verschachtelt. Addons finden `dev.lumora.api.*` zur Laufzeit über den gemeinsamen Fabric-Klassenlader.
+  `bundled`), nicht verschachtelt. Addons finden `dev.lumora.api.*` zur Laufzeit über den Klassenlader des Lumora Loaders (`GameClassLoader`).
 - **Addon-Loader** (`lumora-core/.../addon/JarAddonLoader`): Lumora lädt Addon-JARs aus `.minecraft/addons` selbst,
-  ohne dass sie Fabric-Mods sind.
+  ohne Mod-Loader.
   - **Beim Start** wird nur die `lumora-addon.json` gelesen (höchstens 64 KB, JAR höchstens 128 MB). Die Einstiegsklasse lädt erst `AddonManager.initialize`, nachdem API-Version, Minecraft-Version und Abhängigkeiten geprüft sind.
-  - **Class-Loader:** Jede JAR hat einen eigenen `AddonClassLoader`. Die Reihenfolge ist Spiel (Fabric-Klassenlader) → eigene JAR → JARs der Addons aus `depends`/`optional`.
-  - **Gesperrte Pakete:** Klassen in den Paketen von Java, Minecraft, Fabric, LWJGL und Lumora darf ein Addon nicht definieren.
+  - **Class-Loader:** Jede JAR hat einen eigenen `AddonClassLoader`. Die Reihenfolge ist Spiel (`GameClassLoader`) → eigene JAR → JARs der Addons aus `depends`/`optional`.
+  - **Gesperrte Pakete:** Klassen in den Paketen von Java, Minecraft, Fabric, Mixin, LWJGL und Lumora darf ein Addon nicht definieren.
   - **Ressourcen** kommen zuerst aus der eigenen JAR. Sprachdateien der JAR liefert `AddonTranslations` hinter den Texten des Spiels.
   - **Beim Beenden** werden die JARs geschlossen, unter Windows sind sie danach nicht mehr gesperrt.
-  - **Ordner:** Den Pfad gibt `Platform.addonsDir()` vor. Jede der 16 Versionen gibt `FabricLoader.getGameDir()/addons` zurück, im Hub öffnet ihn der Knopf „Addon-Ordner“.
+  - **Ordner:** Den Pfad gibt `Platform.addonsDir()` vor. Jede der 16 Versionen gibt `<Spielordner>/addons` zurück (über `LumoraLoader`), im Hub öffnet ihn der Knopf „Addon-Ordner“.
 - **Trennung**: Addons sehen nur `lumora-api`. Der Core enthält keine Minecraft-Klasse und ist mit einer
   `FakePlatform` vollständig unit-getestet (`lumora-core/src/test`). Was sich je Version unterscheidet (Renderer,
   Tasten, Fensterhandle, Hooks), steckt in den Adaptern unter `client/mc<version>/…/api`.
-- **Lebenszyklus**: Fabric `CLIENT_STARTED` → Kandidaten (eingebautes Addon `lumora` mit den 9 HUD-Widgets +
-  `lumora-addon.json` aller Mods + die JARs in `addons/` über `JarAddonLoader`) → `AddonManager.load` (Validierung, Abhängigkeiten, Zyklen, Reihenfolge) →
+- **Lebenszyklus**: Spiel gestartet (Lifecycle-Hook) → Kandidaten (eingebautes Addon `lumora` mit den 9 HUD-Widgets +
+  die JARs in `addons/` über `JarAddonLoader`) → `AddonManager.load` (Validierung, Abhängigkeiten, Zyklen, Reihenfolge) →
   `initializeAll` → `enableAll` → `ClientStartedEvent`. Beim Beenden: `ClientStoppingEvent`, Addons in umgekehrter
   Reihenfolge aus, offene Dateien sofort schreiben, Threads stoppen.
 - **Besitz**: Jede Registrierung eines Addons (Listener, Widget, Keybind, Timer, Hintergrundaufgabe) landet in
@@ -228,9 +229,9 @@ client/mc<version>/…/api   (je Minecraft-Version)   McPlatform, McGameContext,
 
 ## Erweiterbarkeit: weitere Minecraft-Versionen
 
-1. Neues Modul `client/mc<version>` als Kopie der nächstneueren Version (eigene Loom-/Minecraft-/Mapping-
-   Konfiguration: ohne Mappings für 26.x, Mojang-Mappings mit Remapping für 1.14.4–1.21.11, Legacy-Intermediary und
-   Yarn für 1.8.9/1.12.2), danach die API-Unterschiede anpassen. Hilfen in `.t/`: Port-Skripte je Versionssprung
+1. Neues Modul `client/mc<version>` als Kopie der nächstneueren Version (Loom nur zum Kompilieren: ohne Mappings für
+   26.x, Mojang-Mappings für 1.14.4–1.21.11 mit `remapJar.targetNamespace = named`, Legacy-Intermediary und Yarn für
+   1.8.9/1.12.2, deren Namensliste als `lumora/mappings.tiny` in die JAR kommt), danach die API-Unterschiede anpassen. Hilfen in `.t/`: Port-Skripte je Versionssprung
    und `check-mixins.pl` (prüft alle Mixin-Ziele gegen das echte Minecraft-JAR, bevor das Spiel startet).
 2. Versionen ohne `GuiGraphics` (bis 1.19.4) bekommen eine kleine Kompatibilitätsschicht im Paket
    `dev.lumora.client.compat`; für 1.8.9/1.12.2 bildet sie Screen, Widgets, Text und Grafik nach, sodass die
@@ -239,4 +240,4 @@ client/mc<version>/…/api   (je Minecraft-Version)   McPlatform, McGameContext,
    als Java 21 ist), Modul in `lumoraClientVersions` (settings.gradle.kts); `launcher-app` bündelt es.
 
 `launcher-core` unterstützt beide Startformate: `arguments` (ab 1.13) und `minecraftArguments` mit extrahierten
-Natives (bis 1.12.2, Legacy Fabric über `meta.legacyfabric.net`).
+Natives (bis 1.12.2).

@@ -45,7 +45,6 @@ final class Cli {
             if (a.contains("--install-only")) {
                 var prepared = ctx.installer.prepare(profile, ctx.config, a.contains("--repair"), consoleProgress());
                 System.out.println("OK: profile " + profile.id + " installed, java=" + prepared.javaExecutable());
-                prepared.warnings().forEach(w -> System.out.println("WARN: " + w));
                 return 0;
             }
             if (a.contains("--ui-shot")) {
@@ -241,7 +240,7 @@ final class Cli {
         }
         System.out.println("LAUNCH TEST PASSED: Minecraft " + profile.minecraftVersion + " (" + flavor.label()
                 + (flavor == dev.lumora.launcher.core.profile.Flavor.VANILLA ? ""
-                : ", " + profile.loader + " " + profile.fabricLoaderVersion) + ") started and ran " + STABLE_SECONDS + " s");
+                : ", Lumora Loader") + ") started and ran " + STABLE_SECONDS + " s");
         return 0;
     }
 

@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-loader",
+      "date": "2026-11-03",
+      "author": "Lumora",
+      "title": "Lumora läuft ohne Fabric",
+      "text": "Alle 18 Versionen von 1.8.9 bis 26.3 starten jetzt über den eigenen Lumora Loader: nur Minecraft, der Lumora Client und deine Lumora-Addons, kein Mod-Loader mehr. Fabric, Fabric API und Fabric-Mods wie Sodium oder ViaFabricPlus fallen damit weg, ebenso die Seite „Mods“. „Entdecken“ zeigt weiter Ressourcenpakete von Modrinth. Für ältere Versionen lädt der Launcher Mojangs offizielle Namensliste und bereitet Minecraft beim ersten Start einmalig auf deinem PC vor. Ein alter „mods“-Ordner bleibt unangetastet liegen.",
+      "image": "versions.png"
+    },
+    {
       "id": "lumora-addon-loader",
       "date": "2026-11-02",
       "author": "Lumora",

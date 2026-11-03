@@ -4,8 +4,7 @@ Lumora Client (Launcher und Begleit-Mod) © Lumora Client contributors, lizenzie
 **GNU General Public License v3.0 or later** (siehe `LICENSE-GPL-3.0.txt`).
 
 **Hinweis:** Dies ist eine technische Zusammenstellung der Lizenzen, keine Rechtsberatung. Vor einer
-öffentlichen Verteilung sollte eine rechtliche Prüfung erfolgen, insbesondere zur PolyForm-Shield-Lizenz
-von Sodium und zu den Markenrichtlinien von Mojang/Microsoft.
+öffentlichen Verteilung sollte eine rechtliche Prüfung erfolgen, insbesondere zu den Markenrichtlinien von Mojang/Microsoft.
 
 ## A. In der Distribution enthalten (weiterverteilt)
 
@@ -39,27 +38,24 @@ gelten unmittelbar zwischen Nutzer und Rechteinhaber.
 
 | Komponente | Version | Lizenz | Urheber | Quelle |
 |---|---|---|---|---|
-| Minecraft: Java Edition (Client, Assets, Bibliotheken) | 26.1.2, 1.21.11, 1.21.8 | proprietär, [Minecraft EULA](https://www.minecraft.net/eula) | Mojang AB / Microsoft | piston-data.mojang.com, libraries.minecraft.net, resources.download.minecraft.net |
+| Minecraft: Java Edition (Client, Assets, Bibliotheken) | 1.8.9 bis 26.3 (18 Profile) | proprietär, [Minecraft EULA](https://www.minecraft.net/eula) | Mojang AB / Microsoft | piston-data.mojang.com, libraries.minecraft.net, resources.download.minecraft.net |
 | Java-Laufzeit für das Spiel (`java-runtime-epsilon` bzw. `java-runtime-delta`) | 25 bzw. 21 | OpenJDK-Build, Lizenztexte liegen der Runtime unter `legal/` bei | von Mojang bereitgestellt | launchermeta.mojang.com / piston-meta.mojang.com |
-| Ressourcenpakete: Better Leaves (MIT, Motschen), Dramatic Skys (ARR, thebaum64), Enhanced Audio (ARR, Frawzy), Even Better Enchants (Apache-2.0, Mythitorium), Fresh Animations (Nutzungsbedingungen, FreshLX), Fresh Food (ARR, Cyber u. a.), Icons (ARR, WeNAN Studios), Enhanced Boss Bars (ARR, Naku) | je Version passend | wie angegeben | jeweilige Autoren | cdn.modrinth.com – **nur Download beim Nutzer**, keine Weitergabe, unverändert und SHA-512-geprüft |
+| Ressourcenpakete: Better Leaves (MIT, Motschen), Enhanced Audio (ARR, Frawzy), Even Better Enchants (Apache-2.0, Mythitorium), Fresh Food (ARR, Cyber u. a.), Icons (ARR, WeNAN Studios), Enhanced Boss Bars (ARR, Naku) | je Version passend | wie angegeben | jeweilige Autoren | cdn.modrinth.com – **nur Download beim Nutzer**, keine Weitergabe, unverändert und SHA-512-geprüft |
 | Mojangs offizielle Namensliste (`client_mappings`) für die verschleierten Versionen 1.16.5 bis 1.21.11 | je Version | Nutzungsbedingungen von Mojang (Weitergabe nicht erlaubt): wird **nur beim Nutzer** geladen und benutzt, um die Minecraft-JAR dort umzubenennen; Lumora verteilt sie nicht | Mojang AB / Microsoft | piston-data.mojang.com (SHA-1 aus dem Versions-JSON) |
 | Vom Nutzer gewählte Ressourcenpakete (Entdecken) | – | Lizenz des jeweiligen Projekts | jeweilige Autoren | cdn.modrinth.com (SHA-512 aus der Modrinth-API) |
 
-Alle in den Fremd-JARs enthaltenen Lizenz- und Copyright-Hinweise bleiben unverändert. Die JARs werden
+Alle in den Fremddateien enthaltenen Lizenz- und Copyright-Hinweise bleiben unverändert. Ressourcenpakete werden
 bitgenau so verwendet, wie sie veröffentlicht wurden (SHA-512-Prüfung).
 
 ## C. Begründung der Distributionsform
 
-- **Sodium (PolyForm Shield 1.0.0)** erlaubt Nutzung und Weitergabe nur unter Bedingungen, darunter eine
-  Wettbewerbsklausel. Ob ein eigener Client, der Sodium bündelt, als „konkurrierendes Produkt“ gilt, ist
-  ohne rechtliche Prüfung nicht sicher zu beantworten. **Deshalb wird Sodium nicht gebündelt** und
-  sein Code nicht übernommen oder portiert, sondern unverändert von Modrinth geladen.
-- **ViaFabricPlus (GPL-3.0)** dürfte unter Beachtung der GPL-Pflichten
-  (Lizenztext, Quellcode-Angebot) weiterverteilt werden. Aus Konsistenzgründen und damit Updates aus der
-  Originalquelle kommen, wird es zur Laufzeit geladen. Der Lumora-Mod linkt nicht dagegen (Zugriff
-  per Reflection auf öffentliche APIs) und steht ohnehin unter der GPL-3.0-or-later.
+- **Keine Fremd-Mods mehr:** Seit dem Lumora Loader lädt der Launcher weder Fabric noch Fabric-Mods (Sodium,
+  ViaFabricPlus u. a.). Mitgeliefert werden nur eigener Code, Mixin (MIT) und ASM (BSD-3-Clause) mit ihren
+  Lizenztexten.
+- **Mojangs Namensliste** (`client_mappings`) wird nicht weitergegeben. Der Launcher lädt sie beim Nutzer von Mojang,
+  der Loader benennt damit nur dort die Minecraft-JAR um; die umbenannte JAR bleibt auf dem Rechner des Nutzers.
 - **Minecraft** wird nie mitgeliefert. Der Launcher lädt es ausschließlich von Mojang. Das Spielen setzt
   eine eigene, gekaufte Lizenz voraus, die über die Microsoft-Anmeldung und die Entitlement-Prüfung
   kontrolliert wird.
 - Lumora ist ein inoffizielles Projekt und steht in keiner Verbindung zu Mojang, Microsoft, CaffeineMC,
-  xCollateral, ViaVersion oder LabyMedia.
+  FabricMC, ViaVersion oder LabyMedia.

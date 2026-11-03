@@ -53,15 +53,25 @@ class ModInstallerTest {
         return new BundledMods(dir);
     }
 
+    /** A minimal jar (only the content matters here). */
+    static byte[] jar(String descriptor) throws IOException {
+        java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
+        try (java.util.zip.ZipOutputStream z = new java.util.zip.ZipOutputStream(b)) {
+            z.putNextEntry(new java.util.zip.ZipEntry("lumora.loader.json"));
+            z.write(descriptor.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        return b.toByteArray();
+    }
+
     Downloader downloader() {
         return new Downloader(HttpClient.newHttpClient(), Set.of(), true, 2, Duration.ofMillis(1), 2);
     }
 
     @Test
     void installsSyncsAndReportsUnmanagedMods() throws Exception {
-        byte[] a = DependencyCheckerTest.jar("{\"id\":\"a\",\"version\":\"1\"}", Map.of());
-        byte[] b = DependencyCheckerTest.jar("{\"id\":\"b\",\"version\":\"1\"}", Map.of());
-        byte[] own = DependencyCheckerTest.jar("{\"id\":\"lumora\",\"version\":\"0.1.0\"}", Map.of());
+        byte[] a = jar("{\"id\":\"a\",\"version\":\"1\"}");
+        byte[] b = jar("{\"id\":\"b\",\"version\":\"1\"}");
+        byte[] own = jar("{\"id\":\"lumora\",\"version\":\"0.1.0\"}");
         try (LocalServer s = new LocalServer()
                 .on("/a.jar", (ex, n) -> LocalServer.Response.ok(a))
                 .on("/b.jar", (ex, n) -> LocalServer.Response.ok(b))) {
@@ -89,7 +99,7 @@ class ModInstallerTest {
 
     @Test
     void tamperedBundledModIsRejected() throws Exception {
-        byte[] own = DependencyCheckerTest.jar("{\"id\":\"lumora\",\"version\":\"0.1.0\"}", Map.of());
+        byte[] own = jar("{\"id\":\"lumora\",\"version\":\"0.1.0\"}");
         ModInstaller installer = new ModInstaller(downloader(), tmp.resolve("cache"), bundledDir(own, true));
         IOException e = assertThrows(IOException.class,
                 () -> installer.install(List.of(bundled("lumora-client-mc26.1.2.jar")), tmp.resolve("mods"), null));

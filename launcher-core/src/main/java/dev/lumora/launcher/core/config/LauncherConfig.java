@@ -66,7 +66,7 @@ public final class LauncherConfig {
     public List<String> customServers = new ArrayList<>();
 
     // --- Startart und Spiel
-    /** What the play button starts: lumora, fabric (no Lumora mods) or vanilla (see Flavor). */
+    /** What the play button starts: lumora or vanilla (see Flavor; old mod loader ids fall back to lumora). */
     public String selectedFlavor = "lumora";
     /** After the game started: keep (launcher stays open), hide (minimise) or close (launcher ends, game keeps running). */
     public String afterLaunch = "keep";

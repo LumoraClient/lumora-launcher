@@ -33,13 +33,10 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 
 /**
- * "Performance": system at a glance, graphics profiles for the selected version's options.txt, the performance mods
- * of the version and the Java/memory settings that matter for FPS.
+ * "Performance": system at a glance, graphics profiles for the selected version's options.txt and the Java/memory
+ * settings that matter for FPS. No performance mods: Lumora runs without a mod loader.
  */
 public final class PerformancePage extends JPanel {
-    /** Profile mods that exist for performance, in the order they are shown. */
-    private static final List<String> PERF_MODS = List.of("sodium", "lithium", "ferritecore");
-
     private final PageHost host;
     private final ExecutorService io;
     private final JPanel content = Ui.column();
@@ -126,36 +123,6 @@ public final class PerformancePage extends JPanel {
         }
         under.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         content.add(under);
-
-        // performance mods
-        content.add(Box.createVerticalStrut(24));
-        content.add(Ui.sectionTitle("Performance-Mods", flavor == Flavor.LUMORA
-                ? "Bei Lumora schon dabei, geprüft und passend zur Version." : "Nur im Lumora Client – " + flavor.label() + " startet ohne sie."));
-        Card mods = new Card(new GridLayout(0, 1, 0, 10));
-        mods.setAlignmentX(Component.LEFT_ALIGNMENT);
-        int found = 0;
-        for (String key : PERF_MODS) {
-            var a = host.ctx().catalog.profileArtifact(p, key);
-            if (a.isEmpty()) {
-                continue;
-            }
-            found++;
-            JPanel row = new JPanel(new BorderLayout(12, 0));
-            row.setOpaque(false);
-            row.add(new JLabel(Icons.of(Icons.Kind.BOLT, 18, flavor == Flavor.LUMORA ? Theme.ACCENT_HOVER : Theme.MUTED)), BorderLayout.WEST);
-            JPanel t = Ui.column();
-            t.add(Ui.label(a.get().name + "  " + a.get().version.replaceFirst("^mc[0-9.]+-", ""), 14, Font.BOLD, Theme.TEXT));
-            t.add(Ui.label(modPurpose(key), 12.5f, Font.PLAIN, Theme.MUTED));
-            row.add(t, BorderLayout.CENTER);
-            row.add(flavor == Flavor.LUMORA ? Ui.chip("aktiv", Theme.OK, Theme.OK) : Ui.chip("nicht in " + flavor.label(), Theme.MUTED, Theme.MUTED),
-                    BorderLayout.EAST);
-            mods.add(row);
-        }
-        if (found == 0) {
-            mods.add(Ui.label("Für Minecraft " + p.minecraftVersion + " gibt es keine dieser Mods (OpenGL-Standard).", 13, Font.PLAIN, Theme.MUTED));
-        }
-        mods.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
-        content.add(mods);
 
         // java and memory
         content.add(Box.createVerticalStrut(24));
@@ -267,15 +234,6 @@ public final class PerformancePage extends JPanel {
         t.add(value);
         c.add(t, BorderLayout.CENTER);
         return c;
-    }
-
-    private static String modPurpose(String key) {
-        return switch (key) {
-            case "sodium" -> "Neue Render-Engine: deutlich mehr FPS und weniger Ruckler";
-            case "lithium" -> "Schnellere Spiellogik (KI, Physik, Chunks) ohne Verhaltensänderung";
-            case "ferritecore" -> "Weniger Arbeitsspeicher für Blockzustände und Modelle";
-            default -> "";
-        };
     }
 
     private static String javaName(String component) {

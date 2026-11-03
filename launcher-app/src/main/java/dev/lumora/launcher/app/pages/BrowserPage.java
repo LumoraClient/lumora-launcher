@@ -380,7 +380,7 @@ public final class BrowserPage extends JPanel {
 
     private void install(ModrinthBrowser.Hit h, JButton button) {
         if (host.gameRunning()) {
-            host.error("Installation nicht möglich", "Minecraft läuft gerade. Beende das Spiel, dann installiere die Mod.");
+            host.error("Installation nicht möglich", "Minecraft läuft gerade. Beende das Spiel, dann installiere das Paket.");
             return;
         }
         ProfileCatalog.Profile p = profile();
@@ -397,10 +397,10 @@ public final class BrowserPage extends JPanel {
                     StringBuilder sb = new StringBuilder(h.title() + " ist für Minecraft " + p.minecraftVersion + " installiert.\n\n");
                     r.files().forEach(f -> sb.append("✓ ").append(f).append('\n'));
                     if (!r.skippedManaged().isEmpty()) {
-                        sb.append("\nBenötigte Mods, die Lumora schon mitbringt: ").append(r.skippedManaged().size()).append('\n');
+                        sb.append("\nSchon von Lumora mitgebracht: ").append(r.skippedManaged().size()).append('\n');
                     }
                     r.notes().forEach(n -> sb.append("\nHinweis: ").append(n));
-                    sb.append("\nJede Datei wurde mit der SHA-512-Prüfsumme von Modrinth verifiziert. Vor dem Start prüft der Launcher die Kompatibilität.");
+                    sb.append("\nJede Datei wurde mit der SHA-512-Prüfsumme von Modrinth verifiziert.");
                     JOptionPane.showMessageDialog(host.frame(), sb.toString(), "Installiert", JOptionPane.INFORMATION_MESSAGE);
                 });
             } catch (IOException | RuntimeException e) {

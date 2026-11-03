@@ -332,7 +332,7 @@ public final class SettingsPage extends JPanel {
                         + "LumoraClient.exe aktualisiert, sonst kommt nur der Hinweis auf die Release-Seite. Wirkt nach einem Neustart.",
                 false, toggle(cfg.portableSelfUpdate, on -> cfg.portableSelfUpdate = on));
         add("Allgemein", Icons.Kind.REFRESH, "Automatische Update-Prüfung",
-                "Sucht beim Start nach neuen Versionen von Fabric, Mods und Ressourcenpaketen und fragt vor jeder Änderung.", false,
+                "Sucht beim Start nach neuen Versionen des Launchers und der Ressourcenpakete und fragt vor jeder Änderung.", false,
                 toggle(cfg.checkForUpdates, on -> cfg.checkForUpdates = on));
         ToggleSwitch autostart = new ToggleSwitch(Autostart.enabled());
         autostart.setEnabled(Autostart.supported());
@@ -397,7 +397,7 @@ public final class SettingsPage extends JPanel {
 
         // --- Spiel
         add("Spiel", Icons.Kind.ARCHIVE, "Mehrere Instanzen", "Mehrere Minecraft-Versionen gleichzeitig starten. Jede Version "
-                + "(Lumora, Fabric, Vanilla) läuft trotzdem nur einmal.", false, toggle(cfg.multipleInstances, on -> cfg.multipleInstances = on));
+                + "(Lumora, Vanilla) läuft trotzdem nur einmal.", false, toggle(cfg.multipleInstances, on -> cfg.multipleInstances = on));
         add("Spiel", Icons.Kind.ROCKET, "Aktion nach dem Start", "Was der Launcher macht, sobald Minecraft läuft.", false,
                 Ui.segmented(List.of("keep", "hide", "close"), List.of("Offen lassen", "Verstecken", "Schließen"), cfg.afterLaunch, v -> {
                     cfg.afterLaunch = v;

@@ -468,8 +468,8 @@ final class LauncherWindow implements PageHost {
         JPanel features = new JPanel(new GridLayout(1, 4, 0, 0));
         features.setOpaque(false);
         Object[][] f = {
-                {Icons.Kind.BOLT, "Performance", "Sodium, Lithium & Co.", "performance"},
-                {Icons.Kind.PUZZLE, "Mods", "Modrinth mit einem Klick", "browser"},
+                {Icons.Kind.BOLT, "Performance", "Grafik-Profile & Java", "performance"},
+                {Icons.Kind.PUZZLE, "Ressourcen", "Ressourcenpakete von Modrinth", "browser"},
                 {Icons.Kind.USERS, "Freunde", "Chat und Gruppen", "social"},
                 {Icons.Kind.GLOBE, "Server", "Live-Rangliste", "servers"}};
         for (int i = 0; i < f.length; i++) {
@@ -626,7 +626,7 @@ final class LauncherWindow implements PageHost {
             boolean recommended = p.id.equals(ctx.catalog.defaultProfile());
             String played = playInfo.get(p.id);
             list.add(new VersionGrid.Version(p.id, p.minecraftVersion, "<html><b>Minecraft " + p.minecraftVersion + "</b>"
-                    + (recommended ? "  ·  Empfohlene Version" : "") + "<br>" + engineLine(p)
+                    + (recommended ? "  ·  Empfohlene Version" : "") + "<br>Lumora Loader"
                     + (played == null ? "" : "<br>" + played) + "</html>"));
         }
         VersionGrid grid = new VersionGrid(list, id -> ctx.paths.instance(id).resolve("screenshots"), id -> {
@@ -740,34 +740,18 @@ final class LauncherWindow implements PageHost {
         return ctx.catalog.profileArtifact(p, "lumora-client").isPresent();
     }
 
-    private static boolean isLegacy(ProfileCatalog.Profile p) {
-        return "legacy-fabric".equals(p.loader);
-    }
-
-    private String engineLine(ProfileCatalog.Profile p) {
-        return ctx.catalog.profileArtifact(p, "sodium").map(a -> "Sodium " + shortVersion(a.version)).orElse("OpenGL")
-                + ctx.catalog.profileArtifact(p, "viafabricplus").map(a -> "  ·  ViaFabricPlus " + shortVersion(a.version)).orElse("");
-    }
-
-    /** "mc1.21.8-0.7.3-fabric" / "0.9.2+mc26.1.2" -> "0.7.3" / "0.9.2". */
-    private static String shortVersion(String v) {
-        return v.replaceFirst("^mc[0-9.]+-", "").replaceAll("[+-].*", "");
-    }
-
     private void refreshVersionInfo(ProfileCatalog.Profile p) {
         dev.lumora.launcher.core.profile.Flavor fl = currentFlavor();
         if (heroOverline != null) {
             heroOverline.setText("MINECRAFT " + p.minecraftVersion + "  ·  " + switch (fl) {
-                case LUMORA -> isLegacy(p) ? "LUMORA · LEGACY FABRIC" : "LUMORA CLIENT";
+                case LUMORA -> "LUMORA CLIENT";
                 case VANILLA -> "VANILLA";
             });
         }
         if (heroChips != null) {
             heroChips.removeAll();
             if (fl == dev.lumora.launcher.core.profile.Flavor.LUMORA) {
-                for (String key : List.of("sodium", "viafabricplus", "viafabric")) {
-                    ctx.catalog.profileArtifact(p, key).ifPresent(a -> heroChips.add(chip(a.name + " " + shortVersion(a.version))));
-                }
+                heroChips.add(chip("Lumora Loader"));
                 if (hasLumoraUi(p)) {
                     heroChips.add(chip("Lumora-UI"));
                 }

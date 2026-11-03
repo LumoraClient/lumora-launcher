@@ -22,43 +22,26 @@ class ProfileCatalogTest {
         assertEquals("26.1.2", c.defaultProfile());
         assertEquals(List.of("26.3", "26.2", "26.1.2", "26.1.1", "26.1", "1.21.11", "1.21.8", "1.21.4", "1.21", "1.20.6", "1.20.4",
                 "1.20.1", "1.19.4", "1.18.2", "1.17.1", "1.16.5", "1.12.2", "1.8.9"), c.profiles().stream().map(p -> p.id).toList());
-        // versions with a ported Lumora companion mod
-        List<String> lumora = List.of("26.3", "26.2", "26.1.2", "26.1.1", "26.1", "1.21.11", "1.21.8", "1.21.4", "1.21", "1.20.6", "1.20.4", "1.20.1", "1.19.4", "1.18.2", "1.17.1", "1.16.5", "1.12.2", "1.8.9");
         for (ProfileCatalog.Profile p : c.profiles()) {
             assertEquals(p.id, p.minecraftVersion, "profile id is the Minecraft version");
-            assertEquals("0.19.5", p.fabricLoaderVersion);
-            boolean legacy = p.id.equals("1.8.9") || p.id.equals("1.12.2");
-            if (p.lumoraLoader()) {
-                // Lumora Loader: Minecraft plus the Lumora client only, no mod loader and no Fabric mods
-                assertEquals(1, p.mods.size(), p.id);
-                assertEquals("lumora-client", c.profileArtifact(p, "lumora-client").orElseThrow().key(), p.id);
-                assertTrue(p.extensions.isEmpty(), p.id + " has no extensions without a mod loader");
-                for (ProfileCatalog.Artifact pack : c.resolvePacks(p, List.of())) {
-                    assertTrue(pack.requires == null || pack.requires.isEmpty(), p.id + ": " + pack.id + " needs a mod");
-                }
-                continue;
+            // Lumora Loader: Minecraft plus the Lumora client only, no mod loader and no third-party mods
+            assertEquals("lumora", p.loader, p.id);
+            assertTrue(p.lumoraLoader(), p.id);
+            assertEquals(1, p.mods.size(), p.id);
+            assertEquals("lumora-client", c.profileArtifact(p, "lumora-client").orElseThrow().key(), p.id);
+            assertEquals(ProfileCatalog.Source.BUNDLED, c.profileArtifact(p, "lumora-client").orElseThrow().source, p.id);
+            assertTrue(p.extensions.isEmpty(), p.id + " has no extensions without a mod loader");
+            for (ProfileCatalog.Artifact pack : c.resolvePacks(p, List.of())) {
+                assertTrue(pack.requires == null || pack.requires.isEmpty(), p.id + ": " + pack.id + " needs a mod");
+                assertTrue(pack.id.endsWith("-" + p.minecraftVersion) || pack.id.equals(pack.key()), pack.id + " belongs to another version");
             }
-            assertEquals(legacy ? "legacy-fabric" : "fabric", p.loader, p.id);
-            assertTrue(c.profileArtifact(p, legacy ? "legacy-fabric-api" : "fabric-api").isPresent(), p.id + " lacks its Fabric API");
-            if (!legacy) {
-                assertTrue(c.profileArtifact(p, "sodium").isPresent(), p.id + " lacks Sodium");
-            }
-            assertTrue(c.profileArtifact(p, "viafabricplus").isPresent() || c.profileArtifact(p, "viafabric").isPresent(),
-                    p.id + " lacks ViaFabric(Plus)");
-            assertEquals(lumora.contains(p.id), c.profileArtifact(p, "lumora-client").isPresent(), p.id + " Lumora mod");
             // the Lumora API is built for Java 21: versions whose Minecraft ships an older Java start with Java 21
-            if (lumora.contains(p.id) && List.of("1.20.4", "1.20.1", "1.19.4", "1.18.2", "1.17.1", "1.16.5", "1.12.2", "1.8.9").contains(p.id)) {
+            if (List.of("1.20.4", "1.20.1", "1.19.4", "1.18.2", "1.17.1", "1.16.5", "1.12.2", "1.8.9").contains(p.id)) {
                 assertEquals("java-runtime-delta", p.javaComponent, p.id + " needs Java 21 for the Lumora API");
-            }
-            assertTrue(p.mods.stream().noneMatch(m -> m.contains("vulkan")), "VulkanMod profile was removed");
-            for (ProfileCatalog.Artifact a : c.profileArtifacts(p)) {
-                if (a.source == ProfileCatalog.Source.MODRINTH && !a.id.equals(a.key())) {
-                    assertTrue(a.id.endsWith("-" + p.minecraftVersion), a.id + " belongs to another version");
-                }
             }
         }
         assertEquals("lumora-client-mc1.21.8.jar", c.profileArtifact(c.profile("1.21.8").orElseThrow(), "lumora-client").orElseThrow().fileName);
-        assertEquals(List.of("modmenu", "ferritecore", "lithium", "voicechat"), c.allExtensionIds());
+        assertTrue(c.allExtensionIds().isEmpty(), "no mod extensions without a mod loader");
         for (ProfileCatalog.Artifact a : c.artifacts()) {
             if (a.source == ProfileCatalog.Source.MODRINTH) {
                 assertEquals(128, a.sha512.length(), a.id);
@@ -68,27 +51,18 @@ class ProfileCatalogTest {
     }
 
     @Test
-    void resolveModsAddsOnlySupportedEnabledExtensions() throws IOException {
+    void resolveModsReturnsOnlyTheLumoraJar() throws IOException {
         ProfileCatalog c = ProfileCatalog.loadBundled();
-        // Lumora Loader profile: extensions are ignored, only the Lumora jar
-        var mods = c.resolveMods(c.profile("26.1.2").orElseThrow(), List.of("modmenu", "unknown"));
-        assertEquals(List.of("lumora-client"), mods.stream().map(a -> a.id).toList());
-        // Fabric profiles (while some are left): extension switches are stored by key and pick the build of the version
+        // no mod loader: old extension switches (modmenu, lithium ...) from a config are ignored
         for (ProfileCatalog.Profile p : c.profiles()) {
-            if (p.lumoraLoader()) {
-                assertEquals(1, c.resolveMods(p, List.of("modmenu", "lithium")).size(), p.id);
-                continue;
-            }
-            List<String> keys = c.resolveMods(p, List.of("modmenu", "unknown")).stream().map(a -> a.key()).toList();
-            assertTrue(keys.contains("lumora-client") && keys.stream().anyMatch(k -> k.endsWith("fabric-api")), p.id + ": " + keys);
-            assertEquals(p.extensions.stream().anyMatch(e -> c.profileArtifact(p, "modmenu").isPresent()), keys.contains("modmenu"), p.id);
+            assertEquals(List.of("lumora-client"), c.resolveMods(p, List.of("modmenu", "lithium", "unknown")).stream().map(a -> a.key()).toList(), p.id);
         }
     }
 
     private static String doc(String artifactJson, String profileMods) {
         return """
                 {"schemaVersion":1,"defaultProfile":"p","profiles":[{"id":"p","displayName":"P","minecraftVersion":"26.1.2",
-                 "fabricLoaderVersion":"0.19.5","mods":[%s],"extensions":[]}],
+                 "loader":"lumora","mods":[%s],"extensions":[]}],
                  "artifacts":[%s]}
                 """.formatted(profileMods, artifactJson);
     }
@@ -135,18 +109,18 @@ class ProfileCatalogTest {
     void validOverrideReplacesArtifactInvalidOverrideIsIgnored() throws IOException {
         Path override = tmp.resolve("profiles.override.json");
         Files.writeString(override, """
-                {"schemaVersion":1,"artifacts":[{"id":"sodium-1.21.8","name":"Sodium","version":"9.9.9","license":"PolyForm-Shield-1.0.0",
-                 "source":"MODRINTH","modrinthProjectId":"AANobbMI","fileName":"sodium-9.9.9.jar",
-                 "url":"https://cdn.modrinth.com/data/AANobbMI/versions/x/sodium-9.9.9.jar","size":5,"sha512":"%s"}]}
+                {"schemaVersion":1,"artifacts":[{"id":"better-leaves-1.21.8","name":"Better Leaves","version":"9.9.9","license":"MIT",
+                 "source":"MODRINTH","modrinthProjectId":"uvpymuxq","fileName":"better-leaves-9.9.9.zip",
+                 "url":"https://cdn.modrinth.com/data/uvpymuxq/versions/x/better-leaves-9.9.9.zip","size":5,"sha512":"%s"}]}
                 """.formatted("b".repeat(128)));
         ProfileCatalog updated = ProfileCatalog.load(override);
-        assertEquals("9.9.9", updated.artifact("sodium-1.21.8").version);
-        assertEquals("sodium", updated.artifact("sodium-1.21.8").key(), "key comes from the bundled lockfile");
+        assertEquals("9.9.9", updated.artifact("better-leaves-1.21.8").version);
+        assertEquals("better-leaves", updated.artifact("better-leaves-1.21.8").key(), "key comes from the bundled lockfile");
 
         Files.writeString(override, """
-                {"schemaVersion":1,"artifacts":[{"id":"sodium-1.21.8","source":"MODRINTH","fileName":"x.jar",
-                 "url":"https://evil.example/x.jar","size":5,"sha512":"%s"}]}
+                {"schemaVersion":1,"artifacts":[{"id":"better-leaves-1.21.8","source":"MODRINTH","fileName":"x.zip",
+                 "url":"https://evil.example/x.zip","size":5,"sha512":"%s"}]}
                 """.formatted("b".repeat(128)));
-        assertEquals("mc1.21.8-0.7.3-fabric", ProfileCatalog.load(override).artifact("sodium-1.21.8").version);
+        assertEquals("9.6", ProfileCatalog.load(override).artifact("better-leaves-1.21.8").version);
     }
 }

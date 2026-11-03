@@ -31,14 +31,10 @@ public final class ProfileCatalog {
         public String displayName;
         public String description;
         public String minecraftVersion;
-        public String fabricLoaderVersion;
-        /**
-         * "lumora" (the Lumora Loader: plain Minecraft plus the Lumora client, no mod loader), "fabric" (default) or
-         * "legacy-fabric" (Minecraft before 1.14, loader profile from meta.legacyfabric.net).
-         */
-        public String loader = "fabric";
+        /** Always "lumora": the Lumora Loader starts plain Minecraft plus the Lumora client (no mod loader). */
+        public String loader = "lumora";
 
-        /** Started by the Lumora Loader instead of Fabric. */
+        /** Started by the Lumora Loader (every Lumora profile). */
         public boolean lumoraLoader() {
             return "lumora".equals(loader);
         }
@@ -225,11 +221,11 @@ public final class ProfileCatalog {
             if (!profileIds.add(p.id)) {
                 errors.add("duplicate profile " + p.id);
             }
-            if (p.minecraftVersion == null || p.fabricLoaderVersion == null) {
-                errors.add(p.id + ": minecraftVersion and fabricLoaderVersion are required");
+            if (p.minecraftVersion == null) {
+                errors.add(p.id + ": minecraftVersion is required");
             }
-            if (!"fabric".equals(p.loader) && !"legacy-fabric".equals(p.loader) && !"lumora".equals(p.loader)) {
-                errors.add(p.id + ": loader must be lumora, fabric or legacy-fabric");
+            if (!"lumora".equals(p.loader)) {
+                errors.add(p.id + ": loader must be lumora (mod loaders are not supported)");
             }
             if (p.javaComponent != null && !p.javaComponent.matches("(java-runtime-[a-z]+|jre-legacy)")) {
                 errors.add(p.id + ": invalid javaComponent " + p.javaComponent);

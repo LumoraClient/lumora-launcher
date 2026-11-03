@@ -41,9 +41,7 @@ public final class Downloader {
     public static final Set<String> DEFAULT_TRUSTED_HOSTS = Set.of(
             "piston-meta.mojang.com", "piston-data.mojang.com", "launchermeta.mojang.com", "launcher.mojang.com",
             "libraries.minecraft.net", "resources.download.minecraft.net",
-            "meta.fabricmc.net", "maven.fabricmc.net",
-            // Legacy Fabric: loader profiles, intermediary mappings and patched LWJGL 2 for 1.8.9 / 1.12.2
-            "meta.legacyfabric.net", "maven.legacyfabric.net",
+            // Modrinth: resource packs (Entdecken); no mod loader, so no Fabric or mod downloads
             "api.modrinth.com", "cdn.modrinth.com",
             // skins: official Mojang profile/texture services (read-only, public data)
             "sessionserver.mojang.com", "api.mojang.com", "api.minecraftservices.com", "textures.minecraft.net");

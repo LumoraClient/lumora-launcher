@@ -109,7 +109,7 @@ public final class PlayService {
                 smokeReport, quickPlay, listener);
     }
 
-    /** @param flavor Lumora (the profile with its mods), pure Fabric or Vanilla for the profile's Minecraft version */
+    /** @param flavor Lumora (Minecraft with the Lumora client via the Lumora Loader) or Vanilla for the profile's Minecraft version */
     public GameProcess play(ProfileCatalog.Profile profile, dev.lumora.launcher.core.profile.Flavor flavor, LauncherConfig config,
                             Mode mode, boolean repair, InteractiveLogin interactiveLogin, BooleanSupplier cancelled,
                             Path smokeReport, LaunchCommandBuilder.QuickPlay quickPlay, Listener listener) throws IOException, AuthException {
@@ -120,10 +120,6 @@ public final class PlayService {
         try {
             setState(listener, State.INSTALLING, "Prüfe Installation…");
             ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
-            for (var w : prepared.warnings()) {
-                Log.warn(w.toString());
-            }
-
             LaunchCommandBuilder.Identity identity;
             if (mode == Mode.SMOKE_TEST_DEMO) {
                 identity = new LaunchCommandBuilder.Identity("DemoSmokeTest",

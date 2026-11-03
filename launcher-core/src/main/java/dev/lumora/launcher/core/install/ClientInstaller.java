@@ -6,8 +6,6 @@ import dev.lumora.launcher.core.download.Downloader;
 import dev.lumora.launcher.core.java.JavaProbe;
 import dev.lumora.launcher.core.java.JavaRuntimeInstaller;
 import dev.lumora.launcher.core.mods.BundledMods;
-import dev.lumora.launcher.core.mods.DependencyChecker;
-import dev.lumora.launcher.core.mods.FabricModMetadata;
 import dev.lumora.launcher.core.mods.ModInstaller;
 import dev.lumora.launcher.core.mojang.AssetIndex;
 import dev.lumora.launcher.core.mojang.MetadataService;
@@ -27,45 +25,24 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * Makes a runtime profile ready to start. Idempotent: running it again only repairs what is missing
- * or corrupt. Order: metadata, client jar, libraries, assets, logging config, Java, mods, dependency check.
+ * or corrupt. Order: metadata, client jar, libraries, assets, logging config, Java, Lumora jar, resource packs,
+ * loader. Lumora profiles start through the Lumora Loader (no mod loader), Vanilla is plain Minecraft.
  */
 public final class ClientInstaller {
     public record Prepared(ProfileCatalog.Profile profile, ResolvedVersion version, Path javaExecutable,
                            Path clientJar, Path gameDir, Path nativesDir, Path loggingConfig,
-                           List<DependencyChecker.Problem> warnings, List<Path> unmanagedMods,
                            dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader loader) {
-        public Prepared(ProfileCatalog.Profile profile, ResolvedVersion version, Path javaExecutable, Path clientJar, Path gameDir,
-                        Path nativesDir, Path loggingConfig, List<DependencyChecker.Problem> warnings, List<Path> unmanagedMods) {
-            this(profile, version, javaExecutable, clientJar, gameDir, nativesDir, loggingConfig, warnings, unmanagedMods, null);
-        }
     }
 
     /** The Lumora Loader in the launcher's bundled folder (started instead of a mod loader, profile loader "lumora"). */
     public static final String LOADER_JAR = "lumora-loader.jar";
 
-    public static final class DependencyException extends IOException {
-        private static final long serialVersionUID = 1L;
-        private final transient List<DependencyChecker.Problem> problems;
-
-        public DependencyException(List<DependencyChecker.Problem> problems) {
-            super("Inkompatible Mod-Kombination:\n - " + String.join("\n - ",
-                    problems.stream().map(DependencyChecker.Problem::message).toList()));
-            this.problems = List.copyOf(problems);
-        }
-
-        public List<DependencyChecker.Problem> problems() {
-            return problems;
-        }
-    }
-
-    /** Versions whose Fabric API does not switch the built-in Lumora theme on by itself: the launcher does it once. */
+    /** Versions on which the launcher switches the built-in Lumora theme on once (in options.txt). */
     static final java.util.Set<String> THEME_ONCE = java.util.Set.of("26.3");
 
     private final LauncherPaths paths;
@@ -88,22 +65,19 @@ public final class ClientInstaller {
     }
 
     /**
-     * @param flavor {@link Flavor#LUMORA}: the profile with its mods (Fabric runs underneath, it is never chosen by
-     *               the player); {@link Flavor#VANILLA}: plain Minecraft in its own instance folder with Mojang's Java.
+     * @param flavor {@link Flavor#LUMORA}: Minecraft with the Lumora client, started by the Lumora Loader;
+     *               {@link Flavor#VANILLA}: plain Minecraft in its own instance folder with Mojang's Java.
      */
     public Prepared prepare(ProfileCatalog.Profile profile, Flavor flavor, LauncherConfig config, boolean repair,
                             ProgressListener progress) throws IOException {
         MetadataService meta = new MetadataService(downloader, paths.versions());
         boolean vanillaOnly = flavor == Flavor.VANILLA;
-        // Lumora Loader: plain Minecraft plus the Lumora client, no mod loader
-        boolean lumoraLoader = !vanillaOnly && profile.lumoraLoader();
         progress.stage("Lade Versionsinformationen (Minecraft " + profile.minecraftVersion
-                + (vanillaOnly ? ", Vanilla" : lumoraLoader ? ", Lumora Loader" : ", Fabric " + profile.fabricLoaderVersion) + ")");
+                + (vanillaOnly ? ", Vanilla" : ", Lumora Loader") + ")");
         progress.progress(-1, "");
+        // only Mojang's version JSON: Lumora needs no mod loader profile
         VersionJson vanilla = meta.vanilla(profile.minecraftVersion);
-        VersionJson fabric = vanillaOnly || lumoraLoader ? null
-                : meta.fabricProfile(profile.minecraftVersion, profile.fabricLoaderVersion, "legacy-fabric".equals(profile.loader));
-        ResolvedVersion version = ResolvedVersion.merge(fabric, vanilla, os);
+        ResolvedVersion version = ResolvedVersion.merge(null, vanilla, os);
         String instanceId = flavor.instanceId(profile.id);
 
         Path verifiedMarker = FileUtil.resolveInside(paths.versions(), version.id() + "/.lumora-verified");
@@ -120,18 +94,16 @@ public final class ClientInstaller {
         tasks.add(new Downloader.Task(URI.create(version.clientJar().url), clientJar,
                 Hashing.Expected.sha1(version.clientJar().sha1), version.clientJar().size));
         for (ResolvedVersion.Library lib : version.libraries()) {
-            String sha1 = lib.sha1() != null ? lib.sha1() : fetchMavenSha1(lib.url());
             tasks.add(new Downloader.Task(URI.create(lib.url()), FileUtil.resolveInside(paths.libraries(), lib.path()),
-                    Hashing.Expected.sha1(sha1), lib.size()));
+                    Hashing.Expected.sha1(lib.sha1()), lib.size()));
         }
         downloader.downloadAll(tasks, progressAdapter(progress, "Bibliotheken"), verify);
 
         // native libraries (up to 1.18.2): classifier jars, extracted into the natives directory below
         List<Downloader.Task> nativeTasks = new ArrayList<>();
         for (ResolvedVersion.NativeLibrary n : version.natives()) {
-            String sha1 = n.sha1() != null ? n.sha1() : fetchMavenSha1(n.url());
             nativeTasks.add(new Downloader.Task(URI.create(n.url()), FileUtil.resolveInside(paths.libraries(), n.path()),
-                    Hashing.Expected.sha1(sha1), n.size()));
+                    Hashing.Expected.sha1(n.sha1()), n.size()));
         }
         downloader.downloadAll(nativeTasks, progressAdapter(progress, "Native Bibliotheken"), verify);
 
@@ -163,85 +135,41 @@ public final class ClientInstaller {
             Files.createDirectories(natives);
             NativeExtractor.extract(version.natives(), paths.libraries(), natives);
             progress.progress(1, "");
-            return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, List.of(), List.of());
+            return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, null);
         }
 
-        // mods: Lumora's own (verified), the player's own jars in mods/ stay
+        // the Lumora jar(s) of the profile (verified); they live in .lumora/client, a mods/ folder is left alone
         progress.stage("Installiere Client-Komponenten (" + profile.displayName + ")");
-        // Lumora Loader: only the profile's own Lumora jar(s); no extensions and no mods that resource packs ask for
-        List<ProfileCatalog.Artifact> mods = lumoraLoader ? catalog.resolveMods(profile, List.of(), null)
-                : flavor == Flavor.LUMORA ? catalog.resolveMods(profile, config.enabledExtensions, config.disabledResourcePacks) : List.of();
+        List<ProfileCatalog.Artifact> mods = catalog.resolveMods(profile, List.of(), null);
         ModInstaller modInstaller = new ModInstaller(downloader, paths.modCache(), bundled.get());
-        // with the Lumora Loader the client jar lives in .lumora/client: mods/ (old Fabric mods, own files) is left alone
-        Path modsDir = lumoraLoader ? gameDir.resolve(".lumora").resolve("client") : gameDir.resolve("mods");
-        ModInstaller.Result modResult = modInstaller.install(mods, modsDir, progressAdapter(progress, "Mods"));
+        ModInstaller.Result modResult = modInstaller.install(mods, gameDir.resolve(".lumora").resolve("client"),
+                progressAdapter(progress, "Lumora"));
 
-        // resource packs: same verified download into resourcepacks/, then switched on in options.txt
-        if (flavor == Flavor.LUMORA) {
-            List<ProfileCatalog.Artifact> packs = catalog.resolvePacks(profile, config.disabledResourcePacks);
-            if (lumoraLoader) {
-                // packs that need a mod (Fresh Animations: EMF/ETF) would do nothing without a mod loader
-                packs = packs.stream().filter(a -> a.requires == null || a.requires.isEmpty()).toList();
-            }
-            progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
-            modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
-            ResourcePackOptions.apply(gameDir, packs, THEME_ONCE.contains(profile.minecraftVersion)
-                    && catalog.profileArtifact(profile, "lumora-client").isPresent());
-        }
+        // resource packs: same verified download into resourcepacks/, then switched on in options.txt; packs that
+        // would need a mod (none without a mod loader) are skipped
+        List<ProfileCatalog.Artifact> packs = catalog.resolvePacks(profile, config.disabledResourcePacks).stream()
+                .filter(a -> a.requires == null || a.requires.isEmpty()).toList();
+        progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
+        modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
+        ResourcePackOptions.apply(gameDir, packs, THEME_ONCE.contains(profile.minecraftVersion)
+                && catalog.profileArtifact(profile, "lumora-client").isPresent());
 
-        if (lumoraLoader) {
-            // no mod loader, no Fabric metadata to check: the loader starts exactly the verified Lumora jar(s)
-            Path loaderJar = bundled.get().verified(LOADER_JAR);
-            // obfuscated versions (up to 1.21.11): Mojang's official client mappings from the version JSON (SHA-1 checked)
-            Path mappings = null;
-            VersionJson.Download cm = vanilla.downloads == null ? null : vanilla.downloads.get("client_mappings");
-            if (cm != null && cm.url != null) {
-                mappings = FileUtil.resolveInside(paths.versions(), vanilla.id + "/" + vanilla.id + "-client-mappings.txt");
-                downloader.download(new Downloader.Task(URI.create(cm.url), mappings, Hashing.Expected.sha1(cm.sha1), cm.size), null, verify);
-            }
-            FileUtil.writeAtomically(verifiedMarker, version.id().getBytes(StandardCharsets.UTF_8));
-            Files.createDirectories(natives);
-            NativeExtractor.extract(version.natives(), paths.libraries(), natives);
-            progress.progress(1, "");
-            return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, List.of(), List.of(),
-                    new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles(), mappings));
+        // the Lumora Loader starts exactly these jars
+        Path loaderJar = bundled.get().verified(LOADER_JAR);
+        // obfuscated versions (1.16.5 - 1.21.11): Mojang's official client mappings from the version JSON (SHA-1
+        // checked); 1.8.9 / 1.12.2 bring their mappings in the Lumora jar, 26.1+ is not obfuscated
+        Path mappings = null;
+        VersionJson.Download cm = vanilla.downloads == null ? null : vanilla.downloads.get("client_mappings");
+        if (cm != null && cm.url != null) {
+            mappings = FileUtil.resolveInside(paths.versions(), vanilla.id + "/" + vanilla.id + "-client-mappings.txt");
+            downloader.download(new Downloader.Task(URI.create(cm.url), mappings, Hashing.Expected.sha1(cm.sha1), cm.size), null, verify);
         }
-
-        progress.stage("Prüfe Mod-Kompatibilität");
-        List<FabricModMetadata> metadata = new ArrayList<>();
-        List<Path> allJars = new ArrayList<>(modResult.modFiles());
-        allJars.addAll(modResult.unmanagedFiles());
-        for (Path jar : allJars) {
-            metadata.add(FabricModMetadata.read(jar));
-        }
-        int javaMajor = flavor == Flavor.LUMORA && profile.javaComponent != null ? componentMajor(profile.javaComponent)
-                : version.javaVersion() != null ? version.javaVersion().majorVersion : 25;
-        Map<String, String> environment = new HashMap<>(Map.of(
-                "minecraft", profile.minecraftVersion,
-                "fabricloader", profile.fabricLoaderVersion,
-                "fabric-loader", profile.fabricLoaderVersion,
-                "java", Integer.toString(javaMajor)));
-        // the loader's own jar-in-jar (MixinExtras) satisfies dependencies too, e.g. Lithium for 26.3
-        for (ResolvedVersion.Library lib : version.libraries()) {
-            if (lib.name().startsWith("net.fabricmc:fabric-loader:")) {
-                FabricModMetadata loader = FabricModMetadata.read(FileUtil.resolveInside(paths.libraries(), lib.path()));
-                DependencyChecker.bundledWith(loader).forEach(environment::putIfAbsent);
-            }
-        }
-        List<DependencyChecker.Problem> problems = DependencyChecker.check(metadata, environment);
-        List<DependencyChecker.Problem> errors = problems.stream().filter(p -> p.severity() == DependencyChecker.Severity.ERROR).toList();
-        if (!errors.isEmpty()) {
-            throw new DependencyException(errors);
-        }
-        if (!modResult.unmanagedFiles().isEmpty()) {
-            Log.warn("Additional user mods in " + gameDir.resolve("mods") + ": " + modResult.unmanagedFiles());
-        }
-
         FileUtil.writeAtomically(verifiedMarker, version.id().getBytes(StandardCharsets.UTF_8));
         Files.createDirectories(natives);
         NativeExtractor.extract(version.natives(), paths.libraries(), natives);
         progress.progress(1, "");
-        return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, problems, modResult.unmanagedFiles());
+        return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig,
+                new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles(), mappings));
     }
 
     /** Java major version of Mojang's runtime components (all.json). */
@@ -284,15 +212,6 @@ public final class ClientInstaller {
         progress.stage("Prüfe Java-Laufzeit (" + component + ", Java " + required + ")");
         JavaRuntimeInstaller jri = new JavaRuntimeInstaller(downloader, paths.runtimes(), os);
         return jri.install(component, progressAdapter(progress, "Java"), verify).javaExecutable();
-    }
-
-    private String fetchMavenSha1(String artifactUrl) throws IOException {
-        // Fabric's launch profile omits the hash for fabric-loader itself; Maven publishes <artifact>.sha1
-        // next to every artifact on the same trusted host.
-        String body = downloader.fetchString(URI.create(artifactUrl + ".sha1")).strip();
-        String sha1 = body.split("\\s+")[0];
-        Hashing.Expected.sha1(sha1);
-        return sha1;
     }
 
     private static Downloader.Progress progressAdapter(ProgressListener l, String label) {

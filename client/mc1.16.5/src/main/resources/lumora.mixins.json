@@ -25,6 +25,8 @@
     "BlockOutlineMixin",
     "BrowserScreenMixin",
     "ConnectionScreenMixin",
+    "WorldLoadScreenMixin",
+    "LevelLoadingScreenAccessor",
     "ConnectScreenAccessor",
     "DisconnectedScreenAccessor",
     "JoinMultiplayerScreenAccessor",

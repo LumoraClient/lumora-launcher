@@ -62,6 +62,8 @@ public final class SmokeTest {
 
     private String worldResult = "not run";
     private int worldStep;
+    /** Lumora's world loading screen was captured once. */
+    private boolean loadingShot;
     private String savedSwing;
     private int zoomPhase;
     private Boolean labyVoiceBefore;
@@ -230,6 +232,12 @@ public final class SmokeTest {
                 }
             }
             case WORLD_LOAD -> {
+                if (!loadingShot && dev.lumora.client.gui.AddonViewScreen.isShowing()) {
+                    // Lumora's loading screen for the world (shown instead of Minecraft's loading screens)
+                    loadingShot = true;
+                    LOG.info("Smoke test: Lumora world loading screen shown");
+                    screenshot(mc, "world-loading");
+                }
                 if (mc.level == null || mc.player == null) {
                     if (ticks % 200 == 0) {
                         LOG.info("Smoke test: waiting for the world, screen {}", mc.gui.screen() == null ? "-" : mc.gui.screen().getClass().getSimpleName());

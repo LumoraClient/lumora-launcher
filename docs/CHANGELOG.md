@@ -1,5 +1,12 @@
 # Änderungen
 
+## Unveröffentlicht
+
+### Im Spiel
+- **Lumora-Ladebildschirm beim Betreten einer Welt** (alle 18 Versionen), im Stil des Verbindungsbildschirms: Weltname, Gesamtfortschritt und jede Phase mit Dauer: Weltdaten lesen bzw. Welt anlegen, Datenpakete, Server starten, Spawnbereich vorbereiten (mit Prozent), Gelände laden. Minecraft lädt die Welt wie gewohnt selbst.
+  - Abschaltbar im Modul „Verbindung“: „Lumora-Ladebildschirm beim Betreten einer Welt“.
+  - Portale, Dimensionswechsel, Respawn und Server-Beitritte zeigen weiter Minecrafts Bildschirme.
+
 ## 0.3.0 (2026-11-03)
 
 ### Lumora Loader: Minecraft ohne Mod-Loader (alle 18 Versionen)

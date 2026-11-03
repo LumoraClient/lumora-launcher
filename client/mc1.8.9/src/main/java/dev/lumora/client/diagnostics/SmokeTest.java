@@ -59,6 +59,8 @@ public final class SmokeTest {
 
     private String worldResult = "not run";
     private int worldStep;
+    /** Lumora's world loading screen was captured once. */
+    private boolean loadingShot;
     private String savedSwing;
     private int zoomPhase;
     private Boolean labyVoiceBefore;
@@ -212,6 +214,12 @@ public final class SmokeTest {
                 }
             }
             case WORLD_LOAD -> {
+                if (!loadingShot && dev.lumora.client.gui.AddonViewScreen.isShowing()) {
+                    // Lumora's loading screen for the world (terrain step; the server start is drawn outside the tick)
+                    loadingShot = true;
+                    LOG.info("Smoke test: Lumora world loading screen shown");
+                    screenshot(mc, "world-loading");
+                }
                 if (mc.world == null || mc.player == null) {
                     if (ticks % 200 == 0) {
                         LOG.info("Smoke test: waiting for the world, screen {}", mc.currentScreen == null ? "-" : mc.currentScreen.getClass().getSimpleName());
@@ -256,6 +264,8 @@ public final class SmokeTest {
             LOG.warn("Smoke test: could not delete old test world");
         }
         // the vanilla 1.8.9 "Play Demo World" settings
+        // Lumora's loading view while the server starts (drawn outside the tick)
+        dev.lumora.client.api.McWorldLoad.afterFirstDraw = () -> screenshot(mc, "world-loading-server");
         mc.startIntegratedServer(TEST_WORLD, TEST_WORLD, DemoServerWorld.INFO);
         phase = Phase.WORLD_LOAD;
         ticks = 0;

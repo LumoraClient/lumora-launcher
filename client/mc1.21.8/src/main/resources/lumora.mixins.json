@@ -30,6 +30,8 @@
     "BrowserScreenMixin",
     "ConnectionScreenMixin",
     "ConnectStartMixin",
+    "WorldLoadScreenMixin",
+    "LevelLoadingScreenAccessor",
     "ConnectScreenAccessor",
     "DisconnectedScreenAccessor",
     "JoinMultiplayerScreenAccessor",

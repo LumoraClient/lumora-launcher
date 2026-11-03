@@ -119,6 +119,11 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 - **`DisconnectClassifier`** erkennt den Grund zuerst an den Übersetzungsschlüsseln, also unabhängig von der Sprache, dann an bekannten Texten von Serversoftware.
 - **`ReconnectPolicy`**: Neuverbinden nur bei wiederholbaren Gründen, mit verdoppelter Pause bis 1 min und begrenzten Versuchen. Server, die drosseln, voll sind oder neu starten, bekommen Mindestpausen. Bei Sperre, Whitelist, falscher Version, Kontofehler oder Anmeldung an anderer Stelle wird nie automatisch neu verbunden.
 - **`ConnectionModule`** (Modul „Verbindung“) steuert nur, was der Spieler sieht: Bildschirme, Auto-Reconnect, Zeitlimit, Stream-Modus und Ping-Vorschau. Ins Log kommen nur Grund und Phase, keine Adressen und keine Servernachricht.
+- **Welt betreten** (`WorldLoadingView`, Schalter „Lumora-Ladebildschirm beim Betreten einer Welt“): Beim Öffnen einer Einzelspieler-Welt zeigt Lumora im selben Stil den Weltnamen, einen Gesamtfortschritt und jede Phase mit ihrer Dauer: Weltdaten lesen bzw. Welt anlegen, Datenpakete, Server starten, Spawnbereich vorbereiten (mit Prozent), Gelände laden. Minecraft macht die Arbeit selbst. `McWorldLoad` je Version nimmt jeden Ladebildschirm, den Minecraft währenddessen öffnet, als Bildschirm unter Lumoras (er wird weiter getickt und schließt sich selbst, wenn die Welt bereit ist):
+  - 26.x und 1.21.11: `LevelLoadingScreen` mit `LevelLoadTracker` (Server-Phase und Fortschritt).
+  - 1.16.5 bis 1.21.8: `LevelLoadingScreen` mit `StoringChunkProgressListener` für den Spawnbereich und `ReceivingLevelScreen` für das Gelände. In 1.18.2 bis 1.20.1 meldet Minecraft den Spawnpunkt nur dem sichtbaren Gelände-Bildschirm; `SpawnPositionMixin` reicht ihn weiter.
+  - 1.8.9 und 1.12.2: Bis der Server läuft, zeichnet Minecraft direkt (`LoadingScreenRenderer`, ohne Bildschirm). Dort zeichnet Lumora seine Ansicht, danach läuft `DownloadingTerrainScreen` darunter.
+  - „Vorbereiten…“ (`createWorld.preparing`) zählt nur, wenn es aus dem Menü „Welt erstellen“ kommt: Minecraft zeigt denselben Text auch beim bloßen Öffnen dieses Menüs. Portal- und Dimensionswechsel, Respawn und Server-Beitritte behalten Minecrafts Bildschirme. Ins Log kommen nur Phasen und Zeiten, kein Weltname.
 
 ## Sicherheit
 

@@ -272,6 +272,7 @@
   "lumora.extras.blockoverlay.slide_easing.expo": "Expo",
   "lumora.extras.blockoverlay.slide_millis": "Slide time (ms)",
   "lumora.extras.connection.screens": "Lumora screens when connecting and disconnecting",
+  "lumora.extras.connection.world_screen": "Lumora loading screen when entering a world",
   "lumora.extras.connection.auto_reconnect": "Reconnect automatically",
   "lumora.extras.connection.reconnect_delay": "Delay before the first attempt (seconds)",
   "lumora.extras.connection.reconnect_attempts": "Attempts in a row",

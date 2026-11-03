@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Built-in module "Verbindung": Lumora's connecting and disconnect screens, automatic reconnect with growing pauses,
- * a watchdog for connections that hang and a stream mode that hides server addresses. The connection tracking itself
+ * a watchdog for connections that hang and a stream mode that hides server addresses and a loading screen for singleplayer worlds (same look). The connection tracking itself
  * ({@link ConnectionTracker}, events for addons) always runs; this module only decides what the player sees.
  * <p>
  * The version adapters call {@link #connecting} where Minecraft opens its connect screen and {@link #disconnected}
@@ -29,6 +29,7 @@ public final class ConnectionModule implements LumoraAddon {
     IntegerSetting timeout;
     BooleanSetting hideAddress;
     BooleanSetting pingPreview;
+    BooleanSetting worldScreen;
 
     public ConnectionModule(Platform platform) {
         this.platform = platform;
@@ -44,6 +45,7 @@ public final class ConnectionModule implements LumoraAddon {
         timeout = (IntegerSetting) s.slider("timeout", 30, 10, 120).name("lumora.extras.connection.timeout").advanced();
         hideAddress = (BooleanSetting) s.toggle("hide_address", false).name("lumora.extras.connection.hide_address");
         pingPreview = (BooleanSetting) s.toggle("ping_preview", true).name("lumora.extras.connection.ping_preview");
+        worldScreen = (BooleanSetting) s.toggle("world_screen", true).name("lumora.extras.connection.world_screen");
     }
 
     @Override
@@ -136,6 +138,19 @@ public final class ConnectionModule implements LumoraAddon {
                     + (e.reconnectIn() >= 0 ? ", reconnect in " + e.reconnectIn() + " ms" : ""));
         }
         return e != null && m != null && m.screens.get() ? new DisconnectedView(m.platform, m, t, e) : null;
+    }
+
+    /**
+     * Minecraft starts opening a singleplayer world. Returns Lumora's loading view to show instead of Minecraft's
+     * loading screens (the adapter keeps them running underneath), or null to keep Minecraft's screens.
+     */
+    public static AddonView worldLoading(WorldLoadAttempt attempt) {
+        ConnectionModule m = active;
+        if (m == null || attempt == null || !m.worldScreen.get()) {
+            return null;
+        }
+        m.platform.logger().info("World load started" + (attempt.newWorld() ? " (new world)" : ""));
+        return new WorldLoadingView(m.platform, m, attempt, new WorldLoadTracker(System::currentTimeMillis));
     }
 
     /** The watchdog cancelled a hanging attempt: show why on top of the screen the attempt returned to. */

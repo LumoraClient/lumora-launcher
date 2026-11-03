@@ -10,18 +10,12 @@ import dev.lumora.client.gui.LumoraHubScreen;
 import dev.lumora.client.gui.ScreenTransition;
 import dev.lumora.client.api.LumoraRuntime;
 import dev.lumora.client.zoom.LumoraZoom;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import dev.lumora.client.integration.RuntimeInfo;
 import dev.lumora.client.perf.FrameStats;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.fabricmc.fabric.api.client.screen.v1.Screens;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
-import net.fabricmc.loader.api.FabricLoader;
+import dev.lumora.client.platform.Hooks;
+import dev.lumora.client.platform.LoaderEnv;
+import dev.lumora.client.platform.Packs;
+import dev.lumora.loader.api.ClientEntrypoint;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -37,10 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Entry point. Everything is wired through Fabric API events (screen init, lifecycle, ticks, key mappings);
- * the only mixin is the read-only frame timer.
+ * Entry point, started by the Lumora Loader before Minecraft runs. Everything is wired through Lumora's own hooks
+ * ({@link Hooks}: screen init, lifecycle, ticks, HUD, key mappings) and resource packs ({@link Packs}).
  */
-public final class LumoraClient implements ClientModInitializer {
+public final class LumoraClient implements ClientEntrypoint {
     public static final Logger LOG = LoggerFactory.getLogger("Lumora");
     private static LumoraConfig config;
     private static KeyMapping benchmarkKey;
@@ -53,26 +47,22 @@ public final class LumoraClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        config = LumoraConfig.load(FabricLoader.getInstance().getConfigDir().resolve("lumora-client.json"));
+        config = LumoraConfig.load(LoaderEnv.configDir().resolve("lumora-client.json"));
         smokeTest = SmokeTest.fromSystemProperty();
         LOG.info("Lumora Client initialising (profile {}, Sodium {}, ViaFabricPlus {})",
                 Diagnostics.profile(), RuntimeInfo.sodiumLoaded(), RuntimeInfo.viaFabricPlusLoaded());
 
         // Lumora Theme: the whole Minecraft GUI (buttons, sliders, text fields, tabs, lists, toasts) in the
         // launcher's colors. Enabled by default, can be switched off under Options > Resource Packs.
-        FabricLoader.getInstance().getModContainer("lumora").ifPresent(mod -> ResourceManagerHelper.registerBuiltinResourcePack(
-                new ResourceLocation("lumora", "lumora_theme"), mod,
-                Component.translatable("lumora.pack.theme"), ResourcePackActivationType.DEFAULT_ENABLED));
+        Packs.builtin("lumora_theme", Component.translatable("lumora.pack.theme"));
         // Lumora Schrift (Inter): optional, switched in the Lumora hub
-        FabricLoader.getInstance().getModContainer("lumora").ifPresent(mod -> ResourceManagerHelper.registerBuiltinResourcePack(
-                new ResourceLocation("lumora", "lumora_font"), mod,
-                Component.translatable("lumora.pack.font"), ResourcePackActivationType.NORMAL));
+        Packs.builtin("lumora_font", Component.translatable("lumora.pack.font"));
 
         // Lumora API: addons, widgets, HUD editor (lumora-core, connected to this Minecraft version)
         LumoraRuntime.init();
 
         // zoom border, HUD widgets, notifications and the fade back into the game share one HUD layer on top of everything
-        HudRenderCallback.EVENT.register((g, delta) -> {
+        Hooks.hudLayer((g, delta) -> {
             LumoraZoom.overlay(g);
             LumoraRuntime.renderHud(g, delta);
             if (Minecraft.getInstance().screen == null) {
@@ -81,25 +71,25 @@ public final class LumoraClient implements ClientModInitializer {
         });
 
         String category = "key.categories.lumora";
-        benchmarkKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.lumora.benchmark",
+        benchmarkKey = Hooks.registerKey(new KeyMapping("key.lumora.benchmark",
                 InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F9, category));
-        hubKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.lumora.hub",
+        hubKey = Hooks.registerKey(new KeyMapping("key.lumora.hub",
                 InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, category));
-        LumoraZoom.init(KeyBindingHelper.registerKeyBinding(new KeyMapping("key.lumora.zoom",
+        LumoraZoom.init(Hooks.registerKey(new KeyMapping("key.lumora.zoom",
                 InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category)));
 
-        ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
+        Hooks.onStarted(mc -> {
             RuntimeInfo.registerVfpLogging();
             if (config.writeDiagnosticsOnStart) {
                 Diagnostics.write("game-" + Diagnostics.profile() + "-latest.json", Diagnostics.collect());
             }
         });
 
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+        Hooks.onEndTick(mc -> {
             // first start with Lumora: switch the theme pack on once, after the start-up reload (see LumoraConfig#themePackApplied)
             if (!config.themePackApplied && mc.getOverlay() == null) {
                 config.themePackApplied = true;
-                config.save(FabricLoader.getInstance().getConfigDir().resolve("lumora-client.json"));
+                config.save(LoaderEnv.configDir().resolve("lumora-client.json"));
                 LumoraFont.applyPack(mc, LumoraFont.THEME_PACK_ID, true);
             }
             while (benchmarkKey.consumeClick()) {
@@ -119,21 +109,21 @@ public final class LumoraClient implements ClientModInitializer {
             }
         });
 
-        ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
+        Hooks.afterScreenInit((mc, screen, w, h) -> {
             if (screen instanceof TitleScreen && config.titleScreenButton) {
-                Screens.getButtons(screen).add(Button.builder(Component.translatable("lumora.title.button"),
+                Hooks.addWidget(screen, Button.builder(Component.translatable("lumora.title.button"),
                         b -> mc.setScreen(new LumoraHubScreen(screen))).bounds(4, 4, 80, 20).build());
             } else if (screen instanceof PauseScreen pause && !pause.children().isEmpty() /* 1.20.1: F3+Esc pause has no buttons */ && config.pauseMenuButton) {
                 // same pill as in the Lumora main menu; the hub returns to the pause menu when closed
-                Screens.getButtons(screen).add(new LumoraButton(6, 6, 74, 18, Component.translatable("lumora.menu.hub"),
+                Hooks.addWidget(screen, new LumoraButton(6, 6, 74, 18, Component.translatable("lumora.menu.hub"),
                         LumoraButton.Style.SECONDARY, "✦", () -> mc.setScreen(new LumoraHubScreen(screen))));
-                Screens.getButtons(screen).add(new LumoraButton(84, 6, 84, 18, dev.lumora.client.gui.SocialScreen.label(),
+                Hooks.addWidget(screen, new LumoraButton(84, 6, 84, 18, dev.lumora.client.gui.SocialScreen.label(),
                         LumoraButton.Style.SECONDARY, "☻", () -> mc.setScreen(new dev.lumora.client.gui.SocialScreen(screen))));
             } else if (screen instanceof JoinMultiplayerScreen && config.multiplayerProtocolLabel && RuntimeInfo.viaFabricPlusLoaded()) {
                 String target = RuntimeInfo.vfpTargetVersion();
                 Component text = Component.translatable("lumora.multiplayer.protocol",
                         target != null ? target : Component.translatable("lumora.multiplayer.protocol.auto"));
-                Screens.getButtons(screen).add(new StringWidget(4, 4, mc.font.width(text) + 4, 12, text, mc.font));
+                Hooks.addWidget(screen, new StringWidget(4, 4, mc.font.width(text) + 4, 12, text, mc.font));
             }
         });
     }

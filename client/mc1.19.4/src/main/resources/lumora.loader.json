@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "lumora",
+  "name": "Lumora Client",
+  "version": "${version}",
+  "minecraft": "1.19.4",
+  "entrypoints": ["dev.lumora.client.LumoraClient"],
+  "mixins": ["lumora.mixins.json"]
+}

@@ -12,7 +12,6 @@ import dev.lumora.client.hud.HudEditorScreen;
 import dev.lumora.client.integration.RuntimeInfo;
 import dev.lumora.core.LumoraCore;
 import dev.lumora.core.addon.AddonRecord;
-import net.fabricmc.loader.api.FabricLoader;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lumora.client.compat.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -84,7 +83,7 @@ public final class LumoraHubScreen extends Screen {
     }
 
     private static void saveCfg() {
-        cfg().save(FabricLoader.getInstance().getConfigDir().resolve("lumora-client.json"));
+        cfg().save(dev.lumora.client.platform.LoaderEnv.configDir().resolve("lumora-client.json"));
     }
 
     @Override

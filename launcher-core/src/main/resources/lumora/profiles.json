@@ -154,64 +154,43 @@
     {
       "id": "1.20.4",
       "displayName": "Minecraft 1.20.4",
-      "description": "Sodium, ViaFabricPlus, Erweiterungen und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.20.4",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.20.4",
-        "sodium-1.20.4",
-        "viafabricplus-1.20.4",
         "lumora-client-1.20.4"
       ],
-      "extensions": [
-        "modmenu-1.20.4",
-        "ferritecore-1.20.4",
-        "lithium-1.20.4",
-        "voicechat-1.20.4"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {
       "id": "1.20.1",
       "displayName": "Minecraft 1.20.1",
-      "description": "Beliebte Modding-Version. Sodium, ViaFabricPlus, Erweiterungen und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.20.1",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.20.1",
-        "sodium-1.20.1",
-        "viafabricplus-1.20.1",
         "lumora-client-1.20.1"
       ],
-      "extensions": [
-        "modmenu-1.20.1",
-        "ferritecore-1.20.1",
-        "lithium-1.20.1",
-        "voicechat-1.20.1"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {
       "id": "1.19.4",
       "displayName": "Minecraft 1.19.4",
-      "description": "Sodium, ViaFabricPlus, Erweiterungen und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.19.4",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.19.4",
-        "sodium-1.19.4",
-        "viafabricplus-1.19.4",
         "lumora-client-1.19.4"
       ],
-      "extensions": [
-        "modmenu-1.19.4",
-        "ferritecore-1.19.4",
-        "lithium-1.19.4",
-        "voicechat-1.19.4"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {

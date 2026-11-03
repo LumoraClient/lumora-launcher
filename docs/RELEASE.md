@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.6 (2026-11-03):**
+- **Build:** `gradlew clean build` erfolgreich, 387 Unit-Tests ohne Fehler (1 übersprungen).
+- **Oberfläche:** alle Reiter der neuen Einstellungsseite (Allgemein, Erscheinungsbild, Spiel, Speicher, Freunde & Chat, Integrationen) per `--ui-shot` geprüft.
+- **Smoke-Test** mit dem fertigen 0.3.6-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11 und 1.8.9 bestanden.
+- **Nicht geprüft:** Suche, Tooltips und Klicks im laufenden Launcher, ein echtes Selbst-Update von 0.3.5 auf 0.3.6.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.5 (2026-11-03):**
 - **Build:** `gradlew clean build` erfolgreich, 387 Unit-Tests ohne Fehler (1 übersprungen), darunter 6 neue für den Verbindungsverlauf (Logzeilen „Connecting to“, Adressen, Speichern, Abschalten, kaputte Datei).
 - **Verbindungsverlauf:** Die Logzeile „Connecting to …“ in den Minecraft-JARs von 1.8.9 und 26.3 nachgesehen. Ein Smoke-Test schreibt keinen Verlauf.

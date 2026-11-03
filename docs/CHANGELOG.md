@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.6 (2026-11-03)
+
+### Launcher
+- **Neue Einstellungsseite:** Die Kategorien stehen als Reiter oben (Allgemein, Erscheinungsbild, Spiel, Speicher, Freunde & Chat, Integrationen, Fehlersuche), dazu „Ordner öffnen“, Suche und „Erweitert“ in der Kopfzeile. Einstellungen mit eigenem Bedienelement erscheinen als Abschnitt mit Icon, Titel, Beschreibung und dem Bedienelement darunter. An/Aus-Schalter stehen als kompakte Kästen in zwei Spalten, ihre Beschreibung erscheint beim Drüberfahren. Die Suche zeigt Treffer aus allen Kategorien. Die Einstellungen selbst sind unverändert.
+
 ## 0.3.5 (2026-11-03)
 
 ### Launcher

@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-launcher-settings",
+      "date": "2026-11-03",
+      "author": "Lumora",
+      "title": "Neue Launcher-Einstellungen",
+      "text": "Die Einstellungen des Launchers sind übersichtlicher: Die Kategorien stehen als Reiter oben, Auswahl, Regler und Farben erscheinen als eigene Abschnitte, und alle An/Aus-Schalter stehen kompakt in zwei Spalten. Fährst du über einen Schalter, siehst du, was er macht. Die Suche findet Einstellungen aus allen Kategorien.",
+      "image": "settings.png"
+    },
+    {
       "id": "lumora-launcher-security",
       "date": "2026-11-03",
       "author": "Lumora",
@@ -122,6 +130,16 @@
     }
   ],
   "changelog": [
+    {
+      "version": "0.3.6",
+      "date": "2026-11-03",
+      "title": "Neue Launcher-Einstellungen",
+      "items": [
+        "Kategorien als Reiter oben, Ordner öffnen, Suche und Erweitert in der Kopfzeile",
+        "Einstellungen als Abschnitte, An/Aus-Schalter als Kästen in zwei Spalten",
+        "Suche über alle Kategorien"
+      ]
+    },
     {
       "version": "0.3.5",
       "date": "2026-11-03",

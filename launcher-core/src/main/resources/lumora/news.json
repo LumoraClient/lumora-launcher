@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-button-design",
+      "date": "2026-11-03",
+      "author": "Lumora",
+      "title": "Button-Design für alle Menüs",
+      "text": "Der Button-Stil gilt jetzt überall: in den Minecraft-Menüs, im Lumora-Hauptmenü, im Hub, in der Server- und Weltliste, auf den Verbindungsbildschirmen und im Social-Menü. Im Hub unter Themes → Buttons siehst du jeden Stil als Live-Vorschau und wählst ihn mit einem Klick: Lumora, Blackout, Hyperium, Liquid, Lunar, PvPClient oder Rounded. Das gilt für alle Versionen von 1.8.9 bis 26.3.",
+      "image": "buttons.png"
+    },
+    {
       "id": "lumora-fonts",
       "date": "2026-11-03",
       "author": "Lumora",
@@ -106,6 +114,16 @@
     }
   ],
   "changelog": [
+    {
+      "version": "0.3.4",
+      "date": "2026-11-03",
+      "title": "Button-Design für alle Menüs",
+      "items": [
+        "Der gewählte Button-Stil gilt in allen Menüs: Minecraft, Lumora-Hauptmenü, Hub, Server- und Weltliste, Verbindung, Social",
+        "Neue Auswahl im Hub unter Themes → Buttons mit Live-Vorschau jedes Stils",
+        "Stile: Lumora, Blackout, Hyperium, Liquid, Lunar, PvPClient, Rounded"
+      ]
+    },
     {
       "version": "0.3.3",
       "date": "2026-11-03",

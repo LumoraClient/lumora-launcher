@@ -1,6 +1,6 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.3.4 (2026-11-03)
 
 ### Im Spiel
 - **Button-Design für alle Menüs:** Der Stil aus dem Modul „Button-Design“ (Blackout, Hyperium, Liquid, Lunar, PvPClient, Rounded oder Lumora) gilt jetzt überall: Minecraft-Menüs, Lumora-Hauptmenü und alle Lumora-Knöpfe, Hub, Server- und Weltliste, Verbindungsbildschirme und Social-Menü. Auswahl im Hub unter Themes → Buttons mit einer Live-Vorschau jedes Stils. Alle Versionen.

@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.4 (2026-11-03):**
+- **Build:** `gradlew clean build` erfolgreich, 381 Unit-Tests ohne Fehler (1 übersprungen).
+- **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon): 26.3 mit Lunar, 1.20.4 mit Blackout und 1.8.9 mit Rounded bestanden, Hauptmenü und Hub im jeweiligen Stil auf den Screenshots. Mit dem fertigen 0.3.4-Build zusätzlich 26.3, 1.21.11 (Hyperium), 1.20.4, 1.16.5 (PvPClient) und 1.8.9 bestanden.
+- **Nicht geprüft:** Liquid im Spiel (zeigt nur unter der Maus einen Hintergrund), Umschalten per Klick im echten Spiel, ein echtes Selbst-Update von 0.3.3 auf 0.3.4.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.3 (2026-11-03):**
 - **Build:** `gradlew clean build` erfolgreich, 381 Unit-Tests ohne Fehler (1 übersprungen), darunter ein neuer für die Schriftauswahl im Hub.
 - **Schriften:** jede Datei vor dem Einbau geprüft (TrueType, Name, alle Umlaute, Strichstärke Medium, Lizenz SIL OFL 1.1), Quelle und SHA-256 in `THIRD_PARTY_NOTICES.md`.

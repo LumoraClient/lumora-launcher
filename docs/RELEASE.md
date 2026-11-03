@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.1 (2026-11-03):**
+- **Build:** `gradlew clean build` erfolgreich, alle Unit-Tests ohne Fehler, darunter neue für die Zeitmessung und den Fortschritt des Welt-Ladebildschirms.
+- **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon): **alle 18 Profile** bestanden, in jedem erscheint der Lumora-Ladebildschirm beim Betreten der Demo-Welt (Logzeile „World load“ mit Phasen und Zeiten). Screenshots von 26.3, 1.20.4, 1.12.2 und 1.8.9 geprüft.
+- **Nicht geprüft:** eine Welt über das echte Menü „Welt erstellen“ (der Smoke-Test legt seine Welt direkt an), Online-Server mit echtem Konto.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.0 (2026-11-03):**
 - **Build:** `gradlew clean build` erfolgreich, 367 Unit-Tests ohne Fehler (1 übersprungen), darunter die neuen Tests des Lumora Loaders (Mixin-Ende-zu-Ende, Umbenennen mit ProGuard- und Tiny-Namenslisten).
 - **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon „Session Timer“ im Ordner `addons`): **alle 18 Profile** von 1.8.9 bis 26.3 bestanden, in jedem lädt das Addon. Mit dem fertigen 0.3.0-Build zusätzlich 26.1.2, 1.21.11 und 1.8.9 erneut bestanden.

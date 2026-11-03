@@ -1,6 +1,6 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.3.1 (2026-11-03)
 
 ### Im Spiel
 - **Lumora-Ladebildschirm beim Betreten einer Welt** (alle 18 Versionen), im Stil des Verbindungsbildschirms: Weltname, Gesamtfortschritt und jede Phase mit Dauer: Weltdaten lesen bzw. Welt anlegen, Datenpakete, Server starten, Spawnbereich vorbereiten (mit Prozent), Gelände laden. Minecraft lädt die Welt wie gewohnt selbst.

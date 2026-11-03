@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-world-loading",
+      "date": "2026-11-03",
+      "author": "Lumora",
+      "title": "Neuer Ladebildschirm beim Betreten einer Welt",
+      "text": "Wenn du eine Einzelspieler-Welt öffnest oder erstellst, zeigt Lumora jetzt im Stil des Verbindungsbildschirms, was gerade passiert: Weltdaten lesen oder Welt anlegen, Datenpakete, Server starten, Spawnbereich vorbereiten mit Prozentanzeige und Gelände laden, jeweils mit Dauer und einem Gesamtfortschritt. Das gilt für alle 18 Versionen von 1.8.9 bis 26.3. Wer lieber den Minecraft-Bildschirm sieht, schaltet ihn im Modul „Verbindung“ ab.",
+      "image": "connecting.png"
+    },
+    {
       "id": "lumora-loader",
       "date": "2026-11-03",
       "author": "Lumora",
@@ -82,6 +90,16 @@
     }
   ],
   "changelog": [
+    {
+      "version": "0.3.1",
+      "date": "2026-11-03",
+      "title": "Lumora-Ladebildschirm für Welten",
+      "items": [
+        "Beim Betreten einer Einzelspieler-Welt zeigt Lumora Weltname, Gesamtfortschritt und jede Phase mit Dauer",
+        "Phasen: Weltdaten lesen bzw. Welt anlegen, Datenpakete, Server starten, Spawnbereich vorbereiten (mit Prozent), Gelände laden",
+        "In allen 18 Versionen, abschaltbar im Modul „Verbindung“"
+      ]
+    },
     {
       "version": "0.3.0",
       "date": "2026-11-03",

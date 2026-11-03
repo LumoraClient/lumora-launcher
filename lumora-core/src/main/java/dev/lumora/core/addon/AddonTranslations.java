@@ -22,9 +22,10 @@ import java.util.zip.ZipFile;
  * Translations of an addon from the {@code addons/} folder. Its jar is not part of Minecraft's resource packs, so the
  * game does not know its language files; this looks keys up in the game first (resource packs can still override)
  * and then in the jar's own {@code assets/<namespace>/lang/<language>.json} (or {@code .lang} up to 1.12), falling
- * back to {@code en_us}. Files are read once per language.
+ * back to {@code en_us}. Files are read once per language. {@link #load} and {@link #parseJson} are also used by
+ * Minecraft 1.8.9 / 1.12.2, which only read {@code .lang} files, to put JSON language files into the game.
  */
-final class AddonTranslations implements Translations {
+public final class AddonTranslations implements Translations {
     static final String FALLBACK = "en_us";
     private static final int MAX_FILE_BYTES = 1024 * 1024;
 
@@ -77,7 +78,7 @@ final class AddonTranslations implements Translations {
     }
 
     /** All {@code assets/<ns>/lang/<lang>.json|.lang} entries of the jar, merged (file name case-insensitive). */
-    static Map<String, String> load(Path jar, String lang) {
+    public static Map<String, String> load(Path jar, String lang) {
         Map<String, String> out = new HashMap<>();
         try (ZipFile zip = new ZipFile(jar.toFile())) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
@@ -108,7 +109,7 @@ final class AddonTranslations implements Translations {
         return out;
     }
 
-    static void parseJson(String text, Map<String, String> out) {
+    public static void parseJson(String text, Map<String, String> out) {
         JsonElement root = Json.parse(text);
         if (root instanceof JsonObject o) {
             for (Map.Entry<String, JsonElement> e : o.entrySet()) {

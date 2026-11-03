@@ -34,7 +34,8 @@
     "platform.LegacyLifecycleMixin",
     "platform.LegacyHudMixin",
     "platform.LegacyKeysMixin",
-    "platform.LegacyPayloadMixin"],
+    "platform.LegacyPayloadMixin",
+    "platform.LegacyLangMixin"],
   "injectors": {
     "defaultRequire": 1
   },

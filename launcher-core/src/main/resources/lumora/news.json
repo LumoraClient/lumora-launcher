@@ -83,6 +83,18 @@
   ],
   "changelog": [
     {
+      "version": "0.3.0",
+      "date": "2026-11-03",
+      "title": "Lumora Loader: Minecraft ohne Mod-Loader",
+      "items": [
+        "Alle 18 Versionen von 1.8.9 bis 26.3 starten über den eigenen Lumora Loader: Minecraft, Lumora Client und Lumora-Addons",
+        "Kein Fabric mehr: Fabric Loader, Fabric API und Fabric-Mods (Sodium, ViaFabricPlus, Lithium, Simple Voice Chat …) entfallen",
+        "Ältere Versionen nutzen Mojangs offizielle Namensliste, die der Launcher beim ersten Start lädt und prüft",
+        "Seite „Mods“ und Bereich „Performance-Mods“ entfernt, „Entdecken“ zeigt nur Ressourcenpakete",
+        "Ein alter „mods“-Ordner bleibt liegen, wird aber nicht mehr geladen"
+      ]
+    },
+    {
       "version": "0.1.0",
       "date": "2026-10-29",
       "title": "Lumora-Module, Skins und Selbst-Update",

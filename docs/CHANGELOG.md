@@ -1,6 +1,6 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.3.0 (2026-11-03)
 
 ### Lumora Loader: Minecraft ohne Mod-Loader (alle 18 Versionen)
 - **Eigener Lumora Loader** statt Fabric. Er startet Minecraft, lädt den Lumora Client und wendet dessen Eingriffe ins Spiel (Mixins) selbst an. Lumora-Addons kommen wie bisher aus dem Ordner `addons`.

@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.0 (2026-11-03):**
+- **Build:** `gradlew clean build` erfolgreich, 367 Unit-Tests ohne Fehler (1 übersprungen), darunter die neuen Tests des Lumora Loaders (Mixin-Ende-zu-Ende, Umbenennen mit ProGuard- und Tiny-Namenslisten).
+- **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon „Session Timer“ im Ordner `addons`): **alle 18 Profile** von 1.8.9 bis 26.3 bestanden, in jedem lädt das Addon. Mit dem fertigen 0.3.0-Build zusätzlich 26.1.2, 1.21.11 und 1.8.9 erneut bestanden.
+- **Nicht geprüft:** Spielen auf einem Online-Server mit echtem Konto, ein echtes Selbst-Update von 0.2.2 auf 0.3.0 über GitHub.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.2.2 (2026-11-02):**
 - **Build:** `gradlew build` erfolgreich, 371/371 Unit-Tests, darunter 6 neue für das Update-Ziel (Starter, gemerkter Pfad, eigene Kopie, Schalter aus, kein portabler Ordner).
 - **Anheften:** an einem echten Fenster geprüft. `RelaunchCommand` wird gesetzt, richtig zurückgelesen und beim Beenden gelöscht.

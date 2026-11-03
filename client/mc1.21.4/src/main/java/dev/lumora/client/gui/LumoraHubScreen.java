@@ -118,8 +118,8 @@ public final class LumoraHubScreen {
                 return;
             }
             c.validate();
-            if ("lumoraFont".equals(option)) {
-                LumoraFont.apply(mc(), c.lumoraFont);
+            if ("lumoraFont".equals(option) || "font".equals(option)) {
+                LumoraFont.select(mc(), c.lumoraFont ? c.font : dev.lumora.core.theme.LumoraFonts.VANILLA);
             } else if ("accentColor".equals(option)) {
                 LumoraUi.applyAccent(c.accentColor);
             }

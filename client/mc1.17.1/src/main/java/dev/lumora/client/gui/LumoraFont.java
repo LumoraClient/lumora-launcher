@@ -16,8 +16,9 @@ public final class LumoraFont {
     private LumoraFont() {
     }
 
+    /** Lumora's font (the one chosen in the hub) on, or Minecraft's own font. */
     public static void apply(Minecraft mc, boolean on) {
-        applyPack(mc, PACK_ID, on);
+        select(mc, on ? configured() : dev.lumora.core.theme.LumoraFonts.VANILLA);
     }
 
     /** Switches one built-in resource pack on or off and reloads the resources (no-op if already in that state). */
@@ -50,5 +51,46 @@ public final class LumoraFont {
         }
         mc.options.save();
         mc.reloadResourcePacks();
+    }
+
+    /** Shows the font with this id (dev.lumora.core.theme.LumoraFonts; "vanilla": Minecraft's own) in one reload. */
+    public static void select(Minecraft mc, String font) {
+        PackRepository repo = mc.getResourcePackRepository();
+        String wanted = dev.lumora.core.theme.LumoraFonts.get(font).packId();
+        List<String> selected = new ArrayList<>(repo.getSelectedIds());
+        boolean changed = false;
+        for (String id : dev.lumora.core.theme.LumoraFonts.packIds()) {
+            boolean on = id.equals(wanted);
+            if (!repo.isAvailable(id) || selected.contains(id) == on) {
+                continue;
+            }
+            if (on) {
+                selected.add(id);
+            } else {
+                selected.remove(id);
+            }
+            changed = true;
+        }
+        if (!changed) {
+            return;
+        }
+        repo.setSelected(selected);
+        mc.options.resourcePacks.clear();
+        mc.options.incompatibleResourcePacks.clear();
+        for (Pack pack : repo.getSelectedPacks()) {
+            if (!pack.isFixedPosition()) {
+                mc.options.resourcePacks.add(pack.getId());
+                if (!pack.getCompatibility().isCompatible()) {
+                    mc.options.incompatibleResourcePacks.add(pack.getId());
+                }
+            }
+        }
+        mc.options.save();
+        mc.reloadResourcePacks();
+    }
+
+    private static String configured() {
+        dev.lumora.client.config.LumoraConfig c = dev.lumora.client.LumoraClient.config();
+        return c == null ? dev.lumora.core.theme.LumoraFonts.DEFAULT : c.font;
     }
 }

@@ -59,6 +59,11 @@ public final class LumoraClient implements ClientEntrypoint {
         Packs.builtin("lumora_theme", Component.translatable("lumora.pack.theme"));
         // Lumora Schrift (Inter): optional, switched in the Lumora hub
         Packs.builtin("lumora_font", Component.translatable("lumora.pack.font"));
+        for (dev.lumora.core.theme.LumoraFonts.Font f : dev.lumora.core.theme.LumoraFonts.ALL) {
+            if (f.pack() != null && !f.pack().equals("lumora_font")) {
+                Packs.builtin(f.pack(), Component.literal("Lumora Schrift: " + f.name()));
+            }
+        }
 
         // Lumora API: addons, widgets, HUD editor (lumora-core, connected to this Minecraft version)
         LumoraRuntime.init();

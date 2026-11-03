@@ -12,6 +12,7 @@ import dev.lumora.api.screen.AddonView;
 import dev.lumora.core.LumoraCore;
 import dev.lumora.core.addon.AddonRecord;
 import dev.lumora.core.hud.HudLayout;
+import dev.lumora.core.theme.LumoraFonts;
 import dev.lumora.core.theme.LumoraTheme;
 
 import java.nio.file.Files;
@@ -861,6 +862,9 @@ public final class HubView implements AddonView {
             }
             g.text(de ? current.german() : current.english(), sx + 4, y + (d - 8) / 2, MUTED, false);
             y += d + 14;
+            if (host.fontSupported() && host.has("font")) {
+                y = fonts(g, x, y, w, mx, my);
+            }
             spaced(g, t("LUMORA-DESIGN", "LUMORA DESIGN"), x, y, DIM);
             y += 13;
             y = toggleRow(g, x, y, w, t("Lumora-Hauptmenü", "Lumora main menu"), "customMainMenu", mx, my);
@@ -869,9 +873,6 @@ public final class HubView implements AddonView {
                 boolean on = !"off".equals(str("menuShaders", "auto"));
                 y = row(g, x, y, w, t("Menü-Effekte", "Menu effects"), mx, my, (rx, ry) -> switchControl(g, rx, ry, on),
                         () -> host.set("menuShaders", on ? "off" : "auto"));
-            }
-            if (host.fontSupported()) {
-                y = toggleRow(g, x, y, w, t("Lumora-Schrift", "Lumora font"), "lumoraFont", mx, my);
             }
             y = toggleRow(g, x, y, w, t("Eigener Ladebildschirm", "Custom loading screen"), "customLoadingScreen", mx, my);
             if (bool("customMainMenu") && !host.inWorld()) {
@@ -926,6 +927,56 @@ public final class HubView implements AddonView {
             });
         }
         return y - y0;
+    }
+
+    /** Font chips (Vanilla, Inter, Outfit …); returns the y below the section. */
+    private int fonts(HudGraphics g, int x, int y, int w, int mx, int my) {
+        spaced(g, t("SCHRIFT", "FONT"), x, y, DIM);
+        y += 13;
+        String current = bool("lumoraFont") ? LumoraFonts.get(str("font", LumoraFonts.DEFAULT)).id() : LumoraFonts.VANILLA;
+        int cx = x;
+        int h = 16;
+        LumoraFonts.Font chosen = LumoraFonts.get(current);
+        for (LumoraFonts.Font f : LumoraFonts.ALL) {
+            boolean sel = f.id().equals(current);
+            int cw = g.textWidth(f.name()) + (sel ? 26 : 16);
+            if (cx + cw > x + w && cx > x) {
+                cx = x;
+                y += h + 5;
+            }
+            boolean hover = in(mx, my, cx, y, cw, h) && my >= contentTop && my < contentBottom;
+            int accent = LumoraTheme.accent();
+            g.card(cx, y, cw, h, h / 2, sel ? LumoraTheme.alpha(accent, 0x40) : hover ? CARD_HOVER : CARD,
+                    sel ? accent : hover ? 0xFF3A3450 : BORDER);
+            int tx = cx + 8;
+            if (sel) {
+                HubGlyphs.draw(g, "check", cx + 6, y + (h - HubGlyphs.SIZE) / 2, LumoraTheme.accentHover());
+                tx += 10;
+            }
+            g.text(f.name(), tx, y + 4, sel || hover ? TEXT : 0xFFD6D0E2, false);
+            String id = f.id();
+            String name = f.name();
+            hit(cx, y, cw, h, () -> {
+                if (id.equals(current)) {
+                    return;
+                }
+                if (LumoraFonts.VANILLA.equals(id)) {
+                    host.set("lumoraFont", false);
+                } else {
+                    host.set("font", id);
+                    host.set("lumoraFont", true);
+                }
+                toast(t("Schrift: ", "Font: ") + name + t(" (Ressourcen werden neu geladen)", " (reloading resources)"));
+            });
+            cx += cw + 6;
+        }
+        y += h + 5;
+        String note = chosen.note().isBlank() ? "" : chosen.name() + " · " + chosen.note();
+        if (!note.isEmpty()) {
+            g.text(note, x, y, DIM, false);
+            y += 11;
+        }
+        return y + 9;
     }
 
     private void themeCard(HudGraphics g, int x, int y, int w, int h, boolean lumora, boolean selected, int mx, int my) {

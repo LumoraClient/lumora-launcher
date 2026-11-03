@@ -24,4 +24,8 @@ public final class LumoraFont {
 
     public static void applyPack(MinecraftClient mc, String packId, boolean on) {
     }
+
+    /** Fonts need TrueType support (Minecraft 1.13+): nothing to switch on this version. */
+    public static void select(net.minecraft.client.MinecraftClient mc, String font) {
+    }
 }

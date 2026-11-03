@@ -30,6 +30,10 @@ class HubViewTest {
                 "theme", "lumora", "accentColor", "purple", "customMainMenu", true, "menuBackground", true,
                 "customLoadingScreen", true, "lumoraFont", true, "menuShaders", "auto", "zoomEnabled", true,
                 "zoomFactor", 4.0, "transitionMillis", 220));
+
+        {
+            options.put("font", "inter");
+        }
         int editorOpened;
 
         @Override public String versionLine() { return "Minecraft test · Java 25"; }
@@ -170,6 +174,28 @@ class HubViewTest {
         }
         assertTrue(clicked);
         assertEquals("custom-1", core.hudEditor().activeProfile());
+    }
+
+    @Test
+    void fontChipsSwitchTheFont() {
+        LumoraCore core = core();
+        FakeHost host = new FakeHost();
+        HubView view = new HubView(core, host);
+        HubView.select(1);
+        boolean outfit = false;
+        for (int y = 60; y < 470 && !outfit; y += 3) {
+            for (int x = 200; x < 840 && !outfit; x += 5) {
+                HubView.select(1); // a click may have opened another page
+                view.render(new FakeGraphics(), 854, 480, x, y);
+                view.mouseClicked(x, y, 0);
+                outfit = "outfit".equals(host.options.get("font")) && Boolean.TRUE.equals(host.options.get("lumoraFont"));
+                if (LumoraTheme.VANILLA.equals(host.options.get("theme"))) {
+                    view.applyTheme(LumoraTheme.LUMORA); // clicked the Vanilla card: back to Lumora
+                }
+                LumoraTheme.setAccent("purple");
+            }
+        }
+        assertTrue(outfit, "the Outfit chip selects Outfit");
     }
 
     private static HubView.Card card(String name, String category) {

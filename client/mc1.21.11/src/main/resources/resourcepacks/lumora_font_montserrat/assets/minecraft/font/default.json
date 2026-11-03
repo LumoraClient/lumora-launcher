@@ -1,0 +1,8 @@
+{
+  "providers": [
+    { "type": "reference", "id": "minecraft:include/space" },
+    { "type": "ttf", "file": "lumora:montserrat-medium.ttf", "size": 8.8, "oversample": 4.0, "shift": [0.0, 0.5] },
+    { "type": "reference", "id": "minecraft:include/default", "filter": { "uniform": false } },
+    { "type": "reference", "id": "minecraft:include/unifont" }
+  ]
+}

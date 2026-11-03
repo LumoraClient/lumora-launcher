@@ -42,6 +42,8 @@ public final class LumoraConfig {
     public boolean customLoadingScreen = true;
     /** Lumora font (Inter) instead of the Minecraft font - a built-in resource pack. */
     public boolean lumoraFont = false;
+    /** Font when lumoraFont is on (id of dev.lumora.core.theme.LumoraFonts, e.g. "inter", "outfit"). */
+    public String font = "inter";
     /** Minecraft 1.12.2: vanilla buttons and sliders in the Lumora style (the newer versions use the "Lumora Theme" pack). */
     public boolean vanillaSkin = true;
     /** Set once the "Lumora Theme" pack was switched on at the first start with Lumora: older Fabric API versions,
@@ -107,6 +109,11 @@ public final class LumoraConfig {
         String anim = dev.lumora.client.anim.SwingAnimation.Mode.parse(swingAnimation).name().toLowerCase(java.util.Locale.ROOT);
         if (!anim.equals(swingAnimation)) {
             swingAnimation = anim;
+            changed = true;
+        }
+        String fontId = dev.lumora.core.theme.LumoraFonts.get(font).id();
+        if (!fontId.equals(font)) {
+            font = fontId;
             changed = true;
         }
         return changed;

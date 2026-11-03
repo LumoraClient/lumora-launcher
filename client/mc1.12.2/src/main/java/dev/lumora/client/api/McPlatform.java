@@ -237,7 +237,7 @@ final class McPlatform implements Platform {
                 }
                 net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
                 dev.lumora.client.gui.AddonViewScreen.keepCurrent();
-                mc.setScreen(new dev.lumora.client.gui.SettingsScreen(mc.currentScreen, dev.lumora.client.compat.Component.literal(record.descriptor().name()),
+                mc.setScreen(dev.lumora.client.gui.SettingsScreen.create(mc.currentScreen, dev.lumora.client.compat.Component.literal(record.descriptor().name()),
                         record.configuration().settings(), core.keybindManager().of(addonId), record.configuration()::save));
             }
         };

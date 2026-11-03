@@ -142,8 +142,9 @@ public final class LumoraHubScreen {
         }
 
         @Override
-        public void openSettings(String title, SettingsGroup settings, List<Keybind> keybinds, Runnable onClose) {
-            show(new SettingsScreen(current(), dev.lumora.client.compat.Component.literal(title), settings, keybinds, onClose));
+        public void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds,
+                                 Runnable onClose, boolean hudEditor) {
+            show(SettingsScreen.create(current(), title, description, settings, keybinds, onClose, hudEditor));
         }
 
         @Override

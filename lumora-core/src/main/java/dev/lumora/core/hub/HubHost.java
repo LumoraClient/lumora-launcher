@@ -35,8 +35,9 @@ public interface HubHost {
     /** Opens the HUD editor; it returns to the hub. */
     void openHudEditor();
 
-    /** Opens Lumora's settings screen for a group of settings and keys; it returns to the hub. */
-    void openSettings(String title, SettingsGroup settings, List<Keybind> keybinds, Runnable onClose);
+    /** Opens Lumora's settings view for a group of settings and keys ({@code hudEditor}: with the HUD editor button); it returns to the hub. */
+    void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds, Runnable onClose,
+                      boolean hudEditor);
 
     /** Minecraft's own title screen is used until the game restarts. */
     boolean classicMenuUntilRestart();

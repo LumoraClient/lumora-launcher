@@ -45,7 +45,8 @@ class HubViewTest {
         @Override public boolean fontSupported() { return true; }
         @Override public String zoomKey() { return "C"; }
         @Override public void openHudEditor() { editorOpened++; }
-        @Override public void openSettings(String title, SettingsGroup settings, List<Keybind> keybinds, Runnable onClose) { }
+        @Override public void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds,
+                                           Runnable onClose, boolean hudEditor) { }
         @Override public boolean classicMenuUntilRestart() { return false; }
         @Override public void showMainMenu(boolean lumora) { }
         @Override public String renderer() { return "OpenGL"; }

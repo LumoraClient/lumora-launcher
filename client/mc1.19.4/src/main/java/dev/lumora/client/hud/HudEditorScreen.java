@@ -238,7 +238,7 @@ public final class HudEditorScreen extends Screen {
 
     private void openSettings(WidgetEntry e) {
         keepSession = true;
-        minecraft.setScreen(new SettingsScreen(new HudEditorScreen(parent, model), Component.literal(name(e)),
+        minecraft.setScreen(SettingsScreen.create(new HudEditorScreen(parent, model), Component.literal(name(e)),
                 e.widget().settings(), List.of(), null));
     }
 

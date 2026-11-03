@@ -9,6 +9,7 @@
   - Als Karten erscheinen alle HUD-Widgets, die eingebauten Module (Fadenkreuz, Toggle Sprint, Fullbright, Chat …), Addons und der Zoom.
   - **Suche** (Strg + F oder einfach lostippen), Mausrad zum Blättern.
   - **Profile:** laden, eigene löschen, neu anlegen. **System:** Renderer, Grafikkarte, Speicher, Benchmark, Diagnose, Ordner. **Zoom:** alle Zoom-Einstellungen auf einer eigenen Seite (Zahnrad der Zoom-Karte).
+- **Neue Einstellungen für Module, Widgets und Addons** im Stil des Hubs (überall, wo Einstellungen geöffnet werden: Hub, HUD-Editor, Addons): Kopfzeile mit Zurück, Titel, Suche, „Im HUD-Editor verschieben“ und „Alles zurücksetzen“, darunter die Beschreibung. Schieberegler über die ganze Breite mit Wert, Schalter AN/AUS (grün/rot) in zwei Spalten, Farben mit Vorschau, editierbarem Hex-Wert und Zurücksetzen, Auswahl mit ‹ ›, Zahlen mit − +, Textfelder und Tasten. Hilfetexte beim Drüberfahren, erweiterte Einstellungen per Schalter.
 - **Themes:** „Lumora“ oder „Vanilla“.
   - Vanilla schaltet Lumoras Hauptmenü, Menü-Hintergrund, Effekte, Schrift, Ladebildschirm, Server- und Weltliste, Verbindungsbildschirme und Button-Design ab. Der Hub bleibt im Lumora-Stil.
   - Bei Lumora wählt man eine **Akzentfarbe** (Lila, Blau, Türkis, Grün, Orange, Rot, Pink). Sie gilt für Hub, Lumora-Knöpfe, Schieberegler, Hauptmenü, Ladebildschirm, Server- und Weltliste, Verbindungs- und Social-Menüs.

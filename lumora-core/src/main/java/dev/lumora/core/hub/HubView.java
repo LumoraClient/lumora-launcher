@@ -185,8 +185,8 @@ public final class HubView implements AddonView {
             AddonRecord r = core.addonManager().record(a.id()).orElse(null);
             boolean hasSettings = r != null && r.configuration() != null && (!r.configuration().settings().isEmpty()
                     || !core.keybindManager().of(a.id()).isEmpty());
-            Runnable settings = hasSettings ? () -> host.openSettings(a.descriptor().name(), r.configuration().settings(),
-                    core.keybindManager().of(a.id()), r.configuration()::save) : null;
+            Runnable settings = hasSettings ? () -> host.openSettings(a.descriptor().name(), a.descriptor().description(),
+                    r.configuration().settings(), core.keybindManager().of(a.id()), r.configuration()::save, false) : null;
             Runnable menu = core.views().hasMenu(a.id()) ? () -> core.views().openMenu(a.id()) : null;
             boolean failed = a.state() == AddonState.FAILED;
             String[] builtIn = BUILT_IN.get(a.id());
@@ -212,11 +212,12 @@ public final class HubView implements AddonView {
             }
             boolean hasSettings = !w.widget().settings().isEmpty();
             String widgetName = name;
+            String widgetDesc = desc;
             String icon = WIDGET_ICONS.contains(w.widget().id()) && (WIDGET_CONTAINERS.contains(w.addonId())
                     || w.addonId().startsWith("lumora-")) ? w.widget().id() : "widget";
             out.add(new Card("widget:" + w.id(), name, desc, w.category(), icon, w.isEnabled(), w.failure().orElse(null),
                     () -> w.setEnabled(!w.isEnabled()),
-                    hasSettings ? () -> host.openSettings(widgetName, w.widget().settings(), List.of(), null) : null,
+                    hasSettings ? () -> host.openSettings(widgetName, widgetDesc, w.widget().settings(), List.of(), null, true) : null,
                     null, from));
         }
         out.sort(Comparator.comparing(c -> c.name().toLowerCase(Locale.ROOT)));
@@ -408,7 +409,12 @@ public final class HubView implements AddonView {
     }
 
     private void background(HudGraphics g, int w, int h, float e) {
-        if (host.inWorld()) {
+        background(g, w, h, e, host.inWorld());
+    }
+
+    /** Menu background (or a veil over the running world), shared with the settings view. */
+    static void background(HudGraphics g, int w, int h, float e, boolean inWorld) {
+        if (inWorld) {
             // the game stays visible behind a dark veil
             g.fill(0, 0, w, h, LumoraTheme.alpha(0x0B0910, (int) (0x60 + 0x50 * e)));
             return;
@@ -1192,7 +1198,7 @@ public final class HubView implements AddonView {
 
     // ---- text helpers
 
-    private static void spaced(HudGraphics g, String s, int x, int y, int color) {
+    static void spaced(HudGraphics g, String s, int x, int y, int color) {
         int cx = x;
         for (int i = 0; i < s.length(); i++) {
             String ch = String.valueOf(s.charAt(i));
@@ -1201,7 +1207,7 @@ public final class HubView implements AddonView {
         }
     }
 
-    private static int spacedWidth(HudGraphics g, String s) {
+    static int spacedWidth(HudGraphics g, String s) {
         int w = 0;
         for (int i = 0; i < s.length(); i++) {
             w += g.textWidth(String.valueOf(s.charAt(i))) + 1;
@@ -1241,7 +1247,7 @@ public final class HubView implements AddonView {
         return out;
     }
 
-    private static boolean in(double mx, double my, int x, int y, int w, int h) {
+    static boolean in(double mx, double my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;
     }
 

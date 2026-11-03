@@ -154,7 +154,7 @@ public final class SmokeTest {
                     // generated settings screen and the addon list
                     pending.add(new Shot("hud-editor-move", HudEditorScreen::new, 30));
                     pending.add(new Shot("widget-settings", parent -> ApiSmoke.core().widgetRegistry().entry(ApiSmoke.testWidget())
-                            .map(e -> (Screen) new SettingsScreen(parent, Component.translatable(e.widget().nameKey()), e.widget().settings(), List.of(), null))
+                            .map(e -> (Screen) SettingsScreen.create(parent, Component.translatable(e.widget().nameKey()), e.widget().settings(), List.of(), null))
                             .orElse(null)));
                     pending.add(new Shot("hub-profiles", parent -> LumoraHubScreen.withTab(parent, 3)));
                     if (dev.lumora.client.platform.LoaderEnv.isLoaded("lumoravoice")) {

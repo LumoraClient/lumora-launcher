@@ -154,7 +154,7 @@ final class Cli {
         for (String page : pages) {
             javax.swing.SwingUtilities.invokeAndWait(() -> w[0].showPage(page.strip()));
             Thread.sleep(2500);
-            Path file = dir.resolve("launcher-" + page.strip() + ".png");
+            Path file = dir.resolve("launcher-" + page.strip().replace('/', '-') + ".png");
             javax.swing.SwingUtilities.invokeAndWait(() -> {
                 try {
                     w[0].capture(file);

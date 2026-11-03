@@ -57,6 +57,7 @@ public final class AppContext {
         }, os);
         accounts = new AccountStore(bootstrap.authFile().getParent(), os);
         play = new PlayService(paths, installer, accounts, os);
+        play.history().setEnabled(config.connectionHistory);
         Log.info("Lumora launcher started; data=" + paths.root() + ", bundled=" + bundledDir + ", os=" + os);
     }
 

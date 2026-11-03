@@ -84,6 +84,8 @@ public final class LauncherConfig {
     public String accentColor = DEFAULT_ACCENT;
     /** Hard pixel corners instead of rounded ones (applies after a restart). */
     public boolean pixelStyle = false;
+    /** Side navigation with icons only (labels as tooltips) instead of icons with text. */
+    public boolean navIconsOnly = false;
     /** No sliding/fading animations. */
     public boolean reduceMotion = false;
     /** Java2D hardware acceleration (Direct3D on Windows); off helps with driver problems. Applies after a restart. */
@@ -105,6 +107,8 @@ public final class LauncherConfig {
      * Off by default.
      */
     public boolean anonymousStats = false;
+    /** Local history of sign-ins, game starts and joined servers (Konto -> Verlauf); never leaves this PC. */
+    public boolean connectionHistory = true;
 
     // --- Fehlersuche
     /** Heap dump into the diagnostics folder when the game runs out of memory. */

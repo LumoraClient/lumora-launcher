@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lumora design tokens and look-and-feel setup: deep navy surfaces, a selectable accent (blue by default) with a
+ * Lumora design tokens and look-and-feel setup in a calm, minimal style: deep navy surfaces, small radii, a selectable accent (blue by default) with a
  * second, cooler accent for flowing gradients, Inter typeface, rounded or hard pixel corners. The tokens are set once
  * before the first window is built.
  */
@@ -36,7 +36,7 @@ public final class Theme {
     public static final Color FAIL = new Color(0xF2555A);
 
     /** Card radius; 0 in pixel style. */
-    public static int RADIUS = 18;
+    public static int RADIUS = 12;
     /** Hard pixel corners instead of rounded ones. */
     public static boolean pixelStyle;
     /** No automatic animations (skin rotation, spinners). */
@@ -47,8 +47,10 @@ public final class Theme {
     }
 
     public static final List<Preset> PRESETS = List.of(
-            new Preset("Blau", "#3B82F6"), new Preset("Eisblau", "#38BDF8"), new Preset("Türkis", "#18B4CC"), new Preset("Lila", "#8B5CF6"),
-            new Preset("Rosa", "#EC4899"), new Preset("Grün", "#22C55E"), new Preset("Weiß", "#E5E7EB"));
+            new Preset("Blau", "#3B82F6"), new Preset("Eisblau", "#38BDF8"), new Preset("Türkis", "#18B4CC"), new Preset("Indigo", "#6366F1"),
+            new Preset("Lila", "#8B5CF6"), new Preset("Violett", "#A855F7"), new Preset("Rosa", "#EC4899"), new Preset("Grün", "#22C55E"),
+            new Preset("Smaragd", "#10B981"), new Preset("Orange", "#F97316"), new Preset("Gelb", "#F59E0B"), new Preset("Rot", "#EF4444"),
+            new Preset("Schiefer", "#64748B"), new Preset("Weiß", "#E5E7EB"));
 
     private static boolean installed;
 
@@ -73,7 +75,7 @@ public final class Theme {
         setAccent(accentHex);
         pixelStyle = pixel;
         reduceMotion = calm;
-        RADIUS = pixel ? 0 : 18;
+        RADIUS = pixel ? 0 : 12;
         FlatInterFont.install();
         FlatLaf.setPreferredFontFamily(FlatInterFont.FAMILY);
         FlatLaf.setGlobalExtraDefaults(Map.of(
@@ -81,9 +83,9 @@ public final class Theme {
                 "@background", hex(BG),
                 "@foreground", hex(TEXT)));
         FlatDarkLaf.setup();
-        UIManager.put("Component.arc", arc(14));
-        UIManager.put("Button.arc", arc(14));
-        UIManager.put("TextComponent.arc", arc(12));
+        UIManager.put("Component.arc", arc(10));
+        UIManager.put("Button.arc", arc(10));
+        UIManager.put("TextComponent.arc", arc(10));
         UIManager.put("Component.focusColor", alpha(ACCENT, 160));
         UIManager.put("Button.hoverBackground", mix(SURFACE_2, ACCENT, 0.18));
         UIManager.put("Button.pressedBackground", mix(SURFACE_2, ACCENT, 0.30));

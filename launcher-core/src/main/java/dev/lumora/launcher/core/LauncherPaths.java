@@ -44,6 +44,11 @@ public record LauncherPaths(Path root) {
         return root.resolve("config").resolve("playstats.json");
     }
 
+    /** Local sign-in and server history (no tokens). */
+    public Path connectionHistory() {
+        return root.resolve("config").resolve("connections.json");
+    }
+
     public Path authFile() {
         return root.resolve("auth").resolve("session.bin");
     }

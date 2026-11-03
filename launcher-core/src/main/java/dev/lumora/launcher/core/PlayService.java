@@ -60,12 +60,25 @@ public final class PlayService {
     private volatile State state = State.IDLE;
     private final dev.lumora.launcher.core.stats.PlayStats stats;
 
+    private final dev.lumora.launcher.core.history.ConnectionHistory history;
+
     public PlayService(LauncherPaths paths, ClientInstaller installer, AccountStore sessions, OsInfo os) {
+        this(paths, installer, sessions, os, new dev.lumora.launcher.core.history.ConnectionHistory(paths.connectionHistory()));
+    }
+
+    public PlayService(LauncherPaths paths, ClientInstaller installer, AccountStore sessions, OsInfo os,
+                       dev.lumora.launcher.core.history.ConnectionHistory history) {
+        this.history = history;
         this.paths = paths;
         this.stats = new dev.lumora.launcher.core.stats.PlayStats(paths.playStats());
         this.installer = installer;
         this.sessions = sessions;
         this.os = os;
+    }
+
+    /** Local sign-in and server history. */
+    public dev.lumora.launcher.core.history.ConnectionHistory history() {
+        return history;
     }
 
     /** Play time per profile (recorded when a real game session ends). */
@@ -127,6 +140,8 @@ public final class PlayService {
             } else {
                 setState(listener, State.LOGGING_IN, "Anmeldung wird geprüft…");
                 MinecraftSession session = ensureSession(config, interactiveLogin, cancelled);
+                history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.GAME_START, session.uuid(), session.username(),
+                        instanceId, Instant.now());
                 identity = new LaunchCommandBuilder.Identity(session.username(), session.uuid(), session.accessToken(),
                         session.xuid(), "msa", false);
             }
@@ -154,8 +169,16 @@ public final class PlayService {
 
             cmd = new ArrayList<>(cmd);
             cmd.addAll(dev.lumora.launcher.core.launch.LaunchOptions.gameArgs(config));
+            String player = identity.username();
+            boolean track = mode != Mode.SMOKE_TEST_DEMO;
             GameProcess game = GameProcess.start(cmd, prepared.gameDir(), instanceId,
-                    dev.lumora.launcher.core.launch.LaunchOptions.environment(config), listener::gameOutput);
+                    dev.lumora.launcher.core.launch.LaunchOptions.environment(config), line -> {
+                        listener.gameOutput(line);
+                        String server = track ? dev.lumora.launcher.core.history.ConnectionHistory.serverFromLog(line) : null;
+                        if (server != null) {
+                            history.recordServer(server, player, instanceId, Instant.now());
+                        }
+                    });
             java.time.Instant started = java.time.Instant.now();
             running.set(game);
             setState(listener, State.PLAYING, "Spiel läuft (PID " + game.pid() + ")");
@@ -212,6 +235,7 @@ public final class PlayService {
         if (stored != null && stored.msRefreshToken() != null) {
             try {
                 fresh = auth.refresh(stored);
+                history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.REFRESH, fresh.uuid(), fresh.username(), "", Instant.now());
             } catch (AuthException e) {
                 if (e.reason() != AuthException.Reason.SESSION_INVALID) {
                     throw e;
@@ -222,6 +246,7 @@ public final class PlayService {
         }
         if (fresh == null) {
             fresh = login.login(auth, cancelled);
+            history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.SIGN_IN, fresh.uuid(), fresh.username(), "", Instant.now());
         }
         sessions.save(fresh);
         return fresh;
@@ -245,6 +270,7 @@ public final class PlayService {
         }
         MinecraftSession fresh = new MicrosoftAuthenticator(clientId).refresh(stored);
         sessions.save(fresh);
+        history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.REFRESH, fresh.uuid(), fresh.username(), "", Instant.now());
         return fresh;
     }
 
@@ -253,10 +279,13 @@ public final class PlayService {
                                    BooleanSupplier cancelled) throws AuthException, IOException {
         MinecraftSession s = login.login(new MicrosoftAuthenticator(effectiveClientId(config)), cancelled);
         sessions.save(s);
+        history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.SIGN_IN, s.uuid(), s.username(), "", Instant.now());
         return s;
     }
 
     public void signOut() throws IOException {
+        sessions.activeAccount().ifPresent(a -> history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.SIGN_OUT,
+                a.uuid(), a.username(), "", Instant.now()));
         sessions.removeActive();
     }
 

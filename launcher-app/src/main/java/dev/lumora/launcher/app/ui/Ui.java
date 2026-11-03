@@ -63,9 +63,9 @@ public final class Ui {
     public static JComponent pageTitle(String title, String subtitle) {
         JPanel p = column();
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.add(label(title, 28, Font.BOLD, Theme.TEXT));
+        p.add(label(title, 24, Font.BOLD, Theme.TEXT));
         p.add(Box.createVerticalStrut(4));
-        p.add(label(subtitle, 14, Font.PLAIN, Theme.MUTED));
+        p.add(label(subtitle, 13.5f, Font.PLAIN, Theme.MUTED));
         return p;
     }
 

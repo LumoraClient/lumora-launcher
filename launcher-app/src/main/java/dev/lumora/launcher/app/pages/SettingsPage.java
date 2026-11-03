@@ -68,6 +68,9 @@ public final class SettingsPage extends JPanel {
 
         /** Looks for a new launcher version on GitHub Releases (shows the result). */
         void checkLauncherUpdate();
+
+        /** Side navigation switched between text and icons only. */
+        void navChanged();
     }
 
     /** @param wide the control fills the whole card (storage overview) instead of sitting on the right */
@@ -107,22 +110,22 @@ public final class SettingsPage extends JPanel {
         JPanel head = new JPanel(new BorderLayout());
         head.setOpaque(false);
         head.setBorder(BorderFactory.createEmptyBorder(0, 0, 14, 0));
-        JLabel title = Ui.label("LAUNCHER-EINSTELLUNGEN", 18, Font.BOLD, Theme.TEXT);
+        JLabel title = Ui.label("Einstellungen", 22, Font.BOLD, Theme.TEXT);
         head.add(title, BorderLayout.WEST);
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         right.setOpaque(false);
         right.add(Ui.label("v" + BuildInfo.VERSION, 13, Font.PLAIN, Theme.MUTED));
-        right.add(Ui.label("ERWEITERTER MODUS", 13, Font.BOLD, Theme.TEXT));
+        right.add(Ui.label("Erweitert", 13, Font.PLAIN, Theme.MUTED));
         right.add(advanced);
         head.add(right, BorderLayout.EAST);
         add(head, BorderLayout.NORTH);
 
         JPanel side = new JPanel(new BorderLayout(0, 12));
         side.setOpaque(false);
-        side.setPreferredSize(new Dimension(220, 10));
-        search.putClientProperty("JTextField.placeholderText", "Einstellungen durchsuchen");
+        side.setPreferredSize(new Dimension(196, 10));
+        search.putClientProperty("JTextField.placeholderText", "Suchen");
         search.putClientProperty("JTextField.leadingIcon", Icons.of(Icons.Kind.SEARCH, 16, Theme.MUTED));
-        search.setPreferredSize(new Dimension(220, 36));
+        search.setPreferredSize(new Dimension(196, 34));
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -146,6 +149,24 @@ public final class SettingsPage extends JPanel {
         rebuild();
     }
 
+    private JPanel navMode;
+
+    /** Marks the current side navigation mode (after it was switched in the rail itself). */
+    public void syncNav() {
+        if (navMode != null && navMode.getComponent(cfg.navIconsOnly ? 1 : 0) instanceof javax.swing.AbstractButton b) {
+            b.setSelected(true);
+        }
+    }
+
+    /** Opens a category (for example "Erscheinungsbild"); unknown names are ignored. */
+    public void showCategory(String name) {
+        if (CATEGORIES.contains(name)) {
+            category = name;
+            search.setText("");
+            rebuild();
+        }
+    }
+
     private void save() {
         host.saveConfig();
     }
@@ -154,6 +175,11 @@ public final class SettingsPage extends JPanel {
 
     private void add(String cat, Icons.Kind icon, String title, String desc, boolean adv, JComponent control) {
         settings.add(new Setting(cat, icon, title, desc, adv, control, false));
+    }
+
+    /** A setting whose control sits below the text across the whole width. */
+    private void add(String cat, Icons.Kind icon, String title, String desc, boolean adv, JComponent control, boolean wide) {
+        settings.add(new Setting(cat, icon, title, desc, adv, control, wide));
     }
 
     private void restartHint() {
@@ -168,10 +194,12 @@ public final class SettingsPage extends JPanel {
         }
     }
 
-    /** Accent colour presets as swatches plus a colour picker; the selected one gets a ring. */
+    /** Accent colour presets as tiles plus a field for an own colour; the selected one gets a ring. */
     private JComponent accentPicker() {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        JPanel p = new JPanel(new BorderLayout(12, 0));
         p.setOpaque(false);
+        JPanel tiles = new JPanel(new dev.lumora.launcher.app.ui.WrapLayout(FlowLayout.LEFT, 4, 2));
+        tiles.setOpaque(false);
         for (Theme.Preset preset : Theme.PRESETS) {
             Color c = Theme.parse(preset.hex());
             JComponent s = new JComponent() {
@@ -190,7 +218,7 @@ public final class SettingsPage extends JPanel {
                     g.dispose();
                 }
             };
-            s.setPreferredSize(new Dimension(34, 34));
+            s.setPreferredSize(new Dimension(38, 38));
             s.setToolTipText(preset.name());
             s.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             s.addMouseListener(new MouseAdapter() {
@@ -199,19 +227,48 @@ public final class SettingsPage extends JPanel {
                     setAccent(preset.hex(), p);
                 }
             });
-            p.add(s);
+            tiles.add(s);
         }
-        JButton pick = new JButton(Icons.of(Icons.Kind.PALETTE, 16, Theme.TEXT));
-        pick.setToolTipText("Eigene Farbe");
-        pick.setFocusable(false);
-        pick.setPreferredSize(new Dimension(34, 34));
-        pick.addActionListener(e -> {
-            Color chosen = javax.swing.JColorChooser.showDialog(host.frame(), "Akzentfarbe", Theme.parse(cfg.accentColor));
-            if (chosen != null) {
-                setAccent(String.format("#%02X%02X%02X", chosen.getRed(), chosen.getGreen(), chosen.getBlue()), p);
+        p.add(tiles, BorderLayout.CENTER);
+        // own colour: dashed box with the current colour and its hex code
+        JComponent own = new JComponent() {
+            @Override
+            protected void paintComponent(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+                boolean custom = Theme.PRESETS.stream().noneMatch(x -> x.hex().equalsIgnoreCase(cfg.accentColor));
+                g.setColor(custom ? Theme.TEXT : Theme.BORDER);
+                g.setStroke(new java.awt.BasicStroke(1f, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER, 10f, new float[]{4f, 4f}, 0f));
+                g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, Theme.arc(10), Theme.arc(10));
+                Color c = Theme.parse(cfg.accentColor);
+                g.setColor(c == null ? Theme.ACCENT : c);
+                g.fillRoundRect(10, (getHeight() - 26) / 2, 26, 26, Theme.arc(6), Theme.arc(6));
+                g.setFont(Theme.font(Font.BOLD, 13f));
+                g.setColor(Theme.TEXT);
+                g.drawString("Eigene", 46, getHeight() / 2 - 2);
+                g.setFont(Theme.font(Font.PLAIN, 11.5f));
+                g.setColor(Theme.MUTED);
+                g.drawString(cfg.accentColor == null ? "" : cfg.accentColor.toUpperCase(Locale.ROOT), 46, getHeight() / 2 + 13);
+                g.dispose();
+            }
+        };
+        own.setPreferredSize(new Dimension(132, 46));
+        own.setToolTipText("Eigene Farbe wählen");
+        own.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        own.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Color chosen = javax.swing.JColorChooser.showDialog(host.frame(), "Akzentfarbe", Theme.parse(cfg.accentColor));
+                if (chosen != null) {
+                    setAccent(String.format("#%02X%02X%02X", chosen.getRed(), chosen.getGreen(), chosen.getBlue()), p);
+                }
             }
         });
-        p.add(pick);
+        JPanel ow = new JPanel(new java.awt.GridBagLayout());
+        ow.setOpaque(false);
+        ow.add(own);
+        p.add(ow, BorderLayout.EAST);
         return p;
     }
 
@@ -376,11 +433,18 @@ public final class SettingsPage extends JPanel {
             save();
         });
         add("Erscheinungsbild", Icons.Kind.MONITOR, "Startseite", "Diese Seite zeigt der Launcher nach dem Öffnen.", false, start);
+        navMode = Ui.segmented(List.of("text", "icons"), List.of("Mit Text", "Nur Icons"), cfg.navIconsOnly ? "icons" : "text", v -> {
+            cfg.navIconsOnly = v.equals("icons");
+            save();
+            hooks.navChanged();
+        });
+        add("Erscheinungsbild", Icons.Kind.LIBRARY, "Seitenleiste", "Seiten links mit Text oder nur als Icons. Auch über den Knopf unten in der Leiste.",
+                false, navMode);
         add("Erscheinungsbild", Icons.Kind.LIBRARY, "Minecraft-Snapshots im Changelog",
                 "Zeigt unter „Neuigkeiten → Changelog“ auch die wöchentlichen Snapshots, nicht nur Releases.", false,
                 toggle(cfg.showSnapshots, on -> cfg.showSnapshots = on));
         add("Erscheinungsbild", Icons.Kind.PALETTE, "Akzentfarbe", "Farbe für Knöpfe, Auswahl und Hervorhebungen in der gesamten "
-                + "Launcher-Oberfläche. Wirkt nach einem Neustart.", false, accentPicker());
+                + "Launcher-Oberfläche. Wirkt nach einem Neustart.", false, accentPicker(), true);
         ToggleSwitch pixel = toggle(cfg.pixelStyle, on -> cfg.pixelStyle = on);
         pixel.onChange(on -> restartHint());
         add("Erscheinungsbild", Icons.Kind.CUBE, "Pixel-Stil", "Zeichnet Karten, Knöpfe und Felder mit harten Pixelkanten im "
@@ -700,6 +764,7 @@ public final class SettingsPage extends JPanel {
         list.removeAll();
         String lastCat = null;
         int shown = 0;
+        JPanel group = null;
         for (Setting s : settings) {
             if (s.advanced && !adv) {
                 continue;
@@ -710,13 +775,21 @@ public final class SettingsPage extends JPanel {
                 continue;
             }
             if (!s.category.equals(lastCat)) {
-                JLabel h = Ui.label(s.category.toUpperCase(Locale.GERMANY), 13, Font.BOLD, Theme.MUTED);
-                h.setBorder(BorderFactory.createEmptyBorder(lastCat == null ? 0 : 14, 2, 8, 0));
+                JLabel h = Ui.label(s.category.equals("Chat") ? "Freunde & Chat" : s.category, 15, Font.BOLD, Theme.TEXT);
+                h.setBorder(BorderFactory.createEmptyBorder(lastCat == null ? 0 : 18, 2, 8, 0));
                 list.add(h);
+                Card box = new Card(new BorderLayout()).calm();
+                box.padding(4, 18, 4, 16);
+                box.setAlignmentX(Component.LEFT_ALIGNMENT);
+                box.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
+                group = Ui.column();
+                box.add(group, BorderLayout.CENTER);
+                list.add(box);
                 lastCat = s.category;
+            } else {
+                group.add(divider());
             }
-            list.add(card(s));
-            list.add(Box.createVerticalStrut(10));
+            group.add(card(s));
             shown++;
         }
         if (shown == 0) {
@@ -734,43 +807,57 @@ public final class SettingsPage extends JPanel {
         list.repaint();
     }
 
+    /** Thin line between two settings of a group. */
+    private static JComponent divider() {
+        JComponent line = new JComponent() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(Theme.alpha(Theme.BORDER, 170));
+                g.fillRect(0, 0, getWidth(), 1);
+            }
+        };
+        line.setAlignmentX(Component.LEFT_ALIGNMENT);
+        line.setPreferredSize(new Dimension(10, 1));
+        line.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        return line;
+    }
+
+    /** One setting as a row of its group: title and short description on the left, the control on the right. */
     private JComponent card(Setting s) {
+        JPanel text = Ui.column();
+        JPanel titleLine = Ui.row(8);
+        titleLine.add(Ui.label(s.title, 14, Font.BOLD, Theme.TEXT));
+        if (s.advanced) {
+            titleLine.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
+        }
+        text.add(titleLine);
+        if (s.description != null) {
+            text.add(Box.createVerticalStrut(2));
+            text.add(Ui.wrapText(s.description, 12.5f, Theme.MUTED));
+        }
+        JPanel c = new JPanel(new BorderLayout(16, 10));
+        c.setOpaque(false);
+        c.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+        c.setAlignmentX(Component.LEFT_ALIGNMENT);
+        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
         if (s.wide) {
-            Card c = new Card(new BorderLayout()).padding(18, 20, 14, 18);
-            c.setAlignmentX(Component.LEFT_ALIGNMENT);
+            if (s.category.equals("Speicher")) {
+                // the storage overview brings its own heading
+                c.add(s.control, BorderLayout.CENTER);
+                return c;
+            }
+            c.add(text, BorderLayout.NORTH);
             c.add(s.control, BorderLayout.CENTER);
-            c.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
             return c;
         }
-        Card c = new Card(new BorderLayout(16, 0)).padding(14, 18, 14, 16);
-        c.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel icon = new JLabel(Icons.of(s.icon, 20, Theme.TEXT));
-        icon.setVerticalAlignment(JLabel.CENTER);
-        c.add(icon, BorderLayout.WEST);
-        JPanel text = Ui.column();
-        text.add(Ui.label(s.title, 15, Font.BOLD, Theme.TEXT));
-        if (s.description != null) {
-            text.add(Box.createVerticalStrut(3));
-            text.add(Ui.wrapText(s.description, 13, Theme.MUTED));
-        }
-        JPanel center = new JPanel(new BorderLayout());
-        center.setOpaque(false);
-        center.add(text, BorderLayout.CENTER);
-        c.add(center, BorderLayout.CENTER);
+        c.add(text, BorderLayout.CENTER);
         JPanel east = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         east.setOpaque(false);
-        if (s.advanced) {
-            east.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
-        }
         east.add(s.control);
-        JPanel eastWrap = new JPanel(new GridLayout(1, 1));
-        eastWrap.setOpaque(false);
         JPanel v = new JPanel(new java.awt.GridBagLayout());
         v.setOpaque(false);
         v.add(east);
-        eastWrap.add(v);
-        c.add(eastWrap, BorderLayout.EAST);
-        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
+        c.add(v, BorderLayout.EAST);
         return c;
     }
 
@@ -781,8 +868,8 @@ public final class SettingsPage extends JPanel {
         CategoryRow(String name) {
             this.name = name;
             setAlignmentX(Component.LEFT_ALIGNMENT);
-            setPreferredSize(new Dimension(220, 36));
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+            setPreferredSize(new Dimension(196, 34));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             addMouseListener(new MouseAdapter() {
                 @Override
@@ -816,10 +903,10 @@ public final class SettingsPage extends JPanel {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
             boolean sel = name.equals(category) && search.getText().isBlank();
             if (sel || hover) {
-                g.setColor(sel ? Theme.SURFACE_2 : Theme.alpha(Theme.SURFACE_2, 140));
-                g.fillRoundRect(0, 2, getWidth(), getHeight() - 4, 10, 10);
+                g.setColor(Theme.alpha(Theme.TEXT, sel ? 20 : 10));
+                g.fillRoundRect(0, 2, getWidth(), getHeight() - 4, Theme.arc(10), Theme.arc(10));
             }
-            g.setFont(Theme.font(sel ? Font.BOLD : Font.PLAIN, 14f));
+            g.setFont(Theme.font(sel ? Font.BOLD : Font.PLAIN, 13.5f));
             g.setColor(sel ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.4));
             g.drawString(name.equals("Chat") ? "Freunde & Chat" : name, 12, getHeight() / 2 + 5);
             g.dispose();

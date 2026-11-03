@@ -54,7 +54,14 @@ public final class AccountPage extends JPanel {
         this.io = io;
         this.skins = new SkinService(host.ctx().downloader, host.ctx().paths.root().resolve("cache").resolve("skins"));
         setOpaque(false);
-        add(Ui.pageTitle("Konto", "Microsoft-Konten verwalten und den Skin in 3D ansehen."), BorderLayout.NORTH);
+        JPanel top = Ui.column();
+        top.add(Ui.pageTitle("Konto", "Konten, Skin, Sicherheit und Verlauf."));
+        top.add(Box.createVerticalStrut(14));
+        tabRow = Ui.segmented(TABS, List.of("Allgemein", "Sicherheit", "Verlauf"),
+                "general", this::showTab);
+        tabRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        top.add(tabRow);
+        add(top, BorderLayout.NORTH);
 
         Card skinCard = new Card(new BorderLayout(0, 10));
         skinCard.padding(16, 16, 16, 16);
@@ -98,15 +105,73 @@ public final class AccountPage extends JPanel {
         right.add(accounts);
         right.add(Box.createVerticalStrut(18));
         right.add(skinTools());
-        right.add(Box.createVerticalStrut(14));
-        right.add(Ui.wrapText("Die Anmeldedaten jedes Kontos liegen einzeln verschlüsselt (Windows DPAPI) auf diesem PC "
-                + "und sind nur für deinen Windows-Benutzer lesbar. Passwörter speichert der Launcher nie.", 12.5f, Theme.MUTED));
 
         JPanel body = new JPanel(new BorderLayout(18, 0));
         body.setOpaque(false);
         body.add(skinCard, BorderLayout.WEST);
         body.add(Ui.scroll(right), BorderLayout.CENTER);
-        add(body, BorderLayout.CENTER);
+        security = new SecurityTab(host, this::removeAccount, this::useAccount);
+        historyTab = new HistoryTab(host);
+        tabs.setOpaque(false);
+        tabs.add(body, "general");
+        tabs.add(security, "security");
+        tabs.add(historyTab, "history");
+        add(tabs, BorderLayout.CENTER);
+    }
+
+    // ------------------------------------------------------------------ tabs
+
+    private final java.awt.CardLayout tabLayout = new java.awt.CardLayout();
+    private final JPanel tabs = new JPanel(tabLayout);
+    private final SecurityTab security;
+    private final HistoryTab historyTab;
+
+    private static final List<String> TABS = List.of("general", "security", "history");
+    private JPanel tabRow;
+
+    /** Opens a tab ("general", "security", "history") and marks it in the tab row. */
+    public void selectTab(String id) {
+        int i = TABS.indexOf(id);
+        if (i < 0) {
+            return;
+        }
+        if (tabRow.getComponent(i) instanceof javax.swing.AbstractButton b) {
+            b.setSelected(true);
+        }
+        showTab(id);
+    }
+
+    private void showTab(String id) {
+        tabLayout.show(tabs, id);
+        security.refresh();
+        historyTab.refresh();
+    }
+
+    /** Removes the stored sign-in of an account from this PC (after asking). */
+    void removeAccount(AccountStore.Account a) {
+        if (JOptionPane.showConfirmDialog(host.frame(), a.username() + " von diesem PC abmelden? Die gespeicherte Anmeldung wird "
+                + "gelöscht, das Microsoft-Konto selbst bleibt unverändert.", "Abmelden", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            host.ctx().accounts.remove(a.uuid());
+            host.ctx().play.history().record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.REMOVED, a.uuid(), a.username(),
+                    "", Instant.now());
+        } catch (IOException ex) {
+            host.error("Abmelden fehlgeschlagen", ex.getMessage());
+        }
+        host.accountsChanged();
+        refresh();
+    }
+
+    void useAccount(AccountStore.Account a) {
+        try {
+            host.ctx().accounts.setActive(a.uuid());
+        } catch (IOException ex) {
+            host.error("Wechsel fehlgeschlagen", ex.getMessage());
+        }
+        host.accountsChanged();
+        refresh();
     }
 
     // ------------------------------------------------------------------ skin & cape
@@ -395,6 +460,8 @@ public final class AccountPage extends JPanel {
 
     public void refresh() {
         refreshSkinTools();
+        security.refresh();
+        historyTab.refresh();
         accounts.removeAll();
         AccountStore store = host.ctx().accounts;
         List<AccountStore.Account> list = store.list();
@@ -441,7 +508,9 @@ public final class AccountPage extends JPanel {
             line.add(Ui.chip("Aktiv"));
         }
         t.add(line);
-        t.add(Ui.label("zuletzt verwendet " + PlayStats.ago(a.lastUsed(), Instant.now()) + "  ·  UUID " + a.uuid(), 12, Font.PLAIN, Theme.MUTED));
+        JLabel sub = Ui.label("zuletzt verwendet " + PlayStats.ago(a.lastUsed(), Instant.now()), 12, Font.PLAIN, Theme.MUTED);
+        sub.setToolTipText("UUID " + a.uuid());
+        t.add(sub);
         c.add(t, BorderLayout.CENTER);
         JPanel buttons = Ui.row(6);
         JButton skin = new JButton(Icons.of(Icons.Kind.USER, 15, Theme.TEXT));
@@ -452,32 +521,12 @@ public final class AccountPage extends JPanel {
         if (!active) {
             JButton use = new JButton("Verwenden");
             use.setFocusable(false);
-            use.addActionListener(e -> {
-                try {
-                    host.ctx().accounts.setActive(a.uuid());
-                } catch (IOException ex) {
-                    host.error("Wechsel fehlgeschlagen", ex.getMessage());
-                }
-                host.accountsChanged();
-                refresh();
-            });
+            use.addActionListener(e -> useAccount(a));
             buttons.add(use);
         }
-        JButton remove = new JButton("Entfernen");
+        JButton remove = new JButton("Abmelden");
         remove.setFocusable(false);
-        remove.addActionListener(e -> {
-            if (JOptionPane.showConfirmDialog(host.frame(), a.username() + " von diesem PC entfernen? Die gespeicherte Anmeldung wird "
-                    + "gelöscht, das Microsoft-Konto selbst bleibt unverändert.", "Konto entfernen", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
-                return;
-            }
-            try {
-                host.ctx().accounts.remove(a.uuid());
-            } catch (IOException ex) {
-                host.error("Entfernen fehlgeschlagen", ex.getMessage());
-            }
-            host.accountsChanged();
-            refresh();
-        });
+        remove.addActionListener(e -> removeAccount(a));
         buttons.add(remove);
         JPanel bw = new JPanel(new GridBagLayout());
         bw.setOpaque(false);

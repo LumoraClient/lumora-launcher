@@ -7,7 +7,6 @@ import java.awt.AWTEvent;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
@@ -16,8 +15,7 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 
 /**
- * Rounded glass surface with optional accent outline (selected state). Under the mouse the outline glows up in the
- * accent and a faint light falls in from the top; the change glides ({@link Motion.Tween}). One global mouse listener
+ * Flat rounded surface with optional accent outline (selected state). Under the mouse the outline brightens a little; the change glides ({@link Motion.Tween}). One global mouse listener
  * finds the card under the pointer, so cards full of buttons and labels still react as a whole.
  */
 public class Card extends JPanel {
@@ -119,16 +117,12 @@ public class Card extends JPanel {
         double hv = glow.value();
         g.setColor(fill);
         g.fillRoundRect(0, 0, w - 1, h - 1, radius, radius);
-        if (hv > 0.01) {
-            // light from the top edge
-            g.setPaint(new GradientPaint(0, 0, Theme.alpha(Theme.ACCENT, (int) (34 * hv)), 0, Math.min(h, 90), Theme.alpha(Theme.ACCENT, 0)));
-            g.fillRoundRect(0, 0, w - 1, Math.min(h, 90), radius, radius);
-        }
         if (outline != null) {
+            // minimal hover: the outline only brightens a little
             boolean selected = outline == Theme.ACCENT;
-            Color c = selected ? outline : Theme.mix(outline, Theme.ACCENT_HOVER, 0.75 * hv);
+            Color c = selected ? outline : Theme.mix(outline, Theme.mix(Theme.BORDER, Theme.TEXT, 0.35), hv);
             g.setColor(c);
-            g.setStroke(new BasicStroke(selected ? 2f : 1f + (float) hv * 0.4f));
+            g.setStroke(new BasicStroke(selected ? 1.5f : 1f));
             g.drawRoundRect(0, 0, w - 1, h - 1, radius, radius);
         }
         g.dispose();

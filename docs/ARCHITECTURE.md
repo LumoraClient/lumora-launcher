@@ -17,6 +17,7 @@ LumoraLauncher.exe (jpackage, eigene jlink-Java-Runtime)
          ├─ install/    ClientInstaller: orchestriert alle Schritte idempotent
          ├─ library/    Welten, servers.dat (NBT), Screenshots, Ressourcenpakete, Server-Status (Server List Ping)
          ├─ stats/      Spielzeit je Version (config/playstats.json)
+         ├─ history/    Verbindungsverlauf: Anmeldungen, Spielstarts, Server (config/connections.json)
          ├─ diagnostics/ Systemprüfung, Crash-Analyse
          └─ update/     Update-Prüfung über die Modrinth-API (nur mit Bestätigung)
 
@@ -136,6 +137,8 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 - Smoke-Test-Modus: startet den **offiziellen Demo-Modus** (Feature `is_demo_user`). Er ist nur über die CLI erreichbar, nicht über die GUI, und umgeht keine Kaufprüfung.
 - **Neuigkeiten** laden nur von `launchercontent.mojang.com` (HTTPS, keine Weiterleitungen, Größenlimit, Pfade geprüft; eigener HTTP-Client in `NewsFeed`, nicht über die Download-Allow-List). „Weiterlesen“ öffnet nur Links zu minecraft.net. Patch Notes werden ohne Bilder, Skripte, Styles und Links angezeigt.
 - **Server-Liste**: Spielerzahl, Icon und Version kommen per Server List Ping direkt vom jeweiligen Server (wie die Mehrspieler-Liste von Minecraft). Verlauf und Bewertungen bleiben lokal (`<Datenordner>/servers/`). Es gibt keinen Statistik-Dienst.
+- **Verbindungsverlauf** (`history/ConnectionHistory`, Konto → Verlauf): Anmeldungen, Erneuerungen, Abmeldungen und Spielstarts je Konto sowie die Server, mit denen sich Minecraft verbunden hat (erkannt an der Logzeile „Connecting to host, port“). Gespeichert werden nur Name, UUID, Version und Serveradresse, nie Tokens. Bleibt lokal in `config/connections.json`, lässt sich abschalten und leeren.
+- **Zwei-Faktor-Authentifizierung**: Lumora hat kein eigenes Konto. Konto → Sicherheit öffnet die öffentlichen Microsoft-Kontoseiten (zusätzliche Sicherheitsoptionen, letzte Aktivität) im Browser. Die Sitzungstabelle zeigt die auf diesem PC angemeldeten Konten und meldet sie ab.
 - **Autostart** schreibt nur den Wert `LumoraLauncher` unter `HKCU\…\Run` (aktueller Benutzer, keine Admin-Rechte) und nur, wenn der Nutzer den Schalter umlegt.
 - **Discord Rich Presence** (`integrations/DiscordPresence`) spricht nur mit der Discord-App auf demselben PC (Named Pipe `\\.\pipe\discord-ipc-N`, unter Linux/macOS Unix-Socket), mit der vom Nutzer eingetragenen Anwendungs-ID. Gesendet werden nur „Im Launcher“ bzw. Version und Startart, keine Konto- oder Serverdaten. Aus = keine Verbindung.
 - **Anonyme Statistiken**: Es gibt keinen Lumora-Statistikserver. Der Schalter ist standardmäßig aus und wird nur gespeichert, gesendet wird nichts.

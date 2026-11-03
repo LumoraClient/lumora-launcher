@@ -213,10 +213,16 @@ final class LauncherWindow implements PageHost {
         return frame;
     }
 
-    /** Used by documentation screenshots. */
+    /** Used by documentation screenshots; "account/security" or "settings/Spiel" also open a tab or category. */
     @Override
     public void showPage(String id) {
-        nav.select(id);
+        int slash = id.indexOf('/');
+        nav.select(slash < 0 ? id : id.substring(0, slash));
+        if (slash > 0 && id.startsWith("account/")) {
+            accountPage.selectTab(id.substring(slash + 1));
+        } else if (slash > 0 && id.startsWith("settings/")) {
+            settingsPage.showCategory(id.substring(slash + 1));
+        }
     }
 
     private void build() {
@@ -284,6 +290,11 @@ final class LauncherWindow implements PageHost {
             }
 
             @Override
+            public void navChanged() {
+                nav.setIconsOnly(ctx.config.navIconsOnly);
+            }
+
+            @Override
             public boolean clientIdHelp() {
                 return LoginFlow.showClientIdSetup(frame, ctx);
             }
@@ -329,6 +340,12 @@ final class LauncherWindow implements PageHost {
         nav.addItem("news", "News", Icons.Kind.NEWS);
         nav.addGlue();
         nav.addItem("crashes", "Abstürze", Icons.Kind.ALERT);
+        nav.addModeToggle(on -> {
+            ctx.config.navIconsOnly = on;
+            saveConfigQuietly();
+            settingsPage.syncNav();
+        });
+        nav.setIconsOnly(ctx.config.navIconsOnly);
         social.addListener(e -> {
             updateSocialBadge();
             notifySocial(e);
@@ -407,7 +424,7 @@ final class LauncherWindow implements PageHost {
     }
 
     /**
-     * Start page banner: big logo, wordmark and slogan, a feature strip and the start controls (version, split play
+     * Start page banner: logo, wordmark and slogan and the start controls (version, split play
      * button with more start options, game folder, settings, more).
      */
     private JComponent hero() {
@@ -426,7 +443,7 @@ final class LauncherWindow implements PageHost {
                 int s = Math.min(getWidth(), getHeight());
                 int x = (getWidth() - s) / 2;
                 g.setPaint(new java.awt.RadialGradientPaint(new java.awt.geom.Point2D.Float(getWidth() / 2f, s / 2f), s * 0.75f,
-                        new float[]{0f, 1f}, new Color[]{Theme.alpha(Theme.ACCENT_HOVER, 110), Theme.alpha(Theme.ACCENT, 0)}));
+                        new float[]{0f, 1f}, new Color[]{Theme.alpha(Theme.ACCENT_HOVER, 55), Theme.alpha(Theme.ACCENT, 0)}));
                 g.fillOval(x - s / 2, -s / 2, s * 2, s * 2);
                 if (logoImg != null) {
                     g.drawImage(logoImg, x, 0, s, s, null);
@@ -464,22 +481,7 @@ final class LauncherWindow implements PageHost {
         }
         hero.add(Box.createVerticalStrut(20));
 
-        // feature strip
-        JPanel features = new JPanel(new GridLayout(1, 4, 0, 0));
-        features.setOpaque(false);
-        Object[][] f = {
-                {Icons.Kind.BOLT, "Performance", "Grafik-Profile & Java", "performance"},
-                {Icons.Kind.PUZZLE, "Ressourcen", "Ressourcenpakete von Modrinth", "browser"},
-                {Icons.Kind.USERS, "Freunde", "Chat und Gruppen", "social"},
-                {Icons.Kind.GLOBE, "Server", "Live-Rangliste", "servers"}};
-        for (int i = 0; i < f.length; i++) {
-            features.add(feature((Icons.Kind) f[i][0], (String) f[i][1], (String) f[i][2], (String) f[i][3], i > 0));
-        }
-        features.setMaximumSize(new Dimension(760, 70));
-        features.setPreferredSize(new Dimension(760, 70));
-        features.setAlignmentX(Component.CENTER_ALIGNMENT);
-        hero.add(features);
-        hero.add(Box.createVerticalStrut(22));
+        hero.add(Box.createVerticalStrut(6));
 
         // start controls
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -518,42 +520,6 @@ final class LauncherWindow implements PageHost {
         hero.add(info);
         hero.setMaximumSize(new Dimension(Integer.MAX_VALUE, hero.getPreferredSize().height));
         return hero;
-    }
-
-    private JComponent feature(Icons.Kind icon, String title, String sub, String page, boolean separator) {
-        JPanel p = new JPanel(new BorderLayout(10, 0)) {
-            @Override
-            protected void paintComponent(java.awt.Graphics g) {
-                super.paintComponent(g);
-                if (separator) {
-                    g.setColor(Theme.alpha(Color.WHITE, 40));
-                    g.fillRect(0, 12, 1, getHeight() - 24);
-                }
-            }
-        };
-        p.setOpaque(false);
-        p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        p.setToolTipText(title + " öffnen");
-        JPanel inner = new JPanel();
-        inner.setOpaque(false);
-        inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
-        JLabel i = new JLabel(Icons.of(icon, 26, Theme.ACCENT_HOVER));
-        JLabel t = label(title, 14.5f, Font.BOLD, Color.WHITE);
-        JLabel s = label(sub, 12.5f, Font.PLAIN, new Color(0xB4C3DD));
-        for (JComponent c : List.of(i, t, s)) {
-            c.setAlignmentX(Component.CENTER_ALIGNMENT);
-            inner.add(c);
-        }
-        inner.add(Box.createVerticalStrut(0));
-        t.setBorder(BorderFactory.createEmptyBorder(6, 0, 1, 0));
-        p.add(inner, BorderLayout.CENTER);
-        p.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                showPage(page);
-            }
-        });
-        return p;
     }
 
     private JButton heroButton(Icons.Kind icon, String tip, Runnable action) {

@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.2 (2026-11-03):**
+- **Build:** `gradlew clean build` erfolgreich, 376 Unit-Tests ohne Fehler (1 übersprungen), darunter neue für den Hub (alle Seiten auf kleinen und großen Bildschirmen, Kategorien, Suche, Vanilla-/Lumora-Theme, Akzentfarben, neues Profil per Klick).
+- **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.20.4, 1.16.5, 1.12.2 und 1.8.9 mit dem neuen Hub bestanden, Hub-Screenshots (Module, Themes, Profile, im Spiel) geprüft. Mit dem fertigen 0.3.2-Build zusätzlich 26.3, 1.12.2 und 1.8.9 erneut bestanden. Die übrigen Versionen sind nur kompiliert und mit allen Tests gebaut.
+- **Nicht geprüft:** Klicks im echten Spiel (An/Aus, Theme- und Farbwechsel, Suche, Profile), Online-Server mit echtem Konto.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.1 (2026-11-03):**
 - **Build:** `gradlew clean build` erfolgreich, alle Unit-Tests ohne Fehler, darunter neue für die Zeitmessung und den Fortschritt des Welt-Ladebildschirms.
 - **Smoke-Test** (stumm, Test-Datenordner, Beispiel-Addon): **alle 18 Profile** bestanden, in jedem erscheint der Lumora-Ladebildschirm beim Betreten der Demo-Welt (Logzeile „World load“ mit Phasen und Zeiten). Screenshots von 26.3, 1.20.4, 1.12.2 und 1.8.9 geprüft.

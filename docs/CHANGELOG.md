@@ -1,6 +1,6 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.3.2 (2026-11-03)
 
 ### Im Spiel
 - **Neuer Lumora-Hub** (Rechte Shift-Taste, „✦ Lumora“ im Haupt- und Pausenmenü), gleich in allen Versionen:
@@ -13,6 +13,7 @@
   - Vanilla schaltet Lumoras Hauptmenü, Menü-Hintergrund, Effekte, Schrift, Ladebildschirm, Server- und Weltliste, Verbindungsbildschirme und Button-Design ab. Der Hub bleibt im Lumora-Stil.
   - Bei Lumora wählt man eine **Akzentfarbe** (Lila, Blau, Türkis, Grün, Orange, Rot, Pink). Sie gilt für Hub, Lumora-Knöpfe, Schieberegler, Hauptmenü, Ladebildschirm, Server- und Weltliste, Verbindungs- und Social-Menüs.
   - Neue Einträge in `lumora-client.json`: `theme` und `accentColor`.
+- **1.8.9 und 1.12.2:** Lumoras Texte (HUD-Editor, Widgets, Einstellungen, Hub) und die Texte von Addons erscheinen wieder übersetzt statt als Schlüssel wie „lumora.hud.armor“. Seit dem Wechsel zum Lumora Loader wurden die JSON-Sprachdateien dort nicht mehr geladen.
 
 ## 0.3.1 (2026-11-03)
 

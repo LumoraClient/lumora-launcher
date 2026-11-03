@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.5 (2026-11-03)
+
+### Launcher
+- **Konto mit Reitern** Allgemein, Sicherheit und Verlauf.
+  - **Sicherheit:** Zwei-Faktor-Authentifizierung über das Microsoft-Konto (Lumora hat kein eigenes Konto; der Knopf öffnet die Microsoft-Seite für den zweiten Anmeldeschritt). Dazu eine Sitzungstabelle aller auf diesem PC angemeldeten Konten mit „Zuletzt aktiv“, „Erstmals genutzt“, Verwenden und Abmelden, sowie ein Link zur Anmeldeaktivität bei Microsoft.
+  - **Verlauf:** Anmeldungen, erneuerte Sitzungen, Abmeldungen und Spielstarts je Konto sowie die Server, mit denen sich Minecraft verbunden hat (Konto, Version, zuletzt, erstmals, Besuche). Server lassen sich direkt wieder betreten. Der Verlauf bleibt lokal in `config/connections.json`, enthält keine Tokens und lässt sich abschalten und leeren (neuer Eintrag `connectionHistory` in `launcher.json`).
+- **Seitenleiste mit Text oder nur Icons:** Umschalten mit dem Knopf unten in der Leiste oder unter Einstellungen → Erscheinungsbild → Seitenleiste, ohne Neustart (neuer Eintrag `navIconsOnly`). Größere Einträge, Logo wie bisher.
+- **Schlichteres Design:** flachere Karten und Hintergrund, Einstellungen als ein Kasten je Kategorie mit Trennlinien, 14 Akzentfarben als Kacheln plus eigene Farbe, Startseite ohne Funktionsleiste.
+
 ## 0.3.4 (2026-11-03)
 
 ### Im Spiel

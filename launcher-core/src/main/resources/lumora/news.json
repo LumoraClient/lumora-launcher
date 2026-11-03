@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-launcher-security",
+      "date": "2026-11-03",
+      "author": "Lumora",
+      "title": "Konto mit Sicherheit und Verlauf",
+      "text": "Unter Konto findest du jetzt die Reiter Sicherheit und Verlauf. Sicherheit zeigt alle Konten, die auf diesem PC angemeldet sind, und führt dich zur Zwei-Faktor-Authentifizierung deines Microsoft-Kontos. Der Verlauf listet Anmeldungen, Spielstarts und die Server, auf denen du warst, und bleibt auf deinem PC. Die Seitenleiste kannst du mit Text oder nur als Icons nutzen, das Design ist schlichter geworden.",
+      "image": "security.png"
+    },
+    {
       "id": "lumora-button-design",
       "date": "2026-11-03",
       "author": "Lumora",
@@ -114,6 +122,16 @@
     }
   ],
   "changelog": [
+    {
+      "version": "0.3.5",
+      "date": "2026-11-03",
+      "title": "Konto mit Sicherheit und Verlauf",
+      "items": [
+        "Konto → Sicherheit: 2FA über das Microsoft-Konto und alle Sitzungen auf diesem PC",
+        "Konto → Verlauf: Anmeldungen, Spielstarts und besuchte Server, lokal und abschaltbar",
+        "Seitenleiste mit Text oder nur Icons, schlichteres Design und 14 Akzentfarben"
+      ]
+    },
     {
       "version": "0.3.4",
       "date": "2026-11-03",

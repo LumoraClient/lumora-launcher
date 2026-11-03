@@ -5,7 +5,6 @@ import net.minecraft.network.chat.TextComponent;
 import com.mojang.realmsclient.RealmsMainScreen;
 import dev.lumora.client.LumoraClient;
 import dev.lumora.client.integration.RuntimeInfo;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lumora.client.compat.GuiGraphics;
@@ -74,7 +73,7 @@ public final class LumoraTitleScreen extends Screen {
                 LumoraButton.Style.PRIMARY, null, () -> minecraft.setScreen(singleplayer())));
         addRenderableWidget(new LumoraButton(cx - 100, l + 24, 200, 20, new TranslatableComponent("menu.multiplayer"),
                 LumoraButton.Style.SECONDARY, null, () -> minecraft.setScreen(new JoinMultiplayerScreen(this))));
-        if (FabricLoader.getInstance().isModLoaded("modmenu")) {
+        if (dev.lumora.client.platform.LoaderEnv.isLoaded("modmenu")) {
             addRenderableWidget(new LumoraButton(cx - 100, l + 48, 98, 20, new TranslatableComponent("menu.online"),
                     LumoraButton.Style.SECONDARY, null, () -> minecraft.setScreen(new RealmsMainScreen(this))));
             addRenderableWidget(new LumoraButton(cx + 2, l + 48, 98, 20, new TranslatableComponent("lumora.menu.mods"),
@@ -147,7 +146,7 @@ public final class LumoraTitleScreen extends Screen {
         g.drawCenteredString(font, edition, width / 2, ly + logoH + 7, 0xFFF1EBFF);
 
         // footer like vanilla: version bottom-left, copyright bottom-right
-        String version = "Minecraft " + SharedConstants.getCurrentVersion().getName() + " · Fabric · Lumora "
+        String version = "Minecraft " + SharedConstants.getCurrentVersion().getName() + " · Lumora Loader · Lumora "
                 + RuntimeInfo.modVersion("lumora").orElse("?") + (minecraft.isDemo() ? " · Demo" : "");
         if (font.width(version) + font.width(COPYRIGHT) + 12 > width) {
             version = "Minecraft " + SharedConstants.getCurrentVersion().getName() + (minecraft.isDemo() ? " Demo" : "");

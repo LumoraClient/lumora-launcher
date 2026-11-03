@@ -196,64 +196,43 @@
     {
       "id": "1.18.2",
       "displayName": "Minecraft 1.18.2",
-      "description": "Sodium, ViaFabric, Erweiterungen und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.18.2",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.18.2",
-        "sodium-1.18.2",
-        "viafabric-1.18.2",
         "lumora-client-1.18.2"
       ],
-      "extensions": [
-        "modmenu-1.18.2",
-        "ferritecore-1.18.2",
-        "lithium-1.18.2",
-        "voicechat-1.18.2"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {
       "id": "1.17.1",
       "displayName": "Minecraft 1.17.1",
-      "description": "Sodium, ViaFabric, Erweiterungen und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.17.1",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.17.1",
-        "sodium-1.17.1",
-        "viafabric-1.17.1",
         "lumora-client-1.17.1"
       ],
-      "extensions": [
-        "modmenu-1.17.1",
-        "ferritecore-1.17.1",
-        "lithium-1.17.1",
-        "voicechat-1.17.1"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {
       "id": "1.16.5",
       "displayName": "Minecraft 1.16.5",
-      "description": "Sodium, ViaFabric, Erweiterungen und die Lumora-Oberfläche.",
+      "description": "Läuft mit dem Lumora Loader: Minecraft und Lumora, ohne Mod-Loader.",
       "minecraftVersion": "1.16.5",
       "javaComponent": "java-runtime-delta",
       "fabricLoaderVersion": "0.19.5",
+      "loader": "lumora",
       "mods": [
-        "fabric-api-1.16.5",
-        "sodium-1.16.5",
-        "viafabric-1.16.5",
         "lumora-client-1.16.5"
       ],
-      "extensions": [
-        "modmenu-1.16.5",
-        "ferritecore-1.16.5",
-        "lithium-1.16.5",
-        "voicechat-1.16.5"
-      ],
+      "extensions": [],
       "resourcePacks": []
     },
     {

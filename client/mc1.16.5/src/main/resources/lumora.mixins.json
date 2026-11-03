@@ -29,7 +29,16 @@
     "DisconnectedScreenAccessor",
     "JoinMultiplayerScreenAccessor",
     "SelectWorldScreenAccessor",
-    "ButtonStyleMixin"],
+    "ButtonStyleMixin",
+    "platform.MinecraftLifecycleMixin",
+    "platform.ScreenHooksMixin",
+    "platform.ScreenWidgetsInvoker",
+    "platform.HudLayerMixin",
+    "platform.ChatScreenClickMixin",
+    "platform.OptionsKeysMixin",
+    "platform.ClientPackSourceMixin",
+    "platform.GameRendererScreenMixin",
+    "platform.LegacyCustomPayloadMixin"],
   "injectors": {
     "defaultRequire": 1
   },

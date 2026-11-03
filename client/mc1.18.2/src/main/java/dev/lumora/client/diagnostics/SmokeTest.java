@@ -155,7 +155,7 @@ public final class SmokeTest {
                             .map(e -> (Screen) new SettingsScreen(parent, new TranslatableComponent(e.widget().nameKey()), e.widget().settings(), List.of(), null))
                             .orElse(null)));
                     pending.add(new Shot("hub-addons", parent -> LumoraHubScreen.withTab(parent, 3)));
-                    if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lumoravoice")) {
+                    if (dev.lumora.client.platform.LoaderEnv.isLoaded("lumoravoice")) {
                         // LumoraVoice menus through the Lumora screen API (Lumora API 1.1)
                         pending.add(new Shot("voice-settings", parent -> {
                             ApiSmoke.openVoiceSettings(0);

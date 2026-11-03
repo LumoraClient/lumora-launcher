@@ -16,8 +16,8 @@ val bundled: Configuration by configurations.creating {
 dependencies {
     minecraft("com.mojang:minecraft:${libs.versions.mc1182.minecraft.get()}")
     mappings(loom.officialMojangMappings())
-    modImplementation("net.fabricmc:fabric-loader:${libs.versions.mc26.fabric.loader.get()}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${libs.versions.mc1182.fabric.api.get()}")
+    // no mod loader: started by the Lumora Loader (its API and the Mixin annotations at compile time only)
+    compileOnly(project(":lumora-loader"))
     // Sodium and ViaFabricPlus are deliberately NOT compile dependencies (ViaFabricPlus via reflection only).
 
     // Lumora client API and its Minecraft-independent implementation, bundled into the jar (see tasks.jar)
@@ -34,7 +34,7 @@ dependencies {
 tasks.processResources {
     val v = project.version.toString()
     inputs.property("version", v)
-    filesMatching("fabric.mod.json") {
+    filesMatching("lumora.loader.json") {
         expand("version" to v)
     }
 }
@@ -57,4 +57,15 @@ tasks.jar {
     from(bundled.elements.map { jars -> jars.map { zipTree(it) } }) {
         exclude("META-INF/MANIFEST.MF", "LICENSE_lumora")
     }
+}
+
+// Lumora Loader: the game runs with Mojang's names (the loader maps the obfuscated jar), so the jar keeps them too
+// and needs no refmap (no intermediary names at run time).
+loom {
+    mixin {
+        useLegacyMixinAp.set(false)
+    }
+}
+tasks.remapJar {
+    targetNamespace.set("named")
 }

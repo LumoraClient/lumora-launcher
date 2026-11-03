@@ -24,6 +24,8 @@ public final class ButtonStyleModule implements LumoraAddon {
     BooleanSetting shadow;
     /** Per-button animation state (Blackout alpha, Liquid inset, Lunar alpha), dropped with the button. */
     private final Map<Object, float[]> anim = new WeakHashMap<>();
+    /** Stable keys of view buttons (per view and button id) for their animation state. */
+    private final Map<Object, Map<String, Object>> viewKeys = new WeakHashMap<>();
 
     public static ButtonStyleModule active() {
         return active;
@@ -69,15 +71,57 @@ public final class ButtonStyleModule implements LumoraAddon {
      */
     public synchronized void drawBackground(HudGraphics g, Object button, int x, int y, int w, int h, boolean hover, boolean enabled) {
         float[] st = anim.computeIfAbsent(button, k -> new float[]{100, w / 2f, 40});
+        paint(g, style.get(), shadow.get(), st, x, y, w, h, hover, enabled);
+    }
+
+    /**
+     * Draws a button of a Lumora view (hub, settings, server and world list, connection screens) in the chosen
+     * design; {@code owner} and {@code id} keep its animation. Returns false when Lumora's own look is chosen (or the
+     * module is off): the view then draws its own button.
+     */
+    public static boolean drawViewButton(HudGraphics g, Object owner, String id, int x, int y, int w, int h, boolean hover) {
+        ButtonStyleModule m = styled();
+        if (m == null) {
+            return false;
+        }
+        Object key;
+        synchronized (m) {
+            key = m.viewKeys.computeIfAbsent(owner, o -> new java.util.HashMap<>()).computeIfAbsent(id, k -> new Object());
+        }
+        m.drawBackground(g, key, x, y, w, h, hover, true);
+        return true;
+    }
+
+    /** The styles in the order of the hub (Lumora's own look first). */
+    public static final java.util.List<String> STYLES = java.util.List.of(LUMORA, "blackout", "hyperium", "liquid", "lunar", "pvpclient", "rounded");
+
+    /** Display name of a style. */
+    public static String styleName(String id) {
+        return switch (id) {
+            case "blackout" -> "Blackout";
+            case "hyperium" -> "Hyperium";
+            case "liquid" -> "Liquid";
+            case "lunar" -> "Lunar";
+            case "pvpclient" -> "PvPClient";
+            case "rounded" -> "Rounded";
+            default -> "Lumora";
+        };
+    }
+
+    /**
+     * Draws a button background in {@code style} (not Lumora's own look); {@code st} is its animation state
+     * ({@code new float[]{100, w / 2f, 40}} for a new button). Used for the buttons and for the previews in the hub.
+     */
+    public static void paint(HudGraphics g, String style, boolean shadow, float[] st, int x, int y, int w, int h, boolean hover, boolean enabled) {
         boolean hovered = hover && enabled;
-        switch (style.get()) {
+        switch (style) {
             case "blackout" -> {
                 st[0] = ease(st[0], hovered ? 50 : 100, 0.12f);
-                shadow(g, x, y, w, h, 0);
+                shadow(g, shadow, x, y, w, h, 0);
                 g.fill(x, y, x + w, y + h, a((int) st[0], 0x000000));
             }
             case "hyperium" -> {
-                shadow(g, x, y, w, h, 0);
+                shadow(g, shadow, x, y, w, h, 0);
                 g.fill(x, y, x + w, y + h, a(hovered ? 50 : 100, 0x000000));
             }
             case "liquid" -> {
@@ -100,7 +144,7 @@ public final class ButtonStyleModule implements LumoraAddon {
             }
             case "rounded" -> {
                 int r = (int) Math.round(Math.sqrt((double) w * h) * 0.1);
-                shadow(g, x, y, w, h, r);
+                shadow(g, shadow, x, y, w, h, r);
                 g.roundedRect(x, y, w, h, r, hovered ? a(150, 0x3C3C3C) : a(150, 0x1F1F1F));
             }
             default -> {
@@ -112,8 +156,8 @@ public final class ButtonStyleModule implements LumoraAddon {
         }
     }
 
-    private void shadow(HudGraphics g, int x, int y, int w, int h, int radius) {
-        if (shadow.get()) {
+    private static void shadow(HudGraphics g, boolean shadow, int x, int y, int w, int h, int radius) {
+        if (shadow) {
             g.roundedRect(x + 1, y + 2, w, h, radius, 0x50000000);
         }
     }

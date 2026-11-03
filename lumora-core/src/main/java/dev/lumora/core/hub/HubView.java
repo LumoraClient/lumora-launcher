@@ -2,6 +2,8 @@ package dev.lumora.core.hub;
 
 import dev.lumora.api.addon.AddonInfo;
 import dev.lumora.api.addon.AddonState;
+import dev.lumora.api.config.BooleanSetting;
+import dev.lumora.api.config.ChoiceSetting;
 import dev.lumora.api.hud.WidgetCategory;
 import dev.lumora.api.hud.WidgetInfo;
 import dev.lumora.api.i18n.Translations;
@@ -11,6 +13,7 @@ import dev.lumora.api.render.TextureRef;
 import dev.lumora.api.screen.AddonView;
 import dev.lumora.core.LumoraCore;
 import dev.lumora.core.addon.AddonRecord;
+import dev.lumora.core.extras.ButtonStyleModule;
 import dev.lumora.core.hud.HudLayout;
 import dev.lumora.core.theme.LumoraFonts;
 import dev.lumora.core.theme.LumoraTheme;
@@ -480,7 +483,9 @@ public final class HubView implements AddonView {
         String label = t("+ Neues Profil", "+ New profile");
         int bw = w - 20;
         boolean hover = in(mx, my, x + 10, yb, bw, buttonH);
-        g.card(x + 10, yb, bw, buttonH, 3, hover ? LumoraTheme.alpha(accent, 0x30) : SIDE, hover ? accent : 0xFF3A3450);
+        if (!ButtonStyleModule.drawViewButton(g, this, "new-profile", x + 10, yb, bw, buttonH, hover)) {
+            g.card(x + 10, yb, bw, buttonH, 3, hover ? LumoraTheme.alpha(accent, 0x30) : SIDE, hover ? accent : 0xFF3A3450);
+        }
         g.centeredText(label, x + 10 + bw / 2, yb + (buttonH - 8) / 2, hover ? TEXT : MUTED, false);
         hit(x + 10, yb, bw, buttonH, this::newProfile);
         yb += buttonH + (compact ? 4 : 6);
@@ -865,6 +870,7 @@ public final class HubView implements AddonView {
             if (host.fontSupported() && host.has("font")) {
                 y = fonts(g, x, y, w, mx, my);
             }
+            y = buttonStyles(g, x, y, w, mx, my);
             spaced(g, t("LUMORA-DESIGN", "LUMORA DESIGN"), x, y, DIM);
             y += 13;
             y = toggleRow(g, x, y, w, t("Lumora-Hauptmenü", "Lumora main menu"), "customMainMenu", mx, my);
@@ -928,6 +934,67 @@ public final class HubView implements AddonView {
         }
         return y - y0;
     }
+
+    /**
+     * Button designs (module "Button-Design"), each shown as a live preview button; the chosen one applies to every
+     * menu. Returns the y below the section.
+     */
+    private int buttonStyles(HudGraphics g, int x, int y, int w, int mx, int my) {
+        AddonRecord r = core.addonManager().record("lumora-buttons").orElse(null);
+        if (r == null || r.configuration() == null
+                || !(r.configuration().settings().get("style").orElse(null) instanceof ChoiceSetting style)) {
+            return y;
+        }
+        boolean shadow = !(r.configuration().settings().get("shadow").orElse(null) instanceof BooleanSetting b) || b.enabled();
+        boolean moduleOn = core.addon("lumora-buttons").map(AddonInfo::wanted).orElse(false);
+        String current = moduleOn ? style.get() : ButtonStyleModule.LUMORA;
+        spaced(g, "BUTTONS", x, y, DIM);
+        y += 13;
+        int gap = 8;
+        int cols = Math.max(2, Math.min(4, (w + gap) / (96 + gap)));
+        int bw = (w - (cols - 1) * gap) / cols;
+        int bh = 18;
+        List<String> styles = ButtonStyleModule.STYLES;
+        for (int i = 0; i < styles.size(); i++) {
+            String id = styles.get(i);
+            int bx = x + (i % cols) * (bw + gap);
+            int by = y + (i / cols) * (bh + gap);
+            boolean sel = id.equals(current);
+            boolean hover = in(mx, my, bx, by, bw, bh) && my >= contentTop && my < contentBottom;
+            int accent = LumoraTheme.accent();
+            if (sel) {
+                g.roundedRect(bx - 3, by - 3, bw + 6, bh + 6, 7, accent);
+                g.roundedRect(bx - 2, by - 2, bw + 4, bh + 4, 6, MAIN);
+            }
+            if (ButtonStyleModule.LUMORA.equals(id)) {
+                g.card(bx, by, bw, bh, 4, hover ? CARD_HOVER : CARD, hover ? accent : 0xFF3A3450);
+            } else {
+                float[] st = previewAnim.computeIfAbsent(id, k -> new float[]{100, bw / 2f, 40});
+                ButtonStyleModule.paint(g, id, shadow, st, bx, by, bw, bh, hover, true);
+                if ("liquid".equals(id)) {
+                    g.outline(bx, by, bw, bh, 0x30FFFFFF); // Liquid only shows a background under the mouse
+                }
+            }
+            String name = ButtonStyleModule.styleName(id);
+            g.centeredText(name, bx + bw / 2 + 1, by + (bh - 8) / 2, 0xFFFFFFFF, true);
+            hit(bx, by, bw, bh, () -> {
+                style.set(id);
+                if (!moduleOn && !ButtonStyleModule.LUMORA.equals(id)) {
+                    core.addonManager().setWanted("lumora-buttons", true).ifPresent(this::toast);
+                }
+                r.configuration().save();
+                toast(t("Button-Design: ", "Button design: ") + name);
+            });
+        }
+        int rows = (styles.size() + cols - 1) / cols;
+        y += rows * (bh + gap);
+        g.text(t("Gilt für alle Menüs: Minecraft- und Lumora-Menüs, Hub, Server- und Weltliste",
+                "Applies to every menu: Minecraft's and Lumora's menus, hub, server and world list"), x, y, DIM, false);
+        return y + 20;
+    }
+
+    /** Animation state of the button design previews. */
+    private final Map<String, float[]> previewAnim = new java.util.HashMap<>();
 
     /** Font chips (Vanilla, Inter, Outfit …); returns the y below the section. */
     private int fonts(HudGraphics g, int x, int y, int w, int mx, int my) {
@@ -1238,7 +1305,9 @@ public final class HubView implements AddonView {
 
     private void button(HudGraphics g, int x, int y, int w, int h, String label, boolean primary, int mx, int my, Runnable action) {
         boolean hover = in(mx, my, x, y, w, h) && (!clipHits || my >= contentTop && my < contentBottom);
-        if (primary) {
+        if (ButtonStyleModule.drawViewButton(g, this, label + x, x, y, w, h, hover)) {
+            // the button design chosen under Themes
+        } else if (primary) {
             g.roundedRect(x, y, w, h, 4, hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
         } else {
             g.card(x, y, w, h, 4, hover ? CARD_HOVER : CARD, hover ? LumoraTheme.accent() : 0xFF3A3450);

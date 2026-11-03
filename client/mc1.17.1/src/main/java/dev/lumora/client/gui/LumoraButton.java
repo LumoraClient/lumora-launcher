@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 public final class LumoraButton extends AbstractButton {
     public enum Style { PRIMARY, NAV, SECONDARY }
 
+    private static final dev.lumora.client.api.McHudGraphics STYLE_G = new dev.lumora.client.api.McHudGraphics();
     private final Style style;
     private final Runnable action;
     private final String glyph;
@@ -38,6 +39,13 @@ public final class LumoraButton extends AbstractButton {
         int h = getHeight();
         boolean hover = isHovered() && active;
         int textColor = active ? LumoraUi.TEXT : LumoraUi.MUTED;
+        dev.lumora.core.extras.ButtonStyleModule buttonStyle = dev.lumora.core.extras.ButtonStyleModule.styled();
+        if (buttonStyle != null && style != Style.NAV) {
+            // button design chosen in the hub (Themes): Lumora's own buttons too
+            buttonStyle.drawBackground(STYLE_G.with(g), this, x, y, w, h, hover, active);
+            drawLabel(g, font, x, y, w, h, hover, dev.lumora.core.extras.ButtonStyleModule.textColor(active));
+            return;
+        }
         if (LumoraShaders.enabled()) {
             switch (style) {
                 case PRIMARY -> {

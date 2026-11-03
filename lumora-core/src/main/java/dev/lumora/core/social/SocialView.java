@@ -308,7 +308,9 @@ public final class SocialView {
 
     private boolean button(HudGraphics g, int x, int y, int w, int h, String label, int fill, int fg, int mx, int my, Runnable action) {
         boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
-        g.roundedRect(x, y, w, h, 3, hover ? brighten(fill) : fill);
+        if (!dev.lumora.core.extras.ButtonStyleModule.drawViewButton(g, this, label, x, y, w, h, hover)) {
+            g.roundedRect(x, y, w, h, 3, hover ? brighten(fill) : fill);
+        }
         g.text(label, x + (w - g.textWidth(label)) / 2 + 1, y + (h - 8) / 2, fg, false);
         hits.add(new Hit(x, y, x + w, y + h, action));
         return hover;

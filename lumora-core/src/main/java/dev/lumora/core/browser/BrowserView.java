@@ -422,7 +422,10 @@ abstract class BrowserView implements AddonView {
 
     final boolean button(HudGraphics g, int x, int y, int w, int h, String label, Style style, int mx, int my, Runnable action) {
         boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
-        switch (style) {
+        // the button design chosen in the hub (Themes) also applies here; ghost buttons stay plain
+        boolean styled = (style == Style.PRIMARY || style == Style.SECONDARY)
+                && dev.lumora.core.extras.ButtonStyleModule.drawViewButton(g, this, label, x, y, w, h, hover);
+        if (!styled) switch (style) {
             case PRIMARY -> g.roundedRect(x, y, w, h, 4, hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
             case DANGER -> g.roundedRect(x, y, w, h, 4, hover ? 0xFFF56F73 : FAIL);
             case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, hover ? LumoraTheme.accent() : BORDER);

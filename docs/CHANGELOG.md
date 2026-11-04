@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.7 (2026-11-04)
+
+### Im Spiel
+- **Ressourcenpaket „Lumora-Addons“:** Addon-JARs aus dem Ordner `addons/` bringen jetzt auch Texturen, Schriften und Klänge mit (bisher nur Sprachdateien). Lumora kopiert beim Start die `assets/` aller Addon-JARs nach `.lumora/addon-assets` und meldet den Ordner als immer aktives Ressourcenpaket an, in allen Versionen von 1.8.9 bis 26.3. Kopiert wird nur bei geänderten JARs. Die Namensräume `minecraft`, `realms` und `lumora` kann ein Addon nicht überschreiben.
+- **LumoraVoice läuft wieder:** Seit dem Wechsel zum Lumora Loader (0.3.2) wurden Fabric-Mods aus `mods/` nicht mehr geladen, LumoraVoice 0.8.0 startete deshalb nicht. LumoraVoice 0.8.1 ist ein reines Lumora-Addon für `addons/` (Opus, RNNoise und Kotlin in der JAR) und nutzt das neue Ressourcenpaket für Menü-Grafiken und Namensschild-Symbole.
+- Der Smoke-Test findet LumoraVoice als Addon-JAR und prüft wieder die Voice-Menüs.
+
 ## 0.3.6 (2026-11-03)
 
 ### Launcher

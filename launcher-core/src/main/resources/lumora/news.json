@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-addon-assets-voice",
+      "date": "2026-11-04",
+      "author": "Lumora",
+      "title": "LumoraVoice als Lumora-Addon",
+      "text": "Addons aus dem Ordner addons können jetzt eigene Grafiken, Schriften und Klänge mitbringen. Lumora stellt sie über das Ressourcenpaket „Lumora-Addons“ bereit. Damit läuft auch der Sprachchat LumoraVoice wieder: Version 0.8.1 ist ein reines Lumora-Addon und gehört in den Ordner addons deiner Instanz (im Hub unter Addons → Addon-Ordner), nicht mehr nach mods.",
+      "image": "voice.png"
+    },
+    {
       "id": "lumora-launcher-settings",
       "date": "2026-11-03",
       "author": "Lumora",
@@ -130,6 +138,16 @@
     }
   ],
   "changelog": [
+    {
+      "version": "0.3.7",
+      "date": "2026-11-04",
+      "title": "LumoraVoice als Lumora-Addon",
+      "items": [
+        "Ressourcenpaket „Lumora-Addons“: Texturen, Schriften und Klänge aus Addon-JARs in addons",
+        "LumoraVoice 0.8.1 läuft als reines Lumora-Addon im Ordner addons",
+        "Smoke-Test prüft die Voice-Menüs wieder"
+      ]
+    },
     {
       "version": "0.3.6",
       "date": "2026-11-03",

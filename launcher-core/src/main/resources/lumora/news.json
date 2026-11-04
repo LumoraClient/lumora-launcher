@@ -145,6 +145,7 @@
       "items": [
         "Ressourcenpaket „Lumora-Addons“: Texturen, Schriften und Klänge aus Addon-JARs in addons",
         "LumoraVoice 0.8.1 läuft als reines Lumora-Addon im Ordner addons",
+        "Addons und Module mit HUD-Widget: eine Karte, das Widget als Abschnitt der Einstellungen",
         "Smoke-Test prüft die Voice-Menüs wieder"
       ]
     },

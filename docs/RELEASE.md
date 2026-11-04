@@ -68,10 +68,10 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 ## Teststatus dieses Standes
 
 **0.3.7 (2026-11-04):**
-- **Build:** `gradlew clean build` erfolgreich, 393 Unit-Tests ohne Fehler (1 übersprungen), darunter 6 neue für das Ressourcenpaket „Lumora-Addons“ (Kopieren, gesperrte Namensräume, Pfade, Neu-Kopieren nur bei Änderung, kaputte JAR).
+- **Build:** `gradlew clean build` erfolgreich, 396 Unit-Tests ohne Fehler (1 übersprungen), darunter 6 neue für das Ressourcenpaket „Lumora-Addons“ (Kopieren, gesperrte Namensräume, Pfade, Neu-Kopieren nur bei Änderung, kaputte JAR) und 3 für zusammengelegte HUD-Einstellungen (eine Karte je Addon, Abschnitt mit Schalter, Weitergabe an die Einstellungsseite). Die Einstellungsseite von Block-Overlay mit dem Abschnitt „HUD · Block info“ außerhalb des Spiels gerendert und angesehen; im Hub 28 statt 32 Karten.
 - **LumoraVoice 0.8.1** (66 eigene Tests): Opus kodieren/dekodieren und RNNoise samt nativer DLL laufen aus der JAR allein (eigener Class-Loader ohne Spiel).
 - **Smoke-Test** mit dem fertigen 0.3.7-Build (stumm, Test-Datenordner, LumoraVoice 0.8.1 und Beispiel-Addon in `addons/`): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden, LumoraVoice jeweils aktiv, ohne Klassenfehler, beide Voice-Menüs geöffnet und fotografiert, Paket „Lumora-Addons“ geladen.
-- **Nicht geprüft:** ein echtes Gespräch auf einem Server, Voice in den übrigen 12 Versionen, ein echtes Selbst-Update von 0.3.6 auf 0.3.7.
+- **Nicht geprüft:** ein echtes Gespräch auf einem Server, Voice in den übrigen 12 Versionen, die zusammengelegte Einstellungsseite per Klick im Spiel, ein echtes Selbst-Update von 0.3.6 auf 0.3.7.
 - **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
 
 **0.3.6 (2026-11-03):**

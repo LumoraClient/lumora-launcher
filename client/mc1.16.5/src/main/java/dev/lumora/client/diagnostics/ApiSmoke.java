@@ -34,6 +34,17 @@ final class ApiSmoke {
     private ApiSmoke() {
     }
 
+    /** LumoraVoice's addon class: from its jar in addons/ (own class loader) or, for the old Fabric mod, the game. */
+    static Class<?> voiceClass() throws ClassNotFoundException {
+        java.util.Optional<ClassLoader> jar = core().jarAddons().classLoader("lumoravoice");
+        return jar.isPresent() ? Class.forName(LUMORA_VOICE, true, jar.get()) : Class.forName(LUMORA_VOICE);
+    }
+
+    /** Whether LumoraVoice is there, as addon jar or Fabric mod. */
+    static boolean voiceLoaded() {
+        return core().jarAddons().classLoader("lumoravoice").isPresent() || dev.lumora.client.platform.LoaderEnv.isLoaded("lumoravoice");
+    }
+
     static LumoraCore core() {
         return LumoraRuntime.core();
     }
@@ -121,7 +132,7 @@ final class ApiSmoke {
      */
     static Boolean setLabyVoiceEnabled(boolean on) {
         try {
-            Object lumoraVoice = Class.forName(LUMORA_VOICE).getMethod("smokeSetEnabled", boolean.class).invoke(null, on);
+            Object lumoraVoice = voiceClass().getMethod("smokeSetEnabled", boolean.class).invoke(null, on);
             if (lumoraVoice != null) {
                 lumoraVoiceSwitched = true;
                 return (Boolean) lumoraVoice;
@@ -147,7 +158,7 @@ final class ApiSmoke {
         }
         if (lumoraVoiceSwitched) {
             try {
-                Class.forName(LUMORA_VOICE).getMethod("smokeRestore", Boolean.class).invoke(null, previous);
+                voiceClass().getMethod("smokeRestore", Boolean.class).invoke(null, previous);
             } catch (ReflectiveOperationException | RuntimeException e) {
                 LOG.warn("Smoke test: could not restore the LumoraVoice setting", e);
             }
@@ -165,7 +176,7 @@ final class ApiSmoke {
     /** Opens the LumoraVoice settings on {@code tab} through the Lumora screen API; false without LumoraVoice. */
     static boolean openVoiceSettings(int tab) {
         try {
-            return (Boolean) Class.forName(LUMORA_VOICE).getMethod("smokeOpenSettings", int.class).invoke(null, tab);
+            return (Boolean) voiceClass().getMethod("smokeOpenSettings", int.class).invoke(null, tab);
         } catch (ReflectiveOperationException | RuntimeException absent) {
             return false;
         }

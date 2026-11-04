@@ -64,6 +64,11 @@ public final class JarAddonLoader implements AutoCloseable {
         return dir;
     }
 
+    /** Class loader of an addon jar from the folder (e.g. for the smoke test), empty for other addons. */
+    public java.util.Optional<ClassLoader> classLoader(String addonId) {
+        return java.util.Optional.ofNullable(byId.get(addonId));
+    }
+
     /** Reads every {@code *.jar} in the folder (created if missing), sorted by file name. */
     public List<AddonCandidate> discover() {
         if (dir == null) {

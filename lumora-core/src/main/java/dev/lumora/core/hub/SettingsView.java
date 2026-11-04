@@ -52,6 +52,29 @@ public final class SettingsView implements AddonView {
             0xFFF59E0B, 0xFFEF4444, 0xFFEC4899};
     private static boolean advanced;
 
+    /**
+     * A part shown below the own settings, after a divider with {@code title}: e.g. the HUD widget of an addon with an
+     * on/off switch ({@code switchLabel}, may be null) and its settings ({@code group}, may be null).
+     */
+    public record Section(String title, SettingsGroup group, String switchLabel, java.util.function.BooleanSupplier on,
+                          Runnable flip) {
+    }
+
+    /** Divider with a title in the list of rows. */
+    private record Heading(Section section) {
+    }
+
+    /** On/off switch of a section in the list of rows. */
+    private record SectionSwitch(Section section) {
+    }
+
+    /** Sections for the next view created on this thread ({@link HubHost#openSettings} with sections). */
+    private static final ThreadLocal<List<Section>> NEXT = ThreadLocal.withInitial(List::of);
+
+    static void nextSections(List<Section> sections) {
+        NEXT.set(sections == null ? List.of() : List.copyOf(sections));
+    }
+
     private record Hit(int x1, int y1, int x2, int y2, Runnable action) {
         boolean contains(double x, double y) {
             return x >= x1 && x < x2 && y >= y1 && y < y2;
@@ -69,6 +92,7 @@ public final class SettingsView implements AddonView {
     private final List<Keybind> keybinds;
     private final Runnable onClose;
     private final boolean hudEditor;
+    private final List<Section> sections;
     private final boolean de;
     private final List<Hit> hits = new ArrayList<>();
     private final List<Slider> sliders = new ArrayList<>();
@@ -101,6 +125,14 @@ public final class SettingsView implements AddonView {
      */
     public SettingsView(LumoraCore core, Host host, String title, String description, SettingsGroup group,
                         List<Keybind> keybinds, Runnable onClose, boolean hudEditor) {
+        this(core, host, title, description, group, keybinds, onClose, hudEditor, NEXT.get());
+        NEXT.set(List.of());
+    }
+
+    /** @param sections parts below the own settings, each after a divider (e.g. the addon's HUD widgets) */
+    public SettingsView(LumoraCore core, Host host, String title, String description, SettingsGroup group,
+                        List<Keybind> keybinds, Runnable onClose, boolean hudEditor, List<Section> sections) {
+        this.sections = sections == null ? List.of() : List.copyOf(sections);
         this.core = core;
         this.host = host;
         this.title = title == null ? "" : title;
@@ -133,10 +165,22 @@ public final class SettingsView implements AddonView {
     }
 
     private boolean hasAdvanced() {
-        if (group == null) {
+        if (hasAdvanced(group)) {
+            return true;
+        }
+        for (Section sec : sections) {
+            if (hasAdvanced(sec.group())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasAdvanced(SettingsGroup g) {
+        if (g == null) {
             return false;
         }
-        for (Setting<?> s : group.all()) {
+        for (Setting<?> s : g.all()) {
             if (s.isAdvanced()) {
                 return true;
             }
@@ -158,6 +202,26 @@ public final class SettingsView implements AddonView {
         for (Keybind k : keybinds) {
             if (q.isEmpty() || tr(k.nameKey(), k.id()).toLowerCase(Locale.ROOT).contains(q)) {
                 out.add(k);
+            }
+        }
+        // the sections, each after a divider; a section without a match is left out while searching
+        for (Section sec : sections) {
+            List<Object> part = new ArrayList<>();
+            if (sec.switchLabel() != null && sec.on() != null && sec.flip() != null
+                    && (q.isEmpty() || sec.switchLabel().toLowerCase(Locale.ROOT).contains(q)
+                    || sec.title().toLowerCase(Locale.ROOT).contains(q))) {
+                part.add(new SectionSwitch(sec));
+            }
+            if (sec.group() != null) {
+                for (Setting<?> s : sec.group().all()) {
+                    if ((advanced || !s.isAdvanced()) && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q))) {
+                        part.add(s);
+                    }
+                }
+            }
+            if (!part.isEmpty() || q.isEmpty()) {
+                out.add(new Heading(sec));
+                out.addAll(part);
             }
         }
         return out;
@@ -265,6 +329,11 @@ public final class SettingsView implements AddonView {
         iconButton(g, ix, y, "reset", t("Alles zurücksetzen", "Reset all"), mx, my, () -> {
             if (group != null) {
                 group.resetAll();
+            }
+            for (Section sec : sections) {
+                if (sec.group() != null) {
+                    sec.group().resetAll();
+                }
             }
             for (Keybind k : keybinds) {
                 k.setKey(k.defaultKey());
@@ -387,6 +456,24 @@ public final class SettingsView implements AddonView {
                 y += ((run.size() + cols - 1) / cols) * 18 + 2;
                 continue;
             }
+            if (item instanceof Heading h) {
+                // divider: title in the accent, a thin line to the right
+                y += 8;
+                String label = "§l" + h.section().title().toUpperCase(Locale.ROOT);
+                label = HubView.trim(g, label, w - 20);
+                int tw = g.textWidth(label);
+                g.text(label, x, y, LumoraTheme.accentHover(), false);
+                g.fill(x + tw + 8, y + 4, x + w, y + 5, 0x30FFFFFF);
+                y += 16;
+                i++;
+                continue;
+            }
+            if (item instanceof SectionSwitch sw) {
+                sectionToggle(g, sw.section(), x, y, w, mx, my);
+                y += 20;
+                i++;
+                continue;
+            }
             if (item instanceof Setting<?> s) {
                 row(g, s, x, y, w, labelW, mx, my);
             } else if (item instanceof Keybind k) {
@@ -413,6 +500,14 @@ public final class SettingsView implements AddonView {
         } else if (now - hoveredSince > 450) {
             tooltip = help;
         }
+    }
+
+    /** On/off switch of a section (e.g. "Im HUD anzeigen"), drawn like a setting switch. */
+    private void sectionToggle(HudGraphics g, Section sec, int x, int y, int w, int mx, int my) {
+        boolean hover = visible(my) && HubView.in(mx, my, x, y, w, 16);
+        switchPill(g, x, y + 2, sec.on().getAsBoolean(), hover);
+        g.text(HubView.trim(g, sec.switchLabel(), w - 48), x + 46, y + 4, hover ? 0xFFFFFFFF : TEXT, false);
+        hit(x, y, Math.min(w, 46 + g.textWidth(sec.switchLabel()) + 6), 16, sec.flip());
     }
 
     private void toggle(HudGraphics g, BooleanSetting b, int x, int y, int w, int mx, int my) {

@@ -49,8 +49,20 @@ class HubViewTest {
         @Override public boolean fontSupported() { return true; }
         @Override public String zoomKey() { return "C"; }
         @Override public void openHudEditor() { editorOpened++; }
+        String openedTitle;
+        List<SettingsView.Section> openedSections = List.of();
+        boolean openedWithEditor;
+
         @Override public void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds,
-                                           Runnable onClose, boolean hudEditor) { }
+                                           Runnable onClose, boolean hudEditor) {
+            openedTitle = title;
+            openedWithEditor = hudEditor;
+        }
+        @Override public void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds,
+                                           List<SettingsView.Section> sections, Runnable onClose, boolean hudEditor) {
+            openedSections = sections;
+            openSettings(title, description, settings, keybinds, onClose, hudEditor);
+        }
         @Override public boolean classicMenuUntilRestart() { return false; }
         @Override public void showMainMenu(boolean lumora) { }
         @Override public String renderer() { return "OpenGL"; }
@@ -90,6 +102,35 @@ class HubViewTest {
                 assertTrue(g.texts.contains("§lLumora"), "brand on page " + page);
             }
         }
+    }
+
+    @Test
+    void aModuleWithItsOwnHudWidgetIsOneCardWithTheWidgetAsSection() {
+        LumoraCore core = core();
+        FakeHost host = new FakeHost();
+        HubView view = new HubView(core, host);
+        List<HubView.Card> cards = view.cards();
+        // Block-Overlay registers the "Block info" HUD widget: one card, no separate widget card
+        assertTrue(core.widgets().stream().anyMatch(w -> w.addonId().equals("lumora-blockoverlay")));
+        assertFalse(cards.stream().anyMatch(c -> c.id().startsWith("widget:lumora-blockoverlay")), cards.toString());
+        HubView.Card card = cards.stream().filter(c -> c.id().equals("addon:lumora-blockoverlay")).findFirst().orElseThrow();
+        assertTrue(card.settings() != null);
+        card.settings().run();
+        assertEquals("Block-Overlay", host.openedTitle);
+        assertTrue(host.openedWithEditor);
+        assertEquals(1, host.openedSections.size());
+        SettingsView.Section s = host.openedSections.get(0);
+        assertTrue(s.title().startsWith("HUD · "), s.title());
+        // the section switch shows and hides the widget
+        boolean before = s.on().getAsBoolean();
+        s.flip().run();
+        assertEquals(!before, s.on().getAsBoolean());
+        s.flip().run();
+        // the search still finds the card by the widget's name
+        String widgetName = s.title().substring("HUD · ".length());
+        assertTrue(HubView.filter(cards, HubView.ALL, widgetName).contains(card), widgetName);
+        // widgets of Lumora's collections stay cards of their own
+        assertTrue(cards.stream().anyMatch(c -> c.id().startsWith("widget:lumora-info") || c.id().startsWith("widget:lumora:")));
     }
 
     @Test

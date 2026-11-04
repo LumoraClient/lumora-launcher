@@ -103,6 +103,66 @@ class SettingsViewTest {
     }
 
     @Test
+    void sectionsFollowTheOwnSettingsWithDividerSwitchSearchAndReset() {
+        LumoraCore core = new LumoraCore(new FakePlatform(dir));
+        SettingsGroup own = new SettingsGroup("addon");
+        own.toggle("sound", true);
+        SettingsGroup hud = new SettingsGroup("hud");
+        BooleanSetting shadow = hud.toggle("shadow", false);
+        boolean[] shown = {true};
+        SettingsView.Section section = new SettingsView.Section("HUD · Voice", hud, "Im HUD anzeigen",
+                () -> shown[0], () -> shown[0] = !shown[0]);
+        SettingsView view = new SettingsView(core, new Host(), "LumoraVoice", "", own, List.of(), null, true, List.of(section));
+        // own setting, divider, switch, the widget's setting
+        assertEquals(4, view.items().size());
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        assertTrue(g.texts.stream().anyMatch(t -> t.contains("HUD · VOICE")), g.texts.toString());
+        assertTrue(g.texts.contains("Im HUD anzeigen"));
+        // the section's switch and the widget's setting react to clicks
+        boolean hidden = false;
+        for (int y = 40; y < 300 && !hidden; y += 2) {
+            hidden = clickAlong(view, y, () -> !shown[0]);
+        }
+        assertTrue(hidden, "a click on \"Im HUD anzeigen\" hides the widget");
+        boolean toggled = false;
+        for (int y = 40; y < 300 && !toggled; y += 2) {
+            toggled = clickAlong(view, y, shadow::enabled);
+        }
+        assertTrue(toggled, "the widget's own switch works in the section");
+        // reset covers the sections too
+        SettingsView again = new SettingsView(core, new Host(), "LumoraVoice", "", own, List.of(), null, true, List.of(section));
+        assertTrue(shadow.enabled());
+        own.resetAll();
+        hud.resetAll();
+        assertFalse(shadow.enabled());
+        assertEquals(4, again.items().size());
+    }
+
+    @Test
+    void sectionsReachTheViewThroughTheHubHost() {
+        LumoraCore core = new LumoraCore(new FakePlatform(dir));
+        SettingsView.Section section = new SettingsView.Section("HUD · X", null, "Im HUD anzeigen", () -> true, () -> { });
+        SettingsView[] made = new SettingsView[1];
+        HubHost host = (HubHost) java.lang.reflect.Proxy.newProxyInstance(HubHost.class.getClassLoader(), new Class<?>[]{HubHost.class},
+                (proxy, method, args) -> {
+                    if (method.isDefault()) {
+                        return java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args);
+                    }
+                    if (method.getName().equals("openSettings")) {
+                        // what a Minecraft version does: build the view with the old constructor
+                        made[0] = new SettingsView(core, new Host(), (String) args[0], (String) args[1], (SettingsGroup) args[2],
+                                List.of(), null, true);
+                    }
+                    return null;
+                });
+        host.openSettings("Addon", "", null, List.of(), List.of(section), null, true);
+        assertEquals(2, made[0].items().size(), "divider and switch");
+        // the next view without sections gets none
+        assertEquals(0, new SettingsView(core, new Host(), "Other", "", null, List.of(), null, false).items().size());
+    }
+
+    @Test
     void escapeLeavesFieldsFirstAndOnCloseRunsOnce() {
         LumoraCore core = new LumoraCore(new FakePlatform(dir));
         AtomicInteger saved = new AtomicInteger();

@@ -39,6 +39,21 @@ public interface HubHost {
     void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds, Runnable onClose,
                       boolean hudEditor);
 
+    /**
+     * Like {@link #openSettings(String, String, SettingsGroup, List, Runnable, boolean)} with sections below the own
+     * settings (e.g. the HUD widgets of an addon, each after a divider). The version's view is created synchronously
+     * inside the call and takes the sections over.
+     */
+    default void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds,
+                              List<SettingsView.Section> sections, Runnable onClose, boolean hudEditor) {
+        SettingsView.nextSections(sections);
+        try {
+            openSettings(title, description, settings, keybinds, onClose, hudEditor);
+        } finally {
+            SettingsView.nextSections(List.of());
+        }
+    }
+
     /** Minecraft's own title screen is used until the game restarts. */
     boolean classicMenuUntilRestart();
 

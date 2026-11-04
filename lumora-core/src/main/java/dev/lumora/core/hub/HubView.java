@@ -4,6 +4,7 @@ import dev.lumora.api.addon.AddonInfo;
 import dev.lumora.api.addon.AddonState;
 import dev.lumora.api.config.BooleanSetting;
 import dev.lumora.api.config.ChoiceSetting;
+import dev.lumora.api.config.SettingsGroup;
 import dev.lumora.api.hud.WidgetCategory;
 import dev.lumora.api.hud.WidgetInfo;
 import dev.lumora.api.i18n.Translations;
@@ -88,9 +89,17 @@ public final class HubView implements AddonView {
     private static Page page = Page.MODULES;
     private static String category = ALL;
 
-    /** One module card. */
+    /**
+     * One module card.
+     *
+     * @param keywords more search terms (e.g. the names of the HUD widgets shown in the card's settings)
+     */
     record Card(String id, String name, String description, String category, String icon, boolean enabled,
-                String failure, Runnable toggle, Runnable settings, Runnable menu, String from) {
+                String failure, Runnable toggle, Runnable settings, Runnable menu, String from, String keywords) {
+        Card(String id, String name, String description, String category, String icon, boolean enabled,
+             String failure, Runnable toggle, Runnable settings, Runnable menu, String from) {
+            this(id, name, description, category, icon, enabled, failure, toggle, settings, menu, from, "");
+        }
     }
 
     private record Hit(int x1, int y1, int x2, int y2, Runnable action) {
@@ -172,7 +181,14 @@ public final class HubView implements AddonView {
         return v instanceof Number n ? n.doubleValue() : fallback;
     }
 
-    /** All cards: zoom, built-in modules and addons, HUD widgets. */
+    private static String widgetName(Translations tr, WidgetInfo w) {
+        return tr == null ? w.widget().id() : tr.translateOr(w.widget().nameKey(), w.widget().id());
+    }
+
+    /**
+     * All cards: zoom, built-in modules and addons (with their own HUD widgets as sections of their settings), and
+     * the widgets of Lumora's widget collections.
+     */
     List<Card> cards() {
         List<Card> out = new ArrayList<>();
         if (host.has("zoomEnabled")) {
@@ -182,15 +198,29 @@ public final class HubView implements AddonView {
                     null, null));
         }
         List<String> addonNames = new ArrayList<>();
+        Translations tr = core.translations();
+        // addons and modules with their own HUD widgets get one card; the widgets are sections of its settings
+        java.util.Set<String> merged = new java.util.HashSet<>();
         for (AddonInfo a : core.addons()) {
             if (WIDGET_CONTAINERS.contains(a.id())) {
                 continue;
             }
             AddonRecord r = core.addonManager().record(a.id()).orElse(null);
-            boolean hasSettings = r != null && r.configuration() != null && (!r.configuration().settings().isEmpty()
+            List<WidgetInfo> own = core.widgets().stream().filter(w -> a.id().equals(w.addonId())).toList();
+            List<SettingsView.Section> sections = new ArrayList<>();
+            for (WidgetInfo w : own) {
+                sections.add(new SettingsView.Section("HUD · " + widgetName(tr, w),
+                        w.widget().settings().isEmpty() ? null : w.widget().settings(), t("Im HUD anzeigen", "Show in HUD"),
+                        w::isEnabled, () -> w.setEnabled(!w.isEnabled())));
+                merged.add(w.id());
+            }
+            boolean ownSettings = r != null && r.configuration() != null && (!r.configuration().settings().isEmpty()
                     || !core.keybindManager().of(a.id()).isEmpty());
+            boolean hasSettings = ownSettings || !sections.isEmpty();
+            SettingsGroup group = ownSettings ? r.configuration().settings() : null;
+            Runnable save = ownSettings ? r.configuration()::save : null;
             Runnable settings = hasSettings ? () -> host.openSettings(a.descriptor().name(), a.descriptor().description(),
-                    r.configuration().settings(), core.keybindManager().of(a.id()), r.configuration()::save, false) : null;
+                    group, core.keybindManager().of(a.id()), sections, save, !sections.isEmpty()) : null;
             Runnable menu = core.views().hasMenu(a.id()) ? () -> core.views().openMenu(a.id()) : null;
             boolean failed = a.state() == AddonState.FAILED;
             String[] builtIn = BUILT_IN.get(a.id());
@@ -200,12 +230,15 @@ public final class HubView implements AddonView {
             out.add(new Card("addon:" + a.id(), a.descriptor().name(), desc == null ? "" : desc,
                     builtIn != null ? builtIn[0] : ADDONS, builtIn != null ? builtIn[1] : "addon",
                     a.wanted() && !failed, failed ? a.error().orElse(t("Fehler beim Laden", "Failed to load")) : null,
-                    toggle, settings, menu, builtIn == null && !a.descriptor().builtIn() ? a.descriptor().source() : null));
+                    toggle, settings, menu, builtIn == null && !a.descriptor().builtIn() ? a.descriptor().source() : null,
+                    String.join(" ", own.stream().map(w -> widgetName(tr, w)).toList())));
             addonNames.add(a.descriptor().name().toLowerCase(Locale.ROOT));
         }
-        Translations tr = core.translations();
         for (WidgetInfo w : core.widgets()) {
-            String name = tr == null ? w.widget().id() : tr.translateOr(w.widget().nameKey(), w.widget().id());
+            if (merged.contains(w.id())) {
+                continue;
+            }
+            String name = widgetName(tr, w);
             if (addonNames.contains(name.toLowerCase(Locale.ROOT))) {
                 name = name + " HUD";
             }
@@ -259,7 +292,7 @@ public final class HubView implements AddonView {
                 continue;
             }
             if (!q.isEmpty() && !c.name().toLowerCase(Locale.ROOT).contains(q)
-                    && !c.description().toLowerCase(Locale.ROOT).contains(q)) {
+                    && !c.description().toLowerCase(Locale.ROOT).contains(q) && !c.keywords().toLowerCase(Locale.ROOT).contains(q)) {
                 continue;
             }
             out.add(c);

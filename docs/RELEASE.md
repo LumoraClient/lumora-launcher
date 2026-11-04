@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.8 (2026-11-04):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 408 Unit-Tests ohne Fehler (1 übersprungen). Neu: 5 für die Screenshot-Bibliothek (Liste, Sortierung, Favoriten über Neustart und Umbenennen, ungültige Namen und Pfade außerhalb des Ordners, Löschen mit und ohne Papierkorb), 3 für den Screenshot-Manager (Vorschaubilder als Texturen und Freigabe beim Schließen, ohne Textur-Unterstützung, Suche und Esc), 3 für die Fadenkreuz-Vorlagen (eindeutig, mittig, Speichern, Umrandung je Pixel einmal, Farbton) und 1 für den Fadenkreuz-Editor (Reiter, Vorlage anklicken, Malen mit Spiegeln, Radieren, kleine Bildschirme).
+- **Smoke-Test** mit dem fertigen 0.3.8-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Screenshot-Manager mit Vorschaubildern und der Fadenkreuz-Editor in allen drei Reitern geöffnet und fotografiert. Vor dem Release zusätzlich 1.21.8 (Screenshot-Manager, Editor) und 1.21.4 (Screenshot-Manager) sowie der Kamera-Knopf im Haupt- und Pausenmenü (26.3) angesehen.
+- **Nicht geprüft:** Umbenennen, Löschen, Papierkorb und Extern öffnen per Klick im Spiel, Malen im Pixel-Editor mit der Maus im Spiel, die übrigen Versionen im Spiel, ein echtes Selbst-Update von 0.3.7 auf 0.3.8.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.7 (2026-11-04):**
 - **Build:** `gradlew clean build` erfolgreich, 396 Unit-Tests ohne Fehler (1 übersprungen), darunter 6 neue für das Ressourcenpaket „Lumora-Addons“ (Kopieren, gesperrte Namensräume, Pfade, Neu-Kopieren nur bei Änderung, kaputte JAR) und 3 für zusammengelegte HUD-Einstellungen (eine Karte je Addon, Abschnitt mit Schalter, Weitergabe an die Einstellungsseite). Die Einstellungsseite von Block-Overlay mit dem Abschnitt „HUD · Block info“ außerhalb des Spiels gerendert und angesehen; im Hub 28 statt 32 Karten.
 - **LumoraVoice 0.8.1** (66 eigene Tests): Opus kodieren/dekodieren und RNNoise samt nativer DLL laufen aus der JAR allein (eigener Class-Loader ohne Spiel).

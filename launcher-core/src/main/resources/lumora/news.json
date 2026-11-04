@@ -1,6 +1,22 @@
 {
   "news": [
     {
+      "id": "lumora-crosshair-editor",
+      "date": "2026-11-04",
+      "author": "Lumora",
+      "title": "Fadenkreuz-Editor",
+      "text": "Das Modul Fadenkreuz hat jetzt einen Editor mit großer Vorschau. Unter Formen stellst du Kreuz, T, X, Kreis oder Punkt ein, unter Vorlagen wählst du aus 27 fertigen Fadenkreuzen, und unter Eigene malst du dein eigenes Fadenkreuz Pixel für Pixel, auf Wunsch gespiegelt. Dazu kommen ein Farbbalken und eine Skalierung.",
+      "image": "crosshair.png"
+    },
+    {
+      "id": "lumora-screenshot-manager",
+      "date": "2026-11-04",
+      "author": "Lumora",
+      "title": "Screenshot-Manager im Spiel",
+      "text": "Mit dem Kamera-Knopf im Hauptmenü und im Pausenmenü öffnest du alle Screenshots deiner Instanz als Vorschaubilder. Du kannst suchen, sortieren, Favoriten markieren, Bilder groß ansehen und mit den Pfeiltasten durchblättern, extern öffnen, im Ordner zeigen, umbenennen und löschen. Gelöschte Bilder landen unter Windows im Papierkorb.",
+      "image": "screenshots.png"
+    },
+    {
       "id": "lumora-addon-assets-voice",
       "date": "2026-11-04",
       "author": "Lumora",

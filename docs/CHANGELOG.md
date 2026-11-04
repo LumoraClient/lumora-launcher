@@ -1,5 +1,21 @@
 # Änderungen
 
+## 0.3.8 (2026-11-04)
+
+### Im Spiel
+- **Screenshot-Manager:** Ein kleiner Kamera-Knopf im Lumora-Hauptmenü, im Minecraft-Titelmenü und im Pausenmenü (1.8.9 und 1.12.2: Knopf „Screenshots“) öffnet alle Screenshots der Instanz als Raster mit Vorschaubildern, Name, Datum und Größe.
+  - Suche (auch einfach lostippen), Filter Alle/Favoriten, Sortierung nach Neueste, Älteste, Name oder Größe, Anzahl und Speicherplatz in der Kopfzeile.
+  - Große Ansicht per Doppelklick oder Enter, Blättern mit ← → und dem Mausrad, Auflösung, Datum und Größe dazu.
+  - Extern öffnen, im Ordner zeigen, Favorit (gespeichert in `config/lumora/screenshots.json`, bleibt beim Umbenennen erhalten), Umbenennen und Löschen nach Rückfrage (unter Windows in den Papierkorb). Mehrfachauswahl mit Strg und Umschalt, Strg + A wählt alle.
+  - Vorschaubilder werden im Hintergrund verkleinert und beim Schließen wieder freigegeben. Esc schließt Schritt für Schritt Suche, Rückfrage, große Ansicht und dann den Manager.
+- **Fadenkreuz-Editor:** Die Einstellungen des Moduls „Fadenkreuz“ haben oben einen Editor mit großer Vorschau auf Karomuster und drei Reitern.
+  - **Formen:** die bisherigen sechs Formen als Kacheln, Größe, Abstand und Dicke darunter.
+  - **Vorlagen:** 27 fertige Pixel-Fadenkreuze zum Anklicken; „Als eigenes Fadenkreuz bearbeiten“ übernimmt eine Vorlage in den Pixel-Editor.
+  - **Eigene:** 15 × 15-Raster wie beim Vanilla-Fadenkreuz. Linksklick malt, Rechtsklick radiert, Ziehen malt weiter; „Spiegeln“ malt in allen vier Vierteln, dazu Leeren, Umkehren und Vorlage übernehmen.
+  - Farbbalken für den Farbton und neue Einstellung „Skalierung“ (0,5 bis 3) für Vorlagen und eigene Fadenkreuze. Es erscheinen nur die Zeilen, die zur gewählten Art passen. Bisherige Einstellungen bleiben erhalten.
+  - Neue Einträge in den Moduleinstellungen: `mode`, `preset`, `pixels`, `scale`.
+- Einstellungsseiten können jetzt oben einen eigenen Editor eines Moduls zeigen (`SettingsView.Panel`).
+
 ## 0.3.7 (2026-11-04)
 
 ### Im Spiel

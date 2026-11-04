@@ -158,4 +158,59 @@ final class McExtras implements GameExtras {
         net.minecraft.core.BlockPos p = targetPos();
         return p == null ? "" : net.minecraft.core.Registry.BLOCK.getKey(mc().level.getBlockState(p).getBlock()).toString();
     }
+
+    @Override
+    public Progress progress(float partialTick) {
+        Minecraft mc = mc();
+        LocalPlayer p = mc.player;
+        if (p == null) {
+            return Progress.NONE;
+        }
+        float attack = p.isSpectator() ? -1 : p.getAttackStrengthScale(partialTick);
+        boolean target = mc.crosshairPickEntity instanceof LivingEntity le && le.isAlive();
+        List<Cooldown> cooldowns = new ArrayList<>();
+        java.util.Set<net.minecraft.world.item.Item> seen = new java.util.HashSet<>();
+        for (int i = 0; i < 10; i++) {
+            net.minecraft.world.item.ItemStack s = i < 9 ? p.getInventory().getItem(i) : p.getOffhandItem();
+            if (s.isEmpty() || !seen.add(s.getItem())) {
+                continue;
+            }
+            float r = p.getCooldowns().getCooldownPercent(s.getItem(), partialTick);
+            if (r > 0) {
+                cooldowns.add(new Cooldown(Registry.ITEM.getKey(s.getItem()).toString(), s.getHoverName().getString(), r));
+            }
+        }
+        String use = "";
+        float useProgress = 0;
+        if (p.isUsingItem()) {
+            net.minecraft.world.item.ItemStack s = p.getUseItem();
+            int ticks = p.getTicksUsingItem();
+            String anim = s.getUseAnimation().name().toLowerCase(java.util.Locale.ROOT);
+            if (anim.equals("bow")) {
+                use = "bow";
+                useProgress = net.minecraft.world.item.BowItem.getPowerForTime(ticks);
+            } else if (anim.equals("crossbow")) {
+                use = "crossbow";
+                useProgress = ticks / (float) Math.max(1, net.minecraft.world.item.CrossbowItem.getChargeDuration(s));
+            } else if (anim.equals("spear")) {
+                use = "spear";
+                useProgress = ticks / 10f;
+            } else if (anim.equals("eat") || anim.equals("drink")) {
+                use = anim;
+                useProgress = ticks / (float) Math.max(1, s.getUseDuration());
+            }
+        }
+        float breaking = mc.gameMode != null && mc.gameMode.isDestroying()
+                ? ((dev.lumora.client.mixin.BreakingProgressAccessor) mc.gameMode).lumora$breakingProgress() : -1;
+        float sleep = p.isSleeping() ? Math.min(1f, p.getSleepTimer() / 100f) : -1;
+        return new Progress(attack, target, mc.options.getCameraType().isFirstPerson(), cooldowns, use, useProgress,
+                breaking, sleep, mc.options.attackIndicator.ordinal());
+    }
+
+    @Override
+    public void playSound(String kind, float volume) {
+        Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+                "ready".equals(kind) ? net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP : net.minecraft.sounds.SoundEvents.ARROW_HIT_PLAYER,
+                "ready".equals(kind) ? 1.6f : 1.2f, volume));
+    }
 }

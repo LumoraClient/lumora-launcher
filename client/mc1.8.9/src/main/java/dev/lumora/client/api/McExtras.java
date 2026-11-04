@@ -175,4 +175,41 @@ final class McExtras implements GameExtras {
         Object id = net.minecraft.block.Block.REGISTRY.getIdentifier(mc().world.getBlockState(p).getBlock());
         return id == null ? "" : id.toString();
     }
+
+    @Override
+    public Progress progress(float partialTick) {
+        MinecraftClient mc = mc();
+        ClientPlayerEntity p = mc.player;
+        if (p == null) {
+            return Progress.NONE;
+        }
+        // 1.8.9 has no attack cooldown and no item cooldowns
+        boolean target = mc.targetedEntity instanceof LivingEntity le && le.isAlive();
+        String use = "";
+        float useProgress = 0;
+        ItemStack s = p.getUsedItem();
+        if (p.isUsingItem() && s != null) {
+            int ticks = s.getMaxUseTime() - p.getItemUseTicks();
+            String anim = s.getUseAction().name().toLowerCase(java.util.Locale.ROOT);
+            if (anim.equals("bow")) {
+                float f = ticks / 20f;
+                use = "bow";
+                useProgress = Math.min(1f, (f * f + f * 2) / 3);
+            } else if (anim.equals("eat") || anim.equals("drink")) {
+                use = anim;
+                useProgress = ticks / (float) Math.max(1, s.getMaxUseTime());
+            }
+        }
+        float breaking = mc.interactionManager != null && mc.interactionManager.isBreakingBlock()
+                ? ((dev.lumora.client.mixin.BreakingProgressAccessor) mc.interactionManager).lumora$breakingProgress() : -1;
+        float sleep = p.isSleeping() ? Math.min(1f, p.getSleepTimer() / 100f) : -1;
+        return new Progress(-1, target, mc.options.perspective == 0, java.util.List.of(), use, useProgress, breaking, sleep, 1);
+    }
+
+    @Override
+    public void playSound(String kind, float volume) {
+        MinecraftClient.getInstance().getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
+                new net.minecraft.util.Identifier("ready".equals(kind) ? "random.orb" : "random.successful_hit"),
+                "ready".equals(kind) ? 1.6f : 1.2f));
+    }
 }

@@ -31,6 +31,12 @@ public final class FakePlatform implements Platform {
     /** Uploaded textures by path (uploadTexture); false = this "version" cannot upload. */
     public final Map<String, int[]> textures = new HashMap<>();
     public boolean textureSupport = true;
+    public dev.lumora.core.extras.GameExtras extras = dev.lumora.core.extras.GameExtras.NONE;
+
+    @Override
+    public dev.lumora.core.extras.GameExtras extras() {
+        return extras;
+    }
 
     public FakePlatform(Path dir) {
         this.dir = dir;

@@ -71,6 +71,31 @@ public interface GameExtras {
         return "";
     }
 
+    /** An item on cooldown (ender pearl, chorus fruit, wind charge, shield after an axe hit …): id, name, remaining 0..1. */
+    record Cooldown(String itemId, String name, float remaining) {
+    }
+
+    /**
+     * Progress shown by the attack indicator. {@code attack}: attack strength 0..1, -1 without attack cooldown (1.8.9);
+     * {@code target}: a living entity is under the crosshair; {@code use}: what the used item does ("bow", "crossbow",
+     * "spear", "eat", "drink") or ""; {@code useProgress} 0..1; {@code breaking}: block breaking 0..1 or -1;
+     * {@code sleep}: falling asleep 0..1 or -1; {@code vanillaMode}: Minecraft's own attack indicator option (0 off,
+     * 1 crosshair, 2 hotbar); {@code firstPerson}: the crosshair is shown (first person camera).
+     */
+    record Progress(float attack, boolean target, boolean firstPerson, List<Cooldown> cooldowns, String use,
+                    float useProgress, float breaking, float sleep, int vanillaMode) {
+        public static final Progress NONE = new Progress(-1, false, true, List.of(), "", 0, -1, -1, 1);
+    }
+
+    /** Attack strength, cooldowns and use progress of the own player ({@link Progress#NONE} without a player). */
+    default Progress progress(float partialTick) {
+        return Progress.NONE;
+    }
+
+    /** Plays a short UI sound: "ready" (attack ready) or "cooldown" (an item cooldown ended); volume 0..1. */
+    default void playSound(String kind, float volume) {
+    }
+
     /** Packs a block position into one long (26 bits x/z, 12 bits y), like Minecraft's BlockPos#asLong. */
     static long pack(int x, int y, int z) {
         return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);

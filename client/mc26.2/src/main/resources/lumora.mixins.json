@@ -3,6 +3,8 @@
   "package": "dev.lumora.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "AttackIndicatorMixin",
+    "BreakingProgressAccessor",
     "MinecraftFrameMixin",
     "MinecraftTitleScreenMixin",
     "ScreenPanoramaMixin",

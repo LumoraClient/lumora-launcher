@@ -64,6 +64,7 @@ public final class HubView implements AddonView {
     /** Category and icon of the built-in modules. */
     private static final Map<String, String[]> BUILT_IN = Map.of(
             "lumora-crosshair", new String[]{WidgetCategory.COMBAT, "crosshair"},
+            "lumora-attackindicator", new String[]{WidgetCategory.COMBAT, "attackindicator"},
             "lumora-blockoverlay", new String[]{WidgetCategory.WORLD, "blockoverlay"},
             "lumora-buttons", new String[]{WidgetCategory.GENERAL, "buttons"},
             "lumora-browser", new String[]{WidgetCategory.SERVER, "browser"},

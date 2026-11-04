@@ -430,6 +430,25 @@ public final class SmokeTest {
             ticks = 0;
         } else if (worldStep == modes.length + 4 && ticks >= SCREEN_TICKS) {
             screenshot(mc, "blockoverlay");
+            // attack indicator: module on, the attack strength recharging after a (virtual) hit, one shot per style
+            ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", true);
+            worldStep++;
+            ticks = 0;
+        } else if (worldStep >= modes.length + 5 && worldStep < modes.length + 9) {
+            String style = new String[]{"minecraft", "bar", "ring", "dot"}[worldStep - modes.length - 5];
+            if (ticks == 2) {
+                ApiSmoke.core().addonManager().record("lumora-attackindicator").filter(r -> r.configuration() != null)
+                        .flatMap(r -> r.configuration().settings().get("style")).ifPresent(s -> s.decode(style));
+                if (mc.player != null) {
+                    mc.player.resetAttackStrengthTicker();
+                }
+            } else if (ticks == 8) {
+                screenshot(mc, "attack-" + style);
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 9) {
+            ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", false);
             phase = Phase.DONE;
             finish(mc);
         }

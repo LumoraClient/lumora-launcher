@@ -174,4 +174,53 @@ final class McExtras implements GameExtras {
         Object id = net.minecraft.block.Block.REGISTRY.getIdentifier(mc().world.getBlockState(p).getBlock());
         return id == null ? "" : id.toString();
     }
+
+    @Override
+    public Progress progress(float partialTick) {
+        MinecraftClient mc = mc();
+        ClientPlayerEntity p = mc.player;
+        if (p == null) {
+            return Progress.NONE;
+        }
+        float attack = p.isSpectator() ? -1 : p.method_13275(partialTick);
+        boolean target = mc.targetedEntity instanceof LivingEntity le && le.isAlive();
+        List<Cooldown> cooldowns = new ArrayList<>();
+        java.util.Set<Item> seen = new java.util.HashSet<>();
+        for (int i = 0; i < 10; i++) {
+            ItemStack s = i < 9 ? p.inventory.getInvStack(i) : p.getOffHandStack();
+            if (s.isEmpty() || !seen.add(s.getItem())) {
+                continue;
+            }
+            float r = p.getItemCooldownManager().getCooldownProgress(s.getItem(), partialTick);
+            if (r > 0) {
+                cooldowns.add(new Cooldown(id(s), s.getCustomName(), r));
+            }
+        }
+        String use = "";
+        float useProgress = 0;
+        if (p.method_13061()) {
+            ItemStack s = p.method_13064();
+            int ticks = p.method_13066();
+            String anim = s.getUseAction().name().toLowerCase(java.util.Locale.ROOT);
+            if (anim.equals("bow")) {
+                use = "bow";
+                useProgress = net.minecraft.item.BowItem.method_11363(ticks);
+            } else if (anim.equals("eat") || anim.equals("drink")) {
+                use = anim;
+                useProgress = ticks / (float) Math.max(1, s.getMaxUseTime());
+            }
+        }
+        float breaking = mc.interactionManager != null && mc.interactionManager.isBreakingBlock()
+                ? ((dev.lumora.client.mixin.BreakingProgressAccessor) mc.interactionManager).lumora$breakingProgress() : -1;
+        float sleep = p.isSleeping() ? Math.min(1f, p.getSleepTimer() / 100f) : -1;
+        return new Progress(attack, target, mc.options.perspective == 0, cooldowns, use, useProgress, breaking, sleep,
+                mc.options.field_13290);
+    }
+
+    @Override
+    public void playSound(String kind, float volume) {
+        MinecraftClient.getInstance().getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.method_14699(
+                "ready".equals(kind) ? net.minecraft.sound.Sounds.ENTITY_EXPERIENCE_ORB_PICKUP : net.minecraft.sound.Sounds.ENTITY_ARROW_HIT_PLAYER,
+                "ready".equals(kind) ? 1.6f : 1.2f, volume));
+    }
 }

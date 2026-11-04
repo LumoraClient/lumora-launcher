@@ -11,7 +11,8 @@ import java.util.List;
  * the hub under Addons). Crosshair, toggle sprint and fullbright change how the game feels and start switched off.
  */
 public final class Extras {
-    public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright");
+    public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
+            "lumora-attackindicator");
 
     private Extras() {
     }
@@ -24,6 +25,10 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-crosshair", "Fadenkreuz",
                         "Eigenes Fadenkreuz: Form, Größe, Abstand, Dicke, Farbe, Umrandung", CrosshairModule.class),
                         CrosshairModule::new),
+                AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-attackindicator", "Angriffsanzeige",
+                        "Aufladen von Schlag, Bogen, Armbrust und Dreizack, Item-Cooldowns, Essen, Abbauen: Minecraft, Balken, Ring oder Punkt",
+                        AttackIndicatorModule.class),
+                        () -> new AttackIndicatorModule(platform::extras)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-blockoverlay", "Block-Overlay",
                         "Umrandung des anvisierten Blocks: Farbe, Regenbogen, Dicke, Einblenden, Blockinfo", BlockOverlayModule.class),
                         () -> new BlockOverlayModule(platform)),

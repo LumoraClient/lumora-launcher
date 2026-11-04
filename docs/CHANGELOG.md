@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.3.9 (2026-11-05)
+
+### Im Spiel
+- **Angriffsanzeige:** Neues eingebautes Modul (Hub → Kampf, anfangs aus). Seit 1.9 macht ein Schlag erst vollen Schaden, wenn die Waffe aufgeladen ist; die Anzeige zeigt das gut sichtbar.
+  - **Stile:** Minecraft, Balken, Ring und Punkt. **Position:** wie in Minecraft (folgt der Option „Angriffsanzeige“), am Fadenkreuz oder an der Hotbar. **Größe** 50 bis 200 %.
+  - **Item-Cooldowns** aller Items in Hotbar und Nebenhand (Enderperle, Chorusfrucht, Windkugel, Ziegenhorn, Schild nach einem Axthieb) als zusätzliche Ringe, Balken oder Punkte.
+  - **Aufladen** von Bogen, Armbrust und Dreizack, dazu Essen, Trinken, Blöcke abbauen und Einschlafen.
+  - **Töne:** wenn der Angriff bereit ist (ab 1.9, anfangs aus) und wenn ein Cooldown abgelaufen ist, mit Lautstärke.
+  - Aufploppen in der Fertig-Farbe, eigene Farben für Aufladen, bereit und Cooldowns, Farbverlauf Rot bis Grün, Prozent und Item-Namen, wie in Minecraft ausblenden, wenn bereit, aber voll zeigen, solange du auf ein Wesen zielst.
+  - Solange das Modul an ist, zeichnet Minecraft seine eigene Anzeige nicht; die Minecraft-Option bleibt unverändert.
+  - 1.8.9 hat noch keine Angriffs-Abklingzeit und keine Item-Cooldowns (dort: Bogen, Essen, Trinken, Abbauen, Schlafen); 1.12.2 kennt noch keine Armbrust und keinen Dreizack.
+
 ## 0.3.8 (2026-11-04)
 
 ### Im Spiel

@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-attack-indicator",
+      "date": "2026-11-05",
+      "author": "Lumora",
+      "title": "Angriffsanzeige",
+      "text": "Seit 1.9 macht ein Schlag erst vollen Schaden, wenn deine Waffe aufgeladen ist. Das neue Modul Angriffsanzeige zeigt das gut sichtbar: als Minecraft-Balken, Balken, Ring oder Punkt, am Fadenkreuz oder an der Hotbar, von halber bis doppelter Größe. Es zeigt auch Item-Cooldowns wie Enderperle, Chorusfrucht und Windkugel, wie weit Bogen, Armbrust und Dreizack gespannt sind, Essen, Trinken, Abbauen und Einschlafen, auf Wunsch mit Ton. Einschalten im Hub unter Kampf.",
+      "image": "attack.png"
+    },
+    {
       "id": "lumora-crosshair-editor",
       "date": "2026-11-04",
       "author": "Lumora",

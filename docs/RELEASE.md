@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.9 (2026-11-05):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 412 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Angriffsanzeige (Vorrang von Benutzen, Abbauen, Schlafen und Angriff, Ausblenden wenn bereit und volle Anzeige beim Zielen, Cooldowns, Töne einmal je Aufladen und bei abgelaufenem Cooldown, alle Stile, Positionen und Größen mit ausgeglichenem Zeichen-Stapel, Third Person und HUD-Editor ohne Anzeige).
+- **Mixins:** In allen 15 Versionen mit eigener Angriffsanzeige (1.12.2 bis 26.3) liest Minecrafts Fadenkreuz- und Hotbar-Methode die Option an der umgeleiteten Stelle (per `javap` gezählt).
+- **Smoke-Test** mit dem fertigen 0.3.9-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. In 26.3, 1.21.11 und 1.16.5 alle vier Stile kurz nach einem Schlag in der Welt fotografiert und angesehen. Vor dem Release zusätzlich 1.21.4 (vier Stile) und 1.12.2 (Start) bestanden.
+- **Nicht geprüft:** Cooldowns, Bogen, Armbrust, Dreizack, Essen, Abbauen, Schlafen, beide Töne und die Position an der Hotbar im Spiel; ob Minecrafts eigene Anzeige im Spiel verschwindet (im Test-Datenordner ist das Fadenkreuz-Modul an); die übrigen Versionen im Spiel; ein echtes Selbst-Update von 0.3.8 auf 0.3.9.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.8 (2026-11-04):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 408 Unit-Tests ohne Fehler (1 übersprungen). Neu: 5 für die Screenshot-Bibliothek (Liste, Sortierung, Favoriten über Neustart und Umbenennen, ungültige Namen und Pfade außerhalb des Ordners, Löschen mit und ohne Papierkorb), 3 für den Screenshot-Manager (Vorschaubilder als Texturen und Freigabe beim Schließen, ohne Textur-Unterstützung, Suche und Esc), 3 für die Fadenkreuz-Vorlagen (eindeutig, mittig, Speichern, Umrandung je Pixel einmal, Farbton) und 1 für den Fadenkreuz-Editor (Reiter, Vorlage anklicken, Malen mit Spiegeln, Radieren, kleine Bildschirme).
 - **Smoke-Test** mit dem fertigen 0.3.8-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Screenshot-Manager mit Vorschaubildern und der Fadenkreuz-Editor in allen drei Reitern geöffnet und fotografiert. Vor dem Release zusätzlich 1.21.8 (Screenshot-Manager, Editor) und 1.21.4 (Screenshot-Manager) sowie der Kamera-Knopf im Haupt- und Pausenmenü (26.3) angesehen.

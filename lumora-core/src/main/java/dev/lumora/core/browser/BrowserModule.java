@@ -11,7 +11,7 @@ import dev.lumora.core.Platform;
  * Built-in module "Server- & Weltliste": Lumora's own multiplayer and singleplayer screens instead of Minecraft's
  * (layout like LiquidBounce's: account card, search, filters, server cards with ping). The version adapters call
  * {@link #replace(boolean)} where Minecraft opens its screen; null keeps the vanilla screen (module off, setting off,
- * or "Klassisch" was chosen).
+ * or the ViaFabricPlus button was used).
  */
 public final class BrowserModule implements LumoraAddon {
     private static volatile BrowserModule active;
@@ -67,7 +67,7 @@ public final class BrowserModule implements LumoraAddon {
         }
     }
 
-    /** The next vanilla multiplayer or singleplayer screen is shown as is (button "Klassisch"). */
+    /** The next vanilla multiplayer or singleplayer screen is shown as is (ViaFabricPlus button, smoke test). */
     public static void bypassOnce() {
         bypass = true;
     }

@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Lumora multiplayer screen: the saved servers as cards with favicon, name, MOTD, players, version and ping, search,
  * "online only" and version filter, add / edit / delete / reorder and direct connect. Uses Minecraft's servers.dat, so
- * the vanilla screen (button "Klassisch", or ViaFabricPlus) shows the same list.
+ * the vanilla screen (module off, or ViaFabricPlus) shows the same list.
  */
 public final class ServerBrowserView extends BrowserView {
     private static final ExecutorService PINGS = Icons.pool("Lumora server ping", 6);
@@ -278,8 +278,7 @@ public final class ServerBrowserView extends BrowserView {
         int bx = buttonRow(g, List.of(
                 new BarButton(t("Hinzufügen", "Add"), t("Neu", "Add"), Style.PRIMARY, this::add),
                 new BarButton(t("Direkt verbinden", "Direct connect"), t("Direkt", "Direct"), Style.SECONDARY, this::direct),
-                new BarButton(t("Aktualisieren", "Refresh"), t("Laden", "Reload"), Style.SECONDARY, this::refresh),
-                new BarButton(t("Klassisch", "Classic"), t("Klassisch", "Classic"), Style.GHOST, () -> game.openClassic(true))),
+                new BarButton(t("Aktualisieren", "Refresh"), t("Laden", "Reload"), Style.SECONDARY, this::refresh)),
                 x, y, h, maxX, mx, my);
         if (saveError != null) {
             g.text(fit(g, saveError, Math.max(10, maxX - bx)), bx + 2, y + 6, FAIL, false);

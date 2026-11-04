@@ -380,7 +380,7 @@ class BrowserViewTest {
         v.keyPressed(Keys.DOWN, false, false);
         v.keyPressed(Keys.ENTER, false, false);
         click(v, g.find("Neue Welt") != null ? g.find("Neue Welt") : g.find("Neu"));
-        click(v, g.find("Klassisch"));
-        assertEquals(List.of("play w1 Meine Welt", "create", "classic false"), game.calls);
+        assertNull(g.find("Klassisch"), "no classic button any more");
+        assertEquals(List.of("play w1 Meine Welt", "create"), game.calls);
     }
 }

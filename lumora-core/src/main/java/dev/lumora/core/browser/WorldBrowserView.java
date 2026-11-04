@@ -16,8 +16,8 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Lumora singleplayer screen: the worlds of {@code saves/} as cards with icon, name, last played, game mode and
- * version; search, sort, play, delete and "new world". Editing world options stays in the vanilla screen
- * ("Klassisch").
+ * version; search, sort, play, delete and "new world". Editing world options needs the vanilla screen
+ * (module "Server- & Weltliste" off).
  */
 public final class WorldBrowserView extends BrowserView {
     private static final int ICON = 24;
@@ -192,8 +192,7 @@ public final class WorldBrowserView extends BrowserView {
     void bottomButtons(HudGraphics g, int x, int y, int h, int maxX, int mx, int my) {
         int bx = buttonRow(g, List.of(
                 new BarButton(t("Neue Welt", "New world"), t("Neu", "New"), Style.PRIMARY, game::createWorld),
-                new BarButton(t("Aktualisieren", "Refresh"), t("Laden", "Reload"), Style.SECONDARY, this::reload),
-                new BarButton(t("Klassisch", "Classic"), t("Klassisch", "Classic"), Style.GHOST, () -> game.openClassic(false))),
+                new BarButton(t("Aktualisieren", "Refresh"), t("Laden", "Reload"), Style.SECONDARY, this::reload)),
                 x, y, h, maxX, mx, my);
         if (error != null) {
             g.text(fit(g, error, Math.max(10, maxX - bx)), bx + 2, y + 6, FAIL, false);

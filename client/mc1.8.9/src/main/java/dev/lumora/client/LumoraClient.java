@@ -38,6 +38,7 @@ public final class LumoraClient implements ClientEntrypoint {
     /** Id of the Lumora buttons added to vanilla screens (vanilla ids are small numbers). */
     public static final int HUB_BUTTON_ID = 0x4C554D;
     public static final int SOCIAL_BUTTON_ID = 0x4C5553;
+    public static final int SCREENSHOTS_BUTTON_ID = 0x4C5553 + 1;
     private static LumoraConfig config;
     private static KeyBinding benchmarkKey;
     private static KeyBinding hubKey;
@@ -102,14 +103,20 @@ public final class LumoraClient implements ClientEntrypoint {
     public static void afterScreenInit(Screen screen, List<ButtonWidget> buttons) {
         if (screen instanceof TitleScreen && config.titleScreenButton) {
             buttons.add(new ButtonWidget(HUB_BUTTON_ID, 4, 4, 80, 20, I18n.translate("lumora.title.button")));
+            buttons.add(new ButtonWidget(SCREENSHOTS_BUTTON_ID, 88, 4, 80, 20, "Screenshots"));
         } else if (screen instanceof GameMenuScreen && config.pauseMenuButton) {
             buttons.add(new ButtonWidget(HUB_BUTTON_ID, 6, 6, 74, 18, "✦ " + I18n.translate("lumora.menu.hub")));
             buttons.add(new ButtonWidget(SOCIAL_BUTTON_ID, 84, 6, 84, 18, "☻ " + dev.lumora.client.gui.SocialScreen.label().getString()));
+            buttons.add(new ButtonWidget(SCREENSHOTS_BUTTON_ID, 172, 6, 80, 18, "Screenshots"));
         }
     }
 
     /** ScreenButtonsMixin: true if the clicked vanilla button was a Lumora one (the hub opens, vanilla ignores it). */
     public static boolean buttonClicked(Screen screen, ButtonWidget button) {
+        if (button.id == SCREENSHOTS_BUTTON_ID) {
+            dev.lumora.core.hub.ScreenshotView.open(dev.lumora.client.api.LumoraRuntime.core());
+            return true;
+        }
         if (button.id == SOCIAL_BUTTON_ID) {
             MinecraftClient.getInstance().setScreen(new dev.lumora.client.gui.SocialScreen(screen));
             return true;

@@ -157,6 +157,21 @@ public final class SmokeTest {
                             .map(e -> (Screen) SettingsScreen.create(parent, Component.translatable(e.widget().nameKey()), e.widget().settings(), List.of(), null))
                             .orElse(null)));
                     pending.add(new Shot("hub-profiles", parent -> LumoraHubScreen.withTab(parent, 3)));
+                    // screenshot manager with the smoke test's own screenshots: thumbnails need a few frames to decode
+                    pending.add(new Shot("screenshot-manager", parent -> {
+                        dev.lumora.core.hub.ScreenshotView.open(dev.lumora.client.api.LumoraRuntime.core());
+                        return null;
+                    }, 60));
+                    // crosshair editor above the crosshair settings, once per mode
+                    for (String mode : new String[]{"shape", "preset", "custom"}) {
+                        pending.add(new Shot("crosshair-" + mode, parent -> ApiSmoke.core().addonManager().record("lumora-crosshair")
+                                .filter(r -> r.configuration() != null)
+                                .map(r -> {
+                                    r.configuration().settings().get("mode").ifPresent(s -> s.decode(mode));
+                                    return (Screen) SettingsScreen.create(parent, Component.translatable("Fadenkreuz"), r.configuration().settings(), List.of(), null);
+                                })
+                                .orElse(null)));
+                    }
                     if (ApiSmoke.voiceLoaded()) {
                         // LumoraVoice menus through the Lumora screen API (Lumora API 1.1)
                         pending.add(new Shot("voice-settings", parent -> {

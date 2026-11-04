@@ -90,4 +90,18 @@ public interface Platform {
     default dev.lumora.core.browser.BrowserPlatform browsers() {
         return null;
     }
+
+    /**
+     * Uploads pixels (ARGB, row by row) as the texture {@code lumora:<path>} so views can draw it with
+     * {@code new TextureRef("lumora", path)}; an existing texture with that path is replaced. Render thread only.
+     *
+     * @return false if this Minecraft version cannot do it (then nothing was registered)
+     */
+    default boolean uploadTexture(String path, int width, int height, int[] argb) {
+        return false;
+    }
+
+    /** Frees a texture from {@link #uploadTexture}; unknown paths are ignored. Render thread only. */
+    default void releaseTexture(String path) {
+    }
 }

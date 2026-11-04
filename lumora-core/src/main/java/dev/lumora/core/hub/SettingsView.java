@@ -68,6 +68,45 @@ public final class SettingsView implements AddonView {
     private record SectionSwitch(Section section) {
     }
 
+    /**
+     * An editor of its own above the setting rows, e.g. the crosshair editor with preview and presets. A module
+     * registers it for its settings group with {@link #registerPanel}; every settings view of that group shows it.
+     */
+    public interface Panel {
+        /** Draws the panel at (x, y) with width {@code w} and returns its height; {@code mx/my} are -1 outside the list. */
+        int render(HudGraphics g, int x, int y, int w, int mx, int my);
+
+        /** A mouse press inside the list (any button); true if the panel used it. */
+        boolean mouseClicked(double x, double y, int button);
+
+        /** The mouse moves with a button held after a press the panel used. */
+        default void mouseDragged(double x, double y, int button) {
+        }
+
+        default void mouseReleased() {
+        }
+
+        /** Whether the setting gets its own row below the panel (false: the panel edits it). */
+        default boolean shows(Setting<?> setting) {
+            return true;
+        }
+
+        /** Hint for the element under the mouse, or null. */
+        default String tooltip() {
+            return null;
+        }
+    }
+
+    private static final java.util.Map<SettingsGroup, java.util.function.Function<Boolean, Panel>> PANELS =
+            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+    /** Shows a panel above the rows of {@code group}; the factory gets {@code true} for German texts. */
+    public static void registerPanel(SettingsGroup group, java.util.function.Function<Boolean, Panel> factory) {
+        if (group != null && factory != null) {
+            PANELS.put(group, factory);
+        }
+    }
+
     /** Sections for the next view created on this thread ({@link HubHost#openSettings} with sections). */
     private static final ThreadLocal<List<Section>> NEXT = ThreadLocal.withInitial(List::of);
 
@@ -93,6 +132,8 @@ public final class SettingsView implements AddonView {
     private final Runnable onClose;
     private final boolean hudEditor;
     private final List<Section> sections;
+    private final Panel panel;
+    private boolean panelDrag;
     private final boolean de;
     private final List<Hit> hits = new ArrayList<>();
     private final List<Slider> sliders = new ArrayList<>();
@@ -144,6 +185,8 @@ public final class SettingsView implements AddonView {
         Translations tr = core.translations();
         String lang = tr == null ? "" : tr.language();
         this.de = lang != null && lang.toLowerCase(Locale.ROOT).startsWith("de");
+        java.util.function.Function<Boolean, Panel> factory = group == null ? null : PANELS.get(group);
+        this.panel = factory == null ? null : factory.apply(de);
     }
 
     private String t(String german, String english) {
@@ -194,7 +237,8 @@ public final class SettingsView implements AddonView {
         List<Object> out = new ArrayList<>();
         if (group != null) {
             for (Setting<?> s : group.all()) {
-                if ((advanced || !s.isAdvanced()) && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q))) {
+                if ((advanced || !s.isAdvanced()) && (panel == null || panel.shows(s))
+                        && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q))) {
                     out.add(s);
                 }
             }
@@ -430,6 +474,17 @@ public final class SettingsView implements AddonView {
     private int content(HudGraphics g, int x, int y, int w, int mx, int my) {
         int y0 = y;
         List<Object> items = items();
+        if (panel != null && search.isBlank()) {
+            boolean in = visible(my);
+            y += panel.render(g, x, y, w, in ? mx : -1, in ? my : -1) + 8;
+            String hint = in ? panel.tooltip() : null;
+            if (hint != null) {
+                tooltip = hint;
+            }
+            if (items.isEmpty()) {
+                return y - y0;
+            }
+        }
         if (items.isEmpty()) {
             g.text(search.isBlank() ? t("Keine Einstellungen", "No settings") : t("Nichts gefunden", "Nothing found"),
                     x, y + 4, MUTED, false);
@@ -824,6 +879,11 @@ public final class SettingsView implements AddonView {
             capture = null;
             captureId = null;
         }
+        if (panel != null && search.isBlank() && visible((int) y) && panel.mouseClicked(x, y, button)) {
+            commit();
+            panelDrag = true;
+            return true;
+        }
         if (button != 0) {
             return false;
         }
@@ -848,6 +908,10 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean mouseDragged(double x, double y, int button) {
+        if (panelDrag) {
+            panel.mouseDragged(x, y, button);
+            return true;
+        }
         if (dragging != null) {
             apply(dragging, x);
             return true;
@@ -857,7 +921,11 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean mouseReleased(double x, double y, int button) {
-        boolean was = dragging != null;
+        boolean was = dragging != null || panelDrag;
+        if (panelDrag) {
+            panelDrag = false;
+            panel.mouseReleased();
+        }
         dragging = null;
         return was;
     }

@@ -112,12 +112,16 @@ public final class LumoraClient implements ClientEntrypoint {
             if (screen instanceof TitleScreen && config.titleScreenButton) {
                 Hooks.addWidget(screen, Button.builder(Component.translatable("lumora.title.button"),
                         b -> mc.setScreen(LumoraHubScreen.create(screen))).bounds(4, 4, 80, 20).build());
+                Hooks.addWidget(screen, new LumoraButton(88, 4, 20, 20, Component.literal("Screenshots"), LumoraButton.Style.SECONDARY, "#camera",
+                        () -> dev.lumora.core.hub.ScreenshotView.open(dev.lumora.client.api.LumoraRuntime.core())));
             } else if (screen instanceof PauseScreen pause && pause.showsPauseMenu() && config.pauseMenuButton) {
                 // same pill as in the Lumora main menu; the hub returns to the pause menu when closed
                 Hooks.addWidget(screen, new LumoraButton(6, 6, 74, 18, Component.translatable("lumora.menu.hub"),
                         LumoraButton.Style.SECONDARY, "✦", () -> mc.setScreen(LumoraHubScreen.create(screen))));
                 Hooks.addWidget(screen, new LumoraButton(84, 6, 84, 18, dev.lumora.client.gui.SocialScreen.label(),
                         LumoraButton.Style.SECONDARY, "☻", () -> mc.setScreen(new dev.lumora.client.gui.SocialScreen(screen))));
+                Hooks.addWidget(screen, new LumoraButton(172, 6, 18, 18, Component.literal("Screenshots"), LumoraButton.Style.SECONDARY, "#camera",
+                        () -> dev.lumora.core.hub.ScreenshotView.open(dev.lumora.client.api.LumoraRuntime.core())));
             } else if (screen instanceof JoinMultiplayerScreen && config.multiplayerProtocolLabel && RuntimeInfo.viaFabricPlusLoaded()) {
                 String target = RuntimeInfo.vfpTargetVersion();
                 Component text = Component.translatable("lumora.multiplayer.protocol",

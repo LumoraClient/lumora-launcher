@@ -10,6 +10,8 @@ import java.util.Optional;
 /** Records drawing calls; 6 px per character, 9 px lines. Checks push/pop balance. */
 public final class FakeGraphics implements HudGraphics {
     public final List<String> texts = new ArrayList<>();
+    /** "namespace:path" of every texture drawn. */
+    public final List<String> textures = new ArrayList<>();
     public int fills;
     public int depth;
     public int maxDepth;
@@ -40,6 +42,7 @@ public final class FakeGraphics implements HudGraphics {
     public void texture(TextureRef texture, int x, int y, int width, int height, float u, float v, int regionWidth, int regionHeight,
                         int textureWidth, int textureHeight) {
         fills++;
+        textures.add(texture.namespace() + ":" + texture.path());
     }
 
     @Override

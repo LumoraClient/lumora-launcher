@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Small one-colour 9x9 symbols of the hub (sidebar, gear, search), drawn with fills so they take any colour. */
-final class HubGlyphs {
-    static final int SIZE = 9;
+public final class HubGlyphs {
+    public static final int SIZE = 9;
     private static final Map<String, String[]> GLYPHS = new HashMap<>();
 
     static {
@@ -71,6 +71,21 @@ final class HubGlyphs {
         put("back",
                 "....##...", "...##....", "..##.....", ".##......", "##.......",
                 ".##......", "..##.....", "...##....", "....##...");
+        put("next",
+                "...##....", "....##...", ".....##..", "......##.", ".......##",
+                "......##.", ".....##..", "....##...", "...##....");
+        put("camera",
+                ".........", "..###....", "#########", "#..###..#", "#.#...#.#",
+                "#.#...#.#", "#..###..#", "#########", ".........");
+        put("star",
+                "....#....", "....#....", "...###...", "#########", ".#######.",
+                "..#####..", "..##.##..", ".##...##.", "##.....##");
+        put("folder",
+                ".........", "####.....", "#...#####", "#########", "#.......#",
+                "#.......#", "#.......#", "#########", ".........");
+        put("edit",
+                "......##.", ".....#..#", "....#..#.", "...#..#..", "..#..#...",
+                ".#..#....", "#..#.....", "###......", ".........");
     }
 
     private HubGlyphs() {
@@ -88,12 +103,12 @@ final class HubGlyphs {
         GLYPHS.put(name, rows);
     }
 
-    static boolean has(String name) {
+    public static boolean has(String name) {
         return GLYPHS.containsKey(name);
     }
 
     /** Draws the glyph with its top left corner at (x, y); unknown names draw nothing. */
-    static void draw(HudGraphics g, String name, int x, int y, int color) {
+    public static void draw(HudGraphics g, String name, int x, int y, int color) {
         String[] rows = GLYPHS.get(name);
         if (rows == null) {
             return;

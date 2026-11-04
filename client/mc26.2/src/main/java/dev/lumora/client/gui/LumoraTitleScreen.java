@@ -94,6 +94,8 @@ public final class LumoraTitleScreen extends Screen {
                 LumoraButton.Style.SECONDARY, "✦", () -> minecraft.gui.setScreen(LumoraHubScreen.create(this))));
         addRenderableWidget(new LumoraButton(84, 6, 84, 18, SocialScreen.label(), LumoraButton.Style.SECONDARY, "☻",
                 () -> minecraft.gui.setScreen(new SocialScreen(this))));
+        addRenderableWidget(new LumoraButton(172, 6, 18, 18, Component.literal("Screenshots"), LumoraButton.Style.SECONDARY, "#camera",
+                () -> dev.lumora.core.hub.ScreenshotView.open(dev.lumora.client.api.LumoraRuntime.core())));
     }
 
     private Screen singleplayer() {

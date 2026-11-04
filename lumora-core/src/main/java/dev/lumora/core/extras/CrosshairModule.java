@@ -5,29 +5,43 @@ import dev.lumora.api.addon.LumoraAddon;
 import dev.lumora.api.config.BooleanSetting;
 import dev.lumora.api.config.ChoiceSetting;
 import dev.lumora.api.config.ColorSetting;
+import dev.lumora.api.config.DecimalSetting;
 import dev.lumora.api.config.IntegerSetting;
 import dev.lumora.api.config.SettingsGroup;
+import dev.lumora.api.config.TextSetting;
 import dev.lumora.api.render.HudGraphics;
+import dev.lumora.core.hub.SettingsView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Built-in module "Fadenkreuz": own crosshair (cross, cross with gap, T, X, circle, dot) with size, gap, thickness,
- * colour, outline and centre dot. The version adapters ask {@link #active()} in Minecraft's crosshair method; while the
- * module is on they draw this crosshair instead of the vanilla one (where vanilla would show one).
+ * Built-in module "Fadenkreuz": own crosshair in three modes. "shape": a drawn shape (cross, cross with gap, T, X,
+ * circle, dot) with size, gap and thickness; "preset": one of the {@link CrosshairPresets}; "custom": a pixel grid the
+ * player paints in the editor. Colour, outline and scale apply to all of them. The editor with preview sits above the
+ * settings ({@link CrosshairEditor}). The version adapters ask {@link #active()} in Minecraft's crosshair method; while
+ * the module is on they draw this crosshair instead of the vanilla one (where vanilla would show one).
  */
 public final class CrosshairModule implements LumoraAddon {
     private static volatile CrosshairModule active;
+    static final String[] MODES = {"shape", "preset", "custom"};
+    static final String[] STYLES = {"gap", "cross", "t", "x", "circle", "dot"};
 
+    ChoiceSetting mode;
     ChoiceSetting style;
+    ChoiceSetting preset;
+    TextSetting pixels;
     IntegerSetting size;
     IntegerSetting gap;
     IntegerSetting thickness;
+    DecimalSetting scale;
     ColorSetting color;
     BooleanSetting outline;
     ColorSetting outlineColor;
     BooleanSetting dot;
+
+    private String parsedFrom;
+    private boolean[] parsed = new boolean[CrosshairPresets.GRID * CrosshairPresets.GRID];
 
     /** The module while it is switched on, else null. */
     public static CrosshairModule active() {
@@ -37,14 +51,21 @@ public final class CrosshairModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        style = (ChoiceSetting) s.choice("style", "gap", "gap", "cross", "t", "x", "circle", "dot").name("lumora.extras.crosshair.style");
+        mode = (ChoiceSetting) s.choice("mode", "shape", MODES).name("lumora.extras.crosshair.mode");
+        style = (ChoiceSetting) s.choice("style", "gap", STYLES).name("lumora.extras.crosshair.style");
+        preset = (ChoiceSetting) s.choice("preset", CrosshairPresets.all().get(0).id(), CrosshairPresets.ids())
+                .name("lumora.extras.crosshair.preset");
+        pixels = (TextSetting) s.text("pixels", CrosshairPresets.encode(CrosshairPresets.get("circle_dot").pixels()),
+                CrosshairPresets.GRID * 4).name("lumora.extras.crosshair.pixels");
         size = (IntegerSetting) s.slider("size", 5, 1, 20).name("lumora.extras.crosshair.size");
         gap = (IntegerSetting) s.slider("gap", 2, 0, 10).name("lumora.extras.crosshair.gap");
         thickness = (IntegerSetting) s.slider("thickness", 1, 1, 5).name("lumora.extras.crosshair.thickness");
+        scale = (DecimalSetting) s.slider("scale", 1.0, 0.5, 3.0, 0.5).name("lumora.extras.crosshair.scale");
         color = (ColorSetting) s.color("color", 0xFFFFFFFF, true).name("lumora.extras.crosshair.color");
         outline = (BooleanSetting) s.toggle("outline", true).name("lumora.extras.crosshair.outline");
         outlineColor = (ColorSetting) s.color("outline_color", 0xB0000000, true).name("lumora.extras.crosshair.outline_color").advanced();
         dot = (BooleanSetting) s.toggle("dot", false).name("lumora.extras.crosshair.dot");
+        SettingsView.registerPanel(s, german -> new CrosshairEditor(this, german));
     }
 
     @Override
@@ -59,19 +80,107 @@ public final class CrosshairModule implements LumoraAddon {
 
     /** Draws the crosshair centred on the GUI-scaled screen. */
     public void draw(HudGraphics g, int screenWidth, int screenHeight) {
-        int cx = screenWidth / 2;
-        int cy = screenHeight / 2;
-        List<int[]> parts = shape(style.get(), size.get(), gap.get(), thickness.get(), dot.get());
-        if (outline.get()) {
-            int oc = outlineColor.argb();
+        render(g, screenWidth / 2, screenHeight / 2);
+    }
+
+    /** Draws the crosshair with its middle pixel at (cx, cy) of the current transform. */
+    void render(HudGraphics g, int cx, int cy) {
+        String m = mode.get();
+        int oc = outline.get() ? outlineColor.argb() : 0;
+        if ("shape".equals(m)) {
+            List<int[]> parts = shape(style.get(), size.get(), gap.get(), thickness.get(), dot.get());
+            if (oc != 0) {
+                for (int[] r : parts) {
+                    g.fill(cx + r[0] - 1, cy + r[1] - 1, cx + r[2] + 1, cy + r[3] + 1, oc);
+                }
+            }
+            int c = color.argb();
             for (int[] r : parts) {
-                g.fill(cx + r[0] - 1, cy + r[1] - 1, cx + r[2] + 1, cy + r[3] + 1, oc);
+                g.fill(cx + r[0], cy + r[1], cx + r[2], cy + r[3], c);
+            }
+            return;
+        }
+        float s = (float) scale.get().doubleValue();
+        g.push();
+        // the middle pixel stays centred on the vanilla centre pixel at every scale
+        g.translate(cx + 0.5f - s / 2f, cy + 0.5f - s / 2f);
+        g.scale(s);
+        bitmap(g, pixels(), color.argb(), oc);
+        g.pop();
+    }
+
+    /** The pixels drawn in the preset and custom modes. */
+    boolean[] pixels() {
+        if ("custom".equals(mode.get())) {
+            return customPixels();
+        }
+        return CrosshairPresets.get(preset.get()).pixels();
+    }
+
+    /** The painted grid (parsed once per change). */
+    boolean[] customPixels() {
+        String raw = pixels.get();
+        if (!raw.equals(parsedFrom)) {
+            boolean[] px = CrosshairPresets.decode(raw);
+            parsed = px != null ? px : new boolean[CrosshairPresets.GRID * CrosshairPresets.GRID];
+            parsedFrom = raw;
+        }
+        return parsed;
+    }
+
+    void setCustomPixels(boolean[] px) {
+        pixels.set(CrosshairPresets.encode(px));
+    }
+
+    /**
+     * Draws a pixel grid with its middle pixel at (0, 0): runs of pixels per row, the outline once per pixel next to
+     * the shape (so a translucent outline stays even).
+     */
+    static void bitmap(HudGraphics g, boolean[] px, int color, int outlineColor) {
+        int n = CrosshairPresets.GRID;
+        int half = n / 2;
+        if (outlineColor != 0) {
+            for (int y = -1; y <= n; y++) {
+                int run = Integer.MIN_VALUE;
+                for (int x = -1; x <= n + 1; x++) {
+                    boolean edge = x <= n && !at(px, x, y) && near(px, x, y);
+                    if (edge && run == Integer.MIN_VALUE) {
+                        run = x;
+                    } else if (!edge && run != Integer.MIN_VALUE) {
+                        g.fill(run - half, y - half, x - half, y - half + 1, outlineColor);
+                        run = Integer.MIN_VALUE;
+                    }
+                }
             }
         }
-        int c = color.argb();
-        for (int[] r : parts) {
-            g.fill(cx + r[0], cy + r[1], cx + r[2], cy + r[3], c);
+        for (int y = 0; y < n; y++) {
+            int run = -1;
+            for (int x = 0; x <= n; x++) {
+                boolean on = x < n && px[y * n + x];
+                if (on && run < 0) {
+                    run = x;
+                } else if (!on && run >= 0) {
+                    g.fill(run - half, y - half, x - half, y - half + 1, color);
+                    run = -1;
+                }
+            }
         }
+    }
+
+    private static boolean at(boolean[] px, int x, int y) {
+        int n = CrosshairPresets.GRID;
+        return x >= 0 && y >= 0 && x < n && y < n && px[y * n + x];
+    }
+
+    private static boolean near(boolean[] px, int x, int y) {
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if ((dx != 0 || dy != 0) && at(px, x + dx, y + dy)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -135,5 +244,14 @@ public final class CrosshairModule implements LumoraAddon {
             out.add(new int[]{a, a, b, b});
         }
         return out;
+    }
+
+    /** Half the width of a shape (for fitting it into a box): the largest distance of a part from the centre. */
+    static int extent(List<int[]> parts) {
+        int e = 1;
+        for (int[] r : parts) {
+            e = Math.max(e, Math.max(Math.max(-r[0], r[2]), Math.max(-r[1], r[3])));
+        }
+        return e;
     }
 }

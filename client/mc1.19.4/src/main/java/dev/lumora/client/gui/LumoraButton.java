@@ -90,6 +90,12 @@ public final class LumoraButton extends AbstractButton {
     }
 
     private void drawLabel(GuiGraphics g, Font font, int x, int y, int w, int h, boolean hover, int textColor) {
+        if (glyph != null && glyph.startsWith("#") && dev.lumora.core.hub.HubGlyphs.has(glyph.substring(1))) {
+            // a pixel glyph of the hub (e.g. the camera), centred; the label is only read out
+            dev.lumora.core.hub.HubGlyphs.draw(STYLE_G.with(g), glyph.substring(1), x + (w - dev.lumora.core.hub.HubGlyphs.SIZE) / 2,
+                    y + (h - dev.lumora.core.hub.HubGlyphs.SIZE) / 2, hover ? LumoraUi.ACCENT_HOVER : textColor);
+            return;
+        }
         String label = getMessage().getString();
         int ty = y + (h - font.lineHeight) / 2 + 1;
         if (style == Style.NAV) {

@@ -258,4 +258,25 @@ final class McPlatform implements Platform {
     public boolean modLoaded(String modId) {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
+
+    @Override
+    public boolean uploadTexture(String path, int width, int height, int[] argb) {
+        com.mojang.blaze3d.platform.NativeImage img = new com.mojang.blaze3d.platform.NativeImage(width, height, false);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int c = argb[y * width + x];
+                img.setPixelRGBA(x, y, (c & 0xFF00FF00) | ((c >> 16) & 0xFF) | ((c & 0xFF) << 16));
+            }
+        }
+        net.minecraft.client.renderer.texture.TextureManager tm = net.minecraft.client.Minecraft.getInstance().getTextureManager();
+        net.minecraft.resources.ResourceLocation id = new net.minecraft.resources.ResourceLocation("lumora", path);
+        tm.release(id);
+        tm.register(id, new net.minecraft.client.renderer.texture.DynamicTexture(img));
+        return true;
+    }
+
+    @Override
+    public void releaseTexture(String path) {
+        net.minecraft.client.Minecraft.getInstance().getTextureManager().release(new net.minecraft.resources.ResourceLocation("lumora", path));
+    }
 }

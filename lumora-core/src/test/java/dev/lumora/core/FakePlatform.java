@@ -28,6 +28,9 @@ public final class FakePlatform implements Platform {
     /** Addon jar folder (null = none) and the parent loader of its class loaders. */
     public Path addons;
     public ClassLoader addonParent = FakePlatform.class.getClassLoader();
+    /** Uploaded textures by path (uploadTexture); false = this "version" cannot upload. */
+    public final Map<String, int[]> textures = new HashMap<>();
+    public boolean textureSupport = true;
 
     public FakePlatform(Path dir) {
         this.dir = dir;
@@ -46,6 +49,23 @@ public final class FakePlatform implements Platform {
     @Override
     public Path configDir() {
         return dir;
+    }
+
+    @Override
+    public boolean uploadTexture(String path, int width, int height, int[] argb) {
+        if (!textureSupport) {
+            return false;
+        }
+        if (argb.length != width * height) {
+            throw new IllegalArgumentException("pixels");
+        }
+        textures.put(path, argb.clone());
+        return true;
+    }
+
+    @Override
+    public void releaseTexture(String path) {
+        textures.remove(path);
     }
 
     @Override

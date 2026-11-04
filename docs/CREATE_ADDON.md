@@ -7,7 +7,7 @@ Abhängigkeiten und ruft die Einstiegsklasse auf. Es gibt zwei Wege:
 | Weg | Ordner | Wann |
 |---|---|---|
 | **Addon-JAR** (empfohlen) | `addons/` der Instanz, z. B. `%APPDATA%\LumoraClient\instances\<version>\addons` | reine API-Addons. Kein Mod-Loader nötig: keine `fabric.mod.json` und keine Fabric-Abhängigkeit. |
-| **Fabric-Mod mit Addon** | `mods/` | Das Addon braucht Mixins, die Fabric-API oder eigene Texturen im Ressourcenpaket des Spiels, oder die Mod soll auch ohne Lumora laufen (wie LabyVoice). |
+| **Fabric-Mod mit Addon** | `mods/` | Das Addon braucht Mixins oder die Fabric-API, oder die Mod soll auch ohne Lumora laufen (wie LabyVoice). Hinweis: Der Lumora-Launcher startet seit 0.3.2 über den Lumora Loader und lädt keine Fabric-Mods. Dieser Weg gilt nur für eigene Fabric-Installationen. |
 
 Im Ordner `addons/` bekommt jede JAR einen eigenen Class-Loader:
 - **Spielklassen zuerst:** Klassen der API, des Spiels und der Mods kommen immer aus dem Spiel. Ein Addon kann sie also nicht ersetzen.
@@ -158,7 +158,8 @@ gefunden werden, hängt vom Weg ab:
 - **Addon-JAR aus `addons/`:**
   - `context.translations()` liest die Sprachdateien direkt aus der JAR. Erst kommt das Spiel (Ressourcenpakete können Texte überschreiben), dann die JAR, dann `en_us`.
   - Eigene Dateien liest das Addon mit `getClass().getResourceAsStream("/…")`. Die JAR wird dabei zuerst durchsucht.
-  - Texturen (`TextureRef`) und Schriften kommen weiterhin nur aus den Ressourcenpaketen des Spiels. Ein Addon mit eigenen Bildern braucht deshalb vorerst den Weg als Fabric-Mod oder ein Ressourcenpaket.
+  - **Texturen, Schriften und Klänge** (ab Client 0.3.7): Lumora kopiert beim Start die `assets/` aller Addon-JARs aus `addons/` nach `.lumora/addon-assets` und meldet den Ordner als immer aktives Ressourcenpaket „Lumora-Addons“ an. `TextureRef`, eigene Schriften (`font/*.json`) und Klänge funktionieren deshalb wie bei einer Fabric-Mod. Kopiert wird nur bei geänderten JARs. Die Namensräume `minecraft`, `realms` und `lumora` kann ein Addon nicht überschreiben, dafür gibt es normale Ressourcenpakete. Liefern zwei Addons dieselbe Datei, gewinnt die JAR, deren Dateiname alphabetisch zuerst kommt.
+  - **Bibliotheken** gehören entpackt in die Addon-JAR (verschachtelte JARs unter `META-INF/jars` packt nur Fabric aus). Jede JAR hat genau einen Klassenpfad.
 
 Schlüssel, die Lumora erwartet:
 

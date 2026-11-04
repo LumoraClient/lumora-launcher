@@ -14,9 +14,11 @@ Fabric-API- oder Mixin-Klassen; alles Versionsabhängige liefert die **Lumora-AP
 
 - `lumora-addon.json`: `"api": "1.1.0"`, `"minecraft": ["*"]`, `"depends": { "lumora": ">=1.1.0" }`, Berechtigungen
   `hud`, `keybinds`, `notifications`, `game`, `tasks`, `screens`, `players`, `session`, `network`, `nametags`.
-- `fabric.mod.json`: `"depends": { …, "lumora": "*" }` (anders als LabyVoice läuft LumoraVoice nur mit Lumora) und
-  `"breaks": { "labyvoice": "*" }`: LabyVoice und LumoraVoice schließen sich aus, die LabyVoice-JAR muss aus dem
-  `mods`-Ordner.
+- **Ab 0.8.1 ein reines Lumora-Addon** für den Ordner `addons/` der Instanz, ohne `fabric.mod.json`. Der Lumora Loader
+  (seit Client 0.3.2) lädt keine Fabric-Mods, eine LumoraVoice-JAR in `mods/` startet dort nicht. Opus (concentus),
+  RNNoise mit nativen Bibliotheken und Kotlin sind in die JAR entpackt. Texturen und die Namensschild-Schrift kommen
+  über das Ressourcenpaket „Lumora-Addons“ (Client ab 0.3.7) ins Spiel. Bis 0.8.0 war LumoraVoice eine Fabric-Mod
+  (`"breaks": { "labyvoice": "*" }`, Bibliotheken als verschachtelte Fabric-JARs).
 - **Einstellungen:** Gibt es beim ersten Start noch keine `config/lumoravoice.json`, aber eine `config/labyvoice.json`,
   wird diese übernommen (kopiert, Log „Settings taken over from labyvoice.json“). Die alte Datei bleibt liegen.
 

@@ -53,6 +53,15 @@ public final class Packs {
         if (own != null) {
             out.accept(own);
         }
+
+        java.nio.file.Path addonDir = addonAssets();
+        if (addonDir != null) {
+            Pack addons = Pack.create(LoaderEnv.CLIENT_ID + ":addons", true, () -> new FolderPackResources(addonDir.toFile()), constructor,
+                    Pack.Position.BOTTOM, PackSource.BUILT_IN);
+            if (addons != null) {
+                out.accept(addons);
+            }
+        }
         for (Builtin p : OPTIONAL) {
             Path dir = extracted(p.name());
             if (dir == null) {
@@ -102,5 +111,24 @@ public final class Packs {
         } catch (IOException e) {
             return Files.isDirectory(dst) ? dst : null;
         }
+    }
+
+    /**
+     * The assets of the addon jars in {@code addons/} (textures, fonts, sounds) as one folder for the always-on pack
+     * "Lumora-Addons" ({@link dev.lumora.core.addon.AddonAssets}), or null when no addon brings any.
+     */
+    private static java.nio.file.Path addonAssets() {
+        byte[] meta = null;
+        java.util.Optional<java.nio.file.Path> root = LumoraLoader.root(LoaderEnv.CLIENT_ID);
+        if (root.isPresent()) {
+            try {
+                meta = java.nio.file.Files.readAllBytes(root.get().resolve("pack.mcmeta"));
+            } catch (java.io.IOException | RuntimeException e) {
+                meta = null;
+            }
+        }
+        java.nio.file.Path game = LumoraLoader.gameDir();
+        return dev.lumora.core.addon.AddonAssets.prepare(game.resolve("addons"), game.resolve(".lumora").resolve("addon-assets"),
+                meta, w -> dev.lumora.client.LumoraClient.LOG.warn(w));
     }
 }

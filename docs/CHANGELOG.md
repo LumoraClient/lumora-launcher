@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.12 (2026-11-05)
+
+### Launcher
+- **Nur noch ein Launcher:** Läuft der Launcher nach dem Schließen weiter im Infobereich (Tray) und du startest ihn noch einmal, öffnet sich kein zweiter Launcher mehr. Stattdessen kommt das Fenster des laufenden zurück, auch wenn es minimiert war oder hinter anderen Fenstern lag. Ein Autostart mit Windows lässt einen schon laufenden Launcher in Ruhe. Antwortet der laufende Launcher nicht, fragt Lumora, ob trotzdem ein weiterer starten soll.
+
 ## 0.3.11 (2026-11-05)
 
 ### Im Spiel

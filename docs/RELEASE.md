@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.12 (2026-11-05):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 428 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für den Einzel-Launcher (zweiter Start erreicht den ersten mit „zeigen“ und „nur prüfen“, ein „zeigen“ vor dem Fenster kommt später an, Schließen gibt Sperre und Port-Datei frei und ein zweiter Start wartet dann nicht, Anfragen ohne Token werden abgelehnt).
+- **Launcher** (fertiges Abbild, Test-Datenordner, „Im Tray bleiben“ an): Fenster per Schließen in den Tray, zweiter Start endet nach etwa 1 s und das Fenster des ersten ist wieder sichtbar (gleiche Prozesse). Nach hartem Beenden mit liegengebliebenen `launcher.lock`/`launcher.port` startet der Launcher normal.
+- **Smoke-Test** mit dem fertigen 0.3.12-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden.
+- **Nicht geprüft:** Start per Klick auf die Desktop-Verknüpfung (das Schließen wurde per Fensternachricht ausgelöst), Autostart mit `--tray` bei laufendem Launcher, ein echtes Selbst-Update von 0.3.11 auf 0.3.12 (ein laufender 0.3.11 kennt die Sperre noch nicht).
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.11 (2026-11-05):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 424 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für die Einstellungs-Arten der API 1.3 (Typen und konkrete Rückgabetypen, Sichtbarkeit mit fehlerhafter Bedingung, Enums, Schritte und Einheiten, Regenbogen gespeichert auch vor `chroma()`, Buttons nie gespeichert) und 6 für die Einstellungsseite (Abschnitte und Bedingungen, Klicks auf Häkchen, Knopfreihe und Button, Aufklapp-Liste mit Esc, Farbwähler mit Regenbogen und Esc, HSV-Umrechnung, Zoom-Settings an die Client-Einstellungen gebunden). Das Addon-Template baut mit der API 1.3.0.
 - **Smoke-Test** mit dem fertigen 0.3.11-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Einstellungsseite der Angriffsanzeige mit Abschnitten, Knopfreihe, Aufklapp-Liste (offen) und Farbwähler (offen) in 26.3 und 1.21.11 angesehen; vor dem Release dieselben Aufnahmen in 1.8.9, 1.16.5 und 1.21.4.

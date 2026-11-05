@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.15 (2026-11-05):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 431 Unit-Tests ohne Fehler (1 übersprungen). Der Test der Angriffsanzeige prüft alle verbliebenen Stile und Positionen und dass ein gespeichertes „Wie in Minecraft“ zu „Am Fadenkreuz“ wird.
+- **Smoke-Test** mit dem fertigen 0.3.15-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Stil-Reihe der Angriffsanzeige mit den fünf verbliebenen Stilen in 26.3 angesehen.
+- **Nicht geprüft:** ein echtes Selbst-Update von 0.3.14 auf 0.3.15.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.14 (2026-11-05):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 431 Unit-Tests ohne Fehler (1 übersprungen). Neu: 1 für die Angriffsanzeige (Levelleiste genau auf der Erfahrungsleiste 182 x 5 px, halb gefüllt bei 50 %, Prozent und Cooldown-Name; Bossleiste oben ab y 12, Cooldown als nächste Leiste; Position und Größe ausgeblendet) und 1 für die Einstellungsseite (Knopfreihe mit sechs Optionen bleibt eine Reihe, Klick auf die letzte Option).
 - **Smoke-Test** mit dem fertigen 0.3.14-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Levelleiste und Bossleiste in 26.3, 1.21.11 und 1.16.5 kurz nach einem Schlag fotografiert und angesehen, die Stil-Reihe mit sechs Knöpfen in 1.8.9.

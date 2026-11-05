@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.15 (2026-11-05)
+
+### Im Spiel
+- **Angriffsanzeige aufgeräumt:** Der Stil „Minecraft“ ist entfernt; zur Wahl stehen Balken, Ring, Punkt, Levelleiste und Bossleiste. Wer „Minecraft“ gewählt hatte, bekommt den Standard „Ring“.
+- Die Position „Wie in Minecraft“ ist entfernt: Mit der Minecraft-Standardoption war sie dasselbe wie „Am Fadenkreuz“. Es bleiben „Am Fadenkreuz“ und „An der Hotbar“; wer „Wie in Minecraft“ hatte, bekommt „Am Fadenkreuz“.
+
 ## 0.3.14 (2026-11-05)
 
 ### Im Spiel

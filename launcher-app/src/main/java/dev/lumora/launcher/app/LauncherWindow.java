@@ -116,6 +116,7 @@ final class LauncherWindow implements PageHost {
     private dev.lumora.launcher.app.pages.ServersPage serversPage;
     private final Tray tray = new Tray(frame, icons(), this::quit);
     private boolean startedInTray;
+    private dev.lumora.launcher.core.util.SingleInstance instance;
     private boolean trayHintShown;
     private BrowserPage browserPage;
     private AccountPage accountPage;
@@ -223,6 +224,28 @@ final class LauncherWindow implements PageHost {
         } else if (slash > 0 && id.startsWith("settings/")) {
             settingsPage.showCategory(id.substring(slash + 1));
         }
+    }
+
+    /** A second start of the launcher brings this window back (from the tray, minimized or behind other windows). */
+    void attach(dev.lumora.launcher.core.util.SingleInstance i) {
+        instance = i;
+        if (i != null) {
+            i.onRequest(r -> {
+                if (r == dev.lumora.launcher.core.util.SingleInstance.Request.SHOW) {
+                    SwingUtilities.invokeLater(this::bringToFront);
+                }
+            });
+        }
+    }
+
+    private void bringToFront() {
+        frame.setVisible(true);
+        frame.setExtendedState(frame.getExtendedState() & ~java.awt.Frame.ICONIFIED);
+        // Windows lets only the foreground app raise its windows; a short always-on-top gets past that
+        frame.setAlwaysOnTop(true);
+        frame.toFront();
+        frame.requestFocus();
+        frame.setAlwaysOnTop(false);
     }
 
     private void build() {
@@ -1324,6 +1347,9 @@ final class LauncherWindow implements PageHost {
                     }
                     try {
                         dev.lumora.launcher.core.update.LauncherUpdate.install(file, portable.get());
+                        if (instance != null) {
+                            instance.close(); // the new launcher must not find this one still running
+                        }
                         new ProcessBuilder(portable.get().toString()).start();
                         quit(true);
                     } catch (IOException ex) {

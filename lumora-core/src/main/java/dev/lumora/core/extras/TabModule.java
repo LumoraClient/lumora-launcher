@@ -30,12 +30,18 @@ public final class TabModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        pingNumbers = (BooleanSetting) s.toggle("ping_numbers", true).name("lumora.extras.tab.ping_numbers");
-        scoreboard = (BooleanSetting) s.toggle("scoreboard", true).name("lumora.extras.tab.scoreboard");
-        scale = (IntegerSetting) s.slider("scoreboard_scale", 100, 50, 150).name("lumora.extras.tab.scoreboard_scale");
-        offsetX = (IntegerSetting) s.slider("scoreboard_x", 0, -400, 0).name("lumora.extras.tab.scoreboard_x");
-        offsetY = (IntegerSetting) s.slider("scoreboard_y", 0, -200, 200).name("lumora.extras.tab.scoreboard_y");
-        hideNumbers = (BooleanSetting) s.toggle("hide_numbers", false).name("lumora.extras.tab.hide_numbers");
+        String k = "lumora.extras.tab.";
+        pingNumbers = s.toggle("ping_numbers", true).name(k + "ping_numbers").section(k + "section.tab");
+        scoreboard = s.toggle("scoreboard", true).name(k + "scoreboard").section(k + "section.scoreboard");
+        hideNumbers = s.checkbox("hide_numbers", false).name(k + "hide_numbers").requires(scoreboard);
+        scale = s.slider("scoreboard_scale", 100, 50, 150).step(5).unit("%").name(k + "scoreboard_scale").requires(scoreboard);
+        offsetX = s.slider("scoreboard_x", 0, -400, 0).unit(" px").name(k + "scoreboard_x").requires(scoreboard);
+        offsetY = s.slider("scoreboard_y", 0, -200, 200).unit(" px").name(k + "scoreboard_y").requires(scoreboard);
+        s.button("scoreboard_reset", () -> {
+            scale.reset();
+            offsetX.reset();
+            offsetY.reset();
+        }).name(k + "scoreboard_reset").requires(scoreboard);
     }
 
     @Override

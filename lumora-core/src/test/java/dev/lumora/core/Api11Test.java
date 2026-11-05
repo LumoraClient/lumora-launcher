@@ -78,7 +78,7 @@ class Api11Test {
     void addonsForApi11LoadAndOldAddonsStillLoad() throws Exception {
         start("old", "", ctx -> { });
         start("new", ALL, ctx -> { });
-        assertEquals("1.2.0", core.apiVersion());
+        assertEquals("1.3.0", core.apiVersion());
     }
 
     @Test

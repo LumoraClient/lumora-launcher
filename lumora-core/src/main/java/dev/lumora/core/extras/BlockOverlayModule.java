@@ -66,19 +66,20 @@ public final class BlockOverlayModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        mode = (ChoiceSetting) s.choice("mode", "box", "box", "outline", "fill").name("lumora.extras.blockoverlay.mode");
-        color = (ColorSetting) s.color("color", 0xE6A27BFA, true).name("lumora.extras.blockoverlay.color");
-        fillColor = (ColorSetting) s.color("fill_color", 0x508B5CF6, true).name("lumora.extras.blockoverlay.fill_color");
-        rainbow = (BooleanSetting) s.toggle("rainbow", false).name("lumora.extras.blockoverlay.rainbow");
-        rainbowSpeed = (IntegerSetting) s.slider("rainbow_speed", 4, 1, 10).name("lumora.extras.blockoverlay.rainbow_speed").advanced();
-        thickness = (IntegerSetting) s.slider("thickness", 3, 1, 8).name("lumora.extras.blockoverlay.thickness");
-        fade = (BooleanSetting) s.toggle("fade", true).name("lumora.extras.blockoverlay.fade");
-        fadeMillis = (IntegerSetting) s.slider("fade_millis", 180, 50, 1000).name("lumora.extras.blockoverlay.fade_millis").advanced();
-        sideOnly = (BooleanSetting) s.toggle("side_only", false).name("lumora.extras.blockoverlay.side_only");
-        slide = (BooleanSetting) s.toggle("slide", true).name("lumora.extras.blockoverlay.slide");
-        slideEasing = (ChoiceSetting) s.choice("slide_easing", "quad", "linear", "quad", "expo").name("lumora.extras.blockoverlay.slide_easing").advanced();
-        slideMillis = (IntegerSetting) s.slider("slide_millis", 150, 20, 1000).name("lumora.extras.blockoverlay.slide_millis").advanced();
-        firstPersonOnly = (BooleanSetting) s.toggle("first_person_only", false).name("lumora.extras.blockoverlay.first_person_only");
+        String k = "lumora.extras.blockoverlay.";
+        mode = s.selection("mode", "box", "box", "outline", "fill").name(k + "mode").section(k + "section.look");
+        color = s.color("color", 0xE6A27BFA, true).name(k + "color").visibleWhen(() -> !"fill".equals(mode.get()));
+        fillColor = s.color("fill_color", 0x508B5CF6, true).name(k + "fill_color").visibleWhen(() -> !"outline".equals(mode.get()));
+        thickness = s.slider("thickness", 3, 1, 8).unit(" px").name(k + "thickness").visibleWhen(() -> !"fill".equals(mode.get()));
+        rainbow = s.toggle("rainbow", false).name(k + "rainbow");
+        rainbowSpeed = s.slider("rainbow_speed", 4, 1, 10).name(k + "rainbow_speed").requires(rainbow);
+        fade = s.toggle("fade", true).name(k + "fade").section(k + "section.animation");
+        fadeMillis = s.slider("fade_millis", 180, 50, 1000).step(10).unit(" ms").name(k + "fade_millis").requires(fade).advanced();
+        slide = s.toggle("slide", true).name(k + "slide");
+        slideEasing = s.dropdown("slide_easing", "quad", "linear", "quad", "expo").name(k + "slide_easing").requires(slide).advanced();
+        slideMillis = s.slider("slide_millis", 150, 20, 1000).step(10).unit(" ms").name(k + "slide_millis").requires(slide).advanced();
+        sideOnly = s.checkbox("side_only", false).name(k + "side_only").section(k + "section.show");
+        firstPersonOnly = s.checkbox("first_person_only", false).name(k + "first_person_only");
     }
 
     @Override

@@ -80,6 +80,41 @@ public final class SettingsGroup implements Iterable<Setting<?>> {
         return add(new KeybindSetting(key, defaultKey));
     }
 
+    /** On/off as a check box (compact, e.g. a list of things to show). @since 1.3.0 */
+    public BooleanSetting checkbox(String key, boolean defaultValue) {
+        return add(new BooleanSetting(key, defaultValue).checkbox());
+    }
+
+    /** One of {@code options} in a drop-down list. @since 1.3.0 */
+    public ChoiceSetting dropdown(String key, String defaultValue, String... options) {
+        return add(new ChoiceSetting(key, defaultValue, List.of(options)).dropdown());
+    }
+
+    /** One of a few {@code options} as a row of buttons. @since 1.3.0 */
+    public ChoiceSetting selection(String key, String defaultValue, String... options) {
+        return add(new ChoiceSetting(key, defaultValue, List.of(options)).selection());
+    }
+
+    /** One constant of an enum in a drop-down list (ids: lower-case names). @since 1.3.0 */
+    public <E extends Enum<E>> EnumSetting<E> dropdown(String key, E defaultValue) {
+        return add(new EnumSetting<>(key, defaultValue));
+    }
+
+    /** One constant of an enum as a row of buttons. @since 1.3.0 */
+    public <E extends Enum<E>> EnumSetting<E> selection(String key, E defaultValue) {
+        return add(new EnumSetting<>(key, defaultValue).selection());
+    }
+
+    /** A color with the rainbow option in the color picker ({@link ColorSetting#chroma()}). @since 1.3.0 */
+    public ColorSetting chroma(String key, int defaultArgb, boolean alpha) {
+        return add(new ColorSetting(key, defaultArgb, alpha).chroma());
+    }
+
+    /** A button that runs {@code action} on the client thread; never stored. @since 1.3.0 */
+    public ButtonSetting button(String key, Runnable action) {
+        return add(new ButtonSetting(key, action));
+    }
+
     public synchronized Optional<Setting<?>> get(String key) {
         return Optional.ofNullable(settings.get(key));
     }

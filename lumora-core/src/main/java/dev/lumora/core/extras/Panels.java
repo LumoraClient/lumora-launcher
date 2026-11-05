@@ -43,10 +43,10 @@ final class Panels {
 
         @Override
         public void configure(SettingsGroup s) {
-            background = (BooleanSetting) s.toggle("background", true).name("lumora.widget.setting.background");
-            accent = (BooleanSetting) s.toggle("accent", true).name("lumora.widget.setting.accent");
-            labelColor = (ColorSetting) s.color("label_color", Colors.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced();
-            valueColor = (ColorSetting) s.color("value_color", Colors.TEXT, false).name("lumora.widget.setting.value_color").advanced();
+            background = s.toggle("background", true).name("lumora.widget.setting.background");
+            accent = s.toggle("accent", true).name("lumora.widget.setting.accent");
+            labelColor = s.color("label_color", Colors.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced();
+            valueColor = s.color("value_color", Colors.TEXT, false).name("lumora.widget.setting.value_color").advanced();
             extra(s);
         }
 

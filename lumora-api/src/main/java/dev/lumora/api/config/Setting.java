@@ -5,6 +5,7 @@ import dev.lumora.api.Registration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -28,6 +29,8 @@ public abstract class Setting<T> {
     private String nameKey;
     private String descriptionKey;
     private boolean advanced;
+    private String sectionKey;
+    private BooleanSupplier visibleWhen;
     private Supplier<T> getter;
     private Consumer<T> setter;
     private final List<Consumer<? super T>> listeners = new CopyOnWriteArrayList<>();
@@ -84,7 +87,28 @@ public abstract class Setting<T> {
     }
 
     public final void reset() {
+        onReset();
         set(defaultValue);
+    }
+
+    /** Called by {@link #reset()} before the default is set (e.g. extra state like the chroma of a colour). @since 1.3.0 */
+    protected void onReset() {
+    }
+
+    /**
+     * Notifies the listeners with the current value although {@link #set} was not called (extra state changed, e.g.
+     * the chroma of a colour), so Lumora stores it. @since 1.3.0
+     */
+    protected final void fireChanged() {
+        T v = get();
+        for (Consumer<? super T> l : listeners) {
+            l.accept(v);
+        }
+    }
+
+    /** Whether Lumora stores the value (false for buttons, which only run an action). @since 1.3.0 */
+    public boolean isPersistent() {
+        return true;
     }
 
     /** Clamps/normalises a value; returns {@code null} to reject it. */
@@ -149,6 +173,48 @@ public abstract class Setting<T> {
 
     public final boolean isAdvanced() {
         return advanced;
+    }
+
+    /**
+     * Starts a new section above this setting: a heading with the label of {@code translationKey} (like a divider
+     * in the settings screen). @since 1.3.0
+     */
+    public Setting<T> section(String translationKey) {
+        this.sectionKey = translationKey;
+        return this;
+    }
+
+    /** Translation key of the section heading above this setting, or null. @since 1.3.0 */
+    public final String sectionKey() {
+        return sectionKey;
+    }
+
+    /**
+     * Shows the setting only while {@code condition} is true, e.g. a colour only while its switch is on. Evaluated
+     * on the client thread every time the settings screen is drawn. @since 1.3.0
+     */
+    public Setting<T> visibleWhen(BooleanSupplier condition) {
+        this.visibleWhen = condition;
+        return this;
+    }
+
+    /** Shows the setting only while {@code parent} is on. @since 1.3.0 */
+    public Setting<T> requires(BooleanSetting parent) {
+        Objects.requireNonNull(parent, "parent");
+        return visibleWhen(parent::enabled);
+    }
+
+    /** Whether the settings screen shows this setting now ({@link #visibleWhen}); a failing condition shows it. @since 1.3.0 */
+    public final boolean isVisible() {
+        BooleanSupplier c = visibleWhen;
+        if (c == null) {
+            return true;
+        }
+        try {
+            return c.getAsBoolean();
+        } catch (RuntimeException e) {
+            return true;
+        }
     }
 
     /** Called after every accepted change with the new value. */

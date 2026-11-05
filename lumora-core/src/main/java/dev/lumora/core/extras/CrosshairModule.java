@@ -51,20 +51,20 @@ public final class CrosshairModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        mode = (ChoiceSetting) s.choice("mode", "shape", MODES).name("lumora.extras.crosshair.mode");
-        style = (ChoiceSetting) s.choice("style", "gap", STYLES).name("lumora.extras.crosshair.style");
-        preset = (ChoiceSetting) s.choice("preset", CrosshairPresets.all().get(0).id(), CrosshairPresets.ids())
+        mode = s.choice("mode", "shape", MODES).name("lumora.extras.crosshair.mode");
+        style = s.choice("style", "gap", STYLES).name("lumora.extras.crosshair.style");
+        preset = s.choice("preset", CrosshairPresets.all().get(0).id(), CrosshairPresets.ids())
                 .name("lumora.extras.crosshair.preset");
-        pixels = (TextSetting) s.text("pixels", CrosshairPresets.encode(CrosshairPresets.get("circle_dot").pixels()),
+        pixels = s.text("pixels", CrosshairPresets.encode(CrosshairPresets.get("circle_dot").pixels()),
                 CrosshairPresets.GRID * 4).name("lumora.extras.crosshair.pixels");
-        size = (IntegerSetting) s.slider("size", 5, 1, 20).name("lumora.extras.crosshair.size");
-        gap = (IntegerSetting) s.slider("gap", 2, 0, 10).name("lumora.extras.crosshair.gap");
-        thickness = (IntegerSetting) s.slider("thickness", 1, 1, 5).name("lumora.extras.crosshair.thickness");
-        scale = (DecimalSetting) s.slider("scale", 1.0, 0.5, 3.0, 0.5).name("lumora.extras.crosshair.scale");
-        color = (ColorSetting) s.color("color", 0xFFFFFFFF, true).name("lumora.extras.crosshair.color");
-        outline = (BooleanSetting) s.toggle("outline", true).name("lumora.extras.crosshair.outline");
-        outlineColor = (ColorSetting) s.color("outline_color", 0xB0000000, true).name("lumora.extras.crosshair.outline_color").advanced();
-        dot = (BooleanSetting) s.toggle("dot", false).name("lumora.extras.crosshair.dot");
+        size = s.slider("size", 5, 1, 20).unit(" px").name("lumora.extras.crosshair.size").section("lumora.extras.crosshair.section.shape");
+        gap = s.slider("gap", 2, 0, 10).unit(" px").name("lumora.extras.crosshair.gap");
+        thickness = s.slider("thickness", 1, 1, 5).unit(" px").name("lumora.extras.crosshair.thickness");
+        scale = s.slider("scale", 1.0, 0.5, 3.0, 0.5).unit("x").name("lumora.extras.crosshair.scale");
+        dot = s.checkbox("dot", false).name("lumora.extras.crosshair.dot");
+        color = s.chroma("color", 0xFFFFFFFF, true).name("lumora.extras.crosshair.color").section("lumora.extras.crosshair.section.colors");
+        outline = s.toggle("outline", true).name("lumora.extras.crosshair.outline");
+        outlineColor = s.color("outline_color", 0xB0000000, true).name("lumora.extras.crosshair.outline_color").requires(outline);
         SettingsView.registerPanel(s, german -> new CrosshairEditor(this, german));
     }
 

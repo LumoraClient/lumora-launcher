@@ -1,11 +1,13 @@
 package dev.lumora.core.hub;
 
 import dev.lumora.api.config.BooleanSetting;
+import dev.lumora.api.config.ButtonSetting;
 import dev.lumora.api.config.ChoiceSetting;
 import dev.lumora.api.config.ColorSetting;
 import dev.lumora.api.config.DecimalSetting;
 import dev.lumora.api.config.IntegerSetting;
 import dev.lumora.api.config.KeybindSetting;
+import dev.lumora.api.config.OptionSetting;
 import dev.lumora.api.config.Setting;
 import dev.lumora.api.config.SettingType;
 import dev.lumora.api.config.SettingsGroup;
@@ -68,6 +70,10 @@ public final class SettingsView implements AddonView {
     private record SectionSwitch(Section section) {
     }
 
+    /** Heading of a section of settings ({@link Setting#section}). */
+    private record SubHeading(String key) {
+    }
+
     /**
      * An editor of its own above the setting rows, e.g. the crosshair editor with preview and presets. A module
      * registers it for its settings group with {@link #registerPanel}; every settings view of that group shows it.
@@ -109,6 +115,11 @@ public final class SettingsView implements AddonView {
 
     /** Sections for the next view created on this thread ({@link HubHost#openSettings} with sections). */
     private static final ThreadLocal<List<Section>> NEXT = ThreadLocal.withInitial(List::of);
+
+    /** Smoke test: the next settings view shows the drop-down list or color picker of the setting {@code key} open. */
+    public static void openPopupInNextView(String key) {
+        nextPopup = key;
+    }
 
     static void nextSections(List<Section> sections) {
         NEXT.set(sections == null ? List.of() : List.copyOf(sections));
@@ -157,6 +168,38 @@ public final class SettingsView implements AddonView {
     private String tooltip;
     private String toast = "";
     private long toastAt;
+    /** Smoke test: the next view opens the drop-down list or color picker of this setting once it is drawn. */
+    private static volatile String nextPopup;
+    private String pendingPopup;
+    // drop-down list and color picker (drawn above everything, they take the clicks while open)
+    private static final int DD_ROW = 14;
+    private static final int DD_MAX_ROWS = 8;
+    private static final int PK_W = 168;
+    private static final int PK_SV_W = 104;
+    private static final int PK_SV_H = 62;
+    private static final int POPUP = 0xFF15131D;
+    private final List<Hit> popupHits = new ArrayList<>();
+    private OptionSetting dropdown;
+    private int ddX;
+    private int ddY;
+    private int ddW;
+    private int ddScroll;
+    private int[] ddBox;
+    private ColorSetting picker;
+    private int pkX;
+    private int pkY;
+    private float pkH;
+    private float pkS;
+    private float pkV;
+    private String pkDrag;
+    private int[] pkBox;
+    private int[] pkSv;
+    private int[] pkHue;
+    private int[] pkAlpha;
+    private int panelLeft;
+    private int panelRight;
+    private int panelTop;
+    private int panelBottom;
 
     /**
      * @param group     settings to show (may be {@code null} if there are only keys)
@@ -185,6 +228,8 @@ public final class SettingsView implements AddonView {
         Translations tr = core.translations();
         String lang = tr == null ? "" : tr.language();
         this.de = lang != null && lang.toLowerCase(Locale.ROOT).startsWith("de");
+        this.pendingPopup = nextPopup;
+        nextPopup = null;
         java.util.function.Function<Boolean, Panel> factory = group == null ? null : PANELS.get(group);
         this.panel = factory == null ? null : factory.apply(de);
     }
@@ -236,12 +281,7 @@ public final class SettingsView implements AddonView {
         String q = search.trim().toLowerCase(Locale.ROOT);
         List<Object> out = new ArrayList<>();
         if (group != null) {
-            for (Setting<?> s : group.all()) {
-                if ((advanced || !s.isAdvanced()) && (panel == null || panel.shows(s))
-                        && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q))) {
-                    out.add(s);
-                }
-            }
+            addSettings(out, group, q, true);
         }
         for (Keybind k : keybinds) {
             if (q.isEmpty() || tr(k.nameKey(), k.id()).toLowerCase(Locale.ROOT).contains(q)) {
@@ -257,11 +297,7 @@ public final class SettingsView implements AddonView {
                 part.add(new SectionSwitch(sec));
             }
             if (sec.group() != null) {
-                for (Setting<?> s : sec.group().all()) {
-                    if ((advanced || !s.isAdvanced()) && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q))) {
-                        part.add(s);
-                    }
-                }
+                addSettings(part, sec.group(), q, false);
             }
             if (!part.isEmpty() || q.isEmpty()) {
                 out.add(new Heading(sec));
@@ -269,6 +305,31 @@ public final class SettingsView implements AddonView {
             }
         }
         return out;
+    }
+
+    /**
+     * The shown settings of a group: advanced only when switched on, hidden while their condition is false
+     * ({@link Setting#visibleWhen}), filtered by the search; a section heading ({@link Setting#section}) before the
+     * first shown setting of each section.
+     */
+    private void addSettings(List<Object> out, SettingsGroup g, String q, boolean own) {
+        String current = null;
+        String printed = null;
+        for (Setting<?> s : g.all()) {
+            if (s.sectionKey() != null) {
+                current = s.sectionKey();
+            }
+            boolean shown = (advanced || !s.isAdvanced()) && s.isVisible() && (!own || panel == null || panel.shows(s))
+                    && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q));
+            if (!shown) {
+                continue;
+            }
+            if (current != null && !current.equals(printed)) {
+                out.add(new SubHeading(current));
+                printed = current;
+            }
+            out.add(s);
+        }
     }
 
     private void toast(String message) {
@@ -357,6 +418,11 @@ public final class SettingsView implements AddonView {
             switchPill(g, left, fy + 1, advanced, false);
             hit(left, fy, bw, 14, () -> advanced = !advanced);
         }
+        panelLeft = px;
+        panelRight = px + pw;
+        panelTop = py;
+        panelBottom = py + ph;
+        drawPopups(g, mx, my);
         g.pop();
         drawTooltip(g, width, height, mx, my);
         drawToast(g, width / 2, py + ph - 30, now);
@@ -511,6 +577,17 @@ public final class SettingsView implements AddonView {
                 y += ((run.size() + cols - 1) / cols) * 18 + 2;
                 continue;
             }
+            if (item instanceof SubHeading sh) {
+                // section of the settings: bold label with a small accent mark, a faint line to the right
+                y += i == 0 ? 0 : 6;
+                String label = HubView.trim(g, "§l" + tr(sh.key(), sh.key()), w - 30);
+                g.roundedRect(x, y + 1, 2, 7, 1, LumoraTheme.accent());
+                g.text(label, x + 6, y, TEXT, false);
+                g.fill(x + 6 + g.textWidth(label) + 6, y + 4, x + w, y + 5, 0x22FFFFFF);
+                y += 14;
+                i++;
+                continue;
+            }
             if (item instanceof Heading h) {
                 // divider: title in the accent, a thin line to the right
                 y += 8;
@@ -568,10 +645,28 @@ public final class SettingsView implements AddonView {
     private void toggle(HudGraphics g, BooleanSetting b, int x, int y, int w, int mx, int my) {
         boolean hover = visible(my) && HubView.in(mx, my, x, y, w, 16);
         boolean on = b.enabled();
+        if (b.type() == SettingType.CHECKBOX) {
+            checkbox(g, x, y + 2, on, hover);
+            g.text(HubView.trim(g, name(b), w - 20), x + 18, y + 4, hover ? 0xFFFFFFFF : TEXT, false);
+            hoverHelp(b.key(), help(b.descriptionKey()), hover);
+            hit(x, y, Math.min(w, 18 + g.textWidth(name(b)) + 6), 16, b::toggle);
+            return;
+        }
         switchPill(g, x, y + 2, on, hover);
         g.text(HubView.trim(g, name(b), w - 48), x + 46, y + 4, hover ? 0xFFFFFFFF : TEXT, false);
         hoverHelp(b.key(), help(b.descriptionKey()), hover);
         hit(x, y, Math.min(w, 46 + g.textWidth(name(b)) + 6), 16, b::toggle);
+    }
+
+    /** 12 x 12 check box: accent with a check mark when on. */
+    private static void checkbox(HudGraphics g, int x, int y, boolean on, boolean hover) {
+        int accent = LumoraTheme.accent();
+        g.roundedRect(x, y, 12, 12, 3, on ? accent : hover ? 0xFF5A5470 : 0xFF3A3450);
+        if (on) {
+            HubGlyphs.draw(g, "check", x + 2, y + 2, 0xFFFFFFFF);
+        } else {
+            g.roundedRect(x + 1, y + 1, 10, 10, 2, hover ? 0xFF2A2638 : HubView.FIELD);
+        }
     }
 
     /** ON / OFF switch: green part on the right when on, red part on the left when off. */
@@ -601,22 +696,34 @@ public final class SettingsView implements AddonView {
         SettingType type = s.type();
         if (type == SettingType.SLIDER && (s instanceof IntegerSetting || s instanceof DecimalSetting)) {
             slider(g, s, cx, right, y, h, mx, my);
-        } else if (s instanceof ChoiceSetting c) {
-            String key = c.optionKey(c.get());
-            String value = tr(key, c.get());
+        } else if (s instanceof ButtonSetting b) {
+            String label = tr(b.labelKey(), name);
+            int bw = Math.min(right - cx, Math.max(70, g.textWidth(label) + 20));
+            int bx = right - bw;
+            boolean bh = visible(my) && HubView.in(mx, my, bx, y + 2, bw, 14);
+            int accent = LumoraTheme.accent();
+            g.card(bx, y + 2, bw, 14, 4, bh ? LumoraTheme.alpha(accent, 0x50) : HubView.FIELD, bh ? accent : 0xFF3A3450);
+            g.centeredText(HubView.trim(g, label, bw - 8), bx + bw / 2 + 1, y + 5, bh ? 0xFFFFFFFF : TEXT, false);
+            hit(bx, y, bw, h, () -> press(b));
+        } else if (s instanceof OptionSetting o && type == SettingType.SELECTION && selection(g, o, cx, right, y, mx, my)) {
+            // drawn as a row of buttons
+        } else if (s instanceof OptionSetting o && type == SettingType.DROPDOWN) {
+            dropdownField(g, o, cx, right, y, h, hover, mx, my);
+        } else if (s instanceof OptionSetting o) {
+            String value = tr(o.optionKey(o.selectedId()), o.selectedId());
             int pw = Math.min(right - cx, Math.max(70, g.textWidth(value) + 30));
             int px = right - pw;
             g.card(px, y + 2, pw, 14, 4, HubView.FIELD, hover ? LumoraTheme.accent() : 0xFF3A3450);
             g.centeredText(HubView.trim(g, value, pw - 24), px + pw / 2, y + 5, TEXT, false);
             g.text("‹", px + 5, y + 5, LumoraTheme.accentHover(), false);
             g.rightText("›", px + pw - 5, y + 5, LumoraTheme.accentHover(), false);
-            hit(px, y, pw / 2, h, () -> c.cycle(-1));
-            hit(px + pw / 2, y, pw - pw / 2, h, () -> c.cycle(1));
+            hit(px, y, pw / 2, h, () -> o.cycle(-1));
+            hit(px + pw / 2, y, pw - pw / 2, h, () -> o.cycle(1));
         } else if (s instanceof IntegerSetting i) {
-            stepper(g, right, y, Integer.toString(i.get()), mx, my, () -> i.set(i.get() - 1), () -> i.set(i.get() + 1));
+            stepper(g, right, y, i.get() + i.unit(), mx, my, () -> i.set(i.get() - i.step()), () -> i.set(i.get() + i.step()));
         } else if (s instanceof DecimalSetting d) {
             double step = d.step() > 0 ? d.step() : (d.max() - d.min()) / 20;
-            stepper(g, right, y, format(d.get()), mx, my, () -> d.set(d.get() - step), () -> d.set(d.get() + step));
+            stepper(g, right, y, format(d.get()) + d.unit(), mx, my, () -> d.set(d.get() - step), () -> d.set(d.get() + step));
         } else if (s instanceof TextSetting t) {
             String id = "text:" + s.key();
             boolean focused = id.equals(focus);
@@ -639,8 +746,8 @@ public final class SettingsView implements AddonView {
 
     private void slider(HudGraphics g, Setting<?> s, int x, int right, int y, int h, int mx, int my) {
         double f = fraction(s);
-        String value = s instanceof IntegerSetting i ? Integer.toString(i.get()) : format(((DecimalSetting) s).get());
-        int vw = 34;
+        String value = s instanceof IntegerSetting i ? i.get() + i.unit() : format(((DecimalSetting) s).get()) + ((DecimalSetting) s).unit();
+        int vw = Math.max(34, g.textWidth(value) + 6);
         g.rightText(value, x + vw - 4, y + 5, MUTED, false);
         int tx = x + vw + 4;
         int tw = right - 6 - tx;
@@ -721,18 +828,21 @@ public final class SettingsView implements AddonView {
         g.fill(sx + 1, y + 3, sx + 13, y + 15, 0xFF8A8499);
         g.fill(sx + 1, y + 3, sx + 7, y + 9, 0xFFC9C4D6);
         g.fill(sx + 7, y + 9, sx + 13, y + 15, 0xFFC9C4D6);
-        g.fill(sx + 1, y + 3, sx + 13, y + 15, c.get());
-        hit(sx, y, 14, h, () -> {
-            int current = c.get() & 0xFFFFFF;
-            int next = PALETTE[0];
-            for (int i = 0; i < PALETTE.length; i++) {
-                if ((PALETTE[i] & 0xFFFFFF) == current) {
-                    next = PALETTE[(i + 1) % PALETTE.length];
-                    break;
-                }
+        g.fill(sx + 1, y + 3, sx + 13, y + 15, c.argb());
+        if (c.isChroma()) {
+            // rainbow mark: a thin hue strip at the bottom of the swatch
+            for (int i = 0; i < 12; i++) {
+                g.fill(sx + 1 + i, y + 13, sx + 2 + i, y + 15, hsvToRgb(i / 12f, 1f, 1f));
             }
-            c.set(c.hasAlpha() ? (c.get() & 0xFF000000) | (next & 0xFFFFFF) : next);
-        });
+        }
+        if (swHover) {
+            tooltip = t("Farbwähler öffnen", "Open the color picker");
+        }
+        hit(sx, y, 14, h, () -> openPicker(c, sx, y + 18));
+        if (c.key().equals(pendingPopup)) {
+            pendingPopup = null;
+            openPicker(c, sx, y + 18);
+        }
     }
 
     private static String hex(ColorSetting c) {
@@ -766,6 +876,373 @@ public final class SettingsView implements AddonView {
             captureId = id;
             capture = setter;
         });
+    }
+
+    // ------------------------------------------------------------------ buttons, button rows, drop-downs, color picker
+
+    private void press(ButtonSetting b) {
+        try {
+            b.press();
+        } catch (RuntimeException | LinkageError e) {
+            toast(t("Fehler: ", "Error: ") + e.getMessage());
+        }
+    }
+
+    /** The options as a row of buttons (right-aligned); false and nothing drawn if they do not fit. */
+    private boolean selection(HudGraphics g, OptionSetting o, int left, int right, int y, int mx, int my) {
+        List<String> ids = o.optionIds();
+        int[] widths = new int[ids.size()];
+        int total = 0;
+        for (int i = 0; i < ids.size(); i++) {
+            widths[i] = g.textWidth(tr(o.optionKey(ids.get(i)), ids.get(i))) + 12;
+            total += widths[i] + (i > 0 ? 2 : 0);
+        }
+        if (total > right - left) {
+            return false;
+        }
+        int x = right - total;
+        int accent = LumoraTheme.accent();
+        String selected = o.selectedId();
+        for (int i = 0; i < ids.size(); i++) {
+            String id = ids.get(i);
+            boolean on = id.equals(selected);
+            boolean hover = visible(my) && HubView.in(mx, my, x, y + 2, widths[i], 14);
+            g.roundedRect(x, y + 2, widths[i], 14, 4, on ? accent : hover ? 0xFF3C3752 : 0xFF2E2A3E);
+            g.centeredText(tr(o.optionKey(id), id), x + widths[i] / 2 + 1, y + 5, on || hover ? 0xFFFFFFFF : 0xFFD6D0E2, false);
+            hit(x, y, widths[i], 18, () -> o.select(id));
+            x += widths[i] + 2;
+        }
+        return true;
+    }
+
+    /** Field with the selected option and ▾; a click opens the list below it. */
+    private void dropdownField(HudGraphics g, OptionSetting o, int left, int right, int y, int h, boolean hover, int mx, int my) {
+        int widest = 0;
+        for (String id : o.optionIds()) {
+            widest = Math.max(widest, g.textWidth(tr(o.optionKey(id), id)));
+        }
+        int fw = Math.min(right - left, Math.max(90, widest + 26));
+        int fx = right - fw;
+        boolean open = dropdown == o;
+        g.card(fx, y + 2, fw, 14, 4, HubView.FIELD, open || hover ? LumoraTheme.accent() : 0xFF3A3450);
+        String value = tr(o.optionKey(o.selectedId()), o.selectedId());
+        g.text(HubView.trim(g, value, fw - 20), fx + 6, y + 5, TEXT, false);
+        g.rightText(open ? "▴" : "▾", fx + fw - 5, y + 5, LumoraTheme.accentHover(), false);
+        hit(fx, y, fw, h, () -> openDropdown(o, fx, y, fw));
+        if (o instanceof Setting<?> s && s.key().equals(pendingPopup)) {
+            pendingPopup = null;
+            openDropdown(o, fx, y, fw);
+        }
+    }
+
+    private void openDropdown(OptionSetting o, int fx, int y, int fw) {
+        closePopups();
+        dropdown = o;
+        ddX = fx;
+        ddY = y + 17;
+        ddW = fw;
+        ddScroll = Math.max(0, o.optionIds().indexOf(o.selectedId()) - DD_MAX_ROWS + 1);
+    }
+
+    private boolean closeAll() {
+        closePopups();
+        return true;
+    }
+
+    private void closePopups() {
+        dropdown = null;
+        picker = null;
+        pkDrag = null;
+    }
+
+    private void drawPopups(HudGraphics g, int mx, int my) {
+        popupHits.clear();
+        if (dropdown != null) {
+            drawDropdown(g, mx, my);
+        }
+        if (picker != null) {
+            drawPicker(g, mx, my);
+        }
+    }
+
+    private void drawDropdown(HudGraphics g, int mx, int my) {
+        OptionSetting o = dropdown;
+        List<String> ids = o.optionIds();
+        int rows = Math.min(ids.size(), DD_MAX_ROWS);
+        int h = rows * DD_ROW + 4;
+        int y0 = ddY;
+        if (y0 + h > panelBottom && ddY - 19 - h >= panelTop) {
+            y0 = ddY - 19 - h; // no room below: above the field
+        }
+        ddBox = new int[]{ddX, y0, ddW, h};
+        ddScroll = Math.max(0, Math.min(ids.size() - rows, ddScroll));
+        int accent = LumoraTheme.accent();
+        g.roundedRect(ddX - 1, y0 - 1, ddW + 2, h + 2, 5, accent);
+        g.roundedRect(ddX, y0, ddW, h, 4, POPUP);
+        String selected = o.selectedId();
+        for (int r = 0; r < rows; r++) {
+            String id = ids.get(r + ddScroll);
+            int ry = y0 + 2 + r * DD_ROW;
+            boolean hover = HubView.in(mx, my, ddX, ry, ddW, DD_ROW);
+            if (id.equals(selected)) {
+                g.roundedRect(ddX + 2, ry, ddW - 4, DD_ROW, 3, LumoraTheme.alpha(accent, 0x70));
+            } else if (hover) {
+                g.roundedRect(ddX + 2, ry, ddW - 4, DD_ROW, 3, 0x22FFFFFF);
+            }
+            g.text(HubView.trim(g, tr(o.optionKey(id), id), ddW - 14), ddX + 6, ry + 3, TEXT, false);
+            popupHits.add(new Hit(ddX, ry, ddX + ddW, ry + DD_ROW, () -> {
+                o.select(id);
+                closePopups();
+            }));
+        }
+        if (ids.size() > rows) {
+            int track = h - 4;
+            int bar = Math.max(8, track * rows / ids.size());
+            int by = y0 + 2 + (track - bar) * ddScroll / Math.max(1, ids.size() - rows);
+            g.roundedRect(ddX + ddW - 4, by, 2, bar, 1, LumoraTheme.alpha(accent, 0xC0));
+        }
+    }
+
+    private void openPicker(ColorSetting c, int x, int y) {
+        closePopups();
+        picker = c;
+        pkX = x;
+        pkY = y;
+        float[] hsv = rgbToHsv(c.get());
+        pkH = hsv[0];
+        pkS = hsv[1];
+        pkV = hsv[2];
+    }
+
+    private int pickerHeight(ColorSetting c) {
+        int h = 6 + PK_SV_H + 6;
+        if (c.hasAlpha()) {
+            h += 12;
+        }
+        h += 14;
+        if (c.chromaAllowed()) {
+            h += 18;
+        }
+        return h + 2;
+    }
+
+    /**
+     * Color picker: saturation/brightness square, hue bar, preview, alpha bar (colors with alpha), palette and, where
+     * offered, the rainbow with its speed. Dragging in the square or the bars changes the color live.
+     */
+    private void drawPicker(HudGraphics g, int mx, int my) {
+        ColorSetting c = picker;
+        int w = PK_W;
+        int h = pickerHeight(c);
+        int x = Math.max(panelLeft + 4, Math.min(pkX - w + 14, panelRight - w - 4));
+        int y = pkY;
+        if (y + h > panelBottom && pkY - 22 - h >= panelTop) {
+            y = pkY - 22 - h;
+        }
+        pkBox = new int[]{x, y, w, h};
+        int accent = LumoraTheme.accent();
+        g.roundedRect(x - 1, y - 1, w + 2, h + 2, 6, accent);
+        g.roundedRect(x, y, w, h, 5, POPUP);
+        int sx = x + 6;
+        int sy = y + 6;
+        int sw = PK_SV_W;
+        int sh = PK_SV_H;
+        pkSv = new int[]{sx, sy, sw, sh};
+        for (int cy = 0; cy < sh; cy += 4) {
+            for (int cx = 0; cx < sw; cx += 4) {
+                float s = (cx + 2f) / sw;
+                float v = 1f - (cy + 2f) / sh;
+                g.fill(sx + cx, sy + cy, sx + Math.min(sw, cx + 4), sy + Math.min(sh, cy + 4), hsvToRgb(pkH, s, v));
+            }
+        }
+        int kx = sx + Math.round(pkS * (sw - 1));
+        int ky = sy + Math.round((1f - pkV) * (sh - 1));
+        g.outline(kx - 3, ky - 3, 7, 7, 0xFF000000);
+        g.outline(kx - 2, ky - 2, 5, 5, 0xFFFFFFFF);
+        int hx = sx + sw + 6;
+        pkHue = new int[]{hx, sy, 10, sh};
+        for (int cy = 0; cy < sh; cy += 2) {
+            g.fill(hx, sy + cy, hx + 10, sy + Math.min(sh, cy + 2), hsvToRgb(cy / (float) sh, 1f, 1f));
+        }
+        int hy = sy + Math.round(pkH * (sh - 1));
+        g.fill(hx - 2, hy - 1, hx + 12, hy + 2, 0xFF000000);
+        g.fill(hx - 1, hy, hx + 11, hy + 1, 0xFFFFFFFF);
+        // preview of what is drawn now (with the rainbow)
+        int px = hx + 16;
+        int pw = x + w - 6 - px;
+        // (the hex value stays in the row below the picker)
+        checker(g, px, sy, pw, sh);
+        g.fill(px, sy, px + pw, sy + sh, c.argb());
+        g.outline(px, sy, pw, sh, 0xFF4A4458);
+        int ny = sy + sh + 6;
+        pkAlpha = null;
+        if (c.hasAlpha()) {
+            int aw = w - 12;
+            pkAlpha = new int[]{sx, ny, aw, 8};
+            checker(g, sx, ny, aw, 8);
+            int rgb = c.get() & 0xFFFFFF;
+            for (int i = 0; i < aw; i += 2) {
+                g.fill(sx + i, ny, sx + Math.min(aw, i + 2), ny + 8, (Math.round(255f * i / (aw - 1)) << 24) | rgb);
+            }
+            int ax = sx + Math.round(((c.get() >>> 24) / 255f) * (aw - 1));
+            g.fill(ax - 1, ny - 2, ax + 2, ny + 10, 0xFF000000);
+            g.fill(ax, ny - 1, ax + 1, ny + 9, 0xFFFFFFFF);
+            ny += 12;
+        }
+        // palette
+        for (int i = 0; i < PALETTE.length; i++) {
+            int bx = sx + i * 13;
+            int col = PALETTE[i];
+            boolean hover = HubView.in(mx, my, bx, ny, 11, 11);
+            g.roundedRect(bx, ny, 11, 11, 3, hover ? 0xFFFFFFFF : 0xFF4A4458);
+            g.fill(bx + 1, ny + 1, bx + 10, ny + 10, col);
+            popupHits.add(new Hit(bx, ny, bx + 11, ny + 11, () -> {
+                c.set(c.hasAlpha() ? (c.get() & 0xFF000000) | (col & 0xFFFFFF) : col);
+                float[] hsv = rgbToHsv(c.get());
+                pkH = hsv[0];
+                pkS = hsv[1];
+                pkV = hsv[2];
+            }));
+        }
+        ny += 14;
+        if (c.chromaAllowed()) {
+            boolean hover = HubView.in(mx, my, sx, ny, 70, 14);
+            checkbox(g, sx, ny + 1, c.isChroma(), hover);
+            g.text(t("Regenbogen", "Rainbow"), sx + 16, ny + 3, c.isChroma() ? TEXT : MUTED, false);
+            popupHits.add(new Hit(sx, ny, sx + 16 + g.textWidth(t("Regenbogen", "Rainbow")), ny + 14,
+                    () -> c.setChroma(!c.isChroma())));
+            // speed: − n +
+            int rx = x + w - 6;
+            String speed = Integer.toString(c.chromaSpeed());
+            int vw = 16;
+            int plus = rx - 12;
+            int minus = plus - vw - 14;
+            popupButton(g, minus, ny + 1, "−", mx, my, () -> c.setChromaSpeed(c.chromaSpeed() - 1));
+            g.centeredText(speed, minus + 12 + vw / 2 + 1, ny + 3, c.isChroma() ? TEXT : DIM, false);
+            popupButton(g, plus, ny + 1, "+", mx, my, () -> c.setChromaSpeed(c.chromaSpeed() + 1));
+            g.rightText(t("Tempo", "Speed"), minus - 4, ny + 3, DIM, false);
+        }
+    }
+
+    private void popupButton(HudGraphics g, int x, int y, String label, int mx, int my, Runnable action) {
+        boolean hover = HubView.in(mx, my, x, y, 12, 12);
+        g.roundedRect(x, y, 12, 12, 3, hover ? LumoraTheme.accent() : 0xFF2E2A3E);
+        g.centeredText(label, x + 6 + 1, y + 2, TEXT, false);
+        popupHits.add(new Hit(x, y, x + 12, y + 12, action));
+    }
+
+    private static void checker(HudGraphics g, int x, int y, int w, int h) {
+        g.fill(x, y, x + w, y + h, 0xFF8A8499);
+        for (int cy = 0; cy < h; cy += 4) {
+            for (int cx = (cy / 4) % 2 * 4; cx < w; cx += 8) {
+                g.fill(x + cx, y + cy, x + Math.min(w, cx + 4), y + Math.min(h, cy + 4), 0xFFC9C4D6);
+            }
+        }
+    }
+
+    /** Applies a drag in the color picker ("sv", "hue" or "alpha") at the mouse position. */
+    private void dragPicker(double mx, double my) {
+        ColorSetting c = picker;
+        if (c == null || pkDrag == null) {
+            return;
+        }
+        int alpha = c.get() >>> 24;
+        switch (pkDrag) {
+            case "sv" -> {
+                pkS = clamp01((float) ((mx - pkSv[0]) / Math.max(1, pkSv[2] - 1)));
+                pkV = 1f - clamp01((float) ((my - pkSv[1]) / Math.max(1, pkSv[3] - 1)));
+            }
+            case "hue" -> pkH = Math.min(0.999f, clamp01((float) ((my - pkHue[1]) / Math.max(1, pkHue[3] - 1))));
+            case "alpha" -> alpha = Math.round(255 * clamp01((float) ((mx - pkAlpha[0]) / Math.max(1, pkAlpha[2] - 1))));
+            default -> {
+                return;
+            }
+        }
+        int rgb = hsvToRgb(pkH, pkS, pkV) & 0xFFFFFF;
+        c.set(c.hasAlpha() ? (alpha << 24) | rgb : 0xFF000000 | rgb);
+    }
+
+    private static boolean inBox(int[] box, double x, double y) {
+        return box != null && x >= box[0] && x < box[0] + box[2] && y >= box[1] && y < box[1] + box[3];
+    }
+
+    /** Mouse press while a drop-down or the color picker is open; the click never reaches the rows below. */
+    private boolean popupClick(double x, double y) {
+        if (picker != null) {
+            if (inBox(pkSv, x, y)) {
+                pkDrag = "sv";
+            } else if (inBox(pkHue, x, y)) {
+                pkDrag = "hue";
+            } else if (inBox(pkAlpha, x, y)) {
+                pkDrag = "alpha";
+            }
+            if (pkDrag != null) {
+                dragPicker(x, y);
+                return true;
+            }
+        }
+        for (int i = popupHits.size() - 1; i >= 0; i--) {
+            if (popupHits.get(i).contains(x, y)) {
+                popupHits.get(i).action().run();
+                return true;
+            }
+        }
+        if ((picker != null && inBox(pkBox, x, y)) || (dropdown != null && inBox(ddBox, x, y))) {
+            return true;
+        }
+        closePopups();
+        return true;
+    }
+
+    private static float clamp01(float v) {
+        return Math.max(0f, Math.min(1f, v));
+    }
+
+    /** Color of hue, saturation and value (each 0..1), opaque. */
+    static int hsvToRgb(float h, float s, float v) {
+        float hh = ((h % 1f) + 1f) % 1f * 6f;
+        int i = (int) Math.floor(hh);
+        float f = hh - i;
+        float p = v * (1 - s);
+        float q = v * (1 - s * f);
+        float t = v * (1 - s * (1 - f));
+        float r;
+        float g;
+        float b;
+        switch (i % 6) {
+            case 0 -> { r = v; g = t; b = p; }
+            case 1 -> { r = q; g = v; b = p; }
+            case 2 -> { r = p; g = v; b = t; }
+            case 3 -> { r = p; g = q; b = v; }
+            case 4 -> { r = t; g = p; b = v; }
+            default -> { r = v; g = p; b = q; }
+        }
+        return 0xFF000000 | Math.round(r * 255) << 16 | Math.round(g * 255) << 8 | Math.round(b * 255);
+    }
+
+    /** Hue, saturation and value (each 0..1) of a color. */
+    static float[] rgbToHsv(int argb) {
+        float r = (argb >> 16 & 0xFF) / 255f;
+        float g = (argb >> 8 & 0xFF) / 255f;
+        float b = (argb & 0xFF) / 255f;
+        float max = Math.max(r, Math.max(g, b));
+        float min = Math.min(r, Math.min(g, b));
+        float d = max - min;
+        float h = 0;
+        if (d > 0) {
+            if (max == r) {
+                h = ((g - b) / d) % 6f;
+            } else if (max == g) {
+                h = (b - r) / d + 2f;
+            } else {
+                h = (r - g) / d + 4f;
+            }
+            h /= 6f;
+            if (h < 0) {
+                h += 1f;
+            }
+        }
+        return new float[]{h, max == 0 ? 0 : d / max, max};
     }
 
     private void drawTooltip(HudGraphics g, int width, int height, int mx, int my) {
@@ -879,6 +1356,10 @@ public final class SettingsView implements AddonView {
             capture = null;
             captureId = null;
         }
+        if (dropdown != null || picker != null) {
+            commit();
+            return button != 0 ? closeAll() : popupClick(x, y);
+        }
         if (panel != null && search.isBlank() && visible((int) y) && panel.mouseClicked(x, y, button)) {
             commit();
             panelDrag = true;
@@ -908,6 +1389,10 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean mouseDragged(double x, double y, int button) {
+        if (pkDrag != null) {
+            dragPicker(x, y);
+            return true;
+        }
         if (panelDrag) {
             panel.mouseDragged(x, y, button);
             return true;
@@ -921,6 +1406,10 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean mouseReleased(double x, double y, int button) {
+        if (pkDrag != null) {
+            pkDrag = null;
+            return true;
+        }
         boolean was = dragging != null || panelDrag;
         if (panelDrag) {
             panelDrag = false;
@@ -932,6 +1421,11 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean mouseScrolled(double x, double y, double delta) {
+        if (dropdown != null && inBox(ddBox, x, y)) {
+            ddScroll -= (int) Math.signum(delta);
+            return true;
+        }
+        closePopups();
         scrollTarget = (float) Math.max(0, Math.min(maxScroll, scrollTarget - delta * 24));
         return true;
     }
@@ -992,6 +1486,10 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean closeRequested() {
+        if (dropdown != null || picker != null) {
+            closePopups();
+            return false;
+        }
         if (capture != null) {
             capture = null;
             captureId = null;

@@ -88,26 +88,27 @@ public final class AttackIndicatorModule implements LumoraAddon {
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
         String k = "lumora.extras.attackindicator.";
-        style = (ChoiceSetting) s.choice("style", "ring", STYLES).name(k + "style");
-        position = (ChoiceSetting) s.choice("position", "crosshair", POSITIONS).name(k + "position");
-        size = (IntegerSetting) s.slider("size", 100, 50, 200).name(k + "size");
-        color = (ColorSetting) s.color("color", 0xFFFFFFFF, true).name(k + "color");
-        readyColor = (ColorSetting) s.color("ready_color", 0xFF4ADE80, true).name(k + "ready_color");
-        cooldownColor = (ColorSetting) s.color("cooldown_color", 0xFFA78BFA, true).name(k + "cooldown_color");
-        hideWhenReady = (BooleanSetting) s.toggle("hide_when_ready", true).name(k + "hide_when_ready");
-        showOnTarget = (BooleanSetting) s.toggle("show_on_target", true).name(k + "show_on_target");
-        pulse = (BooleanSetting) s.toggle("pulse", true).name(k + "pulse");
-        gradient = (BooleanSetting) s.toggle("gradient", false).name(k + "gradient");
-        text = (BooleanSetting) s.toggle("text", false).name(k + "text");
-        cooldowns = (BooleanSetting) s.toggle("cooldowns", true).name(k + "cooldowns");
-        charging = (BooleanSetting) s.toggle("charging", true).name(k + "charging");
-        using = (BooleanSetting) s.toggle("using", true).name(k + "using");
-        breaking = (BooleanSetting) s.toggle("breaking", true).name(k + "breaking");
-        sleeping = (BooleanSetting) s.toggle("sleeping", true).name(k + "sleeping");
-        soundReady = (BooleanSetting) s.toggle("sound_ready", false).name(k + "sound_ready");
-        soundCooldown = (BooleanSetting) s.toggle("sound_cooldown", true).name(k + "sound_cooldown");
-        volume = (IntegerSetting) s.slider("volume", 60, 0, 100).name(k + "volume");
-        background = (ColorSetting) s.color("background", 0x70000000, true).name(k + "background").advanced();
+        style = s.selection("style", "ring", STYLES).name(k + "style").section(k + "section.look");
+        position = s.dropdown("position", "crosshair", POSITIONS).name(k + "position");
+        size = s.slider("size", 100, 50, 200).step(5).unit("%").name(k + "size");
+        color = s.chroma("color", 0xFFFFFFFF, true).name(k + "color").section(k + "section.colors");
+        readyColor = s.chroma("ready_color", 0xFF4ADE80, true).name(k + "ready_color");
+        cooldownColor = s.chroma("cooldown_color", 0xFFA78BFA, true).name(k + "cooldown_color");
+        background = s.color("background", 0x70000000, true).name(k + "background").advanced();
+        gradient = s.checkbox("gradient", false).name(k + "gradient");
+        hideWhenReady = s.toggle("hide_when_ready", true).name(k + "hide_when_ready").section(k + "section.behaviour");
+        showOnTarget = s.toggle("show_on_target", true).name(k + "show_on_target").requires(hideWhenReady);
+        pulse = s.toggle("pulse", true).name(k + "pulse");
+        text = s.toggle("text", false).name(k + "text");
+        cooldowns = s.checkbox("cooldowns", true).name(k + "cooldowns").section(k + "section.show");
+        charging = s.checkbox("charging", true).name(k + "charging");
+        using = s.checkbox("using", true).name(k + "using");
+        breaking = s.checkbox("breaking", true).name(k + "breaking");
+        sleeping = s.checkbox("sleeping", true).name(k + "sleeping");
+        soundReady = s.toggle("sound_ready", false).name(k + "sound_ready").section(k + "section.sounds");
+        soundCooldown = s.toggle("sound_cooldown", true).name(k + "sound_cooldown").requires(cooldowns);
+        volume = s.slider("volume", 60, 0, 100).step(5).unit("%").name(k + "volume")
+                .visibleWhen(() -> soundReady.get() || (soundCooldown.get() && cooldowns.get()));
     }
 
     @Override

@@ -11,6 +11,7 @@ public final class DecimalSetting extends Setting<Double> {
     private final double max;
     private final double step;
     private final boolean slider;
+    private String unit = "";
 
     public DecimalSetting(String key, double defaultValue, double min, double max, double step, boolean slider) {
         super(key, defaultValue);
@@ -48,6 +49,16 @@ public final class DecimalSetting extends Setting<Double> {
         return (float) (double) get();
     }
 
+    /** Unit shown after the value, e.g. "×", "s" or " Blöcke". @since 1.3.0 */
+    public DecimalSetting unit(String unit) {
+        this.unit = unit == null ? "" : unit;
+        return this;
+    }
+
+    public String unit() {
+        return unit;
+    }
+
     @Override
     protected Double sanitize(Double value) {
         double v = value;
@@ -74,5 +85,49 @@ public final class DecimalSetting extends Setting<Double> {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    // ---- covariant setters (the concrete type, so no casts are needed)
+
+    @Override
+    public DecimalSetting name(String translationKey) {
+        super.name(translationKey);
+        return this;
+    }
+
+    @Override
+    public DecimalSetting description(String translationKey) {
+        super.description(translationKey);
+        return this;
+    }
+
+    @Override
+    public DecimalSetting advanced() {
+        super.advanced();
+        return this;
+    }
+
+    @Override
+    public DecimalSetting section(String translationKey) {
+        super.section(translationKey);
+        return this;
+    }
+
+    @Override
+    public DecimalSetting visibleWhen(java.util.function.BooleanSupplier condition) {
+        super.visibleWhen(condition);
+        return this;
+    }
+
+    @Override
+    public DecimalSetting requires(BooleanSetting parent) {
+        super.requires(parent);
+        return this;
+    }
+
+    @Override
+    public DecimalSetting bind(java.util.function.Supplier<Double> getter, java.util.function.Consumer<Double> setter) {
+        super.bind(getter, setter);
+        return this;
     }
 }

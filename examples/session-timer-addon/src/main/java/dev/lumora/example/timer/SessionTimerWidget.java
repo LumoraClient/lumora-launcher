@@ -45,10 +45,11 @@ public final class SessionTimerWidget extends HudWidget {
 
     @Override
     public void configure(SettingsGroup settings) {
-        label = settings.text("label", "Session", 24);
-        format = settings.choice("format", "hms", "hms", "hm", "minutes");
-        background = settings.toggle("background", true);
-        color = settings.color("color", Colors.ACCENT_HOVER, false);
+        // Lumora API 1.3: sections, a row of buttons, a check box and a color with the rainbow option
+        label = settings.text("label", "Session", 24).section("session-timer.widget.timer.section.text");
+        format = settings.selection("format", "hms", "hms", "hm", "minutes");
+        background = settings.checkbox("background", true).section("session-timer.widget.timer.section.look");
+        color = settings.chroma("color", Colors.ACCENT_HOVER, false);
     }
 
     void start() {

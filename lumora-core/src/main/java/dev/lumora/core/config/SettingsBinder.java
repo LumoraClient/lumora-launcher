@@ -38,6 +38,9 @@ public final class SettingsBinder {
     }
 
     private void attach(Setting<?> s) {
+        if (!s.isPersistent()) {
+            return; // buttons: nothing to store
+        }
         apply(s);
         registrations.add(s.onChange(v -> {
             if (applying) {
@@ -51,7 +54,7 @@ public final class SettingsBinder {
     }
 
     private void apply(Setting<?> s) {
-        if (s.isBound()) {
+        if (s.isBound() || !s.isPersistent()) {
             return;
         }
         applying = true;

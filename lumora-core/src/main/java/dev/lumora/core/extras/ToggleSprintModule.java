@@ -53,8 +53,8 @@ public final class ToggleSprintModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        sprint = (BooleanSetting) s.toggle("sprint", true).name("lumora.extras.togglesprint.sprint");
-        sneak = (BooleanSetting) s.toggle("sneak", false).name("lumora.extras.togglesprint.sneak");
+        sprint = s.toggle("sprint", true).name("lumora.extras.togglesprint.sprint");
+        sneak = s.toggle("sneak", false).name("lumora.extras.togglesprint.sneak");
     }
 
     @Override

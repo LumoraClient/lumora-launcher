@@ -38,14 +38,15 @@ public final class ConnectionModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        screens = (BooleanSetting) s.toggle("screens", true).name("lumora.extras.connection.screens");
-        autoReconnect = (BooleanSetting) s.toggle("auto_reconnect", false).name("lumora.extras.connection.auto_reconnect");
-        reconnectDelay = (IntegerSetting) s.slider("reconnect_delay", 5, 1, 30).name("lumora.extras.connection.reconnect_delay");
-        reconnectAttempts = (IntegerSetting) s.slider("reconnect_attempts", 3, 1, 10).name("lumora.extras.connection.reconnect_attempts");
-        timeout = (IntegerSetting) s.slider("timeout", 30, 10, 120).name("lumora.extras.connection.timeout").advanced();
-        hideAddress = (BooleanSetting) s.toggle("hide_address", false).name("lumora.extras.connection.hide_address");
-        pingPreview = (BooleanSetting) s.toggle("ping_preview", true).name("lumora.extras.connection.ping_preview");
-        worldScreen = (BooleanSetting) s.toggle("world_screen", true).name("lumora.extras.connection.world_screen");
+        String k = "lumora.extras.connection.";
+        screens = s.toggle("screens", true).name(k + "screens").section(k + "section.screens");
+        worldScreen = s.toggle("world_screen", true).name(k + "world_screen");
+        hideAddress = s.checkbox("hide_address", false).name(k + "hide_address").requires(screens);
+        pingPreview = s.checkbox("ping_preview", true).name(k + "ping_preview").requires(screens);
+        autoReconnect = s.toggle("auto_reconnect", false).name(k + "auto_reconnect").section(k + "section.reconnect");
+        reconnectDelay = s.slider("reconnect_delay", 5, 1, 30).unit(" s").name(k + "reconnect_delay").requires(autoReconnect);
+        reconnectAttempts = s.slider("reconnect_attempts", 3, 1, 10).unit("x").name(k + "reconnect_attempts").requires(autoReconnect);
+        timeout = s.slider("timeout", 30, 10, 120).step(5).unit(" s").name(k + "timeout").advanced();
     }
 
     @Override

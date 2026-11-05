@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public final class HubView implements AddonView {
     /** What the main area shows. */
-    public enum Page { MODULES, THEMES, PROFILES, SYSTEM, ZOOM }
+    public enum Page { MODULES, THEMES, PROFILES, SYSTEM }
 
     static final int TEXT = 0xFFECE8F4;
     static final int MUTED = 0xFF9D95AE;
@@ -84,7 +84,7 @@ public final class HubView implements AddonView {
     /** Addons switched with the theme (Lumora's server and world lists, connection screens, button design). */
     static final List<String> THEME_ADDONS = List.of("lumora-browser", "lumora-connection", "lumora-buttons");
     private static final int[] DURATIONS = {150, 220, 350, 500};
-    private static final double[] ZOOM_FACTORS = {2, 3, 4, 6, 8, 10};
+    private static final String[] ZOOM_FACTORS = {"2", "3", "4", "6", "8", "10"};
     private static final String[] SWING = {"vanilla", "smooth", "spin", "slap"};
 
     private static Page page = Page.MODULES;
@@ -146,11 +146,10 @@ public final class HubView implements AddonView {
         this.de = lang != null && lang.toLowerCase(Locale.ROOT).startsWith("de");
     }
 
-    /** Hub opened on a page (smoke test): 0 modules, 1 themes, 2 zoom, 3 profiles, 4 system. */
+    /** Hub opened on a page (smoke test): 0 modules, 1 themes, 3 profiles, 4 system (2: modules, zoom is a settings page now). */
     public static void select(int index) {
         page = switch (index) {
             case 1 -> Page.THEMES;
-            case 2 -> Page.ZOOM;
             case 3 -> Page.PROFILES;
             case 4 -> Page.SYSTEM;
             default -> Page.MODULES;
@@ -195,7 +194,9 @@ public final class HubView implements AddonView {
         if (host.has("zoomEnabled")) {
             out.add(new Card("zoom", "Zoom", t("Heranzoomen mit Taste ", "Zoom in with key ") + host.zoomKey()
                     + t(", Faktor, Modus, Kinokamera", ", factor, mode, cinematic camera"), WidgetCategory.PLAYER, "zoom",
-                    bool("zoomEnabled"), null, () -> host.set("zoomEnabled", !bool("zoomEnabled")), () -> open(Page.ZOOM),
+                    bool("zoomEnabled"), null, () -> host.set("zoomEnabled", !bool("zoomEnabled")), () -> host.openSettings("Zoom",
+                    t("Taste: ", "Key: ") + host.zoomKey() + t(" · änderbar unter Optionen › Steuerung", " · change it in Options › Controls"),
+                    zoomSettings(), List.of(), null, false),
                     null, null));
         }
         List<String> addonNames = new ArrayList<>();
@@ -572,15 +573,8 @@ public final class HubView implements AddonView {
             case THEMES -> "Themes";
             case PROFILES -> t("Profile", "Profiles");
             case SYSTEM -> "System";
-            case ZOOM -> "Zoom";
         };
         int titleX = left;
-        if (page == Page.ZOOM) {
-            boolean hover = in(mx, my, left - 2, ty - 2, 14, titleH + 4);
-            HubGlyphs.draw(g, "back", left, ty + (titleH - HubGlyphs.SIZE) / 2, hover ? TEXT : MUTED);
-            hit(left - 2, ty - 2, 14, titleH + 4, () -> open(Page.MODULES));
-            titleX += 16;
-        }
         g.push();
         g.translate(titleX, ty);
         g.scale(titleScale);
@@ -619,7 +613,6 @@ public final class HubView implements AddonView {
             case THEMES -> themes(g, left, top, right - left, mx, my);
             case PROFILES -> profiles(g, left, top, right - left, mx, my);
             case SYSTEM -> system(g, left, top, right - left, mx, my);
-            case ZOOM -> zoom(g, left, top, right - left, mx, my);
         };
         clipHits = false;
         g.disableScissor();
@@ -1171,37 +1164,37 @@ public final class HubView implements AddonView {
 
     // ---- zoom
 
-    private int zoom(HudGraphics g, int x, int y, int w, int mx, int my) {
-        int y0 = y;
-        y = toggleRow(g, x, y, w, t("Zoom aktiv", "Zoom enabled"), "zoomEnabled", mx, my);
-        double factor = num("zoomFactor", 4);
-        y = row(g, x, y, w, t("Vergrößerung", "Magnification"), mx, my,
-                (rx, ry) -> pill(g, rx, ry, String.format(Locale.ROOT, "%.0f×", factor)), () -> {
-                    double next = ZOOM_FACTORS[0];
-                    for (int i = 0; i < ZOOM_FACTORS.length; i++) {
-                        if (ZOOM_FACTORS[i] >= factor - 0.01) {
-                            next = ZOOM_FACTORS[(i + 1) % ZOOM_FACTORS.length];
-                            break;
-                        }
-                    }
-                    host.set("zoomFactor", next);
-                });
-        boolean toggle = "toggle".equals(str("zoomMode", "hold"));
-        y = row(g, x, y, w, t("Modus", "Mode"), mx, my,
-                (rx, ry) -> pill(g, rx, ry, toggle ? t("Umschalten", "Toggle") : t("Halten", "Hold")),
-                () -> host.set("zoomMode", toggle ? "hold" : "toggle"));
-        y = toggleRow(g, x, y, w, t("Weicher Zoom", "Smooth zoom"), "zoomSmooth", mx, my);
-        y = toggleRow(g, x, y, w, t("Mausrad ändert den Zoom", "Scroll wheel changes zoom"), "zoomScroll", mx, my);
-        y = toggleRow(g, x, y, w, t("Geringere Mausempfindlichkeit", "Lower mouse sensitivity"), "zoomSensitivity", mx, my);
-        y = toggleRow(g, x, y, w, t("Kinokamera", "Cinematic camera"), "zoomCinematic", mx, my);
-        y = toggleRow(g, x, y, w, t("Vignette", "Vignette"), "zoomVignette", mx, my);
-        y += 4;
-        for (String l : wrap(g, t("Taste: ", "Key: ") + host.zoomKey() + t(" · änderbar unter Optionen › Steuerung",
-                " · change it in Options › Controls"), w)) {
-            g.text(l, x, y, DIM, false);
-            y += 10;
+    /** The zoom options of lumora-client.json as settings, bound to the client config (nothing is stored twice). */
+    SettingsGroup zoomSettings() {
+        SettingsGroup s = new SettingsGroup("lumora.zoom.");
+        BooleanSetting enabled = s.toggle("enabled", true).bind(() -> bool("zoomEnabled"), v -> host.set("zoomEnabled", v));
+        s.selection("factor", "4", ZOOM_FACTORS).bind(() -> nearestFactor(num("zoomFactor", 4)),
+                v -> host.set("zoomFactor", Double.parseDouble(v))).requires(enabled);
+        s.selection("mode", "hold", "hold", "toggle").bind(() -> "toggle".equals(str("zoomMode", "hold")) ? "toggle" : "hold",
+                v -> host.set("zoomMode", v)).requires(enabled);
+        String section = "lumora.zoom.section.behaviour";
+        for (String[] o : new String[][]{{"smooth", "zoomSmooth"}, {"scroll", "zoomScroll"}, {"sensitivity", "zoomSensitivity"},
+                {"cinematic", "zoomCinematic"}, {"vignette", "zoomVignette"}}) {
+            if (host.has(o[1])) {
+                BooleanSetting b = s.checkbox(o[0], false).bind(() -> bool(o[1]), v -> host.set(o[1], v)).requires(enabled);
+                if (section != null) {
+                    b.section(section);
+                    section = null;
+                }
+            }
         }
-        return y - y0;
+        return s;
+    }
+
+    /** The zoom factor option nearest to {@code factor}. */
+    static String nearestFactor(double factor) {
+        String best = ZOOM_FACTORS[0];
+        for (String f : ZOOM_FACTORS) {
+            if (Math.abs(Double.parseDouble(f) - factor) < Math.abs(Double.parseDouble(best) - factor)) {
+                best = f;
+            }
+        }
+        return best;
     }
 
     // ---- profiles
@@ -1499,10 +1492,6 @@ public final class HubView implements AddonView {
         if (searchFocused || !search.isEmpty()) {
             searchFocused = false;
             search = "";
-            return false;
-        }
-        if (page == Page.ZOOM) {
-            open(Page.MODULES);
             return false;
         }
         return true;

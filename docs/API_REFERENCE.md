@@ -1,8 +1,13 @@
-# Lumora-API – Referenz (Version 1.2.0)
+# Lumora-API – Referenz (Version 1.3.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.2.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.3.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
+
+**API 1.3.0** (`LumoraAPI.API_VERSION`) bringt die Einstellungs-Arten nach dem Vorbild von LabyMod: Häkchen-Kästen,
+Aufklapp-Listen, Knopfreihen, Enums, Buttons, Farben mit Regenbogen, Abschnitte und Einstellungen, die nur bei
+eingeschaltetem Schalter erscheinen (siehe [dev.lumora.api.config](#devlumoraapiconfig)). Addons für 1.0 bis 1.2
+laden unverändert weiter.
 
 **API 1.1.0** (`LumoraAPI.API_VERSION`) ist in `lumora-api`, `lumora-core` und allen 16 Modulen `client/mc<version>`
 umgesetzt. Addons für 1.0 laden unverändert weiter: Beim Laden gilt „gleiche Hauptversion, nicht neuer“, ein Addon mit
@@ -57,7 +62,7 @@ Liegt an der Wurzel der Addon-JAR. Lumora findet Addons auf zwei Wegen:
 - **Eigener Addon-Loader:** JARs im Ordner `addons` der Instanz, ohne Mod-Loader (`JarAddonLoader`, eigener Class-Loader je JAR).
 - **Fabric-Mods** im Ordner `mods`, die die Datei mitbringen.
 
-Details stehen in [CREATE_ADDON.md](CREATE_ADDON.md). Die API selbst bleibt dabei unverändert (1.2.0).
+Details stehen in [CREATE_ADDON.md](CREATE_ADDON.md). Die API selbst bleibt dabei unverändert.
 
 ```json
 {
@@ -182,20 +187,46 @@ Ungültige `font` oder leeres `glyph`: `IllegalArgumentException` beim Erzeugen.
 `Setting<T>`: `key()`, `type()`, `get()`, `set(v)` (validiert, `false` wenn abgelehnt/unverändert), `reset()`,
 `defaultValue()`, `encode()`/`decode(text)`, `bind(getter, setter)` (Wert lebt beim Besitzer, Lumora speichert ihn
 nicht), `isBound()`, `name(key)`, `description(key)`, `advanced()`, `onChange(listener)`.
+Seit **1.3.0** außerdem `section(key)` (Überschrift über dieser Einstellung, gilt bis zur nächsten), `requires(switch)`
+und `visibleWhen(bedingung)` (nur zeigen, solange der Schalter an bzw. die Bedingung wahr ist), `isVisible()`,
+`sectionKey()` und `isPersistent()` (Buttons: `false`). Alle Setter geben den konkreten Typ zurück, Casts wie
+`(BooleanSetting) s.toggle(…).name(…)` sind nicht mehr nötig.
 
-| Klasse | `SettingType` | Validierung |
-|---|---|---|
-| `BooleanSetting` | BOOLEAN | – |
-| `IntegerSetting` | INTEGER / SLIDER | klemmt auf min..max |
-| `DecimalSetting` | DECIMAL / SLIDER | klemmt, rundet auf `step`, lehnt NaN/∞ ab |
-| `TextSetting` | TEXT | kürzt auf `maxLength`, entfernt Steuerzeichen |
-| `ChoiceSetting` | CHOICE | nur bekannte Optionen; Label `nameKey + "." + option`; `cycle(±1)` |
-| `ColorSetting` | COLOR | `#AARRGGBB`; ohne Alpha immer deckend |
-| `KeybindSetting` | KEYBIND | nur gültige GLFW-Codes oder `Keys.UNBOUND` |
+| Klasse | `SettingType` | Steuerelement | Validierung |
+|---|---|---|---|
+| `BooleanSetting` | BOOLEAN / CHECKBOX | Schalter AN/AUS, mit `checkbox()` ein Häkchen-Kasten | – |
+| `IntegerSetting` | INTEGER / SLIDER | Zahl mit − + oder Schieberegler | klemmt auf min..max; `step(n)` nur Vielfache, `unit("%")` hinter dem Wert |
+| `DecimalSetting` | DECIMAL / SLIDER | Zahl mit − + oder Schieberegler | klemmt, rundet auf `step`, lehnt NaN/∞ ab; `unit("x")` |
+| `TextSetting` | TEXT | Textfeld | kürzt auf `maxLength`, entfernt Steuerzeichen |
+| `ChoiceSetting` | CHOICE / DROPDOWN / SELECTION | ‹ Wert ›, mit `dropdown()` eine Liste zum Aufklappen, mit `selection()` eine Reihe von Knöpfen | nur bekannte Optionen; Label `nameKey + "." + option`; `cycle(±1)` |
+| `EnumSetting<E>` | DROPDOWN / SELECTION / CHOICE | wie `ChoiceSetting`, Optionen sind die Konstanten eines Enums (`selection()`, `arrows()`) | Ids und gespeicherte Werte: Konstantenname klein; unbekannte Namen werden abgelehnt |
+| `ColorSetting` | COLOR | Farbfeld mit Hex-Wert; ein Klick öffnet den Farbwähler (Sättigung/Helligkeit, Farbton, Deckkraft, Palette) | `#AARRGGBB`; ohne Alpha immer deckend; mit `chroma()` zusätzlich Regenbogen mit Tempo 1–10, gespeichert als `#AARRGGBB chroma <tempo>`, gezeichnet mit `argb()` |
+| `KeybindSetting` | KEYBIND | Taste | nur gültige GLFW-Codes oder `Keys.UNBOUND` |
+| `ButtonSetting` | BUTTON | Knopf, der eine Aktion ausführt (`label(key)`, sonst `nameKey + ".button"`) | wird nie gespeichert |
 
-`SettingsGroup`: `toggle`, `integer`, `slider(int…)`, `decimal`, `slider(double…)`, `text`, `choice`, `color`,
-`keybind`, `add`, `get`, `all`, `isEmpty`, `resetAll`. Doppelte Schlüssel: `IllegalArgumentException`.
-`onAdd(...)` ist intern.
+`OptionSetting` (seit 1.3.0) fasst `ChoiceSetting` und `EnumSetting` zusammen: `optionIds()`, `selectedId()`,
+`select(id)`, `optionKey(id)`, `cycle(±1)`.
+
+`SettingsGroup`: `toggle`, `checkbox`, `integer`, `slider(int…)`, `decimal`, `slider(double…)`, `text`, `choice`,
+`dropdown(key, default, optionen…)`, `selection(key, default, optionen…)`, `dropdown(key, enumKonstante)`,
+`selection(key, enumKonstante)`, `color`, `chroma(key, argb, alpha)`, `keybind`, `button(key, aktion)`, `add`, `get`,
+`all`, `isEmpty`, `resetAll`. Doppelte Schlüssel: `IllegalArgumentException`. `onAdd(...)` ist intern.
+
+### Vergleich mit LabyMod
+
+| LabyMod 4 | Lumora |
+|---|---|
+| `@SwitchSetting` | `toggle(key, default)` |
+| `@CheckBoxSetting` | `checkbox(key, default)` |
+| `@SliderSetting(min, max, steps)` | `slider(key, default, min, max).step(n)` (ganze Zahlen), `slider(key, default, min, max, step)` (Kommazahlen) |
+| `@TextFieldSetting(maxLength)` | `text(key, default, maxLength)` |
+| `@KeyBindSetting` | `keybind(key, defaultKey)` |
+| `@ColorPickerSetting(alpha, chroma)` | `color(key, argb, alpha)`, mit Regenbogen `chroma(key, argb, alpha)` |
+| `@DropdownSetting` (Enum) | `dropdown(key, enumKonstante)` oder `dropdown(key, default, optionen…)` |
+| `@AdvancedSelectionSetting` | `selection(key, …)` |
+| `@ButtonSetting` | `button(key, aktion)` |
+| `@SettingSection("id")` | `.section(übersetzungsschlüssel)` |
+| `@SettingRequires` / Unter-Einstellungen | `.requires(schalter)`, `.visibleWhen(bedingung)` |
 
 ## dev.lumora.api.input
 

@@ -38,4 +38,48 @@ public final class KeybindSetting extends Setting<Integer> {
             return null;
         }
     }
+
+    // ---- covariant setters (the concrete type, so no casts are needed)
+
+    @Override
+    public KeybindSetting name(String translationKey) {
+        super.name(translationKey);
+        return this;
+    }
+
+    @Override
+    public KeybindSetting description(String translationKey) {
+        super.description(translationKey);
+        return this;
+    }
+
+    @Override
+    public KeybindSetting advanced() {
+        super.advanced();
+        return this;
+    }
+
+    @Override
+    public KeybindSetting section(String translationKey) {
+        super.section(translationKey);
+        return this;
+    }
+
+    @Override
+    public KeybindSetting visibleWhen(java.util.function.BooleanSupplier condition) {
+        super.visibleWhen(condition);
+        return this;
+    }
+
+    @Override
+    public KeybindSetting requires(BooleanSetting parent) {
+        super.requires(parent);
+        return this;
+    }
+
+    @Override
+    public KeybindSetting bind(java.util.function.Supplier<Integer> getter, java.util.function.Consumer<Integer> setter) {
+        super.bind(getter, setter);
+        return this;
+    }
 }

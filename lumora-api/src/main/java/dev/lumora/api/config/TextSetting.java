@@ -42,4 +42,48 @@ public final class TextSetting extends Setting<String> {
     protected String parse(String raw) {
         return raw;
     }
+
+    // ---- covariant setters (the concrete type, so no casts are needed)
+
+    @Override
+    public TextSetting name(String translationKey) {
+        super.name(translationKey);
+        return this;
+    }
+
+    @Override
+    public TextSetting description(String translationKey) {
+        super.description(translationKey);
+        return this;
+    }
+
+    @Override
+    public TextSetting advanced() {
+        super.advanced();
+        return this;
+    }
+
+    @Override
+    public TextSetting section(String translationKey) {
+        super.section(translationKey);
+        return this;
+    }
+
+    @Override
+    public TextSetting visibleWhen(java.util.function.BooleanSupplier condition) {
+        super.visibleWhen(condition);
+        return this;
+    }
+
+    @Override
+    public TextSetting requires(BooleanSetting parent) {
+        super.requires(parent);
+        return this;
+    }
+
+    @Override
+    public TextSetting bind(java.util.function.Supplier<String> getter, java.util.function.Consumer<String> setter) {
+        super.bind(getter, setter);
+        return this;
+    }
 }

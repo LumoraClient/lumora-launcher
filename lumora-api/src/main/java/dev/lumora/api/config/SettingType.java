@@ -17,5 +17,13 @@ public enum SettingType {
     /** ARGB color ({@link ColorSetting}). */
     COLOR,
     /** Keyboard key ({@link KeybindSetting}). */
-    KEYBIND
+    KEYBIND,
+    /** Check box, a compact on/off ({@link BooleanSetting#checkbox()}). @since 1.3.0 */
+    CHECKBOX,
+    /** One of a list of options in a drop-down list ({@link ChoiceSetting#dropdown()}, {@link EnumSetting}). @since 1.3.0 */
+    DROPDOWN,
+    /** One of a few options as a row of buttons ({@link ChoiceSetting#selection()}, {@link EnumSetting#selection()}). @since 1.3.0 */
+    SELECTION,
+    /** A button that runs an action, no stored value ({@link ButtonSetting}). @since 1.3.0 */
+    BUTTON
 }

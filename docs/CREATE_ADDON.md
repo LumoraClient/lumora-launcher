@@ -44,13 +44,13 @@ tasks.processResources {
 ```
 
 In einem eigenen Projekt: zuerst im Lumora-Projekt `gradlew :lumora-api:publish` ausführen (schreibt
-`build/repo/dev/lumora/lumora-api/1.1.0/`), dann im Addon:
+`build/repo/dev/lumora/lumora-api/1.3.0/`), dann im Addon:
 
 ```groovy
 repositories {
     maven { url = file("../lumora-client/build/repo").toURI(); content { includeGroup 'dev.lumora' } }
 }
-dependencies { compileOnly 'dev.lumora:lumora-api:1.1.0' }
+dependencies { compileOnly 'dev.lumora:lumora-api:1.3.0' }
 ```
 
 Braucht das Addon Minecraft-Klassen (z. B. eigene Items zeichnen), ist es eine Loom-Mod für genau diese
@@ -274,3 +274,36 @@ context.nameTags().register((player, place) -> spricht(player)
   in der nächstliegenden Chatfarbe an. Ein leerer `fallback` heißt: auf diesen Versionen kein Symbol.
 - Das letzte Feld (`subtitle`) ist eine kleine Zeile unter dem Namensschild. Sie erscheint nur auf 26.x und 1.21.11
   (siehe [COMPATIBILITY.md](COMPATIBILITY.md#lumora-api-11-je-version)); auf anderen Versionen fehlt sie ohne Fehler.
+
+## 9. Einstellungen (API 1.3)
+
+Einstellungen beschreibt ein Addon in `onInitialize` über `context.configuration().settings()` (Addon) oder in
+`configure(SettingsGroup)` (Widget). Lumora baut daraus die Einstellungsseite im Hub, speichert die Werte und setzt
+sie zurück. Jede Art von Steuerelement ist eine eigene Einstellung, ähnlich den Annotationen eines LabyMod-Addons:
+
+```java
+SettingsGroup s = context.configuration().settings();
+// Abschnitt "Anzeige": Schalter, Knopfreihe, Aufklapp-Liste mit einem Enum
+BooleanSetting show = s.toggle("show", true).section("my-addon.setting.section.display");
+ChoiceSetting style = s.selection("style", "ring", "minecraft", "bar", "ring", "dot").requires(show);
+EnumSetting<Position> position = s.dropdown("position", Position.CROSSHAIR).requires(show);
+IntegerSetting size = s.slider("size", 100, 50, 200).step(5).unit("%").requires(show);
+// Abschnitt "Farben": Farbwähler mit Deckkraft und Regenbogen
+ColorSetting color = s.chroma("color", 0xFFFFFFFF, true).section("my-addon.setting.section.colors");
+// Häkchen-Kästen für eine Liste von Dingen
+BooleanSetting cooldowns = s.checkbox("cooldowns", true).section("my-addon.setting.section.show");
+BooleanSetting bows = s.checkbox("bows", true);
+// nur sichtbar, solange die Bedingung gilt
+IntegerSetting volume = s.slider("volume", 60, 0, 100).unit("%").visibleWhen(() -> show.get() && cooldowns.get());
+// Knopf: führt eine Aktion aus, wird nicht gespeichert
+s.button("reset_position", () -> { size.reset(); position.reset(); });
+```
+
+- **Übersetzungen:** Namen kommen aus `<addon>.setting.<schlüssel>`, Optionen aus `<addon>.setting.<schlüssel>.<option>`
+  (Enum-Konstanten klein geschrieben). Abschnitte nutzen den Schlüssel, den du `section(...)` gibst, die Knopf-Beschriftung
+  kommt aus `<addon>.setting.<schlüssel>.button` oder `label(...)`.
+- **Farben** immer mit `color.argb()` zeichnen, das enthält den Regenbogen. `get()` ist die gewählte Grundfarbe.
+- **Hilfetexte** erscheinen beim Drüberfahren: `<name>.description`.
+- **Selten genutzte Einstellungen** mit `.advanced()` hinter den Schalter „Erweiterte Einstellungen“ legen.
+- Ein Addon, das diese Arten nutzt, gibt in `lumora-addon.json` `"api": "1.3.0"` an. Ältere Clients lehnen es dann
+  mit einem klaren Hinweis ab, statt beim Start zu scheitern.

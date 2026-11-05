@@ -45,10 +45,10 @@ public final class ChatModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        timestamps = (BooleanSetting) s.toggle("timestamps", true).name("lumora.extras.chat.timestamps");
-        format = (ChoiceSetting) s.choice("format", "24h", "24h", "24h_seconds", "12h").name("lumora.extras.chat.format");
-        timestampColor = (ColorSetting) s.color("timestamp_color", 0xFF9D95AE, false).name("lumora.extras.chat.timestamp_color").advanced();
-        stack = (BooleanSetting) s.toggle("stack", true).name("lumora.extras.chat.stack");
+        timestamps = s.toggle("timestamps", true).name("lumora.extras.chat.timestamps");
+        format = s.selection("format", "24h", "24h", "24h_seconds", "12h").name("lumora.extras.chat.format").requires(timestamps);
+        timestampColor = s.color("timestamp_color", 0xFF9D95AE, false).name("lumora.extras.chat.timestamp_color").requires(timestamps);
+        stack = s.toggle("stack", true).name("lumora.extras.chat.stack");
     }
 
     @Override

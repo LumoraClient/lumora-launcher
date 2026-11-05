@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.10 (2026-11-05)
+
+### Im Spiel
+- **Server- und Weltliste ohne „Klassisch“:** Die untere Leiste der Lumora-Mehrspieler- und Einzelspieler-Liste zeigt nur noch Hinzufügen, Direkt verbinden und Aktualisieren bzw. Neue Welt und Aktualisieren. Minecrafts eigene Listen (z. B. zum Bearbeiten von Welt-Optionen) erreichst du, indem du im Hub das Modul „Server- & Weltliste“ ausschaltest; mit ViaFabricPlus öffnet dessen Knopf weiter die Versionsauswahl.
+
 ## 0.3.9 (2026-11-05)
 
 ### Im Spiel

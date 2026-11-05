@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.10 (2026-11-05):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 412 Unit-Tests ohne Fehler (1 übersprungen); der Test der Weltliste prüft, dass es keinen Knopf „Klassisch“ mehr gibt.
+- **Smoke-Test** mit dem fertigen 0.3.10-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Mehrspieler- und Einzelspieler-Liste (26.3) sowie die Einzelspieler-Liste (1.8.9) ohne „Klassisch“ angesehen.
+- **Nicht geprüft:** ein echtes Selbst-Update von 0.3.9 auf 0.3.10.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.9 (2026-11-05):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 412 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Angriffsanzeige (Vorrang von Benutzen, Abbauen, Schlafen und Angriff, Ausblenden wenn bereit und volle Anzeige beim Zielen, Cooldowns, Töne einmal je Aufladen und bei abgelaufenem Cooldown, alle Stile, Positionen und Größen mit ausgeglichenem Zeichen-Stapel, Third Person und HUD-Editor ohne Anzeige).
 - **Mixins:** In allen 15 Versionen mit eigener Angriffsanzeige (1.12.2 bis 26.3) liest Minecrafts Fadenkreuz- und Hotbar-Methode die Option an der umgeleiteten Stelle (per `javap` gezählt).

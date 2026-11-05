@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.13 (2026-11-05)
+
+### Im Spiel
+- **Alle Einstellungen sofort sichtbar:** Den Schalter „Erweiterte Einstellungen anzeigen“ unten auf den Einstellungsseiten gibt es nicht mehr. Alle Module und Addons zeigen immer alle Einstellungen, z. B. die Hintergrundfarbe der Angriffsanzeige, die Zeitüberschreitung bei Verbindung, die Animationszeiten im Block-Overlay und die Text- und Wertfarben der HUD-Widgets.
+
+### Addons
+- `advanced()` blendet eine Einstellung nicht mehr aus; die Methode bleibt, damit bestehende Addons unverändert kompilieren und laufen.
+
 ## 0.3.12 (2026-11-05)
 
 ### Launcher

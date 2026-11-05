@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.14 (2026-11-05)
+
+### Im Spiel
+- **Angriffsanzeige: Levelleiste und Bossleiste.** Zwei neue Stile neben Minecraft, Balken, Ring und Punkt:
+  - **Levelleiste:** Beim Aufladen füllt sich die Erfahrungsleiste über der Hotbar in der Ladefarbe; mit „Prozent und Namen anzeigen“ steht der Prozentwert an der Stelle der Levelzahl. Ist der Schlag bereit (und „Ausblenden, wenn bereit“ an), ist wieder die normale Erfahrungsleiste zu sehen. Item-Cooldowns erscheinen als kurze Balken rechts neben der Hotbar.
+  - **Bossleiste:** eine Leiste oben in der Mitte wie eine Boss-Leiste, jeder Cooldown als weitere Leiste darunter, mit Prozent bzw. Item-Namen darüber.
+  - Beide sind auch in der dritten Person zu sehen; „Position“ und „Größe“ werden bei diesen Stilen ausgeblendet. Die Bossleiste kann sich mit echten Boss-Leisten und HUD-Widgets oben in der Mitte überschneiden.
+- **Einstellungsseiten:** Eine Knopfreihe mit vielen Optionen nutzt bei kurzem Namen den Platz links davon, statt auf Pfeile zurückzufallen.
+
 ## 0.3.13 (2026-11-05)
 
 ### Im Spiel

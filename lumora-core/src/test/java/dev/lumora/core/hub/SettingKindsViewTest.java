@@ -100,6 +100,18 @@ class SettingKindsViewTest {
     }
 
     @Test
+    void advancedSettingsAreAlwaysShownWithoutASwitch() throws Exception {
+        SettingsGroup g = new SettingsGroup("test.");
+        g.toggle("normal", true);
+        g.slider("rare", 3, 0, 10).advanced();
+        SettingsView v = open(g);
+        assertEquals(List.of("normal", "rare"), keys(v), "the advanced setting is shown right away");
+        Texts t = render(v);
+        assertTrue(t.texts.stream().noneMatch(x -> x.text().contains("Erweiterte") || x.text().contains("advanced settings")),
+                "no switch for advanced settings");
+    }
+
+    @Test
     void checkBoxesRowsAndButtonsReactToClicks() throws Exception {
         SettingsGroup g = new SettingsGroup("test.");
         BooleanSetting box = g.checkbox("box", false);

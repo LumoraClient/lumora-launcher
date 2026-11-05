@@ -165,7 +165,10 @@ public abstract class Setting<T> {
         return this;
     }
 
-    /** Shown only after "Advanced" was expanded. */
+    /**
+     * Marks a rarely used setting. Since Lumora 0.3.13 the settings screen shows every setting, the mark no longer
+     * hides it; kept so existing addons compile unchanged.
+     */
     public Setting<T> advanced() {
         this.advanced = true;
         return this;

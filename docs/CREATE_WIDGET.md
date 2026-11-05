@@ -99,7 +99,7 @@ public final class SessionTimerWidget extends HudWidget {
 ## Einstellungen
 
 In `configure` beschreiben – den Bildschirm dafür baut Lumora (Schalter, Zahl mit −/+, Schieberegler, Textfeld,
-Auswahl, Farbe mit Palette, Taste; `advanced()` landet unter „Erweitert“):
+Auswahl, Farbe mit Palette, Taste; alle Einstellungen sind immer sichtbar):
 
 ```java
 BooleanSetting shadow = settings.toggle("shadow", true);

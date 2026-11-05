@@ -52,7 +52,6 @@ public final class SettingsView implements AddonView {
     static final int TRACK = 0xFF2E2A3E;
     private static final int[] PALETTE = {0xFFFFFFFF, 0xFF000000, 0xFF8B5CF6, 0xFF3B82F6, 0xFF06B6D4, 0xFF22C55E,
             0xFFF59E0B, 0xFFEF4444, 0xFFEC4899};
-    private static boolean advanced;
 
     /**
      * A part shown below the own settings, after a divider with {@code title}: e.g. the HUD widget of an addon with an
@@ -252,31 +251,7 @@ public final class SettingsView implements AddonView {
         return tr != null && tr.has(key) ? tr.translate(key) : "";
     }
 
-    private boolean hasAdvanced() {
-        if (hasAdvanced(group)) {
-            return true;
-        }
-        for (Section sec : sections) {
-            if (hasAdvanced(sec.group())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean hasAdvanced(SettingsGroup g) {
-        if (g == null) {
-            return false;
-        }
-        for (Setting<?> s : g.all()) {
-            if (s.isAdvanced()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** Settings and keys shown now (advanced only when switched on, filtered by the search). */
+    /** Settings and keys shown now (all of them, also those marked advanced; filtered by the search). */
     List<Object> items() {
         String q = search.trim().toLowerCase(Locale.ROOT);
         List<Object> out = new ArrayList<>();
@@ -308,7 +283,7 @@ public final class SettingsView implements AddonView {
     }
 
     /**
-     * The shown settings of a group: advanced only when switched on, hidden while their condition is false
+     * The shown settings of a group: hidden only while their condition is false
      * ({@link Setting#visibleWhen}), filtered by the search; a section heading ({@link Setting#section}) before the
      * first shown setting of each section.
      */
@@ -319,7 +294,7 @@ public final class SettingsView implements AddonView {
             if (s.sectionKey() != null) {
                 current = s.sectionKey();
             }
-            boolean shown = (advanced || !s.isAdvanced()) && s.isVisible() && (!own || panel == null || panel.shows(s))
+            boolean shown = s.isVisible() && (!own || panel == null || panel.shows(s))
                     && (q.isEmpty() || name(s).toLowerCase(Locale.ROOT).contains(q));
             if (!shown) {
                 continue;
@@ -384,8 +359,7 @@ public final class SettingsView implements AddonView {
         ly += 2;
         accentLine(g, px, ly, pw);
         contentTop = ly + (compact ? 6 : 8);
-        boolean adv = hasAdvanced();
-        contentBottom = py + ph - (adv ? 24 : 8);
+        contentBottom = py + ph - 8;
 
         scroll += (scrollTarget - scroll) * 0.4f;
         if (Math.abs(scrollTarget - scroll) < 0.5f) {
@@ -406,17 +380,6 @@ public final class SettingsView implements AddonView {
             int barY = contentTop + Math.round((trackH - barH) * (scroll / maxScroll));
             g.roundedRect(px + pw - 6, contentTop, 2, trackH, 1, 0x18FFFFFF);
             g.roundedRect(px + pw - 6, barY, 2, barH, 1, LumoraTheme.alpha(accent, 0xC0));
-        }
-        if (adv) {
-            int fy = py + ph - 20;
-            g.fill(px + 1, fy - 3, px + pw - 1, fy - 2, HubView.BORDER);
-            String label = advanced ? t("Erweiterte Einstellungen ausblenden", "Hide advanced settings")
-                    : t("Erweiterte Einstellungen anzeigen", "Show advanced settings");
-            int bw = g.textWidth(label) + 52;
-            boolean hover = HubView.in(mx, my, left, fy, bw, 14);
-            g.text(label, left + 46, fy + 3, hover ? TEXT : MUTED, false);
-            switchPill(g, left, fy + 1, advanced, false);
-            hit(left, fy, bw, 14, () -> advanced = !advanced);
         }
         panelLeft = px;
         panelRight = px + pw;

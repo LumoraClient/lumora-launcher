@@ -304,6 +304,6 @@ s.button("reset_position", () -> { size.reset(); position.reset(); });
   kommt aus `<addon>.setting.<schlüssel>.button` oder `label(...)`.
 - **Farben** immer mit `color.argb()` zeichnen, das enthält den Regenbogen. `get()` ist die gewählte Grundfarbe.
 - **Hilfetexte** erscheinen beim Drüberfahren: `<name>.description`.
-- **Selten genutzte Einstellungen** mit `.advanced()` hinter den Schalter „Erweiterte Einstellungen“ legen.
+- **Alle Einstellungen sind immer sichtbar.** Einen Schalter „Erweiterte Einstellungen“ gibt es nicht mehr; `.advanced()` bleibt nur, damit ältere Addons weiter kompilieren, und blendet nichts aus.
 - Ein Addon, das diese Arten nutzt, gibt in `lumora-addon.json` `"api": "1.3.0"` an. Ältere Clients lehnen es dann
   mit einem klaren Hinweis ab, statt beim Start zu scheitern.

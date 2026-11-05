@@ -185,10 +185,11 @@ class AttackIndicatorTest {
             }
         }
         m.style.set("ring"); // the level and boss bar styles are checked on their own below
-        // "like Minecraft" follows the vanilla option: 2 = hotbar
-        assertTrue(m.atHotbar(game.progress));
+        assertTrue(m.atHotbar(), "the last position of the loop");
         m.position.set("crosshair");
-        assertFalse(m.atHotbar(game.progress));
+        assertFalse(m.atHotbar());
+        m.position.decode("vanilla"); // removed option: the stored value is ignored
+        assertEquals("crosshair", m.position.get());
         // third person: nothing at the crosshair; HUD editor: nothing
         game.progress = new GameExtras.Progress(0.5f, false, false, List.of(), "", 0, -1, -1, 1);
         FakeGraphics g = new FakeGraphics();

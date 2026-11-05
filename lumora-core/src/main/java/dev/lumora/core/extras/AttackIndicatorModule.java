@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 
 /**
  * Built-in module "Angriffsanzeige": an attack indicator you actually see. Since 1.9 a hit only does full damage once
- * the weapon has recharged; the module shows that in the style of the crosshair (Minecraft, bar, ring or dot), at the
+ * the weapon has recharged; the module shows that as a bar, ring or dot, or in the experience or boss bar, at the
  * crosshair or the hotbar, from half to double size. It also shows item cooldowns (ender pearl, chorus fruit, wind
  * charge, shield …), how far a bow, crossbow or trident is drawn, eating and drinking, block breaking and falling
  * asleep, with optional sounds when the attack is ready or a cooldown ended. While it is on, Minecraft's own attack
@@ -31,8 +31,8 @@ import java.util.function.Supplier;
  */
 public final class AttackIndicatorModule implements LumoraAddon {
     private static volatile AttackIndicatorModule active;
-    static final String[] STYLES = {"minecraft", "bar", "ring", "dot", "xpbar", "bossbar"};
-    static final String[] POSITIONS = {"vanilla", "crosshair", "hotbar"};
+    static final String[] STYLES = {"bar", "ring", "dot", "xpbar", "bossbar"};
+    static final String[] POSITIONS = {"crosshair", "hotbar"};
     /** How long the "ready" pop lasts. */
     static final long PULSE_MS = 260;
 
@@ -277,13 +277,9 @@ public final class AttackIndicatorModule implements LumoraAddon {
         }
     }
 
-    /** Whether the indicator sits at the hotbar ("vanilla" follows Minecraft's own option). */
-    boolean atHotbar(GameExtras.Progress p) {
-        return switch (position.get()) {
-            case "hotbar" -> true;
-            case "crosshair" -> false;
-            default -> p.vanillaMode() == 2;
-        };
+    /** Whether the indicator sits at the hotbar (else at the crosshair). */
+    boolean atHotbar() {
+        return position.get().equals("hotbar");
     }
 
     // ------------------------------------------------------------------ drawing
@@ -304,7 +300,7 @@ public final class AttackIndicatorModule implements LumoraAddon {
             bars(g, list, w, h, style.get().equals("xpbar"), pop);
             return;
         }
-        boolean hotbar = atHotbar(p);
+        boolean hotbar = atHotbar();
         if (!hotbar && !p.firstPerson()) {
             return;
         }
@@ -334,27 +330,6 @@ public final class AttackIndicatorModule implements LumoraAddon {
             int c = main && pop > 0 ? readyColor.argb() : it.color();
             g.push();
             switch (st) {
-                case "minecraft" -> {
-                    if (hotbar) {
-                        g.translate(n * 22, 0);
-                        g.scale(grow);
-                        g.fill(-9, -9, 9, 9, bg);
-                        int fh = Math.round(it.value() * 18);
-                        g.fill(-9, 9 - fh, 9, 9, c);
-                        label(g, it, -9, 11, hotbar);
-                    } else if (main) {
-                        g.translate(0, 11);
-                        g.scale(grow);
-                        g.fill(-8, -2, 8, 2, bg);
-                        g.fill(-8, -2, -8 + Math.min(16, Math.round(it.value() * 17)), 2, c);
-                        label(g, it, 10, -2, hotbar);
-                    } else {
-                        g.translate(0, 13 + n * 4);
-                        g.fill(-8, 0, 8, 2, bg);
-                        g.fill(-8, 0, -8 + Math.round(it.value() * 16), 2, c);
-                        label(g, it, 10, -1, hotbar);
-                    }
-                }
                 case "bar" -> {
                     if (hotbar) {
                         g.translate(n * 22, 0);

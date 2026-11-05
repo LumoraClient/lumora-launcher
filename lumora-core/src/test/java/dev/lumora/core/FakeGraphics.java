@@ -13,6 +13,8 @@ public final class FakeGraphics implements HudGraphics {
     /** "namespace:path" of every texture drawn. */
     public final List<String> textures = new ArrayList<>();
     public int fills;
+    /** x1, y1, x2, y2 of every plain fill (untransformed coordinates). */
+    public final List<int[]> rects = new ArrayList<>();
     public int depth;
     public int maxDepth;
     public float tx;
@@ -36,6 +38,7 @@ public final class FakeGraphics implements HudGraphics {
     @Override
     public void fill(int x1, int y1, int x2, int y2, int color) {
         fills++;
+        rects.add(new int[]{x1, y1, x2, y2});
     }
 
     @Override

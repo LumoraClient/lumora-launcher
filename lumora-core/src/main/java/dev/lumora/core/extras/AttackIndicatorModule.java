@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  */
 public final class AttackIndicatorModule implements LumoraAddon {
     private static volatile AttackIndicatorModule active;
-    static final String[] STYLES = {"minecraft", "bar", "ring", "dot"};
+    static final String[] STYLES = {"minecraft", "bar", "ring", "dot", "xpbar", "bossbar"};
     static final String[] POSITIONS = {"vanilla", "crosshair", "hotbar"};
     /** How long the "ready" pop lasts. */
     static final long PULSE_MS = 260;
@@ -89,8 +89,8 @@ public final class AttackIndicatorModule implements LumoraAddon {
         SettingsGroup s = context.configuration().settings();
         String k = "lumora.extras.attackindicator.";
         style = s.selection("style", "ring", STYLES).name(k + "style").section(k + "section.look");
-        position = s.dropdown("position", "crosshair", POSITIONS).name(k + "position");
-        size = s.slider("size", 100, 50, 200).step(5).unit("%").name(k + "size");
+        position = s.dropdown("position", "crosshair", POSITIONS).name(k + "position").visibleWhen(() -> !barStyle());
+        size = s.slider("size", 100, 50, 200).step(5).unit("%").name(k + "size").visibleWhen(() -> !barStyle());
         color = s.chroma("color", 0xFFFFFFFF, true).name(k + "color").section(k + "section.colors");
         readyColor = s.chroma("ready_color", 0xFF4ADE80, true).name(k + "ready_color");
         cooldownColor = s.chroma("cooldown_color", 0xFFA78BFA, true).name(k + "cooldown_color");
@@ -231,6 +231,52 @@ public final class AttackIndicatorModule implements LumoraAddon {
         return Float.isNaN(v) ? 0 : Math.max(0, Math.min(1, v));
     }
 
+    /** Styles "Levelleiste" and "Bossleiste": fixed full-width bars, position and size do not apply. */
+    boolean barStyle() {
+        String st = style.get();
+        return st.equals("xpbar") || st.equals("bossbar");
+    }
+
+    /**
+     * "Levelleiste": the main indicator fills Minecraft's experience bar (182 x 5 px, 29 px above the bottom), further
+     * ones are short bars in the free space right of the hotbar. "Bossleiste": every indicator is a bar like a boss
+     * bar at the top of the screen (from y 12, every 19 px), with its percent or item name above it.
+     */
+    void bars(HudGraphics g, List<Shown> list, int w, int h, boolean xp, float pop) {
+        int bg = background.argb();
+        int x = w / 2 - 91;
+        for (int i = 0; i < list.size(); i++) {
+            Shown it = list.get(i);
+            boolean main = i == 0 && !it.kind().equals("cooldown");
+            int c = main && pop > 0 ? readyColor.argb() : it.color();
+            if (xp && i > 0) {
+                int gx = w / 2 + 91 + 6;
+                int gy = h - 20 + (i - 1) * 5;
+                g.fill(gx - 1, gy - 1, gx + 33, gy + 4, 0xA0000000);
+                g.fill(gx, gy, gx + 32, gy + 3, bg);
+                g.fill(gx, gy, gx + Math.round(it.value() * 32), gy + 3, c);
+                label(g, it, gx + 35, gy - 1, true);
+                continue;
+            }
+            int y = xp ? h - 29 : 12 + i * 19;
+            int grow = main && pop > 0 ? 1 : 0;
+            int filled = Math.round(it.value() * 182);
+            g.fill(x - 1, y - 1 - grow, x + 183, y + 6 + grow, 0xA0000000);
+            g.fill(x, y - grow, x + 182, y + 5 + grow, bg);
+            g.fill(x, y - grow, x + filled, y + 5 + grow, c);
+            if (filled > 0) {
+                // lighter top edge like Minecraft's bar textures
+                g.fill(x, y - grow, x + filled, y - grow + 1, (c & 0xFF000000) | (LumoraTheme.mix(c, 0xFFFFFFFF, 0.35f) & 0xFFFFFF));
+            }
+            String title = it.label();
+            if (text.get() && title != null && !title.isEmpty()) {
+                // boss bar: title above the bar; experience bar: the percent where Minecraft shows the level
+                int ty = xp ? h - 35 : y - 10;
+                g.text(title, w / 2 - g.textWidth(title) / 2, ty, xp ? c | 0xFF000000 : 0xFFFFFFFF, true);
+            }
+        }
+    }
+
     /** Whether the indicator sits at the hotbar ("vanilla" follows Minecraft's own option). */
     boolean atHotbar(GameExtras.Progress p) {
         return switch (position.get()) {
@@ -251,14 +297,18 @@ public final class AttackIndicatorModule implements LumoraAddon {
         if (list.isEmpty()) {
             return;
         }
+        int w = ctx.screenWidth();
+        int h = ctx.screenHeight();
+        float pop = list.get(0).kind().equals("attack") ? pulseLeft() : 0;
+        if (barStyle()) {
+            bars(g, list, w, h, style.get().equals("xpbar"), pop);
+            return;
+        }
         boolean hotbar = atHotbar(p);
         if (!hotbar && !p.firstPerson()) {
             return;
         }
-        int w = ctx.screenWidth();
-        int h = ctx.screenHeight();
         float s = size.get() / 100f;
-        float pop = list.get(0).kind().equals("attack") ? pulseLeft() : 0;
         g.push();
         if (hotbar) {
             // middle of the 18 x 18 slot right of the hotbar, where Minecraft draws its own hotbar indicator

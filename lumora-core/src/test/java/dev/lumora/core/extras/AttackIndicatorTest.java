@@ -184,6 +184,7 @@ class AttackIndicatorTest {
                 }
             }
         }
+        m.style.set("ring"); // the level and boss bar styles are checked on their own below
         // "like Minecraft" follows the vanilla option: 2 = hotbar
         assertTrue(m.atHotbar(game.progress));
         m.position.set("crosshair");
@@ -199,5 +200,37 @@ class AttackIndicatorTest {
         assertEquals(0, g.fills, "not drawn while the HUD editor is open");
         assertEquals(AddonState.ENABLED, core.addons().stream().filter(a -> a.id().equals("lumora-attackindicator"))
                 .findFirst().orElseThrow().state());
+    }
+
+    @Test
+    void levelAndBossBarStylesUseMinecraftsBarPlaces() {
+        Game game = new Game();
+        AttackIndicatorModule m = start(game);
+        // third person on purpose: these bars do not depend on the crosshair
+        game.progress = new GameExtras.Progress(0.5f, false, false,
+                List.of(new GameExtras.Cooldown("minecraft:ender_pearl", "Enderperle", 0.75f)), "", 0, -1, -1, 1);
+        m.text.set(true);
+        m.style.set("xpbar");
+        assertFalse(m.position.isVisible(), "position does not apply to the level bar");
+        assertFalse(m.size.isVisible());
+        FakeGraphics g = new FakeGraphics();
+        m.render(g, ctx(false));
+        // 427 x 240: Minecraft's experience bar runs from x 122 to 304 at y 211 to 216; half charged = up to x 213
+        assertTrue(g.rects.stream().anyMatch(r -> r[0] == 122 && r[1] == 211 && r[2] == 304 && r[3] == 216), "track over the experience bar");
+        assertTrue(g.rects.stream().anyMatch(r -> r[0] == 122 && r[1] == 211 && r[2] == 213 && r[3] == 216), "filled to the half");
+        assertTrue(g.texts.contains("50%"), "percent where Minecraft shows the level");
+        assertTrue(g.texts.contains("Enderperle"), "the cooldown right of the hotbar, with its name");
+        assertEquals(0, g.depth);
+
+        m.style.set("bossbar");
+        g = new FakeGraphics();
+        m.render(g, ctx(false));
+        assertTrue(g.rects.stream().anyMatch(r -> r[0] == 122 && r[1] == 12 && r[2] == 304 && r[3] == 17), "boss bar at the top");
+        assertTrue(g.rects.stream().anyMatch(r -> r[0] == 122 && r[1] == 31 && r[2] == 168 && r[3] == 36), "cooldown as the next boss bar, a quarter done");
+        assertTrue(g.texts.contains("50%") && g.texts.contains("Enderperle"), "titles above the bars");
+        assertEquals(0, g.depth);
+
+        m.style.set("ring");
+        assertTrue(m.position.isVisible() && m.size.isVisible());
     }
 }

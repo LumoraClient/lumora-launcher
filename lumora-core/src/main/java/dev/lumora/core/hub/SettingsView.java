@@ -668,8 +668,9 @@ public final class SettingsView implements AddonView {
             g.card(bx, y + 2, bw, 14, 4, bh ? LumoraTheme.alpha(accent, 0x50) : HubView.FIELD, bh ? accent : 0xFF3A3450);
             g.centeredText(HubView.trim(g, label, bw - 8), bx + bw / 2 + 1, y + 5, bh ? 0xFFFFFFFF : TEXT, false);
             hit(bx, y, bw, h, () -> press(b));
-        } else if (s instanceof OptionSetting o && type == SettingType.SELECTION && selection(g, o, cx, right, y, mx, my)) {
-            // drawn as a row of buttons
+        } else if (s instanceof OptionSetting o && type == SettingType.SELECTION
+                && selection(g, o, x + Math.min(labelW, g.textWidth(name) + 12), right, y, mx, my)) {
+            // drawn as a row of buttons; with many options it may reach left up to the (short) name
         } else if (s instanceof OptionSetting o && type == SettingType.DROPDOWN) {
             dropdownField(g, o, cx, right, y, h, hover, mx, my);
         } else if (s instanceof OptionSetting o) {

@@ -129,6 +129,19 @@ class SettingKindsViewTest {
     }
 
     @Test
+    void aRowWithManyOptionsUsesTheSpaceLeftOfAShortName() throws Exception {
+        SettingsGroup g = new SettingsGroup("test.");
+        ChoiceSetting style = g.selection("style", "ring", "minecraft", "balken", "ring", "punkt", "levelleiste", "bossleiste");
+        SettingsView v = open(g);
+        Texts t = render(v);
+        for (String id : style.optionIds()) {
+            assertNotNull(t.last(id), id + " shown as a button, not behind arrows");
+        }
+        click(v, t.last("bossleiste"));
+        assertEquals("bossleiste", style.get());
+    }
+
+    @Test
     void theDropDownOpensSelectsAndClosesWithEscape() throws Exception {
         SettingsGroup g = new SettingsGroup("test.");
         ChoiceSetting drop = g.dropdown("drop", "beta", "alpha", "beta", "gamma");

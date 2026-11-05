@@ -446,8 +446,8 @@ public final class SmokeTest {
             ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", true);
             worldStep++;
             ticks = 0;
-        } else if (worldStep >= modes.length + 5 && worldStep < modes.length + 9) {
-            String style = new String[]{"minecraft", "bar", "ring", "dot"}[worldStep - modes.length - 5];
+        } else if (worldStep >= modes.length + 5 && worldStep < modes.length + 11) {
+            String style = new String[]{"minecraft", "bar", "ring", "dot", "xpbar", "bossbar"}[worldStep - modes.length - 5];
             if (ticks == 2) {
                 ApiSmoke.core().addonManager().record("lumora-attackindicator").filter(r -> r.configuration() != null)
                         .flatMap(r -> r.configuration().settings().get("style")).ifPresent(s -> s.decode(style));
@@ -459,7 +459,7 @@ public final class SmokeTest {
                 worldStep++;
                 ticks = 0;
             }
-        } else if (worldStep == modes.length + 9) {
+        } else if (worldStep == modes.length + 11) {
             ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", false);
             phase = Phase.DONE;
             finish(mc);

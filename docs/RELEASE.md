@@ -67,6 +67,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.11 (2026-11-05):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 424 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für die Einstellungs-Arten der API 1.3 (Typen und konkrete Rückgabetypen, Sichtbarkeit mit fehlerhafter Bedingung, Enums, Schritte und Einheiten, Regenbogen gespeichert auch vor `chroma()`, Buttons nie gespeichert) und 6 für die Einstellungsseite (Abschnitte und Bedingungen, Klicks auf Häkchen, Knopfreihe und Button, Aufklapp-Liste mit Esc, Farbwähler mit Regenbogen und Esc, HSV-Umrechnung, Zoom-Settings an die Client-Einstellungen gebunden). Das Addon-Template baut mit der API 1.3.0.
+- **Smoke-Test** mit dem fertigen 0.3.11-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Einstellungsseite der Angriffsanzeige mit Abschnitten, Knopfreihe, Aufklapp-Liste (offen) und Farbwähler (offen) in 26.3 und 1.21.11 angesehen; vor dem Release dieselben Aufnahmen in 1.8.9, 1.16.5 und 1.21.4.
+- **Nicht geprüft:** Ziehen im Farbwähler mit der echten Maus, die neue Zoom-Seite und die Seiten von Tab-Liste und Block-Overlay im Spiel, ein echtes Selbst-Update von 0.3.10 auf 0.3.11.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.10 (2026-11-05):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 412 Unit-Tests ohne Fehler (1 übersprungen); der Test der Weltliste prüft, dass es keinen Knopf „Klassisch“ mehr gibt.
 - **Smoke-Test** mit dem fertigen 0.3.10-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Mehrspieler- und Einzelspieler-Liste (26.3) sowie die Einzelspieler-Liste (1.8.9) ohne „Klassisch“ angesehen.

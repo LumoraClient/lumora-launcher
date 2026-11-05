@@ -1,6 +1,14 @@
 {
   "news": [
     {
+      "id": "lumora-settings-api-13",
+      "date": "2026-11-05",
+      "author": "Lumora",
+      "title": "Neue Einstellungen und Lumora API 1.3",
+      "text": "Die Einstellungsseiten der Module haben jetzt Abschnitte, Häkchen-Kästen, Knopfreihen, Aufklapp-Listen und einen Farbwähler mit Sättigung, Farbton, Deckkraft und Regenbogen. Einstellungen, die gerade nichts bewirken, werden ausgeblendet. Auch der Zoom hat jetzt eine richtige Einstellungsseite. Addon-Entwickler bekommen dieselben Möglichkeiten mit der Lumora API 1.3, ähnlich wie bei LabyMod.",
+      "image": "settings-api.png"
+    },
+    {
       "id": "lumora-attack-indicator",
       "date": "2026-11-05",
       "author": "Lumora",

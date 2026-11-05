@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.3.11 (2026-11-05)
+
+### Im Spiel
+- **Neue Einstellungsseiten:** Abschnitte mit Überschriften, Häkchen-Kästen, Knopfreihen und Aufklapp-Listen. Ein Klick auf ein Farbfeld öffnet einen Farbwähler mit Sättigung/Helligkeit, Farbton, Deckkraft, Palette und (wo angeboten) Regenbogen mit Tempo. Einstellungen, die gerade nichts bewirken, sind ausgeblendet (z. B. die Lautstärke, solange kein Ton an ist). Zahlen zeigen ihre Einheit (%, px, ms, s).
+- **Module:** Angriffsanzeige, Fadenkreuz, Block-Overlay, Verbindung, Chat, Tab-Liste und Button-Design nutzen die neuen Arten; die Farben von Angriffsanzeige und Fadenkreuz können als Regenbogen laufen. Die Tab-Liste hat einen Knopf „Position und Größe zurücksetzen“.
+- **Zoom:** Die eigene Zoom-Seite im Hub ist jetzt eine normale Einstellungsseite (Vergrößerung und Modus als Knopfreihe, Extras als Häkchen); die Werte bleiben in `lumora-client.json`.
+- **Behoben:** „Größe (%)“ der Angriffsanzeige und „Scoreboard-Größe (%)“ wurden in Minecraft als „Format error“ angezeigt.
+
+### Addons
+- **Lumora API 1.3.0** mit Einstellungs-Arten nach dem Vorbild von LabyMod: `checkbox`, `dropdown` und `selection` (auch mit Enums, `EnumSetting`), `button`, `chroma` (Farbwähler mit Regenbogen), `step`/`unit` an Zahlen, `section` für Überschriften, `requires`/`visibleWhen` für Einstellungen, die nur bei eingeschaltetem Schalter erscheinen. Alle Setter geben den konkreten Typ zurück, Casts entfallen. Addons für API 1.0 bis 1.2 laufen unverändert.
+- Doku: API-Referenz mit LabyMod-Vergleich, Kapitel „Einstellungen“ in CREATE_ADDON.md; das Beispiel-Addon zeigt die neuen Arten.
+
 ## 0.3.10 (2026-11-05)
 
 ### Im Spiel

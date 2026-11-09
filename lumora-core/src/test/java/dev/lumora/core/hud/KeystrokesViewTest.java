@@ -47,7 +47,9 @@ class KeystrokesViewTest {
         v.size.set(24);
         v.gap.set(0);
         assertEquals(72, v.width());
-        assertEquals(24 * 3 + 12 + 12, v.height(), "bars are half a key high");
+        assertEquals(24 * 3 + 9 + 9, v.height(), "jump and sneak bars as high as set (9 px)");
+        v.spaceHeight.set(20);
+        assertEquals(24 * 3 + 20 + 20, v.height());
         assertTrue(s.get("pressed").isPresent() && s.get("mouse").isPresent() && s.get("space").isPresent(),
                 "the ids of earlier versions stay, so saved choices are kept");
     }
@@ -77,6 +79,36 @@ class KeystrokesViewTest {
         // half the fade time: the key is half lit; after the full time it is fully lit
         assertEquals(KeystrokesView.mix(0x9C15111D, 0xD08B5CF6, 0.5f), firstKeyFill(v, keys, 1050));
         assertEquals(0xD08B5CF6, firstKeyFill(v, keys, 1100));
+    }
+
+    @Test
+    void theLiquidBounceFillGrowsFromTheEdgesWithCssEase() {
+        assertEquals(0f, KeystrokesView.ease(0f));
+        assertEquals(1f, KeystrokesView.ease(1f));
+        assertEquals(0.8f, KeystrokesView.ease(0.5f), 0.01f, "CSS ease is past 80 % at half the time");
+        KeystrokesView v = view(new SettingsGroup("k."));
+        v.liquidBounce();
+        assertEquals("fill", v.animation.get());
+        assertEquals(200, v.fade.get());
+        assertFalse(v.mouse.get(), "LiquidBounce shows W A S D and space only");
+        assertEquals(v.size.get(), v.spaceHeight.get(), "a full-height space key");
+        assertEquals(KeystrokesView.LB_ACTIVE, v.pressed.get());
+        v.rounded.set(false); // square keys: the fill is easy to check with plain rects
+        Keys keys = new Keys();
+        v.render(new FakeGraphics(), keys, true, 0, 1000);
+        keys.down.add(KeystrokesView.Key.UP);
+        FakeGraphics half = new FakeGraphics();
+        v.render(half, keys, true, 0, 1100);
+        // W key at x 20..38: pressed colour over the whole key, the key colour as a smaller hole in the middle
+        assertTrue(half.rects.stream().anyMatch(r -> r[0] == 20 && r[1] == 0 && r[2] == 38 && r[3] == 18), "colour under the key");
+        assertTrue(half.rects.stream().anyMatch(r -> r[0] > 20 && r[0] < 29 && r[1] > 0 && r[2] < 38), "the hole is still open at half the time");
+        FakeGraphics full = new FakeGraphics();
+        v.render(full, keys, true, 0, 1200);
+        assertFalse(full.rects.stream().anyMatch(r -> r[0] > 20 && r[0] < 29 && r[1] > 0 && r[1] < 9 && r[2] < 38),
+                "full after 200 ms");
+        v.lumora();
+        assertEquals("fade", v.animation.get());
+        assertTrue(v.mouse.get());
     }
 
     @Test

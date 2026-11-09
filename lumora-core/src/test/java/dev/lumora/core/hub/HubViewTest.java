@@ -150,6 +150,40 @@ class HubViewTest {
     }
 
     @Test
+    void buttonDesignAndListsAreOnTheThemesPageNotModuleCards() {
+        LumoraCore core = core();
+        FakeHost host = new FakeHost();
+        HubView view = new HubView(core, host);
+        List<HubView.Card> cards = view.cards();
+        assertFalse(cards.stream().anyMatch(c -> c.id().equals("addon:lumora-buttons")), "Button-Design only under Themes");
+        assertFalse(cards.stream().anyMatch(c -> c.id().equals("addon:lumora-browser")), "server and world list only under Themes");
+        assertTrue(cards.stream().anyMatch(c -> c.id().equals("addon:lumora-connection")), "Verbindung stays a module");
+        assertTrue(cards.stream().anyMatch(c -> c.id().equals("addon:lumora-attackindicator")));
+        // the Themes page switches the server list of the module
+        HubView.select(1);
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        String label = g.texts.contains("Lumora-Serverliste") ? "Lumora-Serverliste" : "Lumora server list";
+        assertTrue(g.texts.contains(label), g.texts.toString());
+        dev.lumora.api.config.BooleanSetting multiplayer = (dev.lumora.api.config.BooleanSetting) core.addonManager()
+                .record("lumora-browser").orElseThrow().configuration().settings().get("multiplayer").orElseThrow();
+        boolean before = multiplayer.enabled() && core.addon("lumora-browser").orElseThrow().wanted();
+        for (int i = 0; i < 30; i++) { // the rows sit at the bottom of the page: scroll down
+            view.mouseScrolled(427, 300, -5);
+            view.render(new FakeGraphics(), 854, 480, 427, 300);
+        }
+        boolean clicked = false;
+        for (int y = 40; y < 480 && !clicked; y += 3) {
+            HubView.select(1);
+            view.render(new FakeGraphics(), 854, 480, 600, y);
+            view.mouseClicked(600, y, 0);
+            clicked = (multiplayer.enabled() && core.addon("lumora-browser").orElseThrow().wanted()) != before;
+        }
+        assertTrue(clicked, "a click on the row switches the Lumora server list");
+        core.stopping(); // waits for the settings to be written before the temp folder is removed
+    }
+
+    @Test
     void categoriesStartWithAllAndEndWithAddons() {
         List<HubView.Card> cards = List.of(
                 card("a", "addons"), card("b", "world"), card("c", "player"), card("d", "custom"), card("e", "general"));

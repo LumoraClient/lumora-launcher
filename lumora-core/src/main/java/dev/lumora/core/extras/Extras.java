@@ -26,7 +26,7 @@ public final class Extras {
                         "Eigenes Fadenkreuz: Form, Größe, Abstand, Dicke, Farbe, Umrandung", CrosshairModule.class),
                         CrosshairModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-attackindicator", "Angriffsanzeige",
-                        "Aufladen von Schlag, Bogen, Armbrust und Dreizack, Item-Cooldowns, Essen, Abbauen: Minecraft, Balken, Ring oder Punkt",
+                        "Aufladen von Schlag, Bogen, Armbrust und Dreizack, Item-Cooldowns, Essen, Abbauen: Balken, Ring, Punkt, Levelleiste oder Bossleiste",
                         AttackIndicatorModule.class),
                         () -> new AttackIndicatorModule(platform::extras)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-blockoverlay", "Block-Overlay",

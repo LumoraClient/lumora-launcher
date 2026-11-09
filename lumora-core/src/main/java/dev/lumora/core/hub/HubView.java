@@ -66,8 +66,6 @@ public final class HubView implements AddonView {
             "lumora-crosshair", new String[]{WidgetCategory.COMBAT, "crosshair"},
             "lumora-attackindicator", new String[]{WidgetCategory.COMBAT, "attackindicator"},
             "lumora-blockoverlay", new String[]{WidgetCategory.WORLD, "blockoverlay"},
-            "lumora-buttons", new String[]{WidgetCategory.GENERAL, "buttons"},
-            "lumora-browser", new String[]{WidgetCategory.SERVER, "browser"},
             "lumora-connection", new String[]{WidgetCategory.SERVER, "connection"},
             "lumora-togglesprint", new String[]{WidgetCategory.PLAYER, "togglesprint"},
             "lumora-fullbright", new String[]{WidgetCategory.WORLD, "fullbright"},
@@ -83,6 +81,8 @@ public final class HubView implements AddonView {
     static final String ADDONS = "addons";
     /** Addons switched with the theme (Lumora's server and world lists, connection screens, button design). */
     static final List<String> THEME_ADDONS = List.of("lumora-browser", "lumora-connection", "lumora-buttons");
+    /** Built-in modules set on the Themes page only (no module card). */
+    static final Set<String> THEMES_PAGE_ADDONS = Set.of("lumora-buttons", "lumora-browser");
     private static final int[] DURATIONS = {150, 220, 350, 500};
     private static final String[] ZOOM_FACTORS = {"2", "3", "4", "6", "8", "10"};
     private static final String[] SWING = {"vanilla", "smooth", "spin", "slap"};
@@ -204,7 +204,7 @@ public final class HubView implements AddonView {
         // addons and modules with their own HUD widgets get one card; the widgets are sections of its settings
         java.util.Set<String> merged = new java.util.HashSet<>();
         for (AddonInfo a : core.addons()) {
-            if (WIDGET_CONTAINERS.contains(a.id())) {
+            if (WIDGET_CONTAINERS.contains(a.id()) || THEMES_PAGE_ADDONS.contains(a.id())) {
                 continue;
             }
             AddonRecord r = core.addonManager().record(a.id()).orElse(null);
@@ -908,6 +908,8 @@ public final class HubView implements AddonView {
                         () -> host.set("menuShaders", on ? "off" : "auto"));
             }
             y = toggleRow(g, x, y, w, t("Eigener Ladebildschirm", "Custom loading screen"), "customLoadingScreen", mx, my);
+            y = moduleToggleRow(g, x, y, w, t("Lumora-Serverliste", "Lumora server list"), "lumora-browser", "multiplayer", mx, my);
+            y = moduleToggleRow(g, x, y, w, t("Lumora-Weltliste", "Lumora world list"), "lumora-browser", "singleplayer", mx, my);
             if (bool("customMainMenu") && !host.inWorld()) {
                 boolean classic = host.classicMenuUntilRestart();
                 String value = classic ? t("Lumora zeigen", "Show Lumora") : t("Bis Neustart klassisch", "Classic until restart");
@@ -1015,6 +1017,9 @@ public final class HubView implements AddonView {
         }
         int rows = (styles.size() + cols - 1) / cols;
         y += rows * (bh + gap);
+        if (!ButtonStyleModule.LUMORA.equals(current)) {
+            y = moduleToggleRow(g, x, y, w, t("Button-Schatten", "Button shadow"), "lumora-buttons", "shadow", mx, my) + 3;
+        }
         g.text(t("Gilt für alle Menüs: Minecraft- und Lumora-Menüs, Hub, Server- und Weltliste",
                 "Applies to every menu: Minecraft's and Lumora's menus, hub, server and world list"), x, y, DIM, false);
         return y + 20;
@@ -1138,6 +1143,27 @@ public final class HubView implements AddonView {
             hit(x, y, w, h, action);
         }
         return y + h + 3;
+    }
+
+    /**
+     * A switch for a boolean setting of a built-in module (Themes page): on only while the module is on; switching it
+     * on also turns the module on.
+     */
+    private int moduleToggleRow(HudGraphics g, int x, int y, int w, String label, String addonId, String key, int mx, int my) {
+        AddonRecord r = core.addonManager().record(addonId).orElse(null);
+        if (r == null || r.configuration() == null
+                || !(r.configuration().settings().get(key).orElse(null) instanceof BooleanSetting setting)) {
+            return y;
+        }
+        boolean moduleOn = core.addon(addonId).map(AddonInfo::wanted).orElse(false);
+        boolean on = moduleOn && setting.enabled();
+        return row(g, x, y, w, label, mx, my, (rx, ry) -> switchControl(g, rx, ry, on), () -> {
+            setting.set(!on);
+            if (!on && !moduleOn) {
+                core.addonManager().setWanted(addonId, true).ifPresent(this::toast);
+            }
+            r.configuration().save();
+        });
     }
 
     private int toggleRow(HudGraphics g, int x, int y, int w, String label, String option, int mx, int my) {

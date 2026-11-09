@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.16 (2026-11-09)
+
+### Im Spiel
+- **Hub aufgeräumt:** „Button-Design“ und „Server- & Weltliste“ stehen nicht mehr in der Modulliste, weil sie zu Themes gehören. Dort sind jetzt auch ihre übrigen Einstellungen: „Button-Schatten“ (bei einem anderen Knopf-Stil als Lumora) und unter „Lumora-Design“ die Schalter „Lumora-Serverliste“ und „Lumora-Weltliste“. „Verbindung“ bleibt ein Modul, weil es Auto-Reconnect und Zeitüberschreitung enthält.
+- Die Beschreibung der Angriffsanzeige nennt die aktuellen Stile (Balken, Ring, Punkt, Levelleiste, Bossleiste).
+
 ## 0.3.15 (2026-11-05)
 
 ### Im Spiel

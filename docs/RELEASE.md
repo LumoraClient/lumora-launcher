@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.16 (2026-11-09):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 432 Unit-Tests ohne Fehler (1 übersprungen). Neu: 1 für den Hub (keine Karten für Button-Design und Server- & Weltliste, Verbindung bleibt; ein Klick auf „Lumora-Serverliste“ unter Themes schaltet die Serverliste um).
+- **Smoke-Test** mit dem fertigen 0.3.16-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Modulliste in 26.3 und 1.8.9 angesehen: 27 statt 29 Module, neue Beschreibung der Angriffsanzeige im Tooltip.
+- **Nicht geprüft:** die neuen Schalter unter Themes im Spiel angeklickt (sie liegen unterhalb der Smoke-Test-Aufnahme), ein echtes Selbst-Update von 0.3.15 auf 0.3.16.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
 **0.3.15 (2026-11-05):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 431 Unit-Tests ohne Fehler (1 übersprungen). Der Test der Angriffsanzeige prüft alle verbliebenen Stile und Positionen und dass ein gespeichertes „Wie in Minecraft“ zu „Am Fadenkreuz“ wird.
 - **Smoke-Test** mit dem fertigen 0.3.15-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Stil-Reihe der Angriffsanzeige mit den fünf verbliebenen Stilen in 26.3 angesehen.

@@ -1,5 +1,19 @@
 # Änderungen
 
+## 0.3.17 (2026-11-09)
+
+### Im Spiel
+- **Theme und Schriften fest im Client:** „Lumora Theme“ und „Lumora Schrift: …“ stehen nicht mehr unter Optionen › Ressourcenpakete. Beides ist jetzt eingebaut und wird nur noch im Hub unter Themes geschaltet:
+  - Die Lumora-Knöpfe und -Menüs sind an, wenn im Hub „Lumora“ gewählt ist, und aus bei „Vanilla“. Vorher blieb das Theme-Paket bei „Vanilla“ eingeschaltet.
+  - Die Schrift folgt der Auswahl unter Themes › Schrift.
+  - Theme und Schrift liegen über deinen eigenen Ressourcenpaketen, aber unter Ressourcenpaketen eines Servers. Eigene Server-Schriften und -GUIs bleiben damit erhalten.
+  - Eigene Pakete können die Lumora-Knöpfe nicht mehr durch Umsortieren überschreiben; für Minecraft-Knöpfe im Hub „Vanilla“ wählen.
+  - Wer im Hub eine Lumora-Schrift eingeschaltet hatte, deren Paket aber nicht aktiv war, sieht die Schrift jetzt.
+- 1.8.9 und 1.12.2 sind nicht betroffen (dort gab es diese Pakete nie).
+
+### Launcher
+- Der Launcher schaltet das Theme nicht mehr in der `options.txt` ein und entfernt alte Einträge `lumora:lumora_theme` und `lumora:lumora_font_…` daraus.
+
 ## 0.3.16 (2026-11-09)
 
 ### Im Spiel

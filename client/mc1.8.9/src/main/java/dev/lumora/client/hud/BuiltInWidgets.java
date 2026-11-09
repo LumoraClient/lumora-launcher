@@ -367,14 +367,44 @@ public final class BuiltInWidgets {
         }
     }
 
-    /** W A S D, mouse buttons and jump - lit while pressed. */
+    /** W A S D, mouse buttons, jump and sneak - lit while pressed, with clicks per second (Badlion-style options). */
     static final class Keystrokes extends Panel {
-        static final int K = 18;
-        static final int G = 2;
-        BooleanSetting mouse;
-        BooleanSetting space;
-        ColorSetting pressed;
+        /** Drawing and settings (Badlion-style options), shared by all versions. */
+        final dev.lumora.core.hud.KeystrokesView view = new dev.lumora.core.hud.KeystrokesView(
+                Colors.withAlpha(LumoraUi.BG, 0x9C), LumoraUi.ACCENT, LumoraUi.TEXT);
         private final String[] labels = {"W", "A", "S", "D"};
+        private final dev.lumora.core.hud.KeystrokesView.Input input = new dev.lumora.core.hud.KeystrokesView.Input() {
+            @Override
+            public boolean down(dev.lumora.core.hud.KeystrokesView.Key key) {
+                var o = MinecraftClient.getInstance().options;
+                return switch (key) {
+                    case UP -> o.forwardKey.isPressed();
+                    case LEFT -> o.leftKey.isPressed();
+                    case DOWN -> o.backKey.isPressed();
+                    case RIGHT -> o.rightKey.isPressed();
+                    case ATTACK -> o.attackKey.isPressed();
+                    case USE -> o.useKey.isPressed();
+                    case JUMP -> o.jumpKey.isPressed();
+                    case SNEAK -> o.sneakKey.isPressed();
+                };
+            }
+
+            @Override
+            public String label(dev.lumora.core.hud.KeystrokesView.Key key) {
+                return switch (key) {
+                    case UP -> labels[0];
+                    case LEFT -> labels[1];
+                    case DOWN -> labels[2];
+                    case RIGHT -> labels[3];
+                    default -> "";
+                };
+            }
+
+            @Override
+            public int cps(boolean left) {
+                return left ? ClickTracker.left() : ClickTracker.right();
+            }
+        };
 
         Keystrokes() {
             super("keystrokes");
@@ -392,9 +422,7 @@ public final class BuiltInWidgets {
 
         @Override
         void extra(SettingsGroup s) {
-            mouse = s.toggle("mouse", true);
-            space = s.toggle("space", true);
-            pressed = (ColorSetting) s.color("pressed", LumoraUi.ACCENT, false).advanced();
+            view.configure(s);
         }
 
         @Override
@@ -408,31 +436,17 @@ public final class BuiltInWidgets {
 
         @Override
         public int width(RenderContext ctx) {
-            return K * 3 + G * 2;
+            return view.width();
         }
 
         @Override
         public int height(RenderContext ctx) {
-            return K * 2 + G + (mouse.get() ? K + G : 0) + (space.get() ? 9 + G : 0);
+            return view.height();
         }
 
         @Override
         public void render(HudGraphics g, RenderContext ctx) {
-            var o = MinecraftClient.getInstance().options;
-            key(g, K + G, 0, K, K, labels[0], o.forwardKey.isPressed());
-            key(g, 0, K + G, K, K, labels[1], o.leftKey.isPressed());
-            key(g, K + G, K + G, K, K, labels[2], o.backKey.isPressed());
-            key(g, (K + G) * 2, K + G, K, K, labels[3], o.rightKey.isPressed());
-            int y = (K + G) * 2;
-            if (mouse.get()) {
-                int half = (K * 3 + G * 2 - G) / 2;
-                key(g, 0, y, half, K, "LMB", o.attackKey.isPressed());
-                key(g, half + G, y, half, K, "RMB", o.useKey.isPressed());
-                y += K + G;
-            }
-            if (space.get()) {
-                key(g, 0, y, K * 3 + G * 2, 9, "———", o.jumpKey.isPressed());
-            }
+            view.render(g, input, background.get(), valueColor.argb(), System.currentTimeMillis());
         }
 
         private static String label(KeyBinding k) {
@@ -440,11 +454,6 @@ public final class BuiltInWidgets {
             return s.length() > 3 ? s.substring(0, 1) : s.toUpperCase(Locale.ROOT);
         }
 
-        private void key(HudGraphics g, int x, int y, int w, int h, String text, boolean down) {
-            g.fill(x, y, x + w, y + h, down ? Colors.withAlpha(pressed.argb(), 0xD0) : Colors.withAlpha(LumoraUi.BG, background.get() ? 0x9C : 0x50));
-            int tw = g.textWidth(text);
-            g.text(text, x + (w - tw) / 2, y + (h - 8) / 2, down ? 0xFF0E0A16 : valueColor.argb(), !down);
-        }
     }
 
     /** Helmet, chest, legs, boots and held item with remaining durability (items need the vanilla item renderer). */

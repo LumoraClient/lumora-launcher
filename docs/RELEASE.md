@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.19 (2026-11-09):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 444 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Tastenanzeige (Größe folgt Tasten, Tastengröße und Abstand; bisherige Einstellungs-IDs bleiben; CPS auf den Maustasten an und aus; Übergang halb und ganz nach der gewählten Zeit; Rahmen mit 3 px Breite).
+- **Smoke-Test** mit dem fertigen 0.3.19-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. HUD-Aufnahme in 26.3 und 1.8.9 angesehen: „0 CPS“ unter LMB und RMB.
+- **Nicht geprüft:** die Einstellungsseite der Tastenanzeige im Spiel angesehen, abgerundete Tasten, Rahmen, Übergang und Schleichen-Taste im Spiel eingeschaltet, ein echtes Selbst-Update von 0.3.18 auf 0.3.19. Die Badlion-Seite ließ sich nicht abrufen; die Optionen folgen den bekannten Badlion-Keystrokes-Einstellungen.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
 **0.3.18 (2026-11-09):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 440 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die Addon-Bibliothek (Ordner neben den Instanzen, Zustände Verfügbar/Installiert/Aktualisieren/Nicht für diese Version/Fehlerhaft, Installieren kopiert die Datei und ersetzt die ältere Version, vorgemerkte Dateien werden beim Start gelöscht) und 2 für den Hub (Herz macht eine Karte zum Favoriten, der zuerst steht und eine eigene Kategorie hat, Klick auf das Herz nimmt ihn wieder weg; Klick auf „Installieren“ kopiert das Addon in die Instanz).
 - **Smoke-Test** mit dem fertigen 0.3.18-Build (stumm, Test-Datenordner, Beispiel-Addon, in der Test-Bibliothek LumoraVoice 0.8.2 und das Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Neue Aufnahme der Addon-Seite in 26.3 und 1.8.9 angesehen (LumoraVoice „v0.8.1 → v0.8.2 · Aktualisieren“, Beispiel-Addon „Installiert“), Modulkarten mit Herz in 26.3.

@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.19 (2026-11-09)
+
+### Im Spiel
+- **Tastenanzeige mit den Einstellungen der Badlion-Keystrokes**, in drei Abschnitten:
+  - **Tasten:** Maustasten, **CPS auf den Maustasten** (klein unter LMB und RMB, z. B. „12 CPS“), Leertaste und neu die **Schleichen-Taste** (standardmäßig aus).
+  - **Aussehen:** **Tastengröße** (14–28 px), **Abstand** (0–6 px), **Übergang** (0–400 ms, Tasten leuchten weich auf und ab), **abgerundete Tasten**, **Rahmen** mit Farbe und **Breite** (1–3 px), **Textschatten**.
+  - **Farben:** **Tastenfarbe** (mit Transparenz), Farbe gedrückt und **Textfarbe gedrückt**; beide „gedrückt“-Farben auch als Regenbogen.
+  - Bisherige Einstellungen (Maustasten, Leertaste, Farbe gedrückt) bleiben erhalten.
+
 ## 0.3.18 (2026-11-09)
 
 ### Im Spiel

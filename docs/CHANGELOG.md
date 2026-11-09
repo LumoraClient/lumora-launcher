@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.20 (2026-11-09)
+
+### Im Spiel
+- **Tastenanzeige mit Animationen von Badlion und LiquidBounce:**
+  - Neuer Abschnitt **Animation** mit der Auswahl **Überblenden (Badlion)** oder **Füllen (LiquidBounce)**: Beim Füllen wächst die Farbe beim Drücken vom Rand zur Mitte (wie bei LiquidBounce mit der CSS-Kurve „ease“). „Übergang“ heißt jetzt „Dauer“ (0–400 ms). Beim Füllen wechselt der Text erst die Farbe, wenn die Taste fast voll ist.
+  - Aus Badlion: **Höhe der Leertaste** (4–28 px) und **Textgröße** (50–150 %). Ab 14 px Höhe steht „Space“ auf der Leertaste.
+  - **Vorlagen:** „LiquidBounce-Stil“ übernimmt dessen Aussehen (nur WASD und Leertaste, abgerundet, Schwarz mit 68 % Deckkraft, weißer Text, blaue Füll-Animation in 200 ms); „Lumora-Stil“ setzt alles zurück.
+
 ## 0.3.19 (2026-11-09)
 
 ### Im Spiel

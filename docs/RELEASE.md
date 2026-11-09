@@ -67,6 +67,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.20 (2026-11-09):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 445 Unit-Tests ohne Fehler (1 übersprungen). Neu: 1 für die Tastenanzeige (CSS-Kurve „ease“, LiquidBounce-Vorlage, Füllen halb offen nach 100 ms und voll nach 200 ms, zurück zum Lumora-Stil); der Größen-Test prüft die einstellbare Höhe der Leertaste.
+- **Einzelbilder** der Animationen (Überblenden, Füllen, LiquidBounce-Vorlage; 0–300 ms) mit einem Zeichen-Hilfsprogramm erzeugt und angesehen; dabei gefunden und behoben: beim Füllen wurde der Text zu früh dunkel.
+- **Smoke-Test** mit dem fertigen 0.3.20-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden.
+- **Nicht geprüft:** die Animationen im laufenden Spiel beim Drücken (der Smoke-Test zeigt nur ungedrückte Tasten), die Einstellungsseite und die Vorlagen-Knöpfe im Spiel, ein echtes Selbst-Update von 0.3.19 auf 0.3.20.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
 **0.3.19 (2026-11-09):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 444 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Tastenanzeige (Größe folgt Tasten, Tastengröße und Abstand; bisherige Einstellungs-IDs bleiben; CPS auf den Maustasten an und aus; Übergang halb und ganz nach der gewählten Zeit; Rahmen mit 3 px Breite).
 - **Smoke-Test** mit dem fertigen 0.3.19-Build (stumm, Test-Datenordner, Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. HUD-Aufnahme in 26.3 und 1.8.9 angesehen: „0 CPS“ unter LMB und RMB.

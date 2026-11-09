@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.3.18 (2026-11-09)
+
+### Im Spiel
+- **Addon-Bibliothek:** Im Lumora-Ordner gibt es jetzt den Ordner `addons` (unter Windows `%APPDATA%\LumoraClient\addons`, der Launcher legt ihn an). Lumora-Addons (.jar), die dort liegen, erscheinen im Hub unter **Allgemein › Addons** als Karten mit Name, Beschreibung, Version und Autor:
+  - „Installieren“ kopiert das Addon in die Instanz; nach einem Neustart des Spiels ist es unter Module zu finden.
+  - Ist eine ältere Version installiert, steht dort „Aktualisieren“ (mit beiden Versionsnummern); die alte Datei wird ersetzt. Ist sie gerade geladen, wird sie beim nächsten Start gelöscht.
+  - Außerdem: „Installiert“, „Nach Neustart aktiv“, „Nicht für <Version>“ und „Fehlerhaft“ (mit Grund). „Ordner öffnen“ öffnet die Bibliothek.
+  - Aus den Dateien der Bibliothek wird nur die Beschreibung gelesen, kein Code ausgeführt, bevor ein Addon installiert ist.
+- **Favoriten:** Jede Modulkarte hat oben links ein Herz. Ein Klick macht die Karte zum Favoriten (rotes Herz): Favoriten stehen ganz oben und haben in der Seitenleiste den Eintrag „Favoriten“. Sie bleiben nach einem Neustart erhalten.
+- Durch den neuen Eintrag „Addons“ ist die Kategorieliste links etwas kürzer; die unteren Kategorien erreicht man durch Scrollen.
+
 ## 0.3.17 (2026-11-09)
 
 ### Im Spiel

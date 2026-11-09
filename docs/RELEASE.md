@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.18 (2026-11-09):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 440 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die Addon-Bibliothek (Ordner neben den Instanzen, Zustände Verfügbar/Installiert/Aktualisieren/Nicht für diese Version/Fehlerhaft, Installieren kopiert die Datei und ersetzt die ältere Version, vorgemerkte Dateien werden beim Start gelöscht) und 2 für den Hub (Herz macht eine Karte zum Favoriten, der zuerst steht und eine eigene Kategorie hat, Klick auf das Herz nimmt ihn wieder weg; Klick auf „Installieren“ kopiert das Addon in die Instanz).
+- **Smoke-Test** mit dem fertigen 0.3.18-Build (stumm, Test-Datenordner, Beispiel-Addon, in der Test-Bibliothek LumoraVoice 0.8.2 und das Beispiel-Addon): 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Neue Aufnahme der Addon-Seite in 26.3 und 1.8.9 angesehen (LumoraVoice „v0.8.1 → v0.8.2 · Aktualisieren“, Beispiel-Addon „Installiert“), Modulkarten mit Herz in 26.3.
+- **Nicht geprüft:** ein Addon im Spiel wirklich installiert und danach neu gestartet, das Ersetzen einer geladenen (gesperrten) älteren Version beim nächsten Start außerhalb der Tests, ein echtes Selbst-Update von 0.3.17 auf 0.3.18.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
 **0.3.17 (2026-11-09):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 435 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die eingebauten Ebenen (Theme folgt Lumora/Vanilla, Schrift folgt der Auswahl, Neuladen nur bei Änderung, Schrift-Vorgabe des Smoke-Tests); Launcher-Test für das Entfernen alter `lumora:lumora_…`-Einträge.
 - **Smoke-Test** mit dem fertigen 0.3.17-Build (stumm, Test-Datenordner, Beispiel-Addon): alle 16 Versionen bestanden (26.3, 26.2, 26.1.2, 1.21.11, 1.21.8, 1.21.4, 1.21, 1.20.6, 1.20.4, 1.20.1, 1.19.4, 1.18.2, 1.17.1, 1.16.5, 1.12.2, 1.8.9). 1.19.4 brach im ersten Durchlauf nach 84 s ohne Fehler und ohne Absturz ab (Spiel normal beendet, vermutlich Fenster geschlossen) und bestand in der Wiederholung. In den Spiel-Logs von 26.3, 1.21.11, 1.20.1 und 1.16.5 geprüft: Theme über den Spielerpaketen, Schrift kommt beim Einschalten dazu und geht beim Ausschalten; die options.txt enthält keine `lumora:lumora_…`-Einträge mehr.

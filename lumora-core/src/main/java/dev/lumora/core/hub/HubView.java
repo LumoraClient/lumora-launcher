@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public final class HubView implements AddonView {
     /** What the main area shows. */
-    public enum Page { MODULES, THEMES, PROFILES, SYSTEM }
+    public enum Page { MODULES, THEMES, PROFILES, SYSTEM, ADDONS }
 
     static final int TEXT = 0xFFECE8F4;
     static final int MUTED = 0xFF9D95AE;
@@ -56,6 +56,7 @@ public final class HubView implements AddonView {
     static final int FAILED = 0xFFB7791F;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
+    static final int HEART = 0xFFF0506E;
     static final TextureRef BACKGROUND = new TextureRef("lumora", "textures/gui/background_menu.png");
     static final TextureRef LOGO = new TextureRef("lumora", "icon.png");
 
@@ -79,6 +80,8 @@ public final class HubView implements AddonView {
             WidgetCategory.COMBAT, WidgetCategory.WORLD, WidgetCategory.SERVER, WidgetCategory.TIME, WidgetCategory.VOICE);
     static final String ALL = "all";
     static final String ADDONS = "addons";
+    /** Sidebar entry with the cards marked with the heart. */
+    static final String FAVORITES = "favorites";
     /** Addons switched with the theme (Lumora's server and world lists, connection screens, button design). */
     static final List<String> THEME_ADDONS = List.of("lumora-browser", "lumora-connection", "lumora-buttons");
     /** Built-in modules set on the Themes page only (no module card). */
@@ -137,6 +140,10 @@ public final class HubView implements AddonView {
     /** Click areas are limited to the visible content (while the scrolling content is drawn). */
     private boolean clipHits;
     private String lastCategory;
+    private final Favorites favorites;
+    private final dev.lumora.core.addon.AddonLibrary library;
+    private List<dev.lumora.core.addon.AddonLibrary.Entry> libraryEntries = List.of();
+    private long libraryScannedAt;
 
     public HubView(LumoraCore core, HubHost host) {
         this.core = core;
@@ -144,14 +151,21 @@ public final class HubView implements AddonView {
         Translations tr = core.translations();
         String lang = tr == null ? "" : tr.language();
         this.de = lang != null && lang.toLowerCase(Locale.ROOT).startsWith("de");
+        java.nio.file.Path config = core.platform().configDir();
+        this.favorites = new Favorites(config == null ? null : config.resolve("lumora").resolve("favorites.json"),
+                core.taskService().io());
+        java.nio.file.Path addonsDir = core.platform().addonsDir();
+        this.library = new dev.lumora.core.addon.AddonLibrary(dev.lumora.core.addon.AddonLibrary.locate(addonsDir), addonsDir,
+                core.minecraftVersion());
     }
 
-    /** Hub opened on a page (smoke test): 0 modules, 1 themes, 3 profiles, 4 system (2: modules, zoom is a settings page now). */
+    /** Hub opened on a page (smoke test): 0 modules, 1 themes, 3 profiles, 4 system, 5 addons (2: modules, zoom is a settings page now). */
     public static void select(int index) {
         page = switch (index) {
             case 1 -> Page.THEMES;
             case 3 -> Page.PROFILES;
             case 4 -> Page.SYSTEM;
+            case 5 -> Page.ADDONS;
             default -> Page.MODULES;
         };
         category = ALL;
@@ -162,6 +176,11 @@ public final class HubView implements AddonView {
     }
 
     // ------------------------------------------------------------------ data
+
+    /** The cards marked with the heart (tests). */
+    Favorites favorites() {
+        return favorites;
+    }
 
     private TextureRef icon(String name) {
         return icons.computeIfAbsent(name, n -> new TextureRef("lumora", "textures/gui/hub/" + n + ".png"));
@@ -259,7 +278,8 @@ public final class HubView implements AddonView {
                     hasSettings ? () -> host.openSettings(widgetName, widgetDesc, w.widget().settings(), List.of(), null, true) : null,
                     null, from));
         }
-        out.sort(Comparator.comparing(c -> c.name().toLowerCase(Locale.ROOT)));
+        // favorites (heart) first, then by name
+        out.sort(Comparator.comparing((Card c) -> !favorites.contains(c.id())).thenComparing(c -> c.name().toLowerCase(Locale.ROOT)));
         return out;
     }
 
@@ -287,10 +307,15 @@ public final class HubView implements AddonView {
 
     /** Cards of a category matching the search (name, description or source). */
     static List<Card> filter(List<Card> cards, String category, String search) {
+        return filter(cards, category, search, Set.of());
+    }
+
+    /** Same, with the favorites: the category {@link #FAVORITES} shows the cards with these ids. */
+    static List<Card> filter(List<Card> cards, String category, String search, Set<String> favorites) {
         String q = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         List<Card> out = new ArrayList<>();
         for (Card c : cards) {
-            if (!ALL.equals(category) && !c.category().equals(category)) {
+            if (FAVORITES.equals(category) ? !favorites.contains(c.id()) : !ALL.equals(category) && !c.category().equals(category)) {
                 continue;
             }
             if (!q.isEmpty() && !c.name().toLowerCase(Locale.ROOT).contains(q)
@@ -305,6 +330,7 @@ public final class HubView implements AddonView {
     String categoryName(String c) {
         return switch (c) {
             case ALL -> t("Alle", "All");
+            case FAVORITES -> t("Favoriten", "Favorites");
             case WidgetCategory.GENERAL -> t("Anzeige", "Display");
             case WidgetCategory.PLAYER -> t("Spieler", "Player");
             case WidgetCategory.COMBAT -> t("Kampf", "Combat");
@@ -323,6 +349,7 @@ public final class HubView implements AddonView {
 
     private static String categoryGlyph(String c) {
         return switch (c) {
+            case FAVORITES -> "heart_full";
             case ALL, WidgetCategory.GENERAL, WidgetCategory.PLAYER, WidgetCategory.COMBAT, WidgetCategory.WORLD,
                  WidgetCategory.SERVER, WidgetCategory.TIME, WidgetCategory.VOICE, ADDONS -> c;
             default -> "addons";
@@ -482,12 +509,19 @@ public final class HubView implements AddonView {
         int ih = compact ? 13 : 17;
         int gap = compact ? 1 : 2;
         int buttonH = compact ? 12 : 14;
-        int bottomH = buttonH + (compact ? 4 : 6) + (compact ? 10 : 12) + 4 * ih + (compact ? 6 : 12);
+        int bottomH = buttonH + (compact ? 4 : 6) + (compact ? 10 : 12) + 5 * ih + (compact ? 6 : 12);
         sideLeft = x;
         sideRight = x + w;
         sideTop = by + (compact ? 25 : 34);
         sideBottom = y + h - bottomH - 4;
-        List<String> cats = categories(cards);
+        List<String> cats = new ArrayList<>(categories(cards));
+        Set<String> favs = favorites.all();
+        int favCount = (int) cards.stream().filter(k -> favs.contains(k.id())).count();
+        if (favCount > 0) {
+            cats.add(1, FAVORITES);
+        } else if (FAVORITES.equals(category)) {
+            category = ALL; // the last heart was taken away
+        }
         int listH = cats.size() * (ih + gap);
         sideMax = Math.max(0, listH - (sideBottom - sideTop));
         sideScroll = Math.max(0, Math.min(sideMax, sideScroll));
@@ -495,7 +529,8 @@ public final class HubView implements AddonView {
         int iy = sideTop - Math.round(sideScroll);
         for (String c : cats) {
             boolean selected = page == Page.MODULES && c.equals(category);
-            int count = ALL.equals(c) ? cards.size() : (int) cards.stream().filter(k -> k.category().equals(c)).count();
+            int count = ALL.equals(c) ? cards.size() : FAVORITES.equals(c) ? favCount
+                    : (int) cards.stream().filter(k -> k.category().equals(c)).count();
             sideItem(g, x + 8, iy, w - 16, ih, categoryGlyph(c), categoryName(c), String.valueOf(count), selected, mx, my,
                     iy >= sideTop - ih && iy < sideBottom, () -> openCategory(c));
             iy += ih + gap;
@@ -527,6 +562,11 @@ public final class HubView implements AddonView {
         spaced(g, t("ALLGEMEIN", "GENERAL"), x + 12, yb, DIM);
         yb += compact ? 10 : 12;
         sideItem(g, x + 8, yb, w - 16, ih, "themes", "Themes", null, page == Page.THEMES, mx, my, true, () -> open(Page.THEMES));
+        yb += ih;
+        sideItem(g, x + 8, yb, w - 16, ih, "addons", "Addons", null, page == Page.ADDONS, mx, my, true, () -> {
+            open(Page.ADDONS);
+            libraryScannedAt = 0; // read the folder again
+        });
         yb += ih;
         sideItem(g, x + 8, yb, w - 16, ih, "hudeditor", t("HUD-Editor", "HUD editor"), null, false, mx, my, true, host::openHudEditor);
         yb += ih;
@@ -573,6 +613,7 @@ public final class HubView implements AddonView {
             case THEMES -> "Themes";
             case PROFILES -> t("Profile", "Profiles");
             case SYSTEM -> "System";
+            case ADDONS -> "Addons";
         };
         int titleX = left;
         g.push();
@@ -581,7 +622,7 @@ public final class HubView implements AddonView {
         g.text("§l" + title, 0, 0, TEXT, true);
         g.pop();
 
-        List<Card> shown = filter(cards, category, search);
+        List<Card> shown = filter(cards, category, search, favorites.all());
         if (page == Page.MODULES) {
             int sbw = Math.max(96, Math.min(170, (right - left) * 38 / 100));
             int sbh = 16;
@@ -613,6 +654,7 @@ public final class HubView implements AddonView {
             case THEMES -> themes(g, left, top, right - left, mx, my);
             case PROFILES -> profiles(g, left, top, right - left, mx, my);
             case SYSTEM -> system(g, left, top, right - left, mx, my);
+            case ADDONS -> addonsPage(g, left, top, right - left, mx, my);
         };
         clipHits = false;
         g.disableScissor();
@@ -765,6 +807,14 @@ public final class HubView implements AddonView {
             }
             HubGlyphs.draw(g, "menu", x + w - 13, y + 5, menuHover ? TEXT : LumoraTheme.accentHover());
         }
+        // heart top left: marks the card as a favorite (shown first, own sidebar entry)
+        boolean fav = favorites.contains(c.id());
+        boolean heartHover = visible && in(mx, my, x + 3, y + 3, 12, 12);
+        if (heartHover) {
+            g.roundedRect(x + 3, y + 3, 12, 12, 3, 0x20FFFFFF);
+        }
+        HubGlyphs.draw(g, fav ? "heart_full" : "heart", x + 5, y + 5,
+                fav ? HEART : heartHover || hover ? TEXT : LumoraTheme.alpha(TEXT, 0x80));
         if (visible) {
             int y1 = Math.max(y, contentTop);
             int y2 = Math.min(y + h, contentBottom);
@@ -778,6 +828,13 @@ public final class HubView implements AddonView {
                 }
                 if (c.menu() != null && y + 3 >= y1) {
                     hit(x + w - 15, y + 3, 12, 12, c.menu());
+                }
+                if (y + 3 >= y1) {
+                    String id = c.id();
+                    String name = c.name();
+                    hit(x + 3, y + 3, 12, 12, () -> toast(favorites.toggle(id)
+                            ? name + t(" ist jetzt ein Favorit", " is a favorite now")
+                            : name + t(" ist kein Favorit mehr", " is no favorite any more")));
                 }
             }
         }
@@ -1288,6 +1345,129 @@ public final class HubView implements AddonView {
     }
 
     // ---- system
+
+    /**
+     * Addons page: the jars of the addon library ({@code addons} in the Lumora folder) as cards with an install button.
+     * Installed addons load at the next start. Returns the height used.
+     */
+    private int addonsPage(HudGraphics g, int x, int y, int w, int mx, int my) {
+        int y0 = y;
+        long now = System.currentTimeMillis();
+        if (now - libraryScannedAt > 3000) {
+            libraryEntries = library.scan(); // the player may drop jars into the folder while the hub is open
+            libraryScannedAt = now;
+        }
+        java.nio.file.Path folder = library.folder();
+        if (folder == null) {
+            for (String l : wrap(g, t("Kein Lumora-Ordner gefunden: Die Addon-Bibliothek gibt es nur, wenn das Spiel über den "
+                    + "Lumora-Launcher läuft.", "No Lumora folder found: the addon library exists only when the game runs from the "
+                    + "Lumora launcher."), w)) {
+                g.text(l, x, y, MUTED, false);
+                y += 10;
+            }
+            return y - y0;
+        }
+        // header: where the library is, open it
+        String open = t("Ordner öffnen", "Open folder");
+        int ow = g.textWidth(open) + 16;
+        button(g, x + w - ow, y, ow, 16, open, false, mx, my, () -> {
+            try {
+                host.openFolder(folder);
+            } catch (java.io.IOException | RuntimeException e) {
+                toast(t("Ordner konnte nicht geöffnet werden", "Could not open the folder"));
+            }
+        });
+        g.text(trim(g, t("Bibliothek: ", "Library: ") + folder, w - ow - 8), x, y + 4, MUTED, false);
+        y += 22;
+        if (libraryEntries.isEmpty()) {
+            for (String l : wrap(g, t("Noch keine Addons in der Bibliothek. Lege Lumora-Addons (.jar) in den Ordner oben; "
+                    + "sie erscheinen hier und lassen sich mit einem Klick installieren.",
+                    "No addons in the library yet. Put Lumora addons (.jar) into the folder above; they show up here and "
+                            + "install with one click."), w)) {
+                g.text(l, x, y, MUTED, false);
+                y += 10;
+            }
+            return y - y0;
+        }
+        int gap = 8;
+        int cols = w >= 2 * 180 + gap ? 2 : 1;
+        int cw = (w - (cols - 1) * gap) / cols;
+        int ch = 62;
+        for (int i = 0; i < libraryEntries.size(); i++) {
+            int cx = x + (i % cols) * (cw + gap);
+            int cy = y + (i / cols) * (ch + gap);
+            if (cy + ch >= contentTop - 4 && cy <= contentBottom + 4) {
+                libraryCard(g, libraryEntries.get(i), cx, cy, cw, ch, mx, my);
+            }
+        }
+        int rows = (libraryEntries.size() + cols - 1) / cols;
+        y += rows * (ch + gap);
+        for (String l : wrap(g, t("Installierte Addons sind nach einem Neustart des Spiels unter Module zu finden.",
+                "Installed addons show up under Modules after restarting the game."), w)) {
+            g.text(l, x, y, DIM, false);
+            y += 10;
+        }
+        return y + 2 - y0;
+    }
+
+    private void libraryCard(HudGraphics g, dev.lumora.core.addon.AddonLibrary.Entry e, int x, int y, int w, int h, int mx, int my) {
+        boolean visible = my >= contentTop && my < contentBottom;
+        boolean hover = visible && in(mx, my, x, y, w, h);
+        g.roundedRect(x, y, w, h, 5, hover ? 0xFF3A3450 : BORDER);
+        g.roundedRect(x + 1, y + 1, w - 2, h - 2, 4, hover ? CARD_HOVER : CARD);
+        g.texture(icon("addon"), x + 8, y + 8, 32, 32, 32, 32);
+        int tx = x + 48;
+        int tw = w - 56;
+        g.text(trim(g, "§l" + e.name(), tw), tx, y + 7, TEXT, false);
+        String desc = e.descriptor() == null ? e.error() : e.descriptor().description();
+        int ly = y + 19;
+        List<String> lines = wrap(g, desc == null ? "" : desc, tw);
+        for (int i = 0; i < Math.min(2, lines.size()); i++) {
+            String l = i == 1 && lines.size() > 2 ? trim(g, lines.get(1) + " …", tw) : lines.get(i);
+            g.text(l, tx, ly, e.status() == dev.lumora.core.addon.AddonLibrary.Status.BROKEN ? WARN : MUTED, false);
+            ly += 9;
+        }
+        String label;
+        boolean action = false;
+        switch (e.status()) {
+            case AVAILABLE -> {
+                label = t("Installieren", "Install");
+                action = true;
+            }
+            case UPDATE -> {
+                label = t("Aktualisieren", "Update");
+                action = true;
+            }
+            case INSTALLED -> label = t("Installiert", "Installed");
+            case RESTART -> label = t("Nach Neustart aktiv", "Active after restart");
+            case INCOMPATIBLE -> label = t("Nicht für ", "Not for ") + core.minecraftVersion();
+            default -> label = t("Fehlerhaft", "Broken");
+        }
+        int bh = 14;
+        int bw = g.textWidth(label) + 16;
+        int bx = x + w - 8 - bw;
+        int by = y + h - 8 - bh;
+        if (e.descriptor() != null) {
+            String meta = "v" + e.descriptor().version()
+                    + (e.descriptor().authors().isEmpty() ? "" : " · " + String.join(", ", e.descriptor().authors()));
+            if (e.status() == dev.lumora.core.addon.AddonLibrary.Status.UPDATE && e.installed() != null) {
+                meta = "v" + e.installed() + " → " + meta;
+            }
+            g.text(trim(g, meta, bx - tx - 6), tx, by + 3, DIM, false);
+        }
+        if (action) {
+            button(g, bx, by, bw, bh, label, true, mx, my, () -> {
+                String error = library.install(e);
+                toast(error == null ? e.name() + t(" installiert: nach einem Neustart aktiv", " installed: active after a restart")
+                        : t("Installieren fehlgeschlagen: ", "Install failed: ") + error);
+                libraryScannedAt = 0;
+            });
+        } else {
+            boolean ok = e.status() == dev.lumora.core.addon.AddonLibrary.Status.INSTALLED;
+            g.roundedRect(bx, by, bw, bh, 4, 0xFF2A2438);
+            g.centeredText(label, bx + bw / 2 + 1, by + (bh - 8) / 2, ok ? OK : MUTED, false);
+        }
+    }
 
     private int system(HudGraphics g, int x, int y, int w, int mx, int my) {
         int y0 = y;

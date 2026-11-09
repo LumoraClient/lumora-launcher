@@ -77,6 +77,7 @@ public final class JarAddonLoader implements AutoCloseable {
         List<Path> jars;
         try {
             Files.createDirectories(dir);
+            AddonLibrary.removePending(dir); // older copies replaced from the addon library while they were loaded
             try (Stream<Path> s = Files.list(dir)) {
                 jars = s.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar"))
                         .sorted(Comparator.comparing(p -> p.getFileName().toString().toLowerCase(Locale.ROOT)))

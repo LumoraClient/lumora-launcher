@@ -172,6 +172,7 @@ public final class SmokeTest {
                     pending.add(new Shot("transition", parent -> new OptionsScreen(parent, mc.options, false), 2));
                     pending.add(new Shot("hub-modules", parent -> LumoraHubScreen.withTab(parent, 0)));
                     pending.add(new Shot("hub-themes", parent -> LumoraHubScreen.withTab(parent, 1)));
+                    pending.add(new Shot("hub-addons", parent -> LumoraHubScreen.withTab(parent, 5)));
                     pending.add(new Shot("hud-editor", HudEditorScreen::new));
                     // Lumora API: move a widget with the editor logic (saved; the next run logs it as loaded), its
                     // generated settings screen and the addon list

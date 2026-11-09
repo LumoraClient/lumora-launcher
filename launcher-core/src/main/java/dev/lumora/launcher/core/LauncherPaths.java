@@ -88,4 +88,9 @@ public record LauncherPaths(Path root) {
     public Path diagnostics() {
         return root.resolve("diagnostics");
     }
+
+    /** Addon library: Lumora addon jars offered in the hub (Addons) and installed into an instance from there. */
+    public Path addonLibrary() {
+        return root.resolve("addons");
+    }
 }

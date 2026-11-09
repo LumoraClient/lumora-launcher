@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -93,7 +94,7 @@ class HubViewTest {
     void everyPageRendersOnSmallAndLargeScreens() {
         LumoraCore core = core();
         HubView view = new HubView(core, new FakeHost());
-        for (int page = 0; page < 5; page++) {
+        for (int page = 0; page < 6; page++) {
             HubView.select(page);
             for (int[] size : new int[][]{{320, 240}, {427, 240}, {854, 480}, {1280, 720}}) {
                 FakeGraphics g = new FakeGraphics();
@@ -181,6 +182,61 @@ class HubViewTest {
         }
         assertTrue(clicked, "a click on the row switches the Lumora server list");
         core.stopping(); // waits for the settings to be written before the temp folder is removed
+    }
+
+    @Test
+    void theHeartMarksAFavoriteThatComesFirst() {
+        LumoraCore core = core();
+        HubView view = new HubView(core, new FakeHost());
+        assertTrue(view.favorites().isEmpty());
+        view.favorites().toggle("addon:lumora-crosshair");
+        List<HubView.Card> cards = view.cards();
+        assertEquals("addon:lumora-crosshair", cards.get(0).id(), "favorites first");
+        assertEquals(1, HubView.filter(cards, HubView.FAVORITES, "", view.favorites().all()).size());
+        HubView.select(0);
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        assertTrue(g.texts.contains("Favorites") || g.texts.contains("Favoriten"), "own sidebar entry");
+        // a click on the heart of the first card (top left) takes the favorite away again
+        boolean clicked = false;
+        for (int y = 40; y < 200 && !clicked; y++) {
+            for (int x = 150; x < 600 && !clicked; x++) {
+                view.render(new FakeGraphics(), 854, 480, x, y);
+                view.mouseClicked(x, y, 0);
+                clicked = view.favorites().isEmpty();
+            }
+        }
+        assertTrue(clicked, "the heart toggles the favorite");
+        core.stopping();
+    }
+
+    @Test
+    void theAddonsPageListsTheLibraryAndInstalls() throws Exception {
+        FakePlatform platform = new FakePlatform(dir);
+        platform.addons = dir.resolve("LumoraClient").resolve("instances").resolve("26.3").resolve("addons");
+        Path library = dir.resolve("LumoraClient").resolve("addons");
+        dev.lumora.core.addon.AddonLibraryTest.jar(library, "voice-1.0.jar", "voice", "1.0.0", "*");
+        LumoraCore core = new LumoraCore(platform);
+        core.loadAddons(Extras.candidates(platform));
+        HubView view = new HubView(core, new FakeHost());
+        HubView.select(5);
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        assertTrue(g.texts.contains("§lAddons"), "page title");
+        assertTrue(g.texts.stream().anyMatch(t -> t.contains("voice name")), g.texts.toString());
+        String install = g.texts.contains("Installieren") ? "Installieren" : "Install";
+        assertTrue(g.texts.contains(install));
+        boolean installed = false;
+        for (int y = 60; y < 300 && !installed; y += 2) {
+            for (int x = 200; x < 850 && !installed; x += 4) {
+                HubView.select(5);
+                view.render(new FakeGraphics(), 854, 480, x, y);
+                view.mouseClicked(x, y, 0);
+                installed = Files.isRegularFile(platform.addons.resolve("voice-1.0.jar"));
+            }
+        }
+        assertTrue(installed, "the install button copies the jar into the game's addon folder");
+        core.stopping();
     }
 
     @Test

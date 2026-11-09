@@ -134,6 +134,8 @@ public final class ClientInstaller {
             progress.progress(1, "");
             return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, null);
         }
+        // the addon library next to the instances: addon jars there are offered in the hub (Addons) for installing
+        Files.createDirectories(paths.addonLibrary());
 
         // the Lumora jar(s) of the profile (verified); they live in .lumora/client, a mods/ folder is left alone
         progress.stage("Installiere Client-Komponenten (" + profile.displayName + ")");

@@ -54,6 +54,9 @@ public final class HubView implements AddonView {
     static final int OFF = 0xFFB8243F;
     static final int OFF_HOVER = 0xFFD03755;
     static final int FAILED = 0xFFB7791F;
+    /** Not available in this version (grey, with a hover window that says why). */
+    static final int LOCKED = 0xFF4A4458;
+    static final int LOCKED_HOVER = 0xFF5A5368;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int HEART = 0xFFF0506E;
@@ -96,10 +99,17 @@ public final class HubView implements AddonView {
     /**
      * One module card.
      *
-     * @param keywords more search terms (e.g. the names of the HUD widgets shown in the card's settings)
+     * @param keywords    more search terms (e.g. the names of the HUD widgets shown in the card's settings)
+     * @param unavailable why the module does not work in this Minecraft or Lumora version (hover window), or null
      */
     record Card(String id, String name, String description, String category, String icon, boolean enabled,
-                String failure, Runnable toggle, Runnable settings, Runnable menu, String from, String keywords) {
+                String failure, Runnable toggle, Runnable settings, Runnable menu, String from, String keywords,
+                List<String> unavailable) {
+        Card(String id, String name, String description, String category, String icon, boolean enabled,
+             String failure, Runnable toggle, Runnable settings, Runnable menu, String from, String keywords) {
+            this(id, name, description, category, icon, enabled, failure, toggle, settings, menu, from, keywords, null);
+        }
+
         Card(String id, String name, String description, String category, String icon, boolean enabled,
              String failure, Runnable toggle, Runnable settings, Runnable menu, String from) {
             this(id, name, description, category, icon, enabled, failure, toggle, settings, menu, from, "");
@@ -131,9 +141,11 @@ public final class HubView implements AddonView {
     private int sideBottom;
     private int sideLeft;
     private int sideRight;
+    /** Element under the mouse (cards, library cards, locked rows) and since when; its hover window waits a moment. */
     private String hovered;
     private long hoveredSince;
-    private Card tooltipCard;
+    private String frameTipKey;
+    private java.util.function.Supplier<Tip> frameTip;
     private String toast = "";
     private long toastAt;
     private Page lastPage;
@@ -245,14 +257,21 @@ public final class HubView implements AddonView {
             Runnable menu = core.views().hasMenu(a.id()) ? () -> core.views().openMenu(a.id()) : null;
             boolean failed = a.state() == AddonState.FAILED;
             String[] builtIn = BUILT_IN.get(a.id());
+            List<String> unavailable = failed ? unavailable(a.descriptor()) : null;
             Runnable toggle = failed && !a.wanted() ? null : () -> core.addonManager().setWanted(a.id(), !a.wanted())
                     .ifPresent(this::toast);
+            if (unavailable != null) {
+                // nothing to switch: a click says why
+                String why = unavailable.get(0);
+                toggle = () -> toast(why);
+            }
             String desc = a.descriptor().description();
             out.add(new Card("addon:" + a.id(), a.descriptor().name(), desc == null ? "" : desc,
                     builtIn != null ? builtIn[0] : ADDONS, builtIn != null ? builtIn[1] : "addon",
                     a.wanted() && !failed, failed ? a.error().orElse(t("Fehler beim Laden", "Failed to load")) : null,
-                    toggle, settings, menu, builtIn == null && !a.descriptor().builtIn() ? a.descriptor().source() : null,
-                    String.join(" ", own.stream().map(w -> widgetName(tr, w)).toList())));
+                    toggle, unavailable != null ? null : settings, menu,
+                    builtIn == null && !a.descriptor().builtIn() ? a.descriptor().source() : null,
+                    String.join(" ", own.stream().map(w -> widgetName(tr, w)).toList()), unavailable));
             addonNames.add(a.descriptor().name().toLowerCase(Locale.ROOT));
         }
         for (WidgetInfo w : core.widgets()) {
@@ -280,6 +299,22 @@ public final class HubView implements AddonView {
         }
         // favorites (heart) first, then by name
         out.sort(Comparator.comparing((Card c) -> !favorites.contains(c.id())).thenComparing(c -> c.name().toLowerCase(Locale.ROOT)));
+        return out;
+    }
+
+    /**
+     * Why an addon does not run in this version (too old, too new, not listed, Lumora too old), with the note for addons
+     * by other authors as last line (marked with §7); {@code null} if the version is not the problem.
+     */
+    List<String> unavailable(dev.lumora.api.addon.AddonDescriptor d) {
+        dev.lumora.core.addon.VersionSupport.Problem p = dev.lumora.core.addon.VersionSupport.check(d, core.minecraftVersion());
+        if (p == null) {
+            return null;
+        }
+        List<String> out = new ArrayList<>(p.describe(de, d.name()));
+        if (dev.lumora.core.addon.VersionSupport.thirdParty(d)) {
+            out.add("§7" + dev.lumora.core.addon.VersionSupport.thirdPartyNote(de, d));
+        }
         return out;
     }
 
@@ -428,7 +463,8 @@ public final class HubView implements AddonView {
     @Override
     public void render(HudGraphics g, int width, int height, int mouseX, int mouseY) {
         hits.clear();
-        tooltipCard = null;
+        frameTipKey = null;
+        frameTip = null;
         long now = System.currentTimeMillis();
         if (openedAt == 0) {
             openedAt = now;
@@ -730,7 +766,6 @@ public final class HubView implements AddonView {
         int cols = Math.max(1, (w + gap) / (minW + gap));
         int cw = (w - (cols - 1) * gap) / cols;
         int ch = compact ? 68 : 76;
-        String now = null;
         for (int i = 0; i < cards.size(); i++) {
             int cx = x + (i % cols) * (cw + gap);
             int cy = y + (i / cols) * (ch + gap);
@@ -739,15 +774,8 @@ public final class HubView implements AddonView {
             }
             Card c = cards.get(i);
             if (card(g, c, cx, cy, cw, ch, compact, mx, my)) {
-                now = c.id();
-                if (c.id().equals(hovered) && System.currentTimeMillis() - hoveredSince > 450) {
-                    tooltipCard = c;
-                }
+                offerTip(c.id(), () -> cardTip(g, c));
             }
-        }
-        if (now == null || !now.equals(hovered)) {
-            hovered = now;
-            hoveredSince = System.currentTimeMillis();
         }
         int rows = (cards.size() + cols - 1) / cols;
         return rows * (ch + gap) - gap;
@@ -767,8 +795,14 @@ public final class HubView implements AddonView {
         g.fill(x + 5, y + 1, x + w - 5, y + 2, 0x0EFFFFFF);
 
         int iconY = y + (compact ? 5 : 8);
+        boolean locked = c.unavailable() != null;
         g.texture(icon(c.icon()), x + (w - 32) / 2, iconY, 32, 32, 32, 32);
-        g.centeredText(trim(g, c.name(), w - 10), x + w / 2, iconY + 35, TEXT, false);
+        if (locked) {
+            // greyed out: the icon behind a veil, a lock on top
+            g.fill(x + (w - 32) / 2, iconY, x + (w + 32) / 2, iconY + 32, LumoraTheme.alpha(hover ? CARD_HOVER : CARD, 0xA8));
+            HubGlyphs.draw(g, "lock", x + (w - HubGlyphs.SIZE) / 2, iconY + (32 - HubGlyphs.SIZE) / 2, MUTED);
+        }
+        g.centeredText(trim(g, c.name(), w - 10), x + w / 2, iconY + 35, locked ? MUTED : TEXT, false);
 
         int bh = 14;
         int bx = x + 1;
@@ -779,7 +813,13 @@ public final class HubView implements AddonView {
         boolean barHover = visible && in(mx, my, bx, by, mainW, bh);
         int col;
         String label;
-        if (c.failure() != null) {
+        if (locked) {
+            col = barHover ? LOCKED_HOVER : LOCKED;
+            label = t("INKOMPATIBEL", "INCOMPATIBLE");
+            if (spacedWidth(g, label) > mainW - 6) {
+                label = t("N/V", "N/A");
+            }
+        } else if (c.failure() != null) {
             col = barHover && c.toggle() != null ? 0xFFCC8A28 : FAILED;
             label = t("FEHLER", "ERROR");
         } else if (c.enabled()) {
@@ -853,10 +893,34 @@ public final class HubView implements AddonView {
         }
     }
 
-    private void tooltip(HudGraphics g, int width, int height, int mx, int my, long now) {
-        Card c = tooltipCard;
-        if (c == null) {
-            return;
+    /** Hover window: bold title and lines (with § colour codes). */
+    record Tip(String title, List<String> lines) {
+    }
+
+    /** Wait before a hover window shows, so it does not flicker while the mouse moves over the cards. */
+    static final long TIP_DELAY = 450;
+    /** Wait of this hub (tests set 0). */
+    long tipDelay = TIP_DELAY;
+
+    /** The element {@code key} is under the mouse this frame; its hover window comes from {@code tip}. */
+    private void offerTip(String key, java.util.function.Supplier<Tip> tip) {
+        frameTipKey = key;
+        frameTip = tip;
+    }
+
+    private Tip cardTip(HudGraphics g, Card c) {
+        if (c.unavailable() != null) {
+            // only the reason (and who made it), like a "not compatible" note
+            List<String> reasons = new ArrayList<>();
+            String note = null;
+            for (String reason : c.unavailable()) {
+                if (reason.startsWith("§7")) {
+                    note = reason.substring(2);
+                } else {
+                    reasons.add(reason);
+                }
+            }
+            return unavailableTip(g, c.name(), reasons, note);
         }
         List<String> lines = new ArrayList<>();
         int max = 170;
@@ -874,21 +938,49 @@ public final class HubView implements AddonView {
         if (c.settings() != null) {
             lines.add("§7" + t("Zahnrad: Einstellungen", "Gear: settings"));
         }
-        if (lines.isEmpty()) {
+        return lines.isEmpty() ? null : new Tip(c.name(), lines);
+    }
+
+    /** Hover window of something that does not work in this version: reason lines in orange, note in grey. */
+    private Tip unavailableTip(HudGraphics g, String title, List<String> reasons, String note) {
+        List<String> lines = new ArrayList<>();
+        for (String reason : reasons) {
+            for (String l : wrap(g, reason, 190)) {
+                lines.add("§6" + l);
+            }
+        }
+        if (note != null) {
+            for (String l : wrap(g, note, 190)) {
+                lines.add("§7" + l);
+            }
+        }
+        return new Tip(title, lines);
+    }
+
+    private void tooltip(HudGraphics g, int width, int height, int mx, int my, long now) {
+        if (frameTipKey == null || !frameTipKey.equals(hovered)) {
+            hovered = frameTipKey;
+            hoveredSince = now;
+        }
+        if (frameTipKey == null || now - hoveredSince < tipDelay) {
+            return;
+        }
+        Tip tip = frameTip.get();
+        if (tip == null || tip.lines().isEmpty()) {
             return;
         }
         int tw = 0;
-        for (String l : lines) {
+        for (String l : tip.lines()) {
             tw = Math.max(tw, g.textWidth(l));
         }
-        int th = lines.size() * 10 + 6 + 12;
-        tw = Math.max(tw, g.textWidth("§l" + c.name())) + 12;
+        int th = tip.lines().size() * 10 + 6 + 12;
+        tw = Math.max(tw, g.textWidth("§l" + tip.title())) + 12;
         int x = Math.min(mx + 10, width - tw - 4);
         int y = Math.min(my + 12, height - th - 4);
         g.card(x, y, tw, th, 4, 0xF2100E18, LumoraTheme.alpha(LumoraTheme.accent(), 0xB0));
-        g.text("§l" + c.name(), x + 6, y + 5, TEXT, false);
+        g.text("§l" + tip.title(), x + 6, y + 5, TEXT, false);
         int ly = y + 17;
-        for (String l : lines) {
+        for (String l : tip.lines()) {
             g.text(l, x + 6, ly, MUTED, false);
             ly += 10;
         }
@@ -953,6 +1045,11 @@ public final class HubView implements AddonView {
             y += d + 14;
             if (host.fontSupported() && host.has("font")) {
                 y = fonts(g, x, y, w, mx, my);
+            } else if (host.has("font")) {
+                spaced(g, t("SCHRIFT", "FONT"), x, y, DIM);
+                y += 13;
+                y = lockedRow(g, x, y, w, t("Lumora-Schriften", "Lumora fonts"), "font-locked", fontUnavailable(), mx, my);
+                y += 8;
             }
             y = buttonStyles(g, x, y, w, mx, my);
             spaced(g, t("LUMORA-DESIGN", "LUMORA DESIGN"), x, y, DIM);
@@ -1187,6 +1284,38 @@ public final class HubView implements AddonView {
 
     private interface Control {
         void draw(int right, int y);
+    }
+
+    /**
+     * A setting that does not exist in this Minecraft version: greyed out with a lock, the hover window says why, a
+     * click shows the first reason as a toast.
+     */
+    private int lockedRow(HudGraphics g, int x, int y, int w, String label, String key, List<String> reasons, int mx, int my) {
+        int h = 20;
+        boolean hover = in(mx, my, x, y, w, h) && my >= contentTop && my < contentBottom;
+        g.roundedRect(x, y, w, h, 4, hover ? CARD_HOVER : CARD);
+        g.text(label, x + 9, y + 6, DIM, false);
+        String value = t("Nicht verfügbar", "Not available");
+        int vw = g.textWidth(value);
+        g.text(value, x + w - 8 - vw, y + 6, DIM, false);
+        HubGlyphs.draw(g, "lock", x + w - 8 - vw - 4 - HubGlyphs.SIZE, y + (h - HubGlyphs.SIZE) / 2, DIM);
+        if (hover) {
+            offerTip(key, () -> unavailableTip(g, label, reasons, null));
+        }
+        if (my >= contentTop && my < contentBottom && y + h > contentTop && y < contentBottom) {
+            String first = reasons.get(0);
+            hit(x, y, w, h, () -> toast(first));
+        }
+        return y + h + 3;
+    }
+
+    /** Why the Lumora fonts are missing in this version (they need TrueType fonts, Minecraft 1.13+). */
+    List<String> fontUnavailable() {
+        String mc = core.minecraftVersion();
+        return List.of(t("Eigene Schriften sind mit Minecraft " + mc + " nicht verfügbar.",
+                        "Custom fonts are not available with Minecraft " + mc + "."),
+                t("Diese Version ist zu alt: Schriften (TrueType) gibt es erst ab Minecraft 1.13.",
+                        "This version is too old: fonts (TrueType) need Minecraft 1.13 or newer."));
     }
 
     /** A settings row with a label and a control at the right; returns the y of the next row. */
@@ -1440,8 +1569,24 @@ public final class HubView implements AddonView {
             }
             case INSTALLED -> label = t("Installiert", "Installed");
             case RESTART -> label = t("Nach Neustart aktiv", "Active after restart");
-            case INCOMPATIBLE -> label = t("Nicht für ", "Not for ") + core.minecraftVersion();
-            default -> label = t("Fehlerhaft", "Broken");
+            case INCOMPATIBLE -> {
+                dev.lumora.core.addon.VersionSupport.Problem p = e.descriptor() == null ? null
+                        : dev.lumora.core.addon.VersionSupport.check(e.descriptor(), core.minecraftVersion());
+                label = p != null && p.kind() == dev.lumora.core.addon.VersionSupport.Kind.LUMORA_TOO_OLD
+                        ? t("Lumora zu alt", "Lumora too old") : t("Nicht für ", "Not for ") + core.minecraftVersion();
+                if (hover && p != null) {
+                    dev.lumora.api.addon.AddonDescriptor d = e.descriptor();
+                    offerTip("library:" + e.jar(), () -> unavailableTip(g, e.name(), p.describe(de, e.name()),
+                            dev.lumora.core.addon.VersionSupport.thirdParty(d)
+                                    ? dev.lumora.core.addon.VersionSupport.thirdPartyNote(de, d) : null));
+                }
+            }
+            default -> {
+                label = t("Fehlerhaft", "Broken");
+                if (hover && e.error() != null) {
+                    offerTip("library:" + e.jar(), () -> unavailableTip(g, e.name(), List.of(e.error()), null));
+                }
+            }
         }
         int bh = 14;
         int bw = g.textWidth(label) + 16;

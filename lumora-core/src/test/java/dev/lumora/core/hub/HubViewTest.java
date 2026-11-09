@@ -47,7 +47,9 @@ class HubViewTest {
                 LumoraTheme.setAccent(String.valueOf(value));
             }
         }
-        @Override public boolean fontSupported() { return true; }
+        boolean fonts = true;
+
+        @Override public boolean fontSupported() { return fonts; }
         @Override public String zoomKey() { return "C"; }
         @Override public void openHudEditor() { editorOpened++; }
         String openedTitle;
@@ -236,6 +238,83 @@ class HubViewTest {
             }
         }
         assertTrue(installed, "the install button copies the jar into the game's addon folder");
+        core.stopping();
+    }
+
+    /** Moves the mouse over the page until a text containing one of {@code wanted} is drawn. */
+    private static boolean hoverFinds(HubView view, int page, String... wanted) {
+        for (int y = 40; y < 440; y += 9) {
+            for (int x = 140; x < 840; x += 14) {
+                HubView.select(page);
+                FakeGraphics g = new FakeGraphics();
+                view.render(g, 854, 480, x, y);
+                for (String w : wanted) {
+                    if (g.texts.stream().anyMatch(t -> t.contains(w))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Test
+    void anAddonForOtherVersionsIsLockedAndTheHoverWindowSaysWhy() {
+        FakePlatform platform = new FakePlatform(dir);
+        platform.mc = "26.2";
+        LumoraCore core = new LumoraCore(platform);
+        dev.lumora.api.addon.AddonDescriptor glint = dev.lumora.core.addon.VersionSupportTest.addon("1.3.0",
+                List.of("SomeUser"), "1.21.4", "1.21.11");
+        List<dev.lumora.core.addon.AddonCandidate> candidates = new java.util.ArrayList<>(Extras.candidates(platform));
+        candidates.add(dev.lumora.core.addon.AddonCandidate.of(glint, () -> context -> { }));
+        core.loadAddons(candidates);
+        HubView view = new HubView(core, new FakeHost());
+        view.tipDelay = 0;
+        HubView.Card card = view.cards().stream().filter(c -> c.id().equals("addon:glint")).findFirst().orElseThrow();
+        assertTrue(card.unavailable() != null, "locked");
+        assertTrue(card.unavailable().get(1).contains("1.21.11"), card.unavailable().toString());
+        assertTrue(card.unavailable().get(2).startsWith("§7") && card.unavailable().get(2).contains("SomeUser"),
+                "note: made by someone else");
+        assertEquals(null, card.settings(), "no settings for an addon that does not run");
+        // the heart puts it first, so it is on screen
+        view.favorites().toggle("addon:glint");
+        assertTrue(hoverFinds(view, 0, "zu neu", "too new"), "hover window with the reason");
+        card.toggle().run();
+        core.stopping();
+    }
+
+    @Test
+    void aLibraryAddonForAnotherVersionExplainsItself() throws Exception {
+        FakePlatform platform = new FakePlatform(dir);
+        platform.mc = "1.8.9";
+        platform.addons = dir.resolve("LumoraClient").resolve("instances").resolve("1.8.9").resolve("addons");
+        Path library = dir.resolve("LumoraClient").resolve("addons");
+        dev.lumora.core.addon.AddonLibraryTest.jar(library, "new-1.0.jar", "newonly", "1.0.0", "26.3");
+        LumoraCore core = new LumoraCore(platform);
+        core.loadAddons(Extras.candidates(platform));
+        HubView view = new HubView(core, new FakeHost());
+        view.tipDelay = 0;
+        HubView.select(5);
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        assertTrue(g.texts.stream().anyMatch(t -> t.endsWith("1.8.9") && (t.startsWith("Nicht für") || t.startsWith("Not for"))),
+                g.texts.toString());
+        assertTrue(hoverFinds(view, 5, "zu alt", "too old"), "hover window: Minecraft 1.8.9 is too old");
+        core.stopping();
+    }
+
+    @Test
+    void fontsAreShownLockedWhereTheVersionHasNone() {
+        LumoraCore core = core();
+        FakeHost host = new FakeHost();
+        host.fonts = false;
+        HubView view = new HubView(core, host);
+        view.tipDelay = 0;
+        HubView.select(1);
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        assertTrue(g.texts.contains("Lumora-Schriften") || g.texts.contains("Lumora fonts"), g.texts.toString());
+        assertTrue(hoverFinds(view, 1, "1.13"), "hover window: fonts need 1.13");
         core.stopping();
     }
 

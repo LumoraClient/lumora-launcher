@@ -123,7 +123,8 @@ public final class AddonLibrary {
                 s = Status.RESTART;
             } else if (have != null) {
                 s = d.version().compareTo(dev.lumora.api.Version.parse(have)) > 0 ? Status.UPDATE : Status.INSTALLED;
-            } else if (minecraft != null && !d.supportsMinecraft(minecraft)) {
+            } else if (VersionSupport.check(d, minecraft) != null) {
+                // wrong Minecraft version, or it needs a newer Lumora API
                 s = Status.INCOMPATIBLE;
             } else {
                 s = Status.AVAILABLE;

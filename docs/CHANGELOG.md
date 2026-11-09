@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.21 (2026-11-09)
+
+### Hub
+- **Hover-Fenster mit Grund, wenn etwas für die Minecraft-Version fehlt:**
+  - Addons, die eine andere Minecraft-Version brauchen, sind gesperrt: Schloss, grauer Balken „INKOMPATIBEL“, kein Zahnrad; ein Klick zeigt den Grund kurz an. Das Hover-Fenster sagt, ob die Version **zu alt** (mit der ältesten unterstützten), **zu neu** (mit der neuesten) oder nicht dabei ist (mit der Liste) – oder ob das Addon eine neuere Lumora-Version braucht.
+  - Bei Addons anderer Autoren steht dazu: „Dieses Addon wurde von … erstellt, nicht von Lumora. Darauf haben wir keinen Einfluss.“
+  - **Addon-Bibliothek:** dasselbe Hover-Fenster bei „Nicht für …“ (neu: „Lumora zu alt“), bei fehlerhaften JARs der Fehler.
+  - **Lumora-Schrift in 1.8.9 und 1.12.2** steht jetzt gesperrt auf der Themes-Seite statt ausgeblendet: Schriften (TrueType) gibt es erst ab Minecraft 1.13.
+
 ## 0.3.20 (2026-11-09)
 
 ### Im Spiel

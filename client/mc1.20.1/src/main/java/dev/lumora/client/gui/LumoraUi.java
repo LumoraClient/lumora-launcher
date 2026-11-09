@@ -86,23 +86,12 @@ public final class LumoraUi {
         panel(g, x + 1, y + 1, w - 2, h - 2, fill);
     }
 
-    /** Built-in "Lumora Theme" pack (registered in LumoraClient). */
-    private static final String THEME_PACK_ID = "lumora:lumora_theme";
-    private static long themeCheckedAt;
-    private static boolean themeOn = true;
-
     /**
      * Minecraft 1.20.1: vanilla buttons and sliders get the Lumora look (ButtonSkinMixin, SliderSkinMixin) while the
-     * "Lumora Theme" pack is selected - the pack itself cannot re-skin widgets.png buttons in this version.
-     * Checked at most every 250 ms (called for every button each frame).
+     * Lumora theme is on (hub; ThemeLayers) - the theme textures cannot re-skin widgets.png buttons in this version.
      */
     public static boolean vanillaSkin() {
-        long now = System.nanoTime();
-        if (now - themeCheckedAt > 250_000_000L) {
-            themeCheckedAt = now;
-            themeOn = Minecraft.getInstance().getResourcePackRepository().getSelectedIds().contains(THEME_PACK_ID);
-        }
-        return themeOn;
+        return dev.lumora.core.theme.ThemeLayers.themeActive();
     }
 
     /** A vanilla button background in the Lumora style (matches the theme pack sprites of 1.20.2+). */

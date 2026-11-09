@@ -40,14 +40,10 @@ public final class LumoraConfig {
     public int transitionsVersion = 0;
     /** Lumora loading screen instead of the Mojang Studios screen. */
     public boolean customLoadingScreen = true;
-    /** Lumora font (Inter) instead of the Minecraft font - a built-in resource pack. */
+    /** Lumora font (the one in "font") instead of the Minecraft font; built into the client (ThemeLayers). */
     public boolean lumoraFont = false;
     /** Font when lumoraFont is on (id of dev.lumora.core.theme.LumoraFonts, e.g. "inter", "outfit"). */
     public String font = "inter";
-    /** Set once the "Lumora Theme" pack was switched on at the first start with Lumora: older Fabric API versions,
-     *  and instances whose options.txt predates Lumora, do not enable built-in packs by default. Switching the pack
-     *  off later (Options > Resource Packs) is respected. */
-    public boolean themePackApplied = false;
     /** Zoom (key C): on/off, factor 1.5-50, "hold" or "toggle", smooth animation, scroll wheel, lower sensitivity,
      *  cinematic camera and dark border while zoomed. */
     public boolean zoomEnabled = true;

@@ -41,6 +41,7 @@
     "platform.ChatScreenClickMixin",
     "platform.OptionsKeysMixin",
     "platform.BuiltInPackSourceMixin",
+    "platform.PackRepositoryMixin",
     "platform.CustomPayloadReadMixin",
     "platform.ClientCustomPayloadMixin"],
   "injectors": {

@@ -8,9 +8,6 @@ import net.minecraft.client.MinecraftClient;
  * comes from the skin mixins instead. Kept with the API of the newer modules, so the hub code is unchanged.
  */
 public final class LumoraFont {
-    public static final String PACK_ID = "lumora:lumora_font";
-    public static final String THEME_PACK_ID = "lumora:lumora_theme";
-
     private LumoraFont() {
     }
 
@@ -20,9 +17,6 @@ public final class LumoraFont {
     }
 
     public static void apply(MinecraftClient mc, boolean on) {
-    }
-
-    public static void applyPack(MinecraftClient mc, String packId, boolean on) {
     }
 
     /** Fonts need TrueType support (Minecraft 1.13+): nothing to switch on this version. */

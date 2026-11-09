@@ -40,7 +40,7 @@ public final class LumoraConfig {
     public int transitionsVersion = 0;
     /** Lumora loading screen instead of the Mojang Studios screen. */
     public boolean customLoadingScreen = true;
-    /** Lumora font (Inter) instead of the Minecraft font - a built-in resource pack. */
+    /** Lumora font (the one in "font") instead of the Minecraft font; built into the client (ThemeLayers). */
     public boolean lumoraFont = false;
     /** Font when lumoraFont is on (id of dev.lumora.core.theme.LumoraFonts, e.g. "inter", "outfit"). */
     public String font = "inter";

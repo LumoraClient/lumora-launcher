@@ -3,9 +3,10 @@ package dev.lumora.core.theme;
 import java.util.List;
 
 /**
- * Fonts for Lumora's menus and the game's text. Each one (except Vanilla) is a built-in resource pack
- * {@code resourcepacks/<pack>} in the client jar that replaces Minecraft's default font with a TrueType font. All
- * fonts are under the SIL Open Font License 1.1; the license text is in each pack.
+ * Fonts for Lumora's menus and the game's text. Each one (except Vanilla) is a folder {@code resourcepacks/<pack>} in
+ * the client jar that replaces Minecraft's default font with a TrueType font; it is built into the client, not a resource
+ * pack to pick ({@link ThemeLayers}). All fonts are under the SIL Open Font License 1.1; the license text is in
+ * each folder.
  */
 public final class LumoraFonts {
     /** Minecraft's own font (no font pack). */
@@ -13,14 +14,10 @@ public final class LumoraFonts {
     public static final String DEFAULT = "inter";
 
     /**
-     * A font: {@code pack} is the resource pack folder (null for Vanilla), {@code size} and {@code shift} go into the
+     * A font: {@code pack} is the folder in the client jar (null for Vanilla), {@code size} and {@code shift} go into the
      * pack's font definition (cap height matched to Inter at 8.5).
      */
     public record Font(String id, String name, String pack, String file, double size, double shift, String note) {
-        /** Resource pack id of this font ("lumora:<pack>"), or null for Vanilla. */
-        public String packId() {
-            return pack == null ? null : "lumora:" + pack;
-        }
     }
 
     public static final List<Font> ALL = List.of(
@@ -45,10 +42,5 @@ public final class LumoraFonts {
             }
         }
         return ALL.get(1);
-    }
-
-    /** Resource pack ids of all font packs. */
-    public static List<String> packIds() {
-        return ALL.stream().map(Font::packId).filter(p -> p != null).toList();
     }
 }

@@ -46,10 +46,6 @@ public final class LumoraConfig {
     public String font = "inter";
     /** Minecraft 1.12.2: vanilla buttons and sliders in the Lumora style (the newer versions use the "Lumora Theme" pack). */
     public boolean vanillaSkin = true;
-    /** Set once the "Lumora Theme" pack was switched on at the first start with Lumora: older Fabric API versions,
-     *  and instances whose options.txt predates Lumora, do not enable built-in packs by default. Switching the pack
-     *  off later (Options > Resource Packs) is respected. */
-    public boolean themePackApplied = false;
     /** Zoom (key C): on/off, factor 1.5-50, "hold" or "toggle", smooth animation, scroll wheel, lower sensitivity,
      *  cinematic camera and dark border while zoomed. */
     public boolean zoomEnabled = true;

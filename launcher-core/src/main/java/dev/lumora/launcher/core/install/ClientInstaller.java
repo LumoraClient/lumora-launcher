@@ -42,9 +42,6 @@ public final class ClientInstaller {
     /** The Lumora Loader in the launcher's bundled folder (started instead of a mod loader, profile loader "lumora"). */
     public static final String LOADER_JAR = "lumora-loader.jar";
 
-    /** Versions on which the launcher switches the built-in Lumora theme on once (in options.txt). */
-    static final java.util.Set<String> THEME_ONCE = java.util.Set.of("26.3");
-
     private final LauncherPaths paths;
     private final Downloader downloader;
     private final ProfileCatalog catalog;
@@ -151,8 +148,7 @@ public final class ClientInstaller {
                 .filter(a -> a.requires == null || a.requires.isEmpty()).toList();
         progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
         modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
-        ResourcePackOptions.apply(gameDir, packs, THEME_ONCE.contains(profile.minecraftVersion)
-                && catalog.profileArtifact(profile, "lumora-client").isPresent());
+        ResourcePackOptions.apply(gameDir, packs);
 
         // the Lumora Loader starts exactly these jars
         Path loaderJar = bundled.get().verified(LOADER_JAR);

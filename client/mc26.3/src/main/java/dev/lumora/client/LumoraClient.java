@@ -52,9 +52,9 @@ public final class LumoraClient implements ClientEntrypoint {
                 Diagnostics.profile(), RuntimeInfo.sodiumLoaded(), RuntimeInfo.viaFabricPlusLoaded());
 
         // Lumora Theme: the whole Minecraft GUI (buttons, sliders, text fields, tabs, lists, toasts) in the
-        // launcher's colors. Enabled by default, can be switched off under Options > Resource Packs.
+        // launcher's colors. Built into the client (no resource pack to pick): on with the Lumora theme, off with Vanilla (hub).
         Packs.builtin("lumora_theme", Component.translatable("lumora.pack.theme"));
-        // Lumora Schrift (Inter): optional, switched in the Lumora hub
+        // Lumora fonts (Inter, Outfit ...): built in as well, chosen in the hub (Themes > Font)
         Packs.builtin("lumora_font", Component.translatable("lumora.pack.font"));
         for (dev.lumora.core.theme.LumoraFonts.Font f : dev.lumora.core.theme.LumoraFonts.ALL) {
             if (f.pack() != null && !f.pack().equals("lumora_font")) {

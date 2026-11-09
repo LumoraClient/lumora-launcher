@@ -24,9 +24,10 @@ import java.util.stream.Stream;
  * ({@code ClientPackSourceMixin}):
  * <ul>
  *   <li>"lumora" - the client jar itself (its {@code assets/}), always on,</li>
- *   <li>optional packs from {@code resourcepacks/<name>} in the jar (Lumora Theme, Lumora Schrift), copied once to
- *       {@code .lumora/packs/<name>} (these versions read packs only from files or folders); ids as before
- *       ("lumora:lumora_theme"), so saved choices stay.</li>
+ *   <li>the layers from {@code resourcepacks/<name>} in the jar (Lumora Theme, the Lumora fonts), copied once to
+ *       {@code .lumora/packs/<name>} (these versions read packs only from files or folders): built into the client,
+ *       not in the resource pack list or options.txt. {@link #withLayers} lays the active ones over the selected
+ *       packs when the resources load ({@code PackRepositoryMixin}); the hub switches them.</li>
  * </ul>
  */
 public final class Packs {
@@ -38,7 +39,7 @@ public final class Packs {
     private Packs() {
     }
 
-    /** An optional built-in pack from {@code resourcepacks/<name>} of the Lumora jar. */
+    /** A layer from {@code resourcepacks/<name>} of the Lumora jar (theme or font), not offered as a resource pack. */
     public static void builtin(String name, Component title) {
         OPTIONAL.add(new Builtin(name, title));
     }
@@ -70,7 +71,7 @@ public final class Packs {
             Pack pack = Pack.create(LoaderEnv.CLIENT_ID + ":" + p.name(), false, () -> new FolderPackResources(dir.toFile()),
                     constructor, Pack.Position.TOP, PackSource.BUILT_IN);
             if (pack != null) {
-                out.accept(pack);
+                LAYERS.put(p.name(), pack);
             }
         }
     }
@@ -130,5 +131,60 @@ public final class Packs {
         java.nio.file.Path game = LumoraLoader.gameDir();
         return dev.lumora.core.addon.AddonAssets.prepare(game.resolve("addons"), game.resolve(".lumora").resolve("addon-assets"),
                 meta, w -> dev.lumora.client.LumoraClient.LOG.warn(w));
+    }
+
+    /** The layers by folder name ("lumora_theme", "lumora_font_outfit" ...), refreshed with every pack scan. */
+    private static final java.util.Map<String, Pack> LAYERS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Whether theme or font chosen in the hub differ from the loaded resources (a resource reload shows them). */
+    public static boolean changed() {
+        dev.lumora.client.config.LumoraConfig c = dev.lumora.client.LumoraClient.config();
+        return c == null ? dev.lumora.core.theme.ThemeLayers.changed(null, false, null)
+                : dev.lumora.core.theme.ThemeLayers.changed(c.theme, c.lumoraFont, c.font);
+    }
+
+    /** The active layers, lowest first (dev.lumora.core.theme.ThemeLayers), remembered as loaded. */
+    private static List<Pack> activeLayers() {
+        dev.lumora.client.config.LumoraConfig c = dev.lumora.client.LumoraClient.config();
+        List<String> names = c == null ? dev.lumora.core.theme.ThemeLayers.load(null, false, null)
+                : dev.lumora.core.theme.ThemeLayers.load(c.theme, c.lumoraFont, c.font);
+        List<Pack> out = new java.util.ArrayList<>();
+        for (String n : names) {
+            Pack p = LAYERS.get(n);
+            if (p != null) {
+                out.add(p);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The packs of a resource load with the active layers (theme, font) added: above the player's packs, below packs
+     * fixed on top such as server resource packs, so their fonts and textures still win. Other repositories (data
+     * packs) stay as they are.
+     */
+    public static List<net.minecraft.server.packs.PackResources> withLayers(net.minecraft.server.packs.repository.PackRepository repo,
+                                                                           List<net.minecraft.server.packs.PackResources> selected) {
+        if (!repo.isAvailable(LoaderEnv.CLIENT_ID)) {
+            return selected;
+        }
+        List<Pack> layers = activeLayers();
+        if (layers.isEmpty()) {
+            return selected;
+        }
+        // openAllSelected opens one pack resource per selected pack, in the same order
+        int at = 0;
+        for (Pack p : repo.getSelectedPacks()) {
+            if (p.isFixedPosition() && p.getDefaultPosition() == Pack.Position.TOP) {
+                break;
+            }
+            at++;
+        }
+        List<net.minecraft.server.packs.PackResources> out = new java.util.ArrayList<>(selected);
+        at = Math.min(at, out.size());
+        for (Pack l : layers) {
+            out.add(at++, l.open());
+        }
+        return out;
     }
 }

@@ -23,7 +23,9 @@ import java.util.Set;
  *   <li>A pack file is activated once, when it first appears (new pack or new version). If the player later
  *       switches it off in the game, it stays off - the launcher remembers what it activated
  *       (resourcepacks/.lumora-packs.json).</li>
- *   <li>Packs are placed directly above "vanilla"/"fabric", i.e. below the player's own packs and Lumora's theme.</li>
+ *   <li>Packs are placed directly above "vanilla"/"fabric", i.e. below the player's own packs.</li>
+ *   <li>Lumora's theme and fonts are built into the client (no packs any more): their old entries
+ *       ("lumora:lumora_theme", "lumora:lumora_font_...") leave the list.</li>
  *   <li>Entries of older, manually installed copies of the same pack ("replaces" prefix) are replaced, the files
  *       themselves are left untouched.</li>
  *   <li>Packs the launcher removed (switched off in the launcher, or replaced by an update) leave the list.</li>
@@ -32,26 +34,17 @@ import java.util.Set;
 public final class ResourcePackOptions {
     public static final String STATE_FILE = ".lumora-packs.json";
     private static final String KEY = "resourcePacks:";
-    static final String LUMORA_THEME = "lumora:lumora_theme";
+    /** Entries of the former built-in theme and font packs. */
+    static final String LEGACY_PREFIX = "lumora:lumora_";
 
     static final class State {
         List<String> activated = new ArrayList<>();
-        /** The launcher switched the Lumora theme on once (versions where Fabric does not enable it by itself). */
-        boolean themeActivated;
     }
 
     private ResourcePackOptions() {
     }
 
     public static void apply(Path gameDir, List<ProfileCatalog.Artifact> enabledPacks) throws IOException {
-        apply(gameDir, enabledPacks, false);
-    }
-
-    /**
-     * @param enableTheme also switch the built-in Lumora theme on, once: Fabric API for 26.3 does not activate
-     *                    "default enabled" built-in packs by itself. If the player turns it off later, it stays off.
-     */
-    public static void apply(Path gameDir, List<ProfileCatalog.Artifact> enabledPacks, boolean enableTheme) throws IOException {
         Path options = gameDir.resolve("options.txt");
         Path stateFile = gameDir.resolve("resourcepacks").resolve(STATE_FILE);
         State state = readState(stateFile);
@@ -67,12 +60,14 @@ public final class ResourcePackOptions {
         List<String> packs = idx >= 0 ? parse(lines.get(idx).substring(KEY.length())) : new ArrayList<>(List.of("vanilla"));
         List<String> before = List.copyOf(packs);
 
-        // Minecraft clears the whole list after a resource loading error ("removing all selected resourcepacks").
-        // That is no choice of the player: if none of our packs and not even the Lumora theme is left, start over.
-        if (!state.activated.isEmpty() && packs.stream().noneMatch(state.activated::contains) && !packs.contains(LUMORA_THEME)) {
+        // Minecraft clears the whole list after a resource loading error ("removing all selected resourcepacks"), leaving
+        // it empty. That is no choice of the player (who keeps at least "vanilla" when switching packs off): start over.
+        if (!state.activated.isEmpty() && packs.isEmpty()) {
             Log.info("All resource packs were removed by the game, activating them again");
             state.activated.clear();
-            state.themeActivated = false;
+        }
+        if (packs.removeIf(p -> p.startsWith(LEGACY_PREFIX)) && packs.isEmpty()) {
+            packs.add("vanilla"); // an empty list would read as cleared by the game next time
         }
         Set<String> wanted = new LinkedHashSet<>();
         enabledPacks.forEach(a -> wanted.add("file/" + a.fileName));
@@ -102,12 +97,6 @@ public final class ResourcePackOptions {
                 insertAt++;
             }
             state.activated.add(entry);
-        }
-        if (enableTheme && !state.themeActivated) {
-            if (!packs.contains(LUMORA_THEME)) {
-                packs.add(LUMORA_THEME); // last = on top of every other pack, like Fabric would place it
-            }
-            state.themeActivated = true;
         }
         if (!packs.equals(before) || idx < 0) {
             String line = KEY + Json.GSON.toJson(packs).replaceAll("\\s+", "");

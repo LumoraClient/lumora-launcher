@@ -53,20 +53,12 @@ class ResourcePackOptionsTest {
     }
 
     @Test
-    void themeIsSwitchedOnOnceWhereFabricDoesNotDoIt() throws IOException {
-        Files.writeString(tmp.resolve("options.txt"), "resourcePacks:[\"vanilla\"]\n");
-        ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)), true);
-        assertEquals("resourcePacks:[\"vanilla\",\"file/a-1.zip\",\"lumora:lumora_theme\"]", packsLine(), "theme on top");
-        // the player switches the theme off in the game: it stays off
-        Files.writeString(tmp.resolve("options.txt"), "resourcePacks:[\"vanilla\",\"file/a-1.zip\"]\n");
-        ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)), true);
-        assertEquals("resourcePacks:[\"vanilla\",\"file/a-1.zip\"]", packsLine());
-        // versions where Fabric enables it by itself: the launcher leaves the theme alone
-        Path other = tmp.resolve("other");
-        Files.createDirectories(other);
-        Files.writeString(other.resolve("options.txt"), "resourcePacks:[\"vanilla\"]\n");
-        ResourcePackOptions.apply(other, List.of(), false);
-        assertEquals("resourcePacks:[\"vanilla\"]", Files.readAllLines(other.resolve("options.txt")).getFirst());
+    void entriesOfTheFormerThemeAndFontPacksLeaveTheList() throws IOException {
+        Files.writeString(tmp.resolve("options.txt"),
+                "resourcePacks:[\"lumora:addons\",\"lumora\",\"vanilla\",\"lumora:lumora_theme\",\"lumora:lumora_font_jetbrainsmono\"]\n");
+        ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)));
+        assertEquals("resourcePacks:[\"lumora:addons\",\"lumora\",\"vanilla\",\"file/a-1.zip\"]", packsLine(),
+                "theme and font are built into the client now");
     }
 
     @Test
@@ -75,10 +67,16 @@ class ResourcePackOptionsTest {
         Files.writeString(tmp.resolve("options.txt"), "resourcePacks:[]\n");
         ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)));
         assertEquals("resourcePacks:[\"file/a-1.zip\"]", packsLine());
-        // but a player who only kept the Lumora theme switched our packs off on purpose
+        // but a player who switched our packs off keeps "vanilla" in the list: that is respected
+        Files.writeString(tmp.resolve("options.txt"), "resourcePacks:[\"vanilla\"]\n");
+        ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)));
+        assertEquals("resourcePacks:[\"vanilla\"]", packsLine());
+        // also when only the former Lumora theme was left: it goes, "vanilla" stays so it is not read as cleared later
         Files.writeString(tmp.resolve("options.txt"), "resourcePacks:[\"lumora:lumora_theme\"]\n");
         ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)));
-        assertEquals("resourcePacks:[\"lumora:lumora_theme\"]", packsLine());
+        assertEquals("resourcePacks:[\"vanilla\"]", packsLine());
+        ResourcePackOptions.apply(tmp, List.of(pack("a-1.zip", null)));
+        assertEquals("resourcePacks:[\"vanilla\"]", packsLine());
     }
 
     @Test

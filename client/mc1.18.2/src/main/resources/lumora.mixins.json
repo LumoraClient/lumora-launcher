@@ -43,6 +43,7 @@
     "platform.ChatScreenClickMixin",
     "platform.OptionsKeysMixin",
     "platform.ClientPackSourceMixin",
+    "platform.PackRepositoryMixin",
     "platform.GameRendererScreenMixin",
     "platform.LegacyCustomPayloadMixin"],
   "injectors": {

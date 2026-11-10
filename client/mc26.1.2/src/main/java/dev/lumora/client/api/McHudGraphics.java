@@ -17,6 +17,7 @@ import java.util.Optional;
  * ({@link #with}); texture ids are cached, so drawing allocates nothing.
  */
 public final class McHudGraphics implements HudGraphics {
+    private static final String SPRITES = "textures/gui/sprites/";
     private static final int MAX_CACHED_TEXTURES = 512;
     private final Map<TextureRef, Identifier> textures = new HashMap<>();
     private GuiGraphicsExtractor g;
@@ -60,6 +61,20 @@ public final class McHudGraphics implements HudGraphics {
             }
             id = Identifier.fromNamespaceAndPath(texture.namespace(), texture.path());
             textures.put(texture, id);
+        }
+        String path = texture.path();
+        if (path.startsWith(SPRITES) && path.endsWith(".png")) {
+            // Minecraft's GUI sprites (hotbar, hearts ...) come from its sprite atlas, as Minecraft draws them: a sprite
+            // loaded as a texture of its own came out with red and alpha swapped in a player's game (pink frames, see-through slots)
+            Identifier sprite = Identifier.fromNamespaceAndPath(texture.namespace(), path.substring(SPRITES.length(), path.length() - 4));
+            if (u == 0 && v == 0 && regionWidth == textureWidth && regionHeight == textureHeight) {
+                g.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height);
+                return;
+            }
+            if (width == regionWidth && height == regionHeight) {
+                g.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, textureWidth, textureHeight, (int) u, (int) v, x, y, width, height);
+                return;
+            }
         }
         g.blit(RenderPipelines.GUI_TEXTURED, id, x, y, u, v, width, height, regionWidth, regionHeight, textureWidth, textureHeight);
     }

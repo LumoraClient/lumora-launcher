@@ -81,6 +81,8 @@ public final class HudEditorScreen extends Screen {
     @Override
     protected void init() {
         headers.clear();
+        // keep typing in the search field when the screen is built again (selection card moved, widget resized ...)
+        refocusSearch |= search != null && search.isFocused();
         search = null;
         panelX = -1;
         builtWhileDragging = model.mode() == HudEditorModel.Mode.MOVING || model.mode() == HudEditorModel.Mode.RESIZING;

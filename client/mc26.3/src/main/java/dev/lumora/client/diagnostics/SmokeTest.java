@@ -492,6 +492,25 @@ public final class SmokeTest {
                 ticks = 0;
             }
         } else if (worldStep == modes.length + 11) {
+            // "Hotbar & Leisten": blocks and items in the hotbar, vanilla look, Lumora look, Minecraft's own hotbar
+            if (ticks == 2) {
+                HotbarSmoke.module(true);
+                HotbarSmoke.style("vanilla");
+                HotbarSmoke.fill(mc);
+            } else if (ticks == 12) {
+                screenshot(mc, "hotbar-vanilla");
+                HotbarSmoke.style("lumora");
+            } else if (ticks == 15) {
+                screenshot(mc, "hotbar-lumora");
+                HotbarSmoke.style("vanilla");
+                HotbarSmoke.module(false);
+            } else if (ticks == 18) {
+                screenshot(mc, "hotbar-minecraft");
+                HotbarSmoke.module(true);
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 12) {
             // chat module: messages, open chat, menu by right-click, then a smaller chat without background and shadow
             if (ticks == 2) {
                 ChatSmoke.fill(mc);
@@ -506,7 +525,7 @@ public final class SmokeTest {
                 worldStep++;
                 ticks = 0;
             }
-        } else if (worldStep == modes.length + 12 && ticks >= 5) {
+        } else if (worldStep == modes.length + 13 && ticks >= 5) {
             phase = Phase.DONE;
             finish(mc);
         }

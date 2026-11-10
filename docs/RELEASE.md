@@ -67,6 +67,15 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.27 (2026-11-10):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 484 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Anker (Zonen als Drittel des Bildschirms, Offsets und Platzierung für alle neun Anker umkehrbar, gleicher Abstand auf größerem Bildschirm, Speichern und Laden, alte Layouts ohne Anker) und 3 für den Editor (Widget hängt an der Zone unter der Maus und bleibt bei anderer Größe dort, Magnet-Widget beim Einrasten, Klick holt nach vorne als ein Rückgängig-Schritt). Der Klick-Test erwartet jetzt „nach vorne“ statt „keine Änderung“.
+- **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3, 1.16.5 und 1.8.9 bestanden; in 26.3 neue Aufnahme mitten im Ziehen (Zone, Raster, Positionsanzeige, hervorgehobenes Magnet-Widget, Hilfslinie) und nach dem Verschieben (Aktionskarte am Widget, Suchfeld). Das Ausblenden der Liste beim Ziehen kam danach dazu und ist nur in 26.3 erneut getestet (der Test zieht am Bildschirm vorbei, die Liste blieb dort sichtbar).
+- **Smoke-Test mit dem fertigen 0.3.27-Build: auf Wunsch nicht ausgeführt.**
+- **Nicht geprüft:** Ziehen und Tippen mit echter Maus und Tastatur, die Suche in keiner Version, die Aktionskarte am Widget in 1.16.5 und 1.8.9 nur kompiliert und durchgelaufen (nicht angesehen), ein echtes Selbst-Update von 0.3.26 auf 0.3.27.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
+
 **0.3.26 (2026-11-10):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 477 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für „Hotbar & Leisten“ (Zahlenformate, Herzen mit Absorption in Sprites und icons.png, Kompakt/Balken/Zahl, Rüstung und Luft nur wenn nötig, Hotbar mit Zweithand-Regeln und senkrecht, Erfahrung) und 7 für den Chat (Absender in verschiedenen Server-Formaten, Links, Erwähnung, Werte für die Mixins, Ränder und Zeile unter der Maus, Ziehen der Ränder, Menü mit Kopieren und privat Antworten).
 - **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert, jeder neue Einhängepunkt mit `check-mixins.pl` gegen die Spieldateien geprüft. Smoke-Test mit eingeschaltetem „Hotbar & Leisten“ in 26.3, 1.16.5 und 1.8.9 bestanden. Smoke-Test mit Chat-Prüfung (Nachrichten, umgebrochene Nachricht als eine Nachricht, Menü per Rechtsklick, kleinerer Chat ohne Hintergrund und Textschatten) in 26.3, 1.21.11, 1.20.1, 1.16.5 und 1.8.9 bestanden; normaler Smoke-Test in 1.21.8, 1.19.4, 1.12.2, 26.1.2 und 26.2 bestanden. Dabei behoben: 1.21.8 und 1.21.11 stürzten beim Start ab (Lambda-Namen im laufenden Spiel anders als im Entwicklungs-Jar).

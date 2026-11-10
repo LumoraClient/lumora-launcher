@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.3.27 (2026-11-10)
+
+### HUD-Editor
+- **Ankerzonen:** Beim Ziehen teilt sich der Bildschirm in 3×3 Zonen, die Zone unter der Maus leuchtet mit ihrem Ankerpunkt. Das Widget hängt danach an der Ecke, Kante oder Mitte dieser Zone und behält bei anderer Fenster- oder GUI-Größe seinen Abstand dazu – ein Widget unten rechts bleibt unten rechts. Bestehende Layouts bleiben unverändert, bis du ein Widget verschiebst.
+- **Magnet sichtbar:** Das Widget, an dem du einrastest, wird umrahmt, die Hilfslinie leuchtet; eingerastet wird an Kanten und Mitten.
+- **Positionsanzeige:** Beim Ziehen steht „x × y“ am Widget, beim Skalieren Größe und Prozent; dazu blendet sich ein feines Raster ein.
+- **Suche** über der Widget-Liste (Tastenkürzel wie G oder H sind beim Tippen aus).
+- **Aktionen am Widget:** Die Karte mit Optionen, Ausblenden, Ein/Aus, Ebene und Standard erscheint direkt unter dem gewählten Widget (in der unteren Bildhälfte darüber) und wandert mit.
+- **Klick holt nach vorne:** Ein angeklicktes Widget kommt in die oberste Ebene (mit Strg+Z rückgängig).
+- **Freie Sicht beim Ziehen:** Widget-Liste und Karte verschwinden, solange du ziehst; vorher konnte ein Widget hinter der Liste verschwinden.
+- Angelehnt an den HUD-Editor von LiquidBounce, neu umgesetzt.
+
 ## 0.3.26 (2026-11-10)
 
 ### Im Spiel

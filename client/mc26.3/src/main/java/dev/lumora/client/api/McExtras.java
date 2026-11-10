@@ -13,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import net.minecraft.client.multiplayer.chat.GuiMessage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,8 +217,146 @@ final class McExtras implements GameExtras {
 
     @Override
     public void playSound(String kind, float volume) {
+        if ("mention".equals(kind)) {
+            mc().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_PLING.value(), 1.5f, volume));
+            return;
+        }
         Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
                 "ready".equals(kind) ? net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP : net.minecraft.sounds.SoundEvents.ARROW_HIT_PLAYER,
                 "ready".equals(kind) ? 1.6f : 1.2f, volume));
+    }
+
+    @Override
+    public Status status() {
+        LocalPlayer p = mc().player;
+        if (p == null || mc().gameMode == null) {
+            return Status.NONE;
+        }
+        String hearts = p.hasEffect(net.minecraft.world.effect.MobEffects.POISON) ? "poisoned"
+                : p.hasEffect(net.minecraft.world.effect.MobEffects.WITHER) ? "withered" : p.isFullyFrozen() ? "frozen" : "normal";
+        return new Status(true, mc().gameMode.canHurtPlayer(), p.isSpectator(), p.getHealth(), p.getMaxHealth(),
+                p.getAbsorptionAmount(), p.getArmorValue(), p.getFoodData().getFoodLevel(), p.getAirSupply(), p.getMaxAirSupply(),
+                p.isEyeInFluid(net.minecraft.tags.FluidTags.WATER), p.experienceLevel, p.experienceProgress,
+                p.level().getLevelData().isHardcore(), hearts, p.hasEffect(net.minecraft.world.effect.MobEffects.HUNGER),
+                p.getInventory().getSelectedSlot());
+    }
+
+    /** Hotbar slot 0..8 or the offhand (9). */
+    private static ItemStack slotStack(LocalPlayer p, int slot) {
+        return slot == 9 ? p.getOffhandItem() : p.getInventory().getItem(slot);
+    }
+
+    @Override
+    public String slotItem(int slot) {
+        LocalPlayer p = mc().player;
+        if (p == null || slot < 0 || slot > 9) {
+            return "";
+        }
+        ItemStack s = slotStack(p, slot);
+        return s.isEmpty() ? "" : net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(s.getItem()).toString();
+    }
+
+    @Override
+    public void drawSlot(dev.lumora.api.render.HudGraphics g, int slot, int x, int y) {
+        LocalPlayer p = mc().player;
+        if (p == null || slot < 0 || slot > 9) {
+            return;
+        }
+        ItemStack s = slotStack(p, slot);
+        if (s.isEmpty()) {
+            return;
+        }
+        net.minecraft.client.gui.GuiGraphicsExtractor n = g.unwrap(net.minecraft.client.gui.GuiGraphicsExtractor.class).orElse(null);
+        if (n != null) {
+            n.item(s, x, y);
+            n.itemDecorations(mc().font, s, x, y);
+        }
+    }
+
+    // --- chat (module "Chat")
+
+    private static net.minecraft.client.gui.components.ChatComponent chat() {
+        return mc().gui == null ? null : mc().gui.hud.getChat();
+    }
+
+    @Override
+    public ChatView chatView() {
+        net.minecraft.client.gui.components.ChatComponent chat = chat();
+        if (chat == null) {
+            return null;
+        }
+        dev.lumora.client.mixin.ChatComponentAccessor a = (dev.lumora.client.mixin.ChatComponentAccessor) chat;
+        double scale = a.lumora$scale();
+        int width = a.lumora$width();
+        int gw = mc().getWindow().getGuiScaledWidth();
+        int gh = mc().getWindow().getGuiScaledHeight();
+        int left = 0;
+        int right = (int) Math.ceil((Math.ceil(width / scale) + 12) * scale);
+        return new ChatView(left, right, gh - 40, a.lumora$lineHeight() * scale, chat.getLinesPerPage(), a.lumora$scroll(),
+                a.lumora$trimmed().size(), width, a.lumora$height(), scale, gw, gh);
+    }
+
+    @Override
+    public ChatMessage chatMessage(int line) {
+        net.minecraft.client.gui.components.ChatComponent chat = chat();
+        if (chat == null) {
+            return null;
+        }
+        dev.lumora.client.mixin.ChatComponentAccessor a = (dev.lumora.client.mixin.ChatComponentAccessor) chat;
+        List<GuiMessage.Line> lines = a.lumora$trimmed();
+        if (line < 0 || line >= lines.size()) {
+            return null;
+        }
+        GuiMessage parent = lines.get(line).parent();
+        int lo = line;
+        while (lo > 0 && lines.get(lo - 1).parent() == parent) {
+            lo--;
+        }
+        int hi = line;
+        while (hi + 1 < lines.size() && lines.get(hi + 1).parent() == parent) {
+            hi++;
+        }
+        return chatMessage(parent.content(), lo, hi);
+    }
+
+    private static ChatMessage chatMessage(net.minecraft.network.chat.Component content, int lo, int hi) {
+        List<String> insertions = new ArrayList<>();
+        List<String> commands = new ArrayList<>();
+        List<String> links = new ArrayList<>();
+        content.<Object>visit((style, text) -> {
+            if (style.getInsertion() != null) {
+                insertions.add(style.getInsertion());
+            }
+            net.minecraft.network.chat.ClickEvent c = style.getClickEvent();
+            if (c instanceof net.minecraft.network.chat.ClickEvent.OpenUrl u) {
+                links.add(u.uri().toString());
+            } else if (c instanceof net.minecraft.network.chat.ClickEvent.SuggestCommand s) {
+                commands.add(s.command());
+            } else if (c instanceof net.minecraft.network.chat.ClickEvent.RunCommand r) {
+                commands.add(r.command());
+            }
+            return java.util.Optional.empty();
+        }, net.minecraft.network.chat.Style.EMPTY);
+        return new ChatMessage(content.getString(), insertions, commands, links, lo, hi);
+    }
+
+    @Override
+    public void refreshChat() {
+        net.minecraft.client.gui.components.ChatComponent chat = chat();
+        if (chat != null) {
+            chat.rescaleChat();
+        }
+    }
+
+    @Override
+    public void setChatInput(String text) {
+        if (mc().gui.screen() instanceof net.minecraft.client.gui.screens.ChatScreen s) {
+            ((dev.lumora.client.mixin.ChatScreenAccessor) s).lumora$input().setValue(text);
+        }
+    }
+
+    @Override
+    public boolean mouseLeftDown() {
+        return mc().mouseHandler.isLeftPressed();
     }
 }

@@ -119,13 +119,19 @@ public final class LumoraRuntime {
     /** Notifications on top of every screen (GameRendererScreenMixin, right after the screen was rendered). */
     public static void afterScreenRender(GuiGraphics g, int width) {
         if (core != null) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc.currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen s) {
+                int mx = org.lwjgl.input.Mouse.getX() * s.width / mc.width;
+                int my = s.height - org.lwjgl.input.Mouse.getY() * s.height / mc.height - 1;
+                dev.lumora.core.extras.ChatModule.renderChatScreen(GRAPHICS.with(g), mx, my);
+            }
             core.renderNotifications(GRAPHICS.with(g), width);
         }
     }
 
-    /** Click in the chat screen: true if a HUD widget used it (ChatScreenClickMixin then cancels the vanilla click). */
+    /** Click in the chat screen: true if the chat module or a HUD widget used it (ChatScreenClickMixin then cancels the vanilla click). */
     public static boolean chatClick(double mx, double my, int button) {
-        return core != null && core.hudClick(mx, my, button);
+        return core != null && (dev.lumora.core.extras.ChatModule.chatClick(mx, my, button) || core.hudClick(mx, my, button));
     }
 
     /** Graphics and context for the editor screen (same reused instances). */

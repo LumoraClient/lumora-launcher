@@ -21,9 +21,12 @@
     "TabListIconMixin"
   ,
     "CrosshairMixin",
+    "StatusBarsMixin",
     "ScoreboardMixin",
     "TabPingMixin",
     "ChatMixin",
+    "ChatComponentAccessor",
+    "ChatScreenAccessor",
     "BlockOutlineMixin",
     "ElytraTrailMixin",
     "BrowserScreenMixin",

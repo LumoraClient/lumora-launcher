@@ -130,7 +130,7 @@ public final class VersionSupport {
      * Compares Minecraft versions part by part ({@code 1.8.9 < 1.12.2 < 1.21 < 1.21.11 < 26.1}). A pattern ending in
      * {@code .x} or {@code .*} equals every version it covers.
      */
-    static int compare(String a, String b) {
+    public static int compare(String a, String b) {
         String[] pa = a.toLowerCase(Locale.ROOT).split("\\.");
         String[] pb = b.toLowerCase(Locale.ROOT).split("\\.");
         int n = Math.max(pa.length, pb.length);

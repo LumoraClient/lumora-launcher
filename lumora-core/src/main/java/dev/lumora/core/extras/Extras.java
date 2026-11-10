@@ -12,7 +12,7 @@ import java.util.List;
  */
 public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
-            "lumora-attackindicator");
+            "lumora-attackindicator", "lumora-statusbars");
 
     private Extras() {
     }
@@ -49,6 +49,10 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-fullbright", "Fullbright",
                         "Volle Helligkeit in Höhlen und nachts (nur für dich sichtbar)", FullbrightModule.class),
                         () -> new FullbrightModule(platform)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-statusbars", "Hotbar & Leisten",
+                        "Hotbar, Herzen, Rüstung, Hunger, Luft und Erfahrung als eigene Widgets: frei verschieben, Vanilla, kompakt, Balken oder Zahl",
+                        StatusBarsModule.class),
+                        () -> new StatusBarsModule(platform)),
                 // elytras exist since 1.9: on older versions the hub shows the module locked with the reason
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-elytratrails", "Elytra-Streifen",
                         "Dampfstreifen oder Wirbel hinter den Flügelspitzen gleitender Spieler: Farbe, Länge, Breite, ab welchem Tempo",
@@ -56,8 +60,8 @@ public final class Extras {
                                 platform.minecraftVersion())),
                         ElytraTrailsModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-chat", "Chat",
-                        "Zeitstempel und gleiche Nachrichten zusammenfassen", ChatModule.class),
-                        ChatModule::new),
+                        "Zeitstempel, Nachrichten kopieren, Größe ziehen, Hintergrund, längerer Verlauf, Ton bei Erwähnung", ChatModule.class),
+                        () -> new ChatModule(platform)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-tab", "Tab-Liste & Scoreboard",
                         "Ping als Zahl, Scoreboard verschieben, skalieren, ohne Zahlen oder ausblenden", TabModule.class),
                         TabModule::new));

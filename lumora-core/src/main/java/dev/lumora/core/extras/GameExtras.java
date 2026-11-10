@@ -92,8 +92,105 @@ public interface GameExtras {
         return Progress.NONE;
     }
 
-    /** Plays a short UI sound: "ready" (attack ready) or "cooldown" (an item cooldown ended); volume 0..1. */
+    /**
+     * Plays a short UI sound: "ready" (attack ready), "cooldown" (an item cooldown ended) or "mention" (the own name in
+     * the chat); volume 0..1.
+     */
     default void playSound(String kind, float volume) {
+    }
+
+    /**
+     * What the hotbar and the status bars show (module "Hotbar & Leisten").
+     *
+     * @param present    a player exists
+     * @param survival   health, armor, food, air and experience are shown (not in creative or spectator)
+     * @param spectator  spectator mode (no hotbar)
+     * @param hearts     heart type: "normal", "poisoned", "withered" or "frozen"
+     * @param hunger     the hunger effect is active (greenish food icons)
+     * @param underwater the eyes are in water (air bubbles shown)
+     * @param selected   selected hotbar slot 0..8
+     */
+    record Status(boolean present, boolean survival, boolean spectator, float health, float maxHealth, float absorption,
+                  int armor, int food, int air, int maxAir, boolean underwater, int xpLevel, float xpProgress,
+                  boolean hardcore, String hearts, boolean hunger, int selected) {
+        public static final Status NONE = new Status(false, false, false, 0, 20, 0, 0, 0, 300, 300, false, 0, 0, false,
+                "normal", false, 0);
+    }
+
+    /** Values for the hotbar and status bars ({@link Status#NONE} without a player). */
+    default Status status() {
+        return Status.NONE;
+    }
+
+    /**
+     * Draws the item of a slot at (x, y) as Minecraft's hotbar does (item, count, durability bar).
+     *
+     * @param slot 0..8 hotbar, 9 offhand
+     */
+    default void drawSlot(dev.lumora.api.render.HudGraphics g, int slot, int x, int y) {
+    }
+
+    /** Registry id of the item in a slot (0..8 hotbar, 9 offhand), "" if empty. */
+    default String slotItem(int slot) {
+        return "";
+    }
+
+    /**
+     * Where Minecraft's chat window is (module "Chat"), in GUI pixels.
+     *
+     * @param left      left edge of the chat background
+     * @param right     right edge of the chat background
+     * @param bottom    lower edge of the newest line
+     * @param rowHeight height of one chat line on screen (line height times chat scale)
+     * @param rows      lines that fit in the window (open or closed, whichever is shown)
+     * @param scroll    lines scrolled up
+     * @param lines     wrapped lines in the chat (index 0 is the newest)
+     * @param width     Minecraft's chat width (as returned by its getWidth)
+     * @param height    Minecraft's chat height (as returned by its getHeight)
+     * @param scale     chat scale
+     */
+    record ChatView(int left, int right, int bottom, double rowHeight, int rows, int scroll, int lines, int width,
+                    int height, double scale, int guiWidth, int guiHeight) {
+        public int top() {
+            return (int) Math.floor(bottom - rows * rowHeight);
+        }
+    }
+
+    /**
+     * One chat message (all its wrapped lines).
+     *
+     * @param text       plain text (with Lumora's own timestamp, if any)
+     * @param insertions shift-click insertions of the message parts (servers put the sender's name there)
+     * @param commands   commands of its click events (e.g. "/msg Name ")
+     * @param links      URLs of its click events
+     * @param firstLine  index of its lowest (newest) wrapped line
+     * @param lastLine   index of its highest wrapped line
+     */
+    record ChatMessage(String text, List<String> insertions, List<String> commands, List<String> links, int firstLine,
+                       int lastLine) {
+    }
+
+    /** Chat window position and size; null if there is no chat (module "Chat"). */
+    default ChatView chatView() {
+        return null;
+    }
+
+    /** The message a wrapped chat line belongs to (0 = newest line); null if there is none. */
+    default ChatMessage chatMessage(int line) {
+        return null;
+    }
+
+    /** Wraps the chat lines again (after the chat width changed). */
+    default void refreshChat() {
+    }
+
+    /** Replaces the text in the open chat's input field. */
+    default void setChatInput(String text) {
+    }
+
+    /** Left mouse button held (dragging the chat edges). */
+    default boolean mouseLeftDown() {
+        return false;
     }
 
     /** Packs a block position into one long (26 bits x/z, 12 bits y), like Minecraft's BlockPos#asLong. */

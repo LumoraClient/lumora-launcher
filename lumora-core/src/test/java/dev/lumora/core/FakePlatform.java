@@ -32,6 +32,10 @@ public final class FakePlatform implements Platform {
     public final Map<String, int[]> textures = new HashMap<>();
     public boolean textureSupport = true;
     public dev.lumora.core.extras.GameExtras extras = dev.lumora.core.extras.GameExtras.NONE;
+    /** What game().inWorld() reports (tests of in-world widgets). */
+    public boolean inWorld;
+    /** The own player (game().player()), null for none. */
+    public PlayerSnapshot player;
 
     @Override
     public dev.lumora.core.extras.GameExtras extras() {
@@ -114,12 +118,12 @@ public final class FakePlatform implements Platform {
         return new GameContext() {
             @Override
             public boolean inWorld() {
-                return false;
+                return inWorld;
             }
 
             @Override
             public Optional<PlayerSnapshot> player() {
-                return Optional.empty();
+                return Optional.ofNullable(player);
             }
 
             @Override
@@ -284,6 +288,11 @@ public final class FakePlatform implements Platform {
             @Override
             public String clipboard() {
                 return clipboard;
+            }
+
+            @Override
+            public void setClipboard(String text) {
+                clipboard = text;
             }
 
             @Override

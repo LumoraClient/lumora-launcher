@@ -124,4 +124,9 @@ public final class GuiGraphics {
     public void renderItem(ItemStack stack, int x, int y) {
         mc.getItemRenderer().renderAndDecorateItem(pose, stack, x, y);
     }
+
+    /** Count and durability bar of an item at (x, y), like the hotbar. */
+    public void renderItemDecorations(ItemStack stack, int x, int y) {
+        mc.getItemRenderer().renderGuiItemDecorations(pose, mc.font, stack, x, y);
+    }
 }

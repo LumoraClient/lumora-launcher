@@ -17,9 +17,12 @@
     "TabListIconMixin"
   ,
     "CrosshairMixin",
+    "StatusBarsMixin",
     "ScoreboardMixin",
     "TabPingMixin",
     "ChatMixin",
+    "ChatHudAccessor",
+    "ChatScreenAccessor",
     "BlockOutlineMixin",
     "BrowserScreenMixin",
     "ConnectionScreenMixin",

@@ -51,8 +51,13 @@ public final class LumoraRuntime {
         Hooks.onStarted(LumoraRuntime::start);
         Hooks.onStopping(mc -> core.stopping());
         Hooks.onEndTick(LumoraRuntime::tick);
-        Hooks.afterScreenExtract((s, g, mx, my, delta) -> core.renderNotifications(GRAPHICS.with(g), s.width));
-        Hooks.chatClick((s, e) -> !core.hudClick(e.x(), e.y(), e.button()));
+        Hooks.afterScreenExtract((s, g, mx, my, delta) -> {
+            if (s instanceof net.minecraft.client.gui.screens.ChatScreen) {
+                dev.lumora.core.extras.ChatModule.renderChatScreen(GRAPHICS.with(g), mx, my);
+            }
+            core.renderNotifications(GRAPHICS.with(g), s.width);
+        });
+        Hooks.chatClick((s, e) -> !dev.lumora.core.extras.ChatModule.chatClick(e.x(), e.y(), e.button()) && !core.hudClick(e.x(), e.y(), e.button()));
     }
 
     public static LumoraCore core() {

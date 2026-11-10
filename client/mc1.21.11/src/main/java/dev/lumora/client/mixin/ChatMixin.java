@@ -12,10 +12,16 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-/** Lumora chat module: timestamps and identical messages stacked into one line. */
+/** Lumora chat module: timestamps, stacked messages, chat size, background, text shadow, fade time and history. */
 @Mixin(ChatComponent.class)
 public abstract class ChatMixin {
     @Shadow
@@ -46,5 +52,50 @@ public abstract class ChatMixin {
             out = Component.empty().append(stamp).append(out);
         }
         return out;
+    }
+
+    // --- Lumora chat module: size, background, text shadow, fade time, history
+
+    @Shadow
+    public abstract boolean isChatFocused();
+
+    @Inject(method = "getWidth()I", at = @At("HEAD"), cancellable = true)
+    private void lumora$width(CallbackInfoReturnable<Integer> cir) {
+        int w = ChatModule.width();
+        if (w > 0) {
+            cir.setReturnValue(w);
+        }
+    }
+
+    @Inject(method = "getHeight()I", at = @At("HEAD"), cancellable = true)
+    private void lumora$height(CallbackInfoReturnable<Integer> cir) {
+        int h = ChatModule.height(isChatFocused());
+        if (h > 0) {
+            cir.setReturnValue(h);
+        }
+    }
+
+    @ModifyConstant(method = {"addMessageToDisplayQueue", "addMessageToQueue"}, constant = @Constant(intValue = 100))
+    private int lumora$history(int max) {
+        return ChatModule.history(max);
+    }
+
+    @Redirect(method = "render(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;"))
+    private Object lumora$opacity(net.minecraft.client.OptionInstance<?> option) {
+        Object value = option.get();
+        if (value instanceof Double d && option == net.minecraft.client.Minecraft.getInstance().options.textBackgroundOpacity()) {
+            return ChatModule.backgroundOpacity(d);
+        }
+        return value;
+    }
+
+    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;IIIZZ)V", at = @At("HEAD"))
+    private void lumora$drawStart(CallbackInfo ci) {
+        ChatModule.renderingChat(true);
+    }
+
+    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;IIIZZ)V", at = @At("RETURN"))
+    private void lumora$drawEnd(CallbackInfo ci) {
+        ChatModule.renderingChat(false);
     }
 }

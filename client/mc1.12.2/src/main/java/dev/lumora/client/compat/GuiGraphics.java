@@ -144,6 +144,12 @@ public final class GuiGraphics {
         GlStateManager.enableBlend();
     }
 
+    /** Count and durability bar of an item at (x, y), like the hotbar. */
+    public void renderItemDecorations(ItemStack stack, int x, int y) {
+        mc.getItemRenderer().renderGuiItemOverlay(mc.textRenderer, stack, x, y);
+        GlStateManager.enableBlend();
+    }
+
     /** The GL matrix stack under the 1.20 PoseStack names (2D GUI use: z is ignored by scale). */
     public static final class Pose {
         public void pushPose() {

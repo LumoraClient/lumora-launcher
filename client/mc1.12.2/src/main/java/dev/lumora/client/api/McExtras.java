@@ -219,8 +219,158 @@ final class McExtras implements GameExtras {
 
     @Override
     public void playSound(String kind, float volume) {
+        if ("mention".equals(kind)) {
+            mc().getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.method_14699(net.minecraft.sound.Sounds.BLOCK_NOTE_PLING, 1.5f, volume));
+            return;
+        }
         MinecraftClient.getInstance().getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.method_14699(
                 "ready".equals(kind) ? net.minecraft.sound.Sounds.ENTITY_EXPERIENCE_ORB_PICKUP : net.minecraft.sound.Sounds.ENTITY_ARROW_HIT_PLAYER,
                 "ready".equals(kind) ? 1.6f : 1.2f, volume));
+    }
+
+    @Override
+    public Status status() {
+        ClientPlayerEntity p = mc().player;
+        if (p == null || mc().interactionManager == null || mc().world == null) {
+            return Status.NONE;
+        }
+        String hearts = p.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) ? "poisoned" : p.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.WITHER) ? "withered" : "normal";
+        return new Status(true, mc().interactionManager.hasStatusBars(), p.isSpectator(), p.getHealth(), p.getMaxHealth(),
+                p.getAbsorption(), p.getArmorProtectionValue(), p.getHungerManager().getFoodLevel(), p.getAir(), 300,
+                p.isSubmergedIn(net.minecraft.block.material.Material.WATER), p.experienceLevel, p.experienceProgress,
+                mc().world.getLevelProperties().isHardcore(), hearts, p.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.HUNGER),
+                p.inventory.selectedSlot);
+    }
+
+    /** Hotbar slot 0..8 or the offhand (9, none before 1.9); null or empty if nothing is there. */
+    private static ItemStack slotStack(ClientPlayerEntity p, int slot) {
+        return slot == 9 ? p.getOffHandStack() : p.inventory.getInvStack(slot);
+    }
+
+    @Override
+    public String slotItem(int slot) {
+        ClientPlayerEntity p = mc().player;
+        if (p == null || slot < 0 || slot > 9) {
+            return "";
+        }
+        ItemStack s = slotStack(p, slot);
+        return s == null || s.isEmpty() ? "" : id(s);
+    }
+
+    @Override
+    public void drawSlot(dev.lumora.api.render.HudGraphics g, int slot, int x, int y) {
+        ClientPlayerEntity p = mc().player;
+        if (p == null || slot < 0 || slot > 9) {
+            return;
+        }
+        ItemStack s = slotStack(p, slot);
+        if (s == null || s.isEmpty()) {
+            return;
+        }
+        dev.lumora.client.compat.GuiGraphics n = g.unwrap(dev.lumora.client.compat.GuiGraphics.class).orElse(null);
+        if (n != null) {
+            n.renderItem(s, x, y);
+            n.renderItemDecorations(s, x, y);
+        }
+    }
+
+    // --- chat (module "Chat")
+
+    private static net.minecraft.client.gui.hud.ChatHud chat() {
+        return mc().inGameHud == null ? null : mc().inGameHud.getChatHud();
+    }
+
+    @Override
+    public ChatView chatView() {
+        net.minecraft.client.gui.hud.ChatHud chat = chat();
+        if (chat == null) {
+            return null;
+        }
+        dev.lumora.client.mixin.ChatHudAccessor a = (dev.lumora.client.mixin.ChatHudAccessor) chat;
+        double scale = chat.getChatScale();
+        int width = chat.getWidth();
+        net.minecraft.client.util.Window w = new net.minecraft.client.util.Window(mc());
+        int gw = w.getWidth();
+        int gh = w.getHeight();
+        int left = (int) Math.floor(2 - 2 * scale);
+        int right = (int) Math.ceil(2 + (Math.ceil(width / scale) + 4) * scale);
+        return new ChatView(left, right, gh - 40, 9 * scale, chat.getVisibleLineCount(), a.lumora$scroll(),
+                a.lumora$visible().size(), width, chat.getHeight(), scale, gw, gh);
+    }
+
+    @Override
+    public ChatMessage chatMessage(int line) {
+        net.minecraft.client.gui.hud.ChatHud chat = chat();
+        if (chat == null) {
+            return null;
+        }
+        dev.lumora.client.mixin.ChatHudAccessor a = (dev.lumora.client.mixin.ChatHudAccessor) chat;
+        List<net.minecraft.client.gui.hud.ChatHudLine> lines = a.lumora$visible();
+        if (line < 0 || line >= lines.size()) {
+            return null;
+        }
+        int time = lines.get(line).getCreationTick();
+        int lo = line;
+        while (lo > 0 && lines.get(lo - 1).getCreationTick() == time) {
+            lo--;
+        }
+        int hi = line;
+        while (hi + 1 < lines.size() && lines.get(hi + 1).getCreationTick() == time) {
+            hi++;
+        }
+        // messages of the same tick: the one that contains the line under the mouse
+        String part = lines.get(line).getText().asUnformattedString().replaceAll("\\s+", "");
+        net.minecraft.text.Text found = null;
+        for (net.minecraft.client.gui.hud.ChatHudLine m : a.lumora$all()) {
+            if (m.getCreationTick() == time) {
+                if (found == null) {
+                    found = m.getText();
+                }
+                if (m.getText().asUnformattedString().replaceAll("\\s+", "").contains(part)) {
+                    found = m.getText();
+                    break;
+                }
+            }
+        }
+        if (found == null) {
+            return null;
+        }
+        List<String> insertions = new ArrayList<>();
+        List<String> commands = new ArrayList<>();
+        List<String> links = new ArrayList<>();
+        for (net.minecraft.text.Text part2 : found) {
+            net.minecraft.text.Style style = part2.getStyle();
+            if (style.getInsertion() != null) {
+                insertions.add(style.getInsertion());
+            }
+            net.minecraft.text.ClickEvent c = style.getClickEvent();
+            if (c != null && c.getAction() == net.minecraft.text.ClickEvent.Action.OPEN_URL) {
+                links.add(c.getValue());
+            } else if (c != null && (c.getAction() == net.minecraft.text.ClickEvent.Action.SUGGEST_COMMAND
+                    || c.getAction() == net.minecraft.text.ClickEvent.Action.RUN_COMMAND)) {
+                commands.add(c.getValue());
+            }
+        }
+        return new ChatMessage(found.asUnformattedString(), insertions, commands, links, lo, hi);
+    }
+
+    @Override
+    public void refreshChat() {
+        net.minecraft.client.gui.hud.ChatHud chat = chat();
+        if (chat != null) {
+            chat.reset();
+        }
+    }
+
+    @Override
+    public void setChatInput(String text) {
+        if (mc().currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen s) {
+            ((dev.lumora.client.mixin.ChatScreenAccessor) s).lumora$input().setText(text);
+        }
+    }
+
+    @Override
+    public boolean mouseLeftDown() {
+        return org.lwjgl.input.Mouse.isButtonDown(0);
     }
 }

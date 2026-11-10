@@ -75,7 +75,8 @@ public final class HubView implements AddonView {
             "lumora-fullbright", new String[]{WidgetCategory.WORLD, "fullbright"},
             "lumora-chat", new String[]{WidgetCategory.SERVER, "chat"},
             "lumora-tab", new String[]{WidgetCategory.SERVER, "tab"},
-            "lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"});
+            "lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"},
+            "lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"});
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     private static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",

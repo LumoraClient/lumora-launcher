@@ -486,7 +486,22 @@ public final class SmokeTest {
                 worldStep++;
                 ticks = 0;
             }
-        } else if (worldStep == modes.length + 11 && ticks >= 5) {
+        } else if (worldStep == modes.length + 11) {
+            // chat module: messages, open chat, menu by right-click, then a smaller chat without background and shadow
+            if (ticks == 2) {
+                ChatSmoke.fill(mc);
+            } else if (ticks == 8) {
+                ChatSmoke.check(mc, extraProblems);
+            } else if (ticks == 10) {
+                screenshot(mc, "chat-menu");
+                ChatSmoke.look();
+            } else if (ticks == 13) {
+                screenshot(mc, "chat-look");
+                ChatSmoke.reset(mc);
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 12 && ticks >= 5) {
             phase = Phase.DONE;
             finish(mc);
         }

@@ -41,6 +41,7 @@ public abstract class CrosshairMixin {
             return;
         }
         GuiGraphics g = GuiGraphics.of(pose);
-        c.draw(LUMORA_G.with(g), g.guiWidth(), g.guiHeight());
+        c.draw(LUMORA_G.with(g), g.guiWidth(), g.guiHeight(), Minecraft.getInstance().getWindow().getWidth(),
+                Minecraft.getInstance().getWindow().getHeight());
     }
 }

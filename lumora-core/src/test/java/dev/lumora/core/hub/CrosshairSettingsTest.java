@@ -85,14 +85,13 @@ class CrosshairSettingsTest {
         assertTrue(clickUntil(v, 62, 0, () -> value(g, "mode").equals("custom")), "the third tab");
         String pixels = value(g, "pixels");
         assertTrue(clickUntil(v, 90, 0, () -> !value(g, "pixels").equals(pixels)), "painting a pixel");
+        boolean[] old = CrosshairPresets.decode(pixels);
         boolean[] px = CrosshairPresets.decode(value(g, "pixels"));
-        int n = CrosshairPresets.GRID;
+        int changed = 0;
         for (int i = 0; i < px.length; i++) {
-            int x = i % n;
-            int y = i / n;
-            assertEquals(px[i], px[y * n + (n - 1 - x)], "mirrored left/right");
-            assertEquals(px[i], px[(n - 1 - y) * n + x], "mirrored top/bottom");
+            changed += px[i] != old[i] ? 1 : 0;
         }
+        assertEquals(1, changed, "mirroring is off by default: one click, one pixel");
         // the right button erases (the first painted pixel)
         String painted = value(g, "pixels");
         assertTrue(clickUntil(v, 90, 1, () -> !value(g, "pixels").equals(painted)), "erasing");

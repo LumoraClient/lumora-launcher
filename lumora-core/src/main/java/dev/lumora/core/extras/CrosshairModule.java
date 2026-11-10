@@ -78,9 +78,37 @@ public final class CrosshairModule implements LumoraAddon {
         active = null;
     }
 
-    /** Draws the crosshair centred on the GUI-scaled screen. */
+    /** Draws the crosshair centred on the GUI-scaled screen (without the framebuffer size: on the GUI grid). */
     public void draw(HudGraphics g, int screenWidth, int screenHeight) {
-        render(g, screenWidth / 2, screenHeight / 2);
+        draw(g, screenWidth, screenHeight, 0, 0);
+    }
+
+    /**
+     * Draws the crosshair in the real middle of the window: the GUI grid is coarser than the screen (2-4 real pixels
+     * per GUI pixel), so the GUI centre can be off by a few pixels; the framebuffer size gives the exact middle.
+     *
+     * @param framebufferWidth window size in real pixels (0 if unknown)
+     */
+    public void draw(HudGraphics g, int screenWidth, int screenHeight, int framebufferWidth, int framebufferHeight) {
+        double[] c = centre(screenWidth, screenHeight, framebufferWidth, framebufferHeight);
+        g.push();
+        g.translate((float) c[0], (float) c[1]);
+        render(g, 0, 0);
+        g.pop();
+    }
+
+    /**
+     * Top left corner of the crosshair's centre pixel in GUI units: the pixel (one GUI pixel = {@code scale} real
+     * pixels) sits in the middle of the framebuffer, its edges on whole real pixels so it stays sharp.
+     */
+    static double[] centre(int guiWidth, int guiHeight, int framebufferWidth, int framebufferHeight) {
+        if (guiWidth <= 0 || guiHeight <= 0 || framebufferWidth <= 0 || framebufferHeight <= 0) {
+            return new double[]{guiWidth / 2, guiHeight / 2};
+        }
+        // Minecraft's GUI size is the window size divided by the whole GUI scale, rounded up
+        double scale = Math.max(1, Math.ceil(framebufferWidth / (double) guiWidth - 1e-9));
+        return new double[]{Math.round((framebufferWidth - scale) / 2.0) / scale,
+                Math.round((framebufferHeight - scale) / 2.0) / scale};
     }
 
     /** Draws the crosshair with its middle pixel at (cx, cy) of the current transform. */

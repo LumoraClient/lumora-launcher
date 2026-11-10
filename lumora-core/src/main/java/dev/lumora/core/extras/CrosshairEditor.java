@@ -26,7 +26,9 @@ final class CrosshairEditor implements SettingsView.Panel {
     private static final int CHECK_B = 0xFF2C2839;
     private static final int PREVIEW = 112;
     private static final int TILE_SIZE = 34;
-    private static final int CELL = 7;
+    /** Smallest and largest size of a cell of the pixel editor (it grows with the free space). */
+    private static final int MIN_CELL = 7;
+    private static final int MAX_CELL = 12;
     private static final Map<String, String[]> STYLE_NAMES = Map.of(
             "gap", new String[]{"Kreuz mit Lücke", "Cross with gap"},
             "cross", new String[]{"Kreuz", "Cross"},
@@ -45,11 +47,15 @@ final class CrosshairEditor implements SettingsView.Panel {
     private final boolean de;
     private final List<Hit> hits = new ArrayList<>();
     private String tooltip;
-    /** Mirror painting in all four quarters (kept while the game runs). */
-    private static boolean mirror = true;
+    /** Mirror painting in all four quarters (kept while the game runs); off, so you draw freely. */
+    private static boolean mirror = false;
     /** Pixel grid on screen: x, y; -1 while not shown. */
     private int gridX = -1;
     private int gridY = -1;
+    /** Size of one cell of the pixel editor as last drawn. */
+    private int cell = MIN_CELL;
+    /** Cell painted last in the current stroke (-1: none), so fast strokes leave no gaps. */
+    private int lastCell = -1;
     /** Colour bar on screen. */
     private int hueX = -1;
     private int hueY = -1;
@@ -217,29 +223,32 @@ final class CrosshairEditor implements SettingsView.Panel {
 
     private int custom(HudGraphics g, int x, int y, int w, int mx, int my) {
         int n = CrosshairPresets.GRID;
-        int size = n * CELL;
+        // as large as the space next to the buttons allows (at least 7, at most 12 screen pixels per cell)
+        cell = Math.max(MIN_CELL, Math.min(MAX_CELL, (w - 12 - 110) / n));
+        int size = n * cell;
         gridX = x;
         gridY = y;
         boolean[] px = module.customPixels();
         g.roundedRect(x - 1, y - 1, size + 2, size + 2, 2, BORDER);
         for (int cy = 0; cy < n; cy++) {
             for (int cx = 0; cx < n; cx++) {
-                int x1 = x + cx * CELL;
-                int y1 = y + cy * CELL;
+                int x1 = x + cx * cell;
+                int y1 = y + cy * cell;
                 boolean centre = cx == n / 2 && cy == n / 2;
                 int bg = ((cx + cy) % 2 == 0) ? CHECK_A : CHECK_B;
-                g.fill(x1, y1, x1 + CELL, y1 + CELL, centre ? LumoraTheme.mix(bg, LumoraTheme.accent(), 0.35f) : bg);
+                g.fill(x1, y1, x1 + cell, y1 + cell, centre ? LumoraTheme.mix(bg, LumoraTheme.accent(), 0.35f) : bg);
                 if (px[cy * n + cx]) {
-                    g.fill(x1, y1, x1 + CELL, y1 + CELL, module.color.argb() | 0xFF000000);
+                    g.fill(x1, y1, x1 + cell, y1 + cell, module.color.argb() | 0xFF000000);
                 }
             }
         }
-        int cell = cellAt(mx, my);
-        if (cell >= 0) {
-            int x1 = x + (cell % n) * CELL;
-            int y1 = y + (cell / n) * CELL;
-            g.outline(x1, y1, CELL, CELL, LumoraTheme.accentHover());
-            tooltip = t("Linksklick malt, Rechtsklick radiert", "Left click paints, right click erases");
+        int hovered = cellAt(mx, my);
+        if (hovered >= 0) {
+            int x1 = x + (hovered % n) * cell;
+            int y1 = y + (hovered / n) * cell;
+            g.outline(x1, y1, cell, cell, LumoraTheme.accentHover());
+            tooltip = t("Linke Maustaste gedrückt halten und ziehen: malen. Rechte Maustaste: radieren.",
+                    "Hold the left mouse button and drag to paint, the right button erases.");
         }
         // buttons right of the grid (below when narrow)
         int bx = x + size + 12;
@@ -323,23 +332,63 @@ final class CrosshairEditor implements SettingsView.Panel {
             return -1;
         }
         int n = CrosshairPresets.GRID;
-        int cx = (int) Math.floor((mx - gridX) / CELL);
-        int cy = (int) Math.floor((my - gridY) / CELL);
+        int cx = (int) Math.floor((mx - gridX) / cell);
+        int cy = (int) Math.floor((my - gridY) / cell);
         return cx >= 0 && cy >= 0 && cx < n && cy < n ? cy * n + cx : -1;
     }
 
-    private void paint(int cell) {
+    /**
+     * Paints the cell and every cell on the straight line from the cell painted before in this stroke: the mouse moves
+     * several cells between two events when you draw fast, the line still has no gaps.
+     */
+    private void paint(int target) {
         int n = CrosshairPresets.GRID;
         boolean[] px = module.customPixels().clone();
-        int cx = cell % n;
-        int cy = cell / n;
+        int x1 = target % n;
+        int y1 = target / n;
+        int x0 = lastCell >= 0 ? lastCell % n : x1;
+        int y0 = lastCell >= 0 ? lastCell / n : y1;
+        for (int[] p : line(x0, y0, x1, y1)) {
+            set(px, n, p[0], p[1]);
+        }
+        lastCell = target;
+        module.setCustomPixels(px);
+    }
+
+    private void set(boolean[] px, int n, int cx, int cy) {
         px[cy * n + cx] = paintValue;
         if (mirror) {
             px[cy * n + (n - 1 - cx)] = paintValue;
             px[(n - 1 - cy) * n + cx] = paintValue;
             px[(n - 1 - cy) * n + (n - 1 - cx)] = paintValue;
         }
-        module.setCustomPixels(px);
+    }
+
+    /** Cells of a straight line (Bresenham), both ends included. */
+    static java.util.List<int[]> line(int x0, int y0, int x1, int y1) {
+        java.util.List<int[]> out = new ArrayList<>();
+        int dx = Math.abs(x1 - x0);
+        int dy = -Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy;
+        int x = x0;
+        int y = y0;
+        while (true) {
+            out.add(new int[]{x, y});
+            if (x == x1 && y == y1) {
+                return out;
+            }
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y += sy;
+            }
+        }
     }
 
     private void pickHue(double mx) {
@@ -350,11 +399,13 @@ final class CrosshairEditor implements SettingsView.Panel {
 
     @Override
     public boolean mouseClicked(double x, double y, int button) {
-        int cell = cellAt(x, y);
-        if (cell >= 0 && (button == 0 || button == 1)) {
-            paintValue = button == 0 && !module.customPixels()[cell];
+        int hit = cellAt(x, y);
+        if (hit >= 0 && (button == 0 || button == 1)) {
+            // left paints (or erases when the stroke starts on a painted cell), right always erases
+            paintValue = button == 0 && !module.customPixels()[hit];
             drag = "paint";
-            paint(cell);
+            lastCell = -1;
+            paint(hit);
             return true;
         }
         if (button != 0) {
@@ -378,9 +429,9 @@ final class CrosshairEditor implements SettingsView.Panel {
     @Override
     public void mouseDragged(double x, double y, int button) {
         if ("paint".equals(drag)) {
-            int cell = cellAt(x, y);
-            if (cell >= 0) {
-                paint(cell);
+            int over = cellAt(x, y);
+            if (over >= 0) {
+                paint(over);
             }
         } else if ("hue".equals(drag)) {
             pickHue(x);
@@ -390,6 +441,7 @@ final class CrosshairEditor implements SettingsView.Panel {
     @Override
     public void mouseReleased() {
         drag = null;
+        lastCell = -1;
     }
 
     // ------------------------------------------------------------------ colours

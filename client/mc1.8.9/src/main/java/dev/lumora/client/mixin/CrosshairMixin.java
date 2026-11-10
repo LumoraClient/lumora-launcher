@@ -30,7 +30,8 @@ public abstract class CrosshairMixin {
         }
         if (showCrosshair()) {
             GuiGraphics g = GuiGraphics.create();
-            c.draw(LUMORA_G.with(g), g.guiWidth(), g.guiHeight());
+            c.draw(LUMORA_G.with(g), g.guiWidth(), g.guiHeight(), net.minecraft.client.MinecraftClient.getInstance().width,
+                    net.minecraft.client.MinecraftClient.getInstance().height);
         }
         return false;
     }

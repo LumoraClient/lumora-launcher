@@ -39,6 +39,7 @@ public abstract class CrosshairMixin {
         if (mc.gameMode != null && mc.gameMode.getPlayerMode() == GameType.SPECTATOR && !canRenderCrosshairForSpectator(mc.hitResult)) {
             return;
         }
-        c.draw(LUMORA_G.with(g), g.guiWidth(), g.guiHeight());
+        c.draw(LUMORA_G.with(g), g.guiWidth(), g.guiHeight(), Minecraft.getInstance().getWindow().getWidth(),
+                Minecraft.getInstance().getWindow().getHeight());
     }
 }

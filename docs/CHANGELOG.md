@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.23 (2026-11-10)
+
+### Im Spiel
+- **Elytra-Streifen verbessert:**
+  - **Dicker in Kurven:** In Schräglage und beim schnellen Drehen werden die Streifen bis zu 2,5-mal so breit und kräftiger; geradeaus bleiben sie dünn (abschaltbar).
+  - **Breite nach Tempo:** Je schneller du gleitest, desto breiter die Streifen (abschaltbar).
+  - **Leuchten:** Neuer Schalter, die Streifen bekommen einen hellen Saum und überblenden additiv – wirkt vor allem nachts. Ab Werk aus.
+  - **Genauere Flügelspitzen:** Die Streifen starten dort, wo Minecrafts Gleitmodell die Flügel zeichnet: Es neigt sich zur Seite, in die du schaust, und klappt die Flügel im Sturzflug ein.
+
 ## 0.3.22 (2026-11-10)
 
 ### Im Spiel

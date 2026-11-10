@@ -67,6 +67,16 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.23 (2026-11-10):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 460 Unit-Tests ohne Fehler (1 übersprungen). Neu: 2 für die Elytra-Streifen (Schräglage zur Blickseite wie im Gleitmodell, eingeklappte Flügel im Sturzflug; breiter in Kurven und nach Tempo, Leucht-Saum).
+- **Mixins** aller 15 Versionen mit Elytren mit `check-mixins.pl` geprüft: alle OK.
+- **Vor dem Release** (Entwicklungsstand, Smoke-Test mit automatischem Gleitflug): 26.3 und 1.21.4 bestanden, Streifen auf den Bildern normal und mit Leuchten zu sehen, nach der Drehung in Schräglage breiter; 1.16.5 bestanden, dort brach der automatische Gleitstart ab.
+- **Smoke-Test mit dem fertigen 0.3.23-Build: auf Wunsch nicht ausgeführt.**
+- **Nicht geprüft:** fließende Kurven mit echter Steuerung, das Leuchten in 1.12.2 und 1.16.5 bis 1.18.2 (eigener OpenGL-Code, nur kompiliert), ein echtes Selbst-Update von 0.3.22 auf 0.3.23.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
+
 **0.3.22 (2026-11-10):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 458 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für die Elytra-Streifen (Flügelspitzen, zwei Streifen hinter dem Spieler, Ausblenden nach der Länge und erst ab dem Tempo, eigene/fremde getrennt, Wirbel, gesperrt vor 1.9).
 - **Mixins** aller 15 Versionen mit Elytren gegen die Minecraft-Jars geprüft (`check-mixins.pl`): alle OK.

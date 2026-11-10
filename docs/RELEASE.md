@@ -67,6 +67,15 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.24 (2026-11-10):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 463 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für das Fadenkreuz (Mitte bei 1920×1080 mit GUI-Größe 3 und 4, bei 1366×768 und im 854×480-Fenster; lückenlose Linien; ein schneller Strich malt jedes Kästchen ohne Spiegeln, ein Strich auf einem gemalten Kästchen radiert). Der Einstellungs-Test erwartet jetzt „ein Klick, ein Pixel“ statt Spiegeln.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test in 26.3 und 1.8.9 bestanden, der Editor zeigt das größere Raster und „Spiegeln: AUS“.
+- **Smoke-Test mit dem fertigen 0.3.24-Build: auf Wunsch nicht ausgeführt.**
+- **Nicht geprüft:** die Lage des Fadenkreuzes im Spiel bei großen Auflösungen (der Smoke-Test schaltet das Modul im Spiel nicht ein und läuft im 854×480-Fenster), ein echtes Selbst-Update von 0.3.23 auf 0.3.24.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
+
 **0.3.23 (2026-11-10):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 460 Unit-Tests ohne Fehler (1 übersprungen). Neu: 2 für die Elytra-Streifen (Schräglage zur Blickseite wie im Gleitmodell, eingeklappte Flügel im Sturzflug; breiter in Kurven und nach Tempo, Leucht-Saum).
 - **Mixins** aller 15 Versionen mit Elytren mit `check-mixins.pl` geprüft: alle OK.

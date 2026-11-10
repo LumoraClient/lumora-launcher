@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.3.24 (2026-11-10)
+
+### Im Spiel
+- **Fadenkreuz genau in der Mitte:** Das Lumora-Fadenkreuz richtet sich jetzt nach der echten Fenstergröße statt nach dem gröberen GUI-Raster; vorher saß es je nach Auflösung und GUI-Größe 1–3 Pixel rechts unterhalb der Mitte. Es wird auf ganze Bildschirmpixel gesetzt und bleibt scharf (alle Modi, 1.8.9 bis 26.3).
+
+### Hub
+- **Eigenes Fadenkreuz frei zeichnen:**
+  - „Spiegeln“ ist ab Werk aus – du malst frei, statt dass jeder Strich in alle vier Ecken kopiert wird (der Schalter bleibt).
+  - Schnelle Striche werden lückenlos gezogen.
+  - Das Mal-Raster wird größer, wenn Platz ist (bis 12 statt 7 Pixel pro Kästchen), mit Hinweis „gedrückt halten und ziehen“.
+
 ## 0.3.23 (2026-11-10)
 
 ### Im Spiel

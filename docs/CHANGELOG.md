@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.3.22 (2026-11-10)
+
+### Im Spiel
+- **Neues Modul „Elytra-Streifen“** (Kategorie Spieler, Minecraft 1.12.2 bis 26.3):
+  - Hinter den Flügelspitzen gleitender Spieler entstehen zwei Streifen, die nach hinten breiter und blasser werden. Stil **Dampfstreifen** (gerade Linien) oder **Wirbel** (gegenläufige Spiralen, die sich aufweiten).
+  - Einstellungen: eigene Streifen und die anderer Spieler getrennt, Farbe mit Deckkraft (auch Regenbogen), Länge (0,5–6 s), Breite und ab welchem Tempo (Standard 12 Blöcke/s).
+  - Die eigenen Streifen sind in der Third-Person-Ansicht zu sehen (in der Ego-Sicht zeichnet Minecraft den eigenen Körper nicht).
+  - In **1.8.9** ist die Karte gesperrt: Elytren gibt es erst ab Minecraft 1.9 (Hover-Fenster mit Grund).
+
+### Hub
+- Bei „zu alter“ Minecraft-Version steht im Hover-Fenster kein „(noch)“ mehr, und Versionen wie „1.9.x“ werden als „1.9“ angezeigt.
+
 ## 0.3.21 (2026-11-09)
 
 ### Hub

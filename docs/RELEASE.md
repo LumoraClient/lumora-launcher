@@ -67,6 +67,15 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.22 (2026-11-10):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 458 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für die Elytra-Streifen (Flügelspitzen, zwei Streifen hinter dem Spieler, Ausblenden nach der Länge und erst ab dem Tempo, eigene/fremde getrennt, Wirbel, gesperrt vor 1.9).
+- **Mixins** aller 15 Versionen mit Elytren gegen die Minecraft-Jars geprüft (`check-mixins.pl`): alle OK.
+- **Smoke-Test** mit automatischem Gleitflug (Elytra über den integrierten Server, 40 Blöcke hoch, Kamera vor dem Spieler, Drehung um 90° für die Seitenansicht): vor dem Release in 26.3, 1.21.11, 1.21.4, 1.20.1 und 1.16.5 Streifen gezeichnet und auf den Screenshots zu sehen (je eine der fünf Zeichen-Varianten), 1.12.2 lädt das Modul, 1.8.9 zeigt es gesperrt; mit dem fertigen 0.3.22-Build 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden. Dabei gefunden und behoben: die Smoke-Prüfung wertete das absichtlich gesperrte Modul in 1.8.9 als Fehler.
+- **Nicht geprüft:** der Gleitflug in 1.12.2 (altes OpenGL, nur geladen), der Stil „Wirbel“ im Spiel (nur Unit-Test), Streifen anderer Spieler auf einem Server, ein echtes Selbst-Update von 0.3.21 auf 0.3.22.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
+
 **0.3.21 (2026-11-09):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 452 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Versionsprüfung (Vergleich, zu alt/zu neu/nicht dabei, Lumora zu alt, Hinweis bei fremden Autoren) und 3 im Hub (gesperrte Addon-Karte mit Hover-Fenster, Bibliothek mit Grund, gesperrte Schrift).
 - **Hover-Fenster** mit einem Zeichen-Hilfsprogramm außerhalb des Spiels erzeugt und angesehen (Addon-Karte, Bibliothek, Schrift).

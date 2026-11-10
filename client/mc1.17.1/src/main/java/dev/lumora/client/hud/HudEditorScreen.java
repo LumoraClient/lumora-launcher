@@ -27,7 +27,8 @@ import java.util.List;
  * HUD editor. Every registered widget (built-in and from addons) is listed automatically and drawn exactly as in
  * game. Click = select, drag = move (snaps to edges, center, other widgets and optionally a grid; Shift = free),
  * corner handles = resize, wheel = size, right click = on/off, Alt+click = next widget below, double click =
- * settings. Keys: arrows nudge (Shift = 10 px), Del = off, H = hide, G = grid, Ctrl+Z / Ctrl+Y = undo / redo.
+ * settings. While dragging, the screen shows 3x3 anchor zones (the widget hangs on the corner, edge or center
+ * of the zone it is dropped in), a grid, the widgets it snaps to and its position. Keys: arrows nudge (Shift = 10 px), Del = off, H = hide, G = grid, Ctrl+Z / Ctrl+Y = undo / redo.
  * The logic lives in {@link HudEditorModel}; this screen draws and forwards input.
  */
 public final class HudEditorScreen extends Screen {
@@ -43,6 +44,16 @@ public final class HudEditorScreen extends Screen {
     private final List<String> headerNames = new ArrayList<>();
     private WidgetEntry lastSelected;
     private long lastClick;
+    /** Search text of the widget list (kept while the game runs). */
+    private static String query = "";
+    private net.minecraft.client.gui.components.EditBox search;
+    private boolean refocusSearch;
+    /** Selection card: top left (x -1: not shown) and the widget bounds it was placed for. */
+    private int panelX = -1;
+    private int panelY;
+    private int[] panelFor;
+    /** The screen was built during a drag (side list and buttons left out, the whole screen is free). */
+    private boolean builtWhileDragging;
 
     public HudEditorScreen(Screen parent) {
         this(parent, LumoraRuntime.core().openEditor());
@@ -73,9 +84,14 @@ public final class HudEditorScreen extends Screen {
     @Override
     protected void init() {
         headers.clear();
+        search = null;
+        panelX = -1;
+        builtWhileDragging = model.mode() == HudEditorModel.Mode.MOVING || model.mode() == HudEditorModel.Mode.RESIZING;
         headerNames.clear();
         lastSelected = model.selected();
-        if (listOpen) {
+        if (builtWhileDragging) {
+            // nothing in the way while a widget is dragged
+        } else if (listOpen) {
             tools();
             widgetList();
         } else {
@@ -83,8 +99,8 @@ public final class HudEditorScreen extends Screen {
             addRenderableWidget(new LumoraButton(width / 2 - 50, height - 24, 100, 20, tr("gui.done"), LumoraButton.Style.PRIMARY, null, this::onClose));
         }
         WidgetEntry sel = model.selected();
-        if (sel != null) {
-            selectionPanel(sel);
+        if (sel != null && model.mode() == HudEditorModel.Mode.NONE) {
+            selectionPanel(sel); // hidden while the widget is moved
         }
     }
 
@@ -103,6 +119,23 @@ public final class HudEditorScreen extends Screen {
         button(x + half + 4, 39, half, 16, tr(l.snap ? "lumora.hud.snap.on" : "lumora.hud.snap.off"), null, () -> model.setSnap(!l.snap));
         button(x, 58, half, 16, tr("lumora.hud.undo"), null, model::undo).active = model.canUndo();
         button(x + half + 4, 58, half, 16, tr("lumora.hud.redo"), null, model::redo).active = model.canRedo();
+        search = new net.minecraft.client.gui.components.EditBox(font, x, 77, LIST_W, 14, tr("lumora.hud.search"));
+        search.setMaxLength(32);
+        search.setValue(query);
+        search.setResponder(text -> {
+            if (!text.equals(query)) {
+                query = text;
+                page = 0;
+                refocusSearch = true;
+                init(minecraft, width, height);
+            }
+        });
+        addRenderableWidget(search);
+        if (refocusSearch) {
+            refocusSearch = false;
+            setFocused(search);
+            search.setFocus(true);
+        }
     }
 
     private LumoraButton button(int x, int y, int w, int h, Component label, String glyph, Runnable action) {
@@ -124,6 +157,13 @@ public final class HudEditorScreen extends Screen {
         if (model.selected() != lastSelected && model.mode() == HudEditorModel.Mode.NONE) {
             init(minecraft, width, height);
         }
+        // the selected widget moved or changed size (keys, wheel, undo): the card follows it
+        WidgetEntry s = model.selected();
+        if (s != null && panelFor != null && model.mode() == HudEditorModel.Mode.NONE && s.bounds().valid
+                && (s.bounds().x != panelFor[0] || s.bounds().y != panelFor[1] || s.bounds().width != panelFor[2]
+                || s.bounds().height != panelFor[3])) {
+            init(minecraft, width, height);
+        }
     }
 
     private static String profileName(String id) {
@@ -134,7 +174,7 @@ public final class HudEditorScreen extends Screen {
 
     private void widgetList() {
         int x = listLeft();
-        int top = 80;
+        int top = 96;
         int bottom = height - 74;
         int capacity = Math.max(3, (bottom - top) / ROW);
         // rows: category headers + widgets, paged
@@ -145,7 +185,11 @@ public final class HudEditorScreen extends Screen {
             int c = a.category().compareTo(b.category());
             return c != 0 ? c : name(a).compareToIgnoreCase(name(b));
         });
+        String q = query.strip().toLowerCase(java.util.Locale.ROOT);
         for (WidgetEntry e : sorted) {
+            if (!q.isEmpty() && !name(e).toLowerCase(java.util.Locale.ROOT).contains(q)) {
+                continue;
+            }
             if (!e.category().equals(category)) {
                 category = e.category();
                 rows.add(category);
@@ -224,8 +268,9 @@ public final class HudEditorScreen extends Screen {
 
     /** Card with the actions for the selected widget (bottom left): two rows of three buttons. */
     private void selectionPanel(WidgetEntry e) {
-        int x = 8 + 6;
-        int y = selectionPanelY() + 20;
+        placePanel(e);
+        int x = panelX + 6;
+        int y = panelY + 20;
         int bw = (selectionPanelWidth() - 12 - 6) / 3;
         LumoraButton settings = new LumoraButton(x, y, bw, 16, tr("lumora.hud.sel.settings"), LumoraButton.Style.PRIMARY, null, () -> openSettings(e));
         settings.active = !e.widget().settings().isEmpty();
@@ -236,6 +281,27 @@ public final class HudEditorScreen extends Screen {
         button(x, y, bw, tr("lumora.hud.sel.front"), null, () -> model.moveLayer(e, 1));
         button(x + bw + 3, y, bw, tr("lumora.hud.sel.back"), null, () -> model.moveLayer(e, -1));
         button(x + 2 * (bw + 3), y, bw, tr("lumora.hud.sel.reset"), null, () -> model.resetWidget(e));
+    }
+
+    /** The selection card next to its widget: below it in the upper half of the screen, above it in the lower half. */
+    private void placePanel(WidgetEntry e) {
+        int w = selectionPanelWidth();
+        int h = 60;
+        Bounds b = e.bounds();
+        if (!b.valid) {
+            panelX = 8;
+            panelY = selectionPanelY();
+            panelFor = null;
+            return;
+        }
+        panelX = Math.max(8, Math.min(freeWidth() + 8 - w, b.x));
+        boolean below = b.y + b.height / 2 < height / 2;
+        int y = below ? b.bottom() + 8 : b.y - h - 8;
+        if (y < 4 || y + h > height - 18) {
+            y = below ? b.y - h - 8 : b.bottom() + 8;
+        }
+        panelY = Math.max(4, Math.min(height - 18 - h, y));
+        panelFor = new int[] {b.x, b.y, b.width, b.height};
     }
 
     private void openSettings(WidgetEntry e) {
@@ -306,6 +372,7 @@ public final class HudEditorScreen extends Screen {
         for (int gy : model.guidesY()) {
             g.fill(0, gy, width, gy + 1, LumoraUi.alpha(LumoraUi.ACCENT, 0xD0));
         }
+        dev.lumora.core.hud.HudEditorOverlay.draw(hg, model, width, height);
         WidgetEntry sel = model.selected();
         if (sel != null && sel.bounds().valid) {
             Bounds b = sel.bounds();
@@ -320,7 +387,7 @@ public final class HudEditorScreen extends Screen {
             String info = name(hover) + "  " + Math.round(hover.scale() * 100) + " %";
             g.drawString(font, info, hover.bounds().x, Math.max(22, hover.bounds().y - 10), LumoraUi.ACCENT_HOVER, true);
         }
-        if (listOpen) {
+        if (listOpen && !builtWhileDragging) {
             g.fill(listLeft() - 6, 0, width, height, LumoraUi.alpha(LumoraUi.BG, 0xD8));
             g.drawString(font, tr("lumora.hud.editor.widgets", model.entries().size()), listLeft(), 7, LumoraUi.TEXT, true);
             for (int i = 0; i < headers.size(); i++) {
@@ -328,9 +395,9 @@ public final class HudEditorScreen extends Screen {
                 g.drawString(font, headerNames.get(i), p[0] + 2, p[1], LumoraUi.MUTED, false);
             }
         }
-        if (sel != null) {
-            int x = 8;
-            int y = selectionPanelY();
+        if (sel != null && panelX >= 0) {
+            int x = panelX;
+            int y = panelY;
             int w = selectionPanelWidth();
             LumoraUi.card(g, x, y, w, 60, LumoraUi.alpha(LumoraUi.SURFACE, 0xF0), LumoraUi.BORDER);
             String layer = tr("lumora.hud.sel.info", Math.round(sel.scale() * 100), sel.layer()).getString();
@@ -384,7 +451,11 @@ public final class HudEditorScreen extends Screen {
     }
 
     boolean drag(double mx, double my) {
-        return model.drag(mx, my, LumoraRuntime.keyDown(Keys.LEFT_SHIFT) || LumoraRuntime.keyDown(Keys.RIGHT_SHIFT));
+        boolean r = model.drag(mx, my, LumoraRuntime.keyDown(Keys.LEFT_SHIFT) || LumoraRuntime.keyDown(Keys.RIGHT_SHIFT));
+        if (!builtWhileDragging && (model.mode() == HudEditorModel.Mode.MOVING || model.mode() == HudEditorModel.Mode.RESIZING)) {
+            init(minecraft, width, height); // hides the side list and the selection card while the widget moves
+        }
+        return r;
     }
 
     boolean release() {
@@ -396,6 +467,9 @@ public final class HudEditorScreen extends Screen {
     }
 
     boolean key(int key, boolean ctrl, boolean shift) {
+        if (search != null && search.isFocused()) {
+            return false; // typing in the search field
+        }
         if (ctrl && key == Keys.Z) {
             if (shift) {
                 model.redo();

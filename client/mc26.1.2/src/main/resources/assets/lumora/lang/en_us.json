@@ -189,6 +189,8 @@
   "lumora.key.unbound": "None",
   "lumora.hud.undo": "Undo",
   "lumora.hud.redo": "Redo",
+  "lumora.hud.search": "Search",
+  "lumora.hud.search.hint": "Search widgets …",
   "lumora.hud.sel.front": "Forward",
   "lumora.hud.sel.back": "Backward",
   "lumora.menu.social": "Friends",

@@ -85,6 +85,21 @@ final class ApiSmoke {
         LOG.info("LUMORA_SMOKE_LAYOUT saved {} x={} y={} scale={} (moved {} px)", e.id(), fmt(e.x()), fmt(e.y()), fmt(e.scale()), (int) dx);
     }
 
+    /** Picks up the test widget and holds it over the left middle zone (the screenshot shows the drag overlay). */
+    static void dragInEditor(HudEditorModel model, int width, int height) {
+        Optional<WidgetEntry> found = core().widgetRegistry().entry(testWidget());
+        if (found.isEmpty() || !found.get().bounds().valid) {
+            return;
+        }
+        Bounds b = found.get().bounds();
+        double cx = b.x + b.width / 2.0;
+        double cy = b.y + b.height / 2.0;
+        model.press(cx, cy, 0, false);
+        model.drag(cx + 5, cy + 5, false);
+        model.drag(width * 0.2, height * 0.55, false);
+        LOG.info("LUMORA_SMOKE_DRAG zone={} magnets={} guides={}/{}", model.dragZone(), model.magnets().size(), model.guidesX(), model.guidesY());
+    }
+
     /** Problems found, empty = OK. */
     static List<String> check() {
         List<String> problems = new ArrayList<>();

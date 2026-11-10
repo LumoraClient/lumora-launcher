@@ -69,14 +69,20 @@ public final class HudRenderer {
         return true;
     }
 
-    /** Fraction position to pixels: x = fraction * (screen - scaled width). */
+    /** Position to pixels: at its anchor and offsets, or (no anchor) x = fraction * (screen - scaled width). */
     public static void place(Bounds b, WidgetState s, int rawW, int rawH, int screenW, int screenH) {
         b.rawWidth = rawW;
         b.rawHeight = rawH;
         b.width = Math.max(1, Math.round(rawW * s.scale));
         b.height = Math.max(1, Math.round(rawH * s.scale));
-        b.x = Math.round(s.x * Math.max(0, screenW - b.width));
-        b.y = Math.round(s.y * Math.max(0, screenH - b.height));
+        if (s.anchor != null) {
+            int[] p = Anchor.place(s.anchor, s.offsetX, s.offsetY, b.width, b.height, screenW, screenH);
+            b.x = p[0];
+            b.y = p[1];
+        } else {
+            b.x = Math.round(s.x * Math.max(0, screenW - b.width));
+            b.y = Math.round(s.y * Math.max(0, screenH - b.height));
+        }
         b.valid = true;
     }
 

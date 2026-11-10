@@ -57,6 +57,10 @@ public final class HudEditorModel {
     private int screenH = 1;
     private final List<Integer> guidesX = new ArrayList<>();
     private final List<Integer> guidesY = new ArrayList<>();
+    /** Widgets the dragged one snapped to in the last move (highlighted by the editor). */
+    private final List<WidgetEntry> magnets = new ArrayList<>();
+    /** Anchor zone under the cursor while moving. */
+    private String dragZone;
     private boolean closed;
 
     public HudEditorModel(WidgetRegistryImpl registry, HudRenderer renderer, SimpleEventBus events) {
@@ -109,6 +113,16 @@ public final class HudEditorModel {
 
     public List<Integer> guidesY() {
         return guidesY;
+    }
+
+    /** Anchor zone (see {@link Anchor#ZONES}) under the cursor while a widget is moved, else null. */
+    public String dragZone() {
+        return mode == Mode.MOVING ? dragZone : null;
+    }
+
+    /** Widgets the moved one snapped to (edges or centers). */
+    public List<WidgetEntry> magnets() {
+        return magnets;
     }
 
     public HudLayout settings() {
@@ -206,7 +220,22 @@ public final class HudEditorModel {
         begin(Mode.PRESSED, mx, my);
         grabX = mx - e.bounds.x;
         grabY = my - e.bounds.y;
+        raise(e);
         return true;
+    }
+
+    /** A clicked widget comes to the front (part of the undo step of the click). */
+    private void raise(WidgetEntry e) {
+        int max = Integer.MIN_VALUE;
+        for (WidgetEntry o : registry.entries()) {
+            if (o != e) {
+                max = Math.max(max, o.state.layer);
+            }
+        }
+        if (max != Integer.MIN_VALUE && e.state.layer <= max && max < 1000) {
+            e.state.layer = max + 1;
+            registry.rebuildOrder();
+        }
     }
 
     private void begin(Mode m, double mx, double my) {
@@ -234,19 +263,23 @@ public final class HudEditorModel {
             mode = Mode.MOVING;
         }
         if (mode == Mode.MOVING) {
-            move(mx - grabX, my - grabY, free);
+            move(mx - grabX, my - grabY, free, mx, my);
         } else if (mode == Mode.RESIZING) {
             resize(mx, my);
         }
         return true;
     }
 
-    private void move(double x, double y, boolean free) {
+    /** Moves the selection; the cursor (cx, cy) decides the anchor zone the widget hangs on afterwards. */
+    private void move(double x, double y, boolean free, double cx, double cy) {
         Bounds b = selected.bounds;
         int w = b.width;
         int h = b.height;
         guidesX.clear();
         guidesY.clear();
+        magnets.clear();
+        dragZone = Anchor.zone(cx, cy, screenW, screenH);
+        selected.state.anchor = dragZone;
         HudLayout l = registry.layout();
         double sx = x;
         double sy = y;
@@ -261,9 +294,11 @@ public final class HudEditorModel {
             sy = ry[0];
             if (snappedX) {
                 guidesX.add((int) rx[1]);
+                magnet((int) rx[2]);
             }
             if (snappedY) {
                 guidesY.add((int) ry[1]);
+                magnet((int) ry[2]);
             }
         }
         if (l.grid && !free) {
@@ -278,27 +313,42 @@ public final class HudEditorModel {
         setPosition(selected, sx, sy, w, h);
     }
 
-    /** Returns {new position, guide line or -1}. Snaps to screen edges, center and other widgets' edges/centers. */
+    private void magnet(int index) {
+        if (index >= 0 && index < registry.entries().size()) {
+            WidgetEntry e = registry.entries().get(index);
+            if (!magnets.contains(e)) {
+                magnets.add(e);
+            }
+        }
+    }
+
+    /**
+     * Returns {new position, guide line or -1, index of the widget snapped to or -1}. Snaps to screen edges, center and
+     * other widgets' edges/centers.
+     */
     private double[] snapAxis(double pos, int size, int screen, boolean horizontal) {
         double best = SNAP;
         double result = pos;
         double guide = -1;
+        double target = -1;
         // own edges (start, center, end) against screen edges/center and the edges/centers of other widgets
         double[] own = {0, size / 2.0, size};
         List<double[]> lines = new ArrayList<>();
-        lines.add(new double[]{0, 0});
-        lines.add(new double[]{screen / 2.0, 1});
-        lines.add(new double[]{screen, 2});
-        for (WidgetEntry o : registry.entries()) {
+        lines.add(new double[]{0, -1});
+        lines.add(new double[]{screen / 2.0, -1});
+        lines.add(new double[]{screen, -1});
+        List<WidgetEntry> all = registry.entries();
+        for (int i = 0; i < all.size(); i++) {
+            WidgetEntry o = all.get(i);
             if (o == selected || !o.bounds.valid || !o.state.enabled) {
                 continue;
             }
             Bounds ob = o.bounds;
             double start = horizontal ? ob.x : ob.y;
             double length = horizontal ? ob.width : ob.height;
-            lines.add(new double[]{start, -1});
-            lines.add(new double[]{start + length / 2.0, -1});
-            lines.add(new double[]{start + length, -1});
+            lines.add(new double[]{start, i});
+            lines.add(new double[]{start + length / 2.0, i});
+            lines.add(new double[]{start + length, i});
         }
         for (double[] line : lines) {
             for (double edge : own) {
@@ -307,10 +357,11 @@ public final class HudEditorModel {
                     best = d;
                     result = line[0] - edge;
                     guide = line[0];
+                    target = line[1];
                 }
             }
         }
-        return new double[]{result, guide};
+        return new double[]{result, guide, target};
     }
 
     private void resize(double mx, double my) {
@@ -332,12 +383,22 @@ public final class HudEditorModel {
         setPosition(selected, nx, ny, nw, nh);
     }
 
-    /** Stores a pixel position as fractions (always inside the screen). */
+    /**
+     * Stores a pixel position (always inside the screen): as fractions, and for an anchored widget also as offsets to
+     * its anchor (which then decide where it is drawn).
+     */
     void setPosition(WidgetEntry e, double px, double py, int w, int h) {
         int freeW = screenW - w;
         int freeH = screenH - h;
         e.state.x = freeW > 0 ? (float) Math.max(0, Math.min(1, px / freeW)) : 0f;
         e.state.y = freeH > 0 ? (float) Math.max(0, Math.min(1, py / freeH)) : 0f;
+        if (e.state.anchor != null) {
+            double cx = Math.max(0, Math.min(Math.max(0, freeW), px));
+            double cy = Math.max(0, Math.min(Math.max(0, freeH), py));
+            int[] o = Anchor.offsets(e.state.anchor, cx, cy, w, h, screenW, screenH);
+            e.state.offsetX = o[0];
+            e.state.offsetY = o[1];
+        }
         HudRenderer.place(e.bounds, e.state, e.bounds.rawWidth, e.bounds.rawHeight, screenW, screenH);
     }
 
@@ -348,8 +409,13 @@ public final class HudEditorModel {
         corner = -1;
         guidesX.clear();
         guidesY.clear();
+        magnets.clear();
+        dragZone = null;
         if (m == Mode.NONE || selected == null) {
             return false;
+        }
+        if (m == Mode.PRESSED) {
+            commit(before); // brought to the front by the click
         }
         if (m == Mode.MOVING || m == Mode.RESIZING) {
             commit(before);

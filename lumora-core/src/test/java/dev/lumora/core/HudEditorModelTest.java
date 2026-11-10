@@ -63,7 +63,7 @@ class HudEditorModelTest {
         editor.drag(11, 5, false); // below the drag threshold
         editor.release();
         assertEquals(0f, entry("a").x());
-        assertFalse(editor.canUndo(), "a plain click is no change");
+        assertTrue(entry("a").layer() > entry("b").layer(), "a click brings it to the front, it does not move");
         assertFalse(editor.press(390, 290, 0, false), "empty space");
         assertNull(editor.selected());
     }
@@ -104,6 +104,62 @@ class HudEditorModelTest {
         assertFalse(editor.canUndo());
         editor.redo();
         assertEquals(90f / 360f, entry("a").x(), 1e-4);
+    }
+
+    @Test
+    void aDroppedWidgetHangsOnTheZoneUnderTheCursor() {
+        editor.press(10, 5, 0, false);
+        assertNull(editor.dragZone());
+        editor.drag(350, 250, false);
+        assertEquals("bottom_right", editor.dragZone(), "shown while moving");
+        editor.release();
+        assertNull(editor.dragZone());
+        WidgetEntry e = entry("a");
+        assertEquals("bottom_right", e.state().anchor);
+        assertEquals(List.of(340, 245), List.of(e.bounds().x, e.bounds().y));
+        assertEquals(List.of(20, 45), List.of(e.state().offsetX, e.state().offsetY), "distance to the right and bottom edge");
+        editor.layout(TestContexts.ctx(platform, 800, 600, true));
+        assertEquals(List.of(740, 545), List.of(e.bounds().x, e.bounds().y), "the same distance on a bigger screen");
+        layout();
+
+        // into the middle: hangs on the center
+        editor.press(345, 250, 0, false);
+        editor.drag(205, 155, false);
+        editor.release();
+        assertEquals("center", e.state().anchor);
+        int x = e.bounds().x;
+        editor.layout(TestContexts.ctx(platform, 600, 300, true));
+        assertEquals(x + 100, e.bounds().x, "stays centered");
+        layout();
+        editor.undo();
+        editor.undo();
+        assertNull(e.state().anchor, "undo restores the old placement");
+    }
+
+    @Test
+    void snappingHighlightsTheWidgetItSnappedTo() {
+        editor.press(10, 5, 0, false);
+        editor.drag(148, 5, false);
+        assertEquals(140, entry("a").bounds().x, "right edge on the left edge of b");
+        assertEquals(List.of(entry("b")), editor.magnets());
+        editor.release();
+        assertTrue(editor.magnets().isEmpty());
+    }
+
+    @Test
+    void aClickBringsTheWidgetToTheFrontAsOneUndoStep() {
+        editor.press(10, 5, 0, false);
+        editor.release();
+        assertTrue(entry("a").layer() > entry("b").layer());
+        assertTrue(editor.canUndo());
+        editor.undo();
+        assertEquals(0, entry("a").layer());
+        editor.press(10, 5, 0, false);
+        editor.release();
+        int layer = entry("a").layer();
+        editor.press(10, 5, 0, false);
+        editor.release();
+        assertEquals(layer, entry("a").layer(), "already in front: unchanged");
     }
 
     @Test

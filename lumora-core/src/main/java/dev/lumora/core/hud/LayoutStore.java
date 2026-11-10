@@ -116,6 +116,11 @@ public final class LayoutStore {
         s.y = fraction(o.get("y"), 0f);
         s.scale = Math.max(0.25f, Math.min(4f, decimal(o.get("scale"), 1f)));
         s.layer = Math.max(-1000, Math.min(1000, integer(o.get("layer"), 0)));
+        if (o.get("anchor") instanceof JsonPrimitive a && Anchor.valid(a.getAsString())) {
+            s.anchor = a.getAsString();
+            s.offsetX = Math.max(-10000, Math.min(10000, integer(o.get("offsetX"), 0)));
+            s.offsetY = Math.max(-10000, Math.min(10000, integer(o.get("offsetY"), 0)));
+        }
         if (o.get("settings") instanceof JsonObject settings) {
             for (Map.Entry<String, JsonElement> e : settings.entrySet()) {
                 if (e.getValue() instanceof JsonPrimitive prim) {
@@ -168,6 +173,11 @@ public final class LayoutStore {
                 w.addProperty("y", round(s.y));
                 w.addProperty("scale", round(s.scale));
                 w.addProperty("layer", s.layer);
+                if (s.anchor != null) {
+                    w.addProperty("anchor", s.anchor);
+                    w.addProperty("offsetX", s.offsetX);
+                    w.addProperty("offsetY", s.offsetY);
+                }
                 if (!s.settings.isEmpty()) {
                     JsonObject settings = new JsonObject();
                     for (Map.Entry<String, String> se : s.settings.entrySet()) {

@@ -154,6 +154,8 @@ public final class SmokeTest {
                     // Lumora API: move a widget with the editor logic (saved; the next run logs it as loaded), its
                     // generated settings screen and the addon list
                     pending.add(new Shot("hud-editor-move", HudEditorScreen::new, 30));
+                    // HUD editor while dragging: anchor zones, grid, snap lines, position
+                    pending.add(new Shot("hud-editor-drag", HudEditorScreen::new, 30));
                     pending.add(new Shot("widget-settings", parent -> ApiSmoke.core().widgetRegistry().entry(ApiSmoke.testWidget())
                             .map(e -> (Screen) SettingsScreen.create(parent, Component.translatable(e.widget().nameKey()), e.widget().settings(), List.of(), null))
                             .orElse(null)));
@@ -248,6 +250,9 @@ public final class SmokeTest {
                 } else if (ticks == current.delay() - 10 && current.name().equals("hud-editor-move")
                         && mc.gui.screen() instanceof HudEditorScreen editor) {
                     ApiSmoke.moveInEditor(editor.model());
+                } else if (ticks == current.delay() - 10 && current.name().equals("hud-editor-drag")
+                        && mc.gui.screen() instanceof HudEditorScreen editor) {
+                    ApiSmoke.dragInEditor(editor.model(), mc.gui.screen().width, mc.gui.screen().height);
                 } else if (ticks >= current.delay()) {
                     if ((current.name().equals("multiplayer") || current.name().equals("worlds"))
                             && dev.lumora.core.browser.BrowserModule.enabled() && !dev.lumora.client.gui.AddonViewScreen.isShowing()) {

@@ -67,6 +67,15 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.26 (2026-11-10):**
+- **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 477 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für „Hotbar & Leisten“ (Zahlenformate, Herzen mit Absorption in Sprites und icons.png, Kompakt/Balken/Zahl, Rüstung und Luft nur wenn nötig, Hotbar mit Zweithand-Regeln und senkrecht, Erfahrung) und 7 für den Chat (Absender in verschiedenen Server-Formaten, Links, Erwähnung, Werte für die Mixins, Ränder und Zeile unter der Maus, Ziehen der Ränder, Menü mit Kopieren und privat Antworten).
+- **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert, jeder neue Einhängepunkt mit `check-mixins.pl` gegen die Spieldateien geprüft. Smoke-Test mit eingeschaltetem „Hotbar & Leisten“ in 26.3, 1.16.5 und 1.8.9 bestanden. Smoke-Test mit Chat-Prüfung (Nachrichten, umgebrochene Nachricht als eine Nachricht, Menü per Rechtsklick, kleinerer Chat ohne Hintergrund und Textschatten) in 26.3, 1.21.11, 1.20.1, 1.16.5 und 1.8.9 bestanden; normaler Smoke-Test in 1.21.8, 1.19.4, 1.12.2, 26.1.2 und 26.2 bestanden. Dabei behoben: 1.21.8 und 1.21.11 stürzten beim Start ab (Lambda-Namen im laufenden Spiel anders als im Entwicklungs-Jar).
+- **Smoke-Test mit dem fertigen 0.3.26-Build: auf Wunsch nicht ausgeführt.**
+- **Nicht geprüft:** Ziehen der Chat-Ränder und „⋯“ beim Darüberfahren mit der echten Maus (nur Unit-Tests), Erwähnungston, Anzeigedauer und „Privat antworten“ im Spiel; senkrechte Hotbar, Zweithand-Items, Schild/Totem-Schalter, echte Rüstung/Luft/Absorption im Spiel; 1.17.1, 1.18.2, 1.20.4, 1.20.6, 1.21 und 1.21.4 nur kompiliert, nicht gestartet; ein echtes Selbst-Update von 0.3.25 auf 0.3.26.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
+
+
 **0.3.25 (2026-11-10):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 464 Unit-Tests ohne Fehler (1 übersprungen). Neu: 1 für die Tastenanzeige (Lage eines Buchstabens mit und ohne Schatten, LMB mit CPS-Zeile als Block in der Tastenmitte).
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test in 26.3 bestanden; vergrößerter Ausschnitt der Tastenanzeige vorher/nachher angesehen – W, A, S, D und LMB/RMB mit CPS sitzen mittig.

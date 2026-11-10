@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.3.26 (2026-11-10)
+
+### Im Spiel
+- **Neues Modul „Hotbar & Leisten“** (ab Werk aus, Hub → Spieler): Hotbar, Herzen, Rüstung, Hunger, Luft und Erfahrung werden zu sechs eigenen Widgets, die du im HUD-Editor verschieben, skalieren und einzeln ausblenden kannst.
+  - **Leisten:** Stil Vanilla (die echten Minecraft-Symbole), Kompakt (Symbol und Zahl), Balken oder Nur Zahl; Zahl als Wert, Wert/Maximum oder Prozent; Text- und Balkenfarbe, Hintergrund, Textschatten. Herzen mit Absorption, Gift-, Wither- und Frost-Herzen und Wackeln bei wenig Leben; Rüstung und Luft blenden sich wie in Minecraft aus, wenn sie nicht gebraucht werden.
+  - **Hotbar:** Vanilla- oder Lumora-Stil, Slot-Nummern, senkrecht, Zweithand links, rechts oder aus, Schild und Totem in der Zweithand ausblendbar.
+- **Chat: Nachrichten-Menü:** Im offenen Chat erscheint neben der Nachricht unter der Maus ein „⋯“, alternativ Rechtsklick: Nachricht kopieren (ohne Lumora-Zeitstempel), Name kopieren, privat antworten („/msg Name “ im Eingabefeld), Link kopieren. Der Name wird auch bei Server-Formaten wie „[VIP] Steve: …“ erkannt.
+- **Chat: Größe durch Ziehen:** Im offenen Chat den rechten Rand (Breite) oder den oberen Rand (Höhe) mit der Maus ziehen; Breite, Höhe offen und Höhe geschlossen gibt es auch als Regler, dazu „Größe zurücksetzen“.
+- **Chat: Aussehen und mehr:** Hintergrund an oder aus mit Deckkraft, ohne Textschatten, wie lange Nachrichten im geschlossenen Chat sichtbar bleiben (2–120 s oder immer), Verlauf bis 1000 Nachrichten (ab Werk 500 statt 100), Ton, wenn jemand deinen Namen schreibt.
+
 ## 0.3.25 (2026-11-10)
 
 ### Im Spiel

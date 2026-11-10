@@ -126,8 +126,14 @@ public final class LumoraCore implements Lumora {
 
     /** Descriptor for an addon that ships inside the Lumora client jar (always all permissions). */
     public static AddonDescriptor builtInDescriptor(String id, String name, String description, Class<? extends LumoraAddon> entry) {
+        return builtInDescriptor(id, name, description, entry, List.of("*"));
+    }
+
+    /** Built-in addon that only runs on some Minecraft versions (the hub explains why on the others). */
+    public static AddonDescriptor builtInDescriptor(String id, String name, String description, Class<? extends LumoraAddon> entry,
+                                                    List<String> minecraft) {
         return new AddonDescriptor(id, name, Version.parse(LumoraAPI.API_VERSION), description, List.of("Lumora"),
-                Version.parse(LumoraAPI.API_VERSION), List.of("*"), entry.getName(), List.of(),
+                Version.parse(LumoraAPI.API_VERSION), minecraft, entry.getName(), List.of(),
                 EnumSet.allOf(AddonPermission.class), true, "built-in");
     }
 

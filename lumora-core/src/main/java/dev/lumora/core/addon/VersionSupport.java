@@ -35,12 +35,17 @@ public final class VersionSupport {
             supported = List.copyOf(supported);
         }
 
+        /** Oldest supported version for display ("1.9.x" is shown as "1.9"). */
         public String oldest() {
-            return supported.isEmpty() ? "?" : supported.get(0);
+            return supported.isEmpty() ? "?" : shown(supported.get(0));
         }
 
         public String newest() {
             return supported.isEmpty() ? "?" : supported.get(supported.size() - 1);
+        }
+
+        private static String shown(String pattern) {
+            return pattern.endsWith(".x") || pattern.endsWith(".*") ? pattern.substring(0, pattern.length() - 2) : pattern;
         }
 
         /** Hover text (German or English): what is not available, why, and what would work. */
@@ -52,8 +57,14 @@ public final class VersionSupport {
                         : "Lumora API " + oldest() + " needed, this is " + current + ". Update Lumora.");
                 return out;
             }
-            out.add(german ? name + " ist (noch) nicht mit Minecraft " + current + " kompatibel."
-                    : name + " is not (yet) compatible with Minecraft " + current + ".");
+            if (kind == Kind.TOO_OLD) {
+                // an old version will not get support later: no "(yet)"
+                out.add(german ? name + " ist mit Minecraft " + current + " nicht kompatibel."
+                        : name + " is not compatible with Minecraft " + current + ".");
+            } else {
+                out.add(german ? name + " ist (noch) nicht mit Minecraft " + current + " kompatibel."
+                        : name + " is not (yet) compatible with Minecraft " + current + ".");
+            }
             out.add(switch (kind) {
                 case TOO_OLD -> german ? "Diese Version ist zu alt: nötig ist mindestens " + oldest() + "."
                         : "This version is too old: " + oldest() + " or newer is needed.";
@@ -105,6 +116,14 @@ public final class VersionSupport {
         }
         Kind kind = above && !below ? Kind.TOO_OLD : below && !above ? Kind.TOO_NEW : Kind.NOT_LISTED;
         return new Problem(kind, minecraft, sorted);
+    }
+
+    /**
+     * Minecraft versions for a built-in feature that needs at least {@code min} (e.g. elytras: 1.9): every version
+     * ({@code "*"}) where the running one is new enough, else {@code min.x}, so the hub explains "too old".
+     */
+    public static java.util.List<String> atLeast(String min, String running) {
+        return running == null || compare(running, min) >= 0 ? List.of("*") : List.of(min + ".x");
     }
 
     /**

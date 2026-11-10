@@ -95,7 +95,9 @@ final class ApiSmoke {
             }
         }
         for (AddonInfo a : core.addons()) {
-            if (a.state() == AddonState.FAILED) {
+            // a built-in module for newer Minecraft versions (elytra trails on 1.8.9) is locked on purpose
+            if (a.state() == AddonState.FAILED && !(a.descriptor().builtIn()
+                    && dev.lumora.core.addon.VersionSupport.check(a.descriptor(), core.minecraftVersion()) != null)) {
                 problems.add("addon " + a.id() + " failed: " + a.error().orElse("?"));
             }
         }

@@ -430,7 +430,28 @@ public final class SmokeTest {
                 ticks = 0;
             }
         } else if (worldStep == modes.length + 10) {
-            ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", false);
+            // elytra trails: glide for 1.5 s, then turn sideways while gliding: the camera sees the trails behind the wings
+            if (ticks == 1) {
+                ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", false);
+                ElytraSmoke.giveElytra(mc, true);
+            } else if (ticks == 10) {
+                ElytraSmoke.launch(mc);
+            } else if (ticks == 13 || ticks == 18) {
+                ElytraSmoke.glide(mc); // second try if the server still saw the player on the ground
+            } else if (ticks == 43) {
+                ElytraSmoke.turn(mc);
+            } else if (ticks == 44) {
+                String elytra = ElytraSmoke.lastStatus;
+                LOG.info("LUMORA_ELYTRA {}", elytra);
+                if (elytra.startsWith("gliding=true") && elytra.contains("trails=0")) {
+                    extraProblems.add("elytra trails: none while gliding (" + elytra + ")");
+                }
+                screenshot(mc, "elytra");
+                ElytraSmoke.reset(mc);
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 11 && ticks >= 5) {
             phase = Phase.DONE;
             finish(mc);
         }

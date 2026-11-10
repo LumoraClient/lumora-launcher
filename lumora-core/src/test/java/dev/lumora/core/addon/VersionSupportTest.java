@@ -39,7 +39,7 @@ public class VersionSupportTest {
 
         VersionSupport.Problem tooOld = VersionSupport.minecraft(List.of("1.20.x", "26.3"), "1.8.9");
         assertEquals(VersionSupport.Kind.TOO_OLD, tooOld.kind());
-        assertTrue(tooOld.describe(true, "X").get(1).contains("zu alt") && tooOld.describe(true, "X").get(1).contains("1.20.x"));
+        assertTrue(tooOld.describe(true, "X").get(1).contains("zu alt") && tooOld.describe(true, "X").get(1).contains("1.20."));
 
         VersionSupport.Problem gap = VersionSupport.minecraft(List.of("1.8.9", "26.3"), "1.20.1");
         assertEquals(VersionSupport.Kind.NOT_LISTED, gap.kind());

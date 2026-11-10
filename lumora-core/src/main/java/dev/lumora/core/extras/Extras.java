@@ -49,6 +49,12 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-fullbright", "Fullbright",
                         "Volle Helligkeit in Höhlen und nachts (nur für dich sichtbar)", FullbrightModule.class),
                         () -> new FullbrightModule(platform)),
+                // elytras exist since 1.9: on older versions the hub shows the module locked with the reason
+                AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-elytratrails", "Elytra-Streifen",
+                        "Dampfstreifen oder Wirbel hinter den Flügelspitzen gleitender Spieler: Farbe, Länge, Breite, ab welchem Tempo",
+                        ElytraTrailsModule.class, dev.lumora.core.addon.VersionSupport.atLeast(ElytraTrailsModule.MIN_MINECRAFT,
+                                platform.minecraftVersion())),
+                        ElytraTrailsModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-chat", "Chat",
                         "Zeitstempel und gleiche Nachrichten zusammenfassen", ChatModule.class),
                         ChatModule::new),

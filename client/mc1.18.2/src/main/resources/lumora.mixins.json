@@ -25,6 +25,7 @@
     "TabPingMixin",
     "ChatMixin",
     "BlockOutlineMixin",
+    "ElytraTrailMixin",
     "BrowserScreenMixin",
     "ConnectionScreenMixin",
     "ConnectStartMixin",

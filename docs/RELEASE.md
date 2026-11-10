@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.28 (2026-11-11):**
+- **Build:** `gradlew clean build` erfolgreich, 484 Unit-Tests ohne Fehler (1 übersprungen); keine neuen Unit-Tests (die Änderungen liegen in den Versionsmodulen).
+- **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. In 26.3 neuer Smoke-Schritt für die Hotbar (Blöcke, Items, Stapelzahl, beschädigtes Werkzeug, Schild in der Zweithand; Vanilla-, Lumora- und Minecraft-Hotbar als Aufnahme), auch unter Vulkan und mit den Einstellungen des Spielers, der den Fehler gemeldet hat (GUI-Größe 2, seine Paket-Reihenfolge): Lumora-Hotbar mit denselben Pixelfarben wie Minecrafts eigene. Den Fehler selbst (Rot und Alpha vertauscht) konnte ich in der Testumgebung nicht nachstellen; er ist nur durch das F2-Bildschirmfoto des Spielers belegt.
+- **Smoke-Test mit dem fertigen 0.3.28-Build:** 26.3, 26.1.2, 1.21.11, 1.20.1, 1.16.5 und 1.8.9 bestanden; Hotbar, Herzen und Hunger in 26.3 und 26.1.2 angesehen.
+- **Nicht geprüft:** 26.2 nur kompiliert, die Suche im HUD-Editor (der Test tippt nicht), ob der Farbfehler im Spiel des Spielers wirklich weg ist, ein echtes Selbst-Update von 0.3.27 auf 0.3.28.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.27 (2026-11-10):**
 - **Build:** `gradlew clean build` erfolgreich (ein Teil der Aufgaben aus dem Gradle-Cache), 484 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 für die Anker (Zonen als Drittel des Bildschirms, Offsets und Platzierung für alle neun Anker umkehrbar, gleicher Abstand auf größerem Bildschirm, Speichern und Laden, alte Layouts ohne Anker) und 3 für den Editor (Widget hängt an der Zone unter der Maus und bleibt bei anderer Größe dort, Magnet-Widget beim Einrasten, Klick holt nach vorne als ein Rückgängig-Schritt). Der Klick-Test erwartet jetzt „nach vorne“ statt „keine Änderung“.
 - **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3, 1.16.5 und 1.8.9 bestanden; in 26.3 neue Aufnahme mitten im Ziehen (Zone, Raster, Positionsanzeige, hervorgehobenes Magnet-Widget, Hilfslinie) und nach dem Verschieben (Aktionskarte am Widget, Suchfeld). Das Ausblenden der Liste beim Ziehen kam danach dazu und ist nur in 26.3 erneut getestet (der Test zieht am Bildschirm vorbei, die Liste blieb dort sichtbar).

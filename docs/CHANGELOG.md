@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.28 (2026-11-11)
+
+### Hotbar & Leisten
+- **Hotbar-Farben (26.x):** Die Vanilla-Hotbar von Lumora konnte mit rosa Rahmen, türkiser Auswahl und durchsichtigen Feldern erscheinen – Rot und Deckkraft der Grafik waren vertauscht. Hotbar, Auswahlrahmen, Zweithand-Slot, Herzen und die anderen Minecraft-Grafiken kommen jetzt aus Minecrafts eigenem GUI-Atlas, genau wie Minecraft sie zeichnet (26.1.2, 26.2, 26.3).
+
+### HUD-Editor
+- **Suche behält den Fokus:** Wenn sich das gewählte Widget bewegt oder seine Größe ändert und der Editor sich neu aufbaut, kannst du im Suchfeld weitertippen.
+
 ## 0.3.27 (2026-11-10)
 
 ### HUD-Editor

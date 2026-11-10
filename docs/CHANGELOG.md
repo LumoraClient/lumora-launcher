@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.25 (2026-11-10)
+
+### Im Spiel
+- **Tastenanzeige: Buchstaben mittig:** W, A, S, D, die Leertaste und die Maustasten zeigen ihre Beschriftung jetzt genau in der Mitte der Taste. Vorher saßen die Buchstaben einen halben Pixel zu weit oben links (gerechnet wurde mit der vollen Zeilenhöhe statt der Höhe der Großbuchstaben) und LMB/RMB mit der CPS-Zeile gut einen Pixel zu hoch. Gilt für jede Textgröße, mit und ohne Schatten.
+
 ## 0.3.24 (2026-11-10)
 
 ### Im Spiel

@@ -32,8 +32,8 @@ class ElytraTrailsModuleTest {
     void theWingTipsSitLeftAndRightOfTheGlidingBody() {
         ElytraTrailsModule.Basis b = ElytraTrailsModule.basis(0, 0);
         assertEquals(1, b.fz(), 1e-9, "yaw 0 looks south");
-        double[] left = ElytraTrailsModule.tip(b, 0, 0, 0, -1);
-        double[] right = ElytraTrailsModule.tip(b, 0, 0, 0, 1);
+        double[] left = ElytraTrailsModule.tip(b, 0, 0, 0, -1, 1);
+        double[] right = ElytraTrailsModule.tip(b, 0, 0, 0, 1, 1);
         assertEquals(0.8, left[0], 1e-9, "facing south the left wing is east (+x)");
         assertEquals(-0.8, right[0], 1e-9);
         assertEquals(0.45, left[2], 1e-9, "along the body, which lies forward while gliding");
@@ -103,6 +103,44 @@ class ElytraTrailsModuleTest {
             spreadB = Math.max(spreadB, Math.abs(b.xyz()[v * 3 + 1]));
         }
         assertTrue(spreadB > spreadA + 0.1, "the vortex leaves the straight line: " + spreadA + " / " + spreadB);
+    }
+
+    @Test
+    void theModelBanksIntoTurnsAndFoldsItsWingsInADive() {
+        // moving south, looking 30 degrees to the left (east, negative yaw): left wing down, like Minecraft's model
+        double roll = ElytraTrailsModule.roll(-30, 0, 1.5);
+        assertEquals(Math.toRadians(30), roll, 1e-6);
+        assertEquals(-roll, ElytraTrailsModule.roll(30, 0, 1.5), 1e-6, "looking right: right wing down");
+        assertEquals(ElytraTrailsModule.MAX_ROLL, ElytraTrailsModule.roll(-170, 0, 1.5), 1e-6, "limited");
+        ElytraTrailsModule.Basis b = ElytraTrailsModule.basis(0, 0).rolled(roll);
+        double[] left = ElytraTrailsModule.tip(b, 0, 0, 0, -1, 1);
+        double[] right = ElytraTrailsModule.tip(b, 0, 0, 0, 1, 1);
+        assertTrue(left[1] < right[1], "left tip lower: " + left[1] + " / " + right[1]);
+        assertEquals(1, ElytraTrailsModule.spread(0, 0.2, 1.5), 1e-9, "climbing: fully spread");
+        assertEquals(0, ElytraTrailsModule.spread(0, -2, 0), 1e-9, "straight down: folded");
+        double[] folded = ElytraTrailsModule.tip(ElytraTrailsModule.basis(0, 0), 0, 0, 0, -1, 0);
+        assertEquals(0.35, folded[0], 1e-9, "folded wings end closer to the body");
+    }
+
+    @Test
+    void trailsAreWiderInTurnsAndAtSpeedAndCanGlow() {
+        ElytraTrailsModule m = module();
+        m.speedWidth.set(false);
+        assertEquals(1, m.strength(0, 30), 1e-9);
+        assertEquals(2.5, m.strength(1, 30), 1e-9, "hard turn: 2.5 times as wide");
+        m.speedWidth.set(true);
+        assertTrue(m.strength(0, 40) > m.strength(0, 15), "faster is wider");
+        m.turnBoost.set(false);
+        assertEquals(m.strength(0, 30), m.strength(1, 30), 1e-9, "switched off: turns change nothing");
+
+        ElytraTrailsModule plain = module();
+        ElytraTrailsModule glowing = module();
+        glowing.glow.set(true);
+        ElytraTrailsModule.Mesh a = fly(plain, 20, true);
+        ElytraTrailsModule.Mesh b = fly(glowing, 20, true);
+        assertFalse(a.glow());
+        assertTrue(b.glow(), "drawn additively");
+        assertEquals(2 * a.vertices(), b.vertices(), "a faint halo around every piece of the trail");
     }
 
     @Test

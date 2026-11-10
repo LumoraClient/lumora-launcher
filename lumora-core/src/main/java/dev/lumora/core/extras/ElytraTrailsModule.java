@@ -39,6 +39,9 @@ public final class ElytraTrailsModule implements LumoraAddon {
     DecimalSetting length;
     IntegerSetting width;
     IntegerSetting minSpeed;
+    BooleanSetting turnBoost;
+    BooleanSetting speedWidth;
+    BooleanSetting glow;
     private final Map<Integer, Trail> trails = new HashMap<>();
     private long lastCleanup;
     /** Vertices of the last built mesh (diagnostics, smoke test). */
@@ -63,6 +66,9 @@ public final class ElytraTrailsModule implements LumoraAddon {
         length = s.slider("length", 2.0, 0.5, 6.0, 0.5).name(k + "length");
         width = s.slider("width", 4, 1, 10).name(k + "width");
         minSpeed = s.slider("min_speed", 12, 0, 40).name(k + "min_speed");
+        turnBoost = s.toggle("turn_boost", true).name(k + "turn_boost");
+        speedWidth = s.toggle("speed_width", true).name(k + "speed_width");
+        glow = s.toggle("glow", false).name(k + "glow");
     }
 
     @Override
@@ -78,9 +84,10 @@ public final class ElytraTrailsModule implements LumoraAddon {
         }
     }
 
-    /** Quads of the trails, relative to the player position given to {@link #mesh}: 4 vertices per quad. */
-    public record Mesh(float[] xyz, int[] colors, int vertices) {
-        public static final Mesh EMPTY = new Mesh(new float[0], new int[0], 0);
+    /** Quads of the trails, relative to the player position given to {@link #mesh}: 4 vertices per quad.
+     * {@code glow}: draw them with additive blending (they shine instead of covering what is behind). */
+    public record Mesh(float[] xyz, int[] colors, int vertices, boolean glow) {
+        public static final Mesh EMPTY = new Mesh(new float[0], new int[0], 0, false);
 
         public boolean isEmpty() {
             return vertices == 0;
@@ -89,7 +96,7 @@ public final class ElytraTrailsModule implements LumoraAddon {
 
     /** One sampled point behind a wing tip. */
     record Point(double x, double y, double z, long time, double distance,
-                 double rx, double ry, double rz, double ux, double uy, double uz) {
+                 double rx, double ry, double rz, double ux, double uy, double uz, double boost, double bright) {
     }
 
     /** Both trails of one player. */
@@ -102,6 +109,11 @@ public final class ElytraTrailsModule implements LumoraAddon {
         long lastSample;
         double distance;
         long seen;
+        float lastYaw = Float.NaN;
+        float lastPitch;
+        long lastFrame;
+        /** 0 (straight) .. 1 (hard turn), smoothed. */
+        double load;
     }
 
     /**
@@ -139,15 +151,32 @@ public final class ElytraTrailsModule implements LumoraAddon {
             }
         }
         t.seen = now;
-        Basis b = basis(yaw, pitch);
-        double[] tipL = tip(b, x, y, z, -1);
-        double[] tipR = tip(b, x, y, z, 1);
+        double roll = roll(yaw, vx, vz);
+        Basis b = basis(yaw, pitch).rolled(roll);
+        double spread = spread(vx, vy, vz);
+        double[] tipL = tip(b, x, y, z, -1, spread);
+        double[] tipR = tip(b, x, y, z, 1, spread);
+        // how hard the player turns: from the bank of the model and from how fast the view turns
+        double turnRate = 0;
+        if (!Float.isNaN(t.lastYaw) && now > t.lastFrame) {
+            double dYaw = wrap(yaw - t.lastYaw);
+            double dPitch = pitch - t.lastPitch;
+            turnRate = Math.sqrt(dYaw * dYaw + dPitch * dPitch) * 1000.0 / (now - t.lastFrame);
+        }
+        double target = Math.min(1, Math.max(Math.abs(roll) / MAX_ROLL, turnRate / 120.0));
+        double smooth = Math.min(1, (now - t.lastFrame) / 150.0);
+        t.load = Float.isNaN(t.lastYaw) ? target : t.load + (target - t.load) * Math.max(0, smooth);
+        t.lastYaw = yaw;
+        t.lastPitch = pitch;
+        t.lastFrame = now;
+        double boost = strength(t.load, speed);
+        double bright = turnBoost.get() ? 1 + 0.5 * t.load : 1;
         if (emit) {
             double moved = Double.isNaN(t.lastX) ? 0 : Math.sqrt(sq(x - t.lastX) + sq(y - t.lastY) + sq(z - t.lastZ));
             if (Double.isNaN(t.lastX) || moved >= SAMPLE_DISTANCE || now - t.lastSample >= SAMPLE_MILLIS) {
                 t.distance += moved;
-                add(t.left, tipL, now, t.distance, b);
-                add(t.right, tipR, now, t.distance, b);
+                add(t.left, tipL, now, t.distance, b, boost, bright);
+                add(t.right, tipR, now, t.distance, b, boost, bright);
                 t.lastX = x;
                 t.lastY = y;
                 t.lastZ = z;
@@ -163,15 +192,37 @@ public final class ElytraTrailsModule implements LumoraAddon {
         }
         MeshBuilder out = new MeshBuilder();
         boolean vortex = "vortex".equals(style.get());
-        strip(out, t.left, emit ? tipL : null, b, -1, vortex, keep, x, y, z, camX, camY, camZ, now);
-        strip(out, t.right, emit ? tipR : null, b, 1, vortex, keep, x, y, z, camX, camY, camZ, now);
-        Mesh built = out.build();
+        Point headL = emit ? new Point(tipL[0], tipL[1], tipL[2], now, t.distance, b.rx, b.ry, b.rz, b.ux, b.uy, b.uz, boost, bright) : null;
+        Point headR = emit ? new Point(tipR[0], tipR[1], tipR[2], now, t.distance, b.rx, b.ry, b.rz, b.ux, b.uy, b.uz, boost, bright) : null;
+        strip(out, t.left, headL, b, -1, vortex, keep, x, y, z, camX, camY, camZ, now);
+        strip(out, t.right, headR, b, 1, vortex, keep, x, y, z, camX, camY, camZ, now);
+        Mesh built = out.build(glow.get());
         lastVertices = built.vertices();
         return built;
     }
 
-    private static void add(ArrayDeque<Point> points, double[] tip, long now, double distance, Basis b) {
-        points.addLast(new Point(tip[0], tip[1], tip[2], now, distance, b.rx, b.ry, b.rz, b.ux, b.uy, b.uz));
+    /** Width factor of new points: wider in turns and (if chosen) at higher speed. */
+    double strength(double load, double speed) {
+        double s = turnBoost.get() ? 1 + 1.5 * load : 1;
+        if (speedWidth.get()) {
+            s *= Math.max(0.6, Math.min(1.6, speed / 25.0));
+        }
+        return s;
+    }
+
+    private static double wrap(double degrees) {
+        double d = degrees % 360;
+        if (d > 180) {
+            d -= 360;
+        } else if (d < -180) {
+            d += 360;
+        }
+        return d;
+    }
+
+    private static void add(ArrayDeque<Point> points, double[] tip, long now, double distance, Basis b, double boost,
+                            double bright) {
+        points.addLast(new Point(tip[0], tip[1], tip[2], now, distance, b.rx, b.ry, b.rz, b.ux, b.uy, b.uz, boost, bright));
         while (points.size() > 400) {
             points.removeFirst();
         }
@@ -211,6 +262,50 @@ public final class ElytraTrailsModule implements LumoraAddon {
 
     /** Forward, right and up of a gliding player (the body lies along the look direction). */
     record Basis(double fx, double fy, double fz, double rx, double ry, double rz, double ux, double uy, double uz) {
+        /** The same body rolled around its forward axis; positive lowers the left wing. */
+        Basis rolled(double angle) {
+            if (angle == 0) {
+                return this;
+            }
+            double c = Math.cos(angle);
+            double s = Math.sin(angle);
+            return new Basis(fx, fy, fz,
+                    rx * c + ux * s, ry * c + uy * s, rz * c + uz * s,
+                    ux * c - rx * s, uy * c - ry * s, uz * c - rz * s);
+        }
+    }
+
+    /** Largest bank of the gliding model that is used (radians). */
+    static final double MAX_ROLL = Math.toRadians(60);
+
+    /**
+     * Bank of the gliding model, like Minecraft's renderer: the body rolls by the angle between the horizontal look and
+     * the horizontal motion, towards the side the player looks to (positive = left wing down).
+     */
+    static double roll(float yaw, double vx, double vz) {
+        double y = Math.toRadians(yaw);
+        double lx = -Math.sin(y);
+        double lz = Math.cos(y);
+        double m = vx * vx + vz * vz;
+        if (m < 1e-6) {
+            return 0;
+        }
+        double dot = (vx * lx + vz * lz) / Math.sqrt(m);
+        double cross = vx * lz - vz * lx;
+        double angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+        return Math.max(-MAX_ROLL, Math.min(MAX_ROLL, cross < 0 ? angle : -angle));
+    }
+
+    /**
+     * How far the wings are spread (0 folded .. 1 fully spread), like Minecraft's elytra model: spread in level flight,
+     * folding in the steeper the player dives.
+     */
+    static double spread(double vx, double vy, double vz) {
+        double l = Math.sqrt(vx * vx + vy * vy + vz * vz);
+        if (vy >= 0 || l < 1e-6) {
+            return 1;
+        }
+        return 1 - Math.pow(-vy / l, 1.5);
     }
 
     static Basis basis(float yaw, float pitch) {
@@ -239,11 +334,12 @@ public final class ElytraTrailsModule implements LumoraAddon {
 
     /**
      * Wing tip of the gliding model: the body pivots at the feet and lies along the look direction, the spread wings
-     * end about 0.45 blocks along it and 0.8 blocks to the side, slightly above the body.
+     * end about 0.45 blocks along it and 0.8 blocks to the side, slightly above the body; folded (steep dive) they end
+     * closer to the body and further back.
      */
-    static double[] tip(Basis b, double x, double y, double z, int side) {
-        double along = 0.45;
-        double out = 0.8 * side;
+    static double[] tip(Basis b, double x, double y, double z, int side, double spread) {
+        double along = 0.45 - 0.25 * (1 - spread);
+        double out = (0.35 + 0.45 * spread) * side;
         double up = 0.1;
         return new double[]{
                 x + b.fx * along + b.rx * out + b.ux * up,
@@ -252,10 +348,10 @@ public final class ElytraTrailsModule implements LumoraAddon {
     }
 
     /** One trail as a camera-facing ribbon, oldest point first, the wing tip last (while it still emits). */
-    private void strip(MeshBuilder out, ArrayDeque<Point> points, double[] tip, Basis b, int side,
+    private void strip(MeshBuilder out, ArrayDeque<Point> points, Point head, Basis b, int side,
                        boolean vortex, long keep, double ox, double oy, double oz, double camX, double camY, double camZ,
                        long now) {
-        int n = points.size() + (tip != null ? 1 : 0);
+        int n = points.size() + (head != null ? 1 : 0);
         if (n < 2) {
             return;
         }
@@ -264,8 +360,14 @@ public final class ElytraTrailsModule implements LumoraAddon {
         double[] pz = new double[n];
         float[] age = new float[n];
         long[] time = new long[n];
+        double[] boost = new double[n];
+        double[] bright = new double[n];
         int i = 0;
-        for (Point p : points) {
+        java.util.List<Point> all = new java.util.ArrayList<>(points);
+        if (head != null) {
+            all.add(head);
+        }
+        for (Point p : all) {
             float a = Math.min(1f, (now - p.time()) / (float) keep);
             double sx = p.x();
             double sy = p.y();
@@ -283,14 +385,9 @@ public final class ElytraTrailsModule implements LumoraAddon {
             pz[i] = sz;
             age[i] = a;
             time[i] = p.time();
+            boost[i] = p.boost();
+            bright[i] = p.bright();
             i++;
-        }
-        if (tip != null) {
-            px[i] = tip[0];
-            py[i] = tip[1];
-            pz[i] = tip[2];
-            age[i] = 0;
-            time[i] = now;
         }
         double baseWidth = width.get() * 0.025;
         double[] sideX = new double[n];
@@ -311,7 +408,7 @@ public final class ElytraTrailsModule implements LumoraAddon {
             double cz = tx * vy - ty * vx;
             double l = Math.sqrt(cx * cx + cy * cy + cz * cz);
             // thin at the wing, wider (spread vapor) further back
-            double half = baseWidth * (0.5 + 1.5 * age[k]);
+            double half = baseWidth * (0.5 + 1.5 * age[k]) * boost[k];
             if (l < 1e-9) {
                 cx = b.ux;
                 cy = b.uy;
@@ -323,25 +420,40 @@ public final class ElytraTrailsModule implements LumoraAddon {
             sideZ[k] = cz / l * half;
         }
         int alpha = color.get() >>> 24;
+        boolean halo = glow.get();
         for (int k = 0; k + 1 < n; k++) {
-            int c1 = shade(time[k], age[k], alpha);
-            int c2 = shade(time[k + 1], age[k + 1], alpha);
+            int c1 = shade(time[k], age[k], alpha * bright[k]);
+            int c2 = shade(time[k + 1], age[k + 1], alpha * bright[k + 1]);
             if ((c1 >>> 24) == 0 && (c2 >>> 24) == 0) {
                 continue;
             }
-            out.quad(px[k] - sideX[k] - ox, py[k] - sideY[k] - oy, pz[k] - sideZ[k] - oz, c1,
-                    px[k] + sideX[k] - ox, py[k] + sideY[k] - oy, pz[k] + sideZ[k] - oz, c1,
-                    px[k + 1] + sideX[k + 1] - ox, py[k + 1] + sideY[k + 1] - oy, pz[k + 1] + sideZ[k + 1] - oz, c2,
-                    px[k + 1] - sideX[k + 1] - ox, py[k + 1] - sideY[k + 1] - oy, pz[k + 1] - sideZ[k + 1] - oz, c2);
+            if (halo) {
+                // glow: a wide, faint band around the core (drawn additively, so it lights up the sky behind)
+                segment(out, px, py, pz, sideX, sideY, sideZ, k, 3.0, scaleAlpha(c1, 0.3), scaleAlpha(c2, 0.3), ox, oy, oz);
+            }
+            segment(out, px, py, pz, sideX, sideY, sideZ, k, 1.0, c1, c2, ox, oy, oz);
         }
     }
 
+    private static void segment(MeshBuilder out, double[] px, double[] py, double[] pz, double[] sx, double[] sy,
+                                double[] sz, int k, double w, int c1, int c2, double ox, double oy, double oz) {
+        int j = k + 1;
+        out.quad(px[k] - sx[k] * w - ox, py[k] - sy[k] * w - oy, pz[k] - sz[k] * w - oz, c1,
+                px[k] + sx[k] * w - ox, py[k] + sy[k] * w - oy, pz[k] + sz[k] * w - oz, c1,
+                px[j] + sx[j] * w - ox, py[j] + sy[j] * w - oy, pz[j] + sz[j] * w - oz, c2,
+                px[j] - sx[j] * w - ox, py[j] - sy[j] * w - oy, pz[j] - sz[j] * w - oz, c2);
+    }
+
+    private static int scaleAlpha(int argb, double f) {
+        return (int) Math.round((argb >>> 24) * f) << 24 | (argb & 0xFFFFFF);
+    }
+
     /** Colour of a point: the chosen colour (rainbow follows the time the point was made), fading out with age. */
-    private int shade(long time, float age, int alpha) {
+    private int shade(long time, float age, double alpha) {
         int rgb = color.argbAt(time) & 0xFFFFFF;
         float fade = (1f - age);
-        int a = Math.round(alpha * fade * fade);
-        return Math.max(0, Math.min(255, a)) << 24 | rgb;
+        long a = Math.round(alpha * fade * fade);
+        return (int) Math.max(0, Math.min(255, a)) << 24 | rgb;
     }
 
     private static double sq(double v) {
@@ -379,8 +491,8 @@ public final class ElytraTrailsModule implements LumoraAddon {
             n++;
         }
 
-        Mesh build() {
-            return n == 0 ? Mesh.EMPTY : new Mesh(xyz, colors, n);
+        Mesh build(boolean glow) {
+            return n == 0 ? Mesh.EMPTY : new Mesh(xyz, colors, n, glow);
         }
     }
 }

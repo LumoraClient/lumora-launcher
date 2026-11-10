@@ -39,7 +39,7 @@ public final class ElytraTrails {
             draws++;
         }
         if (!mesh.isEmpty()) {
-            vertices(mesh, pose.last(), buffers.getBuffer(RenderType.debugQuads()));
+            vertices(mesh, pose.last(), buffers.getBuffer(mesh.glow() ? RenderType.lightning() : RenderType.debugQuads()));
         }
     }
 

@@ -46,7 +46,11 @@ public final class ElytraTrails {
         Matrix4f mat = pose.last().pose();
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        if (mesh.glow()) {
+            RenderSystem.blendFunc(770, 1); // SRC_ALPHA, ONE: the trail shines
+        } else {
+            RenderSystem.defaultBlendFunc();
+        }
         RenderSystem.disableCull();
         RenderSystem.depthMask(false);
         RenderSystem.shadeModel(7425); // GL_SMOOTH: fade along the trail
@@ -64,6 +68,7 @@ public final class ElytraTrails {
         RenderSystem.shadeModel(7424);
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();
         RenderSystem.enableTexture();
     }

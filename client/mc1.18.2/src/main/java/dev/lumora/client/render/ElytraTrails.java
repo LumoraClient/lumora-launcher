@@ -49,7 +49,11 @@ public final class ElytraTrails {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        if (mesh.glow()) {
+            RenderSystem.blendFunc(770, 1); // SRC_ALPHA, ONE: the trail shines
+        } else {
+            RenderSystem.defaultBlendFunc();
+        }
         RenderSystem.disableCull();
         RenderSystem.depthMask(false);
         BufferBuilder vc = Tesselator.getInstance().getBuilder();
@@ -65,6 +69,7 @@ public final class ElytraTrails {
         Tesselator.getInstance().end();
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();
         RenderSystem.enableTexture();
     }

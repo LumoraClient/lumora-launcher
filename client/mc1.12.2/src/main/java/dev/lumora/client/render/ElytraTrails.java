@@ -43,7 +43,8 @@ public final class ElytraTrails {
         GlStateManager.disableLighting();
         GlStateManager.disableTexture();
         GlStateManager.enableBlend();
-        GlStateManager.blendFuncSeparate(770, 771, 1, 0);
+        // glow: SRC_ALPHA, ONE (the trail shines); else normal transparency
+        GlStateManager.blendFuncSeparate(770, mesh.glow() ? 1 : 771, 1, 0);
         GlStateManager.disableCull();
         GlStateManager.depthMask(false);
         GlStateManager.shadeModel(GL11.GL_SMOOTH);
@@ -61,6 +62,7 @@ public final class ElytraTrails {
         GlStateManager.shadeModel(GL11.GL_FLAT);
         GlStateManager.depthMask(true);
         GlStateManager.enableCull();
+        GlStateManager.blendFuncSeparate(770, 771, 1, 0);
         GlStateManager.disableBlend();
         GlStateManager.enableTexture();
         GlStateManager.enableLighting();

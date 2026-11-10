@@ -445,6 +445,10 @@ public final class SmokeTest {
                     extraProblems.add("elytra trails: none while gliding (" + elytra + ")");
                 }
                 screenshot(mc, "elytra");
+                ElytraSmoke.setting("glow", "true");
+            } else if (ticks == 47) {
+                screenshot(mc, "elytra-glow");
+                ElytraSmoke.setting("glow", "false");
                 ElytraSmoke.reset(mc);
                 worldStep++;
                 ticks = 0;

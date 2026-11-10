@@ -75,6 +75,12 @@ final class ElytraSmoke {
                 + " draws=" + dev.lumora.client.render.ElytraTrails.draws + " emitted=" + dev.lumora.client.render.ElytraTrails.emitted;
     }
 
+    /** Changes a setting of the elytra trails module (smoke test only). */
+    static void setting(String key, String value) {
+        ApiSmoke.core().addonManager().record("lumora-elytratrails").filter(r -> r.configuration() != null)
+                .flatMap(r -> r.configuration().settings().get(key)).ifPresent(s -> s.decode(value));
+    }
+
     static void reset(Minecraft mc) {
         mc.options.setCameraType(CameraType.FIRST_PERSON);
         if (mc.player != null) {

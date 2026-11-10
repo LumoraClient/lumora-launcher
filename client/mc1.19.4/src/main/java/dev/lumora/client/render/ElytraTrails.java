@@ -42,7 +42,7 @@ public final class ElytraTrails {
         if (mesh.isEmpty()) {
             return;
         }
-        VertexConsumer vc = buffers.getBuffer(RenderType.debugQuads());
+        VertexConsumer vc = buffers.getBuffer(mesh.glow() ? RenderType.lightning() : RenderType.debugQuads());
         Matrix4f mat = pose.last().pose();
         float[] xyz = mesh.xyz();
         int[] col = mesh.colors();

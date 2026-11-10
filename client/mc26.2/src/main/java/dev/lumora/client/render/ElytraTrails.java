@@ -39,7 +39,7 @@ public final class ElytraTrails {
             draws++;
         }
         if (!mesh.isEmpty()) {
-            collector.submitCustomGeometry(pose, RenderTypes.debugQuads(), (p, vc) -> vertices(mesh, p, vc));
+            collector.submitCustomGeometry(pose, mesh.glow() ? RenderTypes.lightning() : RenderTypes.debugQuads(), (p, vc) -> vertices(mesh, p, vc));
         }
     }
 

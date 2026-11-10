@@ -258,25 +258,49 @@ public final class KeystrokesView {
         int color = mix(text, pressedText.argbAt(now), tt);
         boolean shade = shadow.get() && tt < 0.5f;
         float ts = textSize.get() / 100f;
+        float cx = x + w / 2f;
+        float cy = y + h / 2f;
         if (sub != null && h >= 16) {
-            label(g, label, x + w / 2f, y + h / 2f - 7 * ts, ts, color, shade);
-            label(g, sub, x + w / 2f, y + h / 2f + 2, 0.5f * ts, color, shade);
+            // label and the small CPS line below it, centred as one block
+            float h1 = visibleHeight(g, ts, shade);
+            float h2 = visibleHeight(g, 0.5f * ts, shade);
+            float gap = 1.5f * ts;
+            float top = cy - (h1 + gap + h2) / 2f;
+            label(g, label, cx, top + h1 / 2f, ts, color, shade);
+            label(g, sub, cx, top + h1 + gap + h2 / 2f, 0.5f * ts, color, shade);
         } else {
-            label(g, label, x + w / 2f, y + h / 2f - 4 * ts, ts, color, shade);
+            label(g, label, cx, cy, ts, color, shade);
         }
     }
 
-    /** Text centred on {@code cx}, top at {@code top}, at {@code scale}. */
-    private static void label(HudGraphics g, String text, float cx, float top, float scale, int color, boolean shadow) {
-        if (scale == 1f) {
-            g.centeredText(text, Math.round(cx), Math.round(top), color, shadow);
-            return;
-        }
+    /**
+     * Height of the letters themselves: the capitals (the line height also holds room for descenders like "g"). The
+     * shadow is left out: the eye reads the bright letter, so that is what sits in the middle.
+     */
+    private static float visibleHeight(HudGraphics g, float scale, boolean shadow) {
+        return Math.max(1, g.lineHeight() - 2) * scale;
+    }
+
+    /**
+     * Text whose letters are centred on ({@code cx}, {@code cy}) at {@code scale} (the measured width includes the 1 px
+     * gap after the last letter; the shadow is not counted). Positions are snapped to half GUI pixels (whole screen
+     * pixels at GUI scale 2).
+     */
+    static void label(HudGraphics g, String text, float cx, float cy, float scale, int color, boolean shadow) {
+        float width = (g.textWidth(text) - 1) * scale;
+        float left = snap(cx - width / 2f);
+        float top = snap(cy - visibleHeight(g, scale, shadow) / 2f);
         g.push();
-        g.translate(cx, top);
-        g.scale(scale);
-        g.centeredText(text, 0, 0, color, shadow);
+        g.translate(left, top);
+        if (scale != 1f) {
+            g.scale(scale);
+        }
+        g.text(text, 0, 0, color, shadow);
         g.pop();
+    }
+
+    private static float snap(float v) {
+        return Math.round(v * 2f) / 2f;
     }
 
     /** CSS "ease" (cubic-bezier(.25, .1, .25, 1)), as LiquidBounce's keys use it. */

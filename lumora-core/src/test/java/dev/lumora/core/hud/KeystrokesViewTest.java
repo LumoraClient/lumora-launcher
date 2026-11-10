@@ -123,6 +123,59 @@ class KeystrokesViewTest {
                 "3 px border above the W key");
     }
 
+    /** Records where texts land (translation and scale applied): {text, x, y, scale}. */
+    static final class TextSpy implements dev.lumora.api.render.HudGraphics {
+        final java.util.List<Object[]> texts = new java.util.ArrayList<>();
+        private final java.util.ArrayDeque<float[]> stack = new java.util.ArrayDeque<>();
+        private float tx;
+        private float ty;
+        private float s = 1;
+
+        @Override public int textWidth(String text) { return text.length() * 6; }
+        @Override public int lineHeight() { return 9; }
+        @Override public void text(String text, int x, int y, int c, boolean shadow) {
+            texts.add(new Object[]{text, tx + x * s, ty + y * s, s});
+        }
+        @Override public void fill(int x1, int y1, int x2, int y2, int c) { }
+        @Override public void texture(dev.lumora.api.render.TextureRef t, int x, int y, int w, int h, float u, float v, int rw, int rh, int tw, int th) { }
+        @Override public void push() { stack.push(new float[]{tx, ty, s}); }
+        @Override public void pop() { float[] p = stack.pop(); tx = p[0]; ty = p[1]; s = p[2]; }
+        @Override public void translate(float x, float y) { tx += x * s; ty += y * s; }
+        @Override public void scale(float x, float y) { s *= x; }
+        @Override public void enableScissor(int x1, int y1, int x2, int y2) { }
+        @Override public void disableScissor() { }
+        @Override public <T> java.util.Optional<T> unwrap(Class<T> type) { return java.util.Optional.empty(); }
+
+        Object[] find(String text) {
+            return texts.stream().filter(t -> t[0].equals(text)).findFirst().orElseThrow();
+        }
+    }
+
+    @Test
+    void lettersSitInTheMiddleOfTheirKeys() {
+        KeystrokesView v = view(new SettingsGroup("k."));
+        TextSpy g = new TextSpy();
+        v.render(g, new Keys(), true, 0xFFFFFFFF, 1000);
+        // W key: x 20..38, y 0..18 (middle 29, 9). "U" is 5 px wide (+1 px gap after it) and 7 px high: the letter
+        // starts at (26.5, 5.5), so it is centred to the screen pixel at GUI scale 2 (the shadow is not counted)
+        Object[] w = g.find("U");
+        assertEquals(26.5f, (float) w[1], 1e-6);
+        assertEquals(5.5f, (float) w[2], 1e-6);
+        // without shadow: the same place
+        v.shadow.set(false);
+        g = new TextSpy();
+        v.render(g, new Keys(), true, 0xFFFFFFFF, 1000);
+        w = g.find("U");
+        assertEquals(26.5f, (float) w[1], 1e-6);
+        assertEquals(5.5f, (float) w[2], 1e-6);
+        // LMB with the CPS line below: the block of both lines is centred on the key (y 40..58, middle 49)
+        Object[] lmb = g.find("LMB");
+        Object[] cps = g.find("12 CPS");
+        float top = (float) lmb[2];
+        float bottom = (float) cps[2] + 7 * (float) cps[3];
+        assertEquals(49f, (top + bottom) / 2f, 0.5f, "block from " + top + " to " + bottom);
+    }
+
     /** Colour of the W key after a frame at {@code now} (its fill is the first one drawn). */
     private static int firstKeyFill(KeystrokesView v, KeystrokesView.Input in, long now) {
         int[] color = new int[1];

@@ -1,5 +1,21 @@
 # Änderungen
 
+## 0.3.29 (2026-11-11)
+
+### Spielermenü
+- **Mausrad auf einen Spieler:** Spieler anvisieren und das Mausrad gedrückt halten – um den Spieler erscheint ein Ring. Loslassen über einem Eintrag führt ihn aus; ein kurzer Klick lässt das Menü offen, dann wählst du mit Klick oder durch Drehen am Mausrad (Rechtsklick zurück, Esc schließt).
+- **Ein Menü:** Über dem Ring die Spielerkarte (Kopf, Name, Lumora-Nutzer, Freund, Party), unter dem Ring der gewählte Eintrag. Kategorien öffnen ihre Einträge als äußeren Ring daneben, das Client-Profil erscheint neben dem Ring. Auf kleinen Fenstern wird das Menü kleiner.
+- **Einträge:** Freund hinzufügen (bzw. Anfrage annehmen), In Party einladen (bzw. Party beitreten, Aus Party entfernen, Einladung zurückziehen), Client-Profil öffnen, Lumora-Nachricht (Freunde), Privat schreiben (`/msg`, auf Servern), Name kopieren.
+- **Client-Profil:** ob der Spieler Lumora nutzt, Freund seit, Online-Status (nur Freunde), Party und gemeinsame Gruppen.
+
+### Party
+- **Neu im Lumora-Social-Server:** Einladen, Annehmen, Ablehnen, Verlassen und Entfernen; nur der Anführer lädt ein, Einladungen laufen nach 5 Minuten ab. Die Party lebt nur, solange jemand drin ist (nicht gespeichert).
+- **Social-Menü (U):** Party-Bereich oben mit Einladungen (✔/✖), Mitgliedern, Anführer und „Verlassen“; neue Einladungen kommen als Benachrichtigung.
+- Ein älterer Social-Server kennt Party und Profilkarte nicht und antwortet mit „Unbekannte Anfrage“; Freunde und Chat laufen weiter.
+
+### Lumora-API 1.4.0
+- `AddonContext.playerMenu()` (Berechtigung `playermenu`): eigene Einträge mit Symbol oder Textur, Kategorie, Reihenfolge, nötiger OP-Stufe, Bedingungen (`visibleWhen`, `enabledWhen`, `requiresLumoraUser`) und Aktion. Addons für 1.0 bis 1.3 laden unverändert weiter.
+
 ## 0.3.28 (2026-11-11)
 
 ### Hotbar & Leisten

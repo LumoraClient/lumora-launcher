@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.29 (2026-11-11):**
+- **Build:** `gradlew clean build` erfolgreich, 490 Unit-Tests ohne Fehler (1 übersprungen). Neu: 5 für das Spielermenü (Ring beginnt oben und Winkel wählen das Segment, Kategorie als äußerer Ring, Mausrad-Reihenfolge; Segmente mit Lücken und freier Mitte; Halten und Loslassen führt aus; kurzer Klick lässt offen, Mausrad und Klick; Addon-Einträge mit Kategorie, OP-Stufe und fehlerhaftem Eintrag) und 1 Servertest (Party einladen, annehmen, ablehnen, verlassen, Ende beim Offline-Gehen; Profilkarte für Fremde und Freunde).
+- **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden; in 26.3 öffnet der Test das Menü mit Test-Einträgen und wechselt per Mausrad in den äußeren Ring einer Kategorie (Aufnahme angesehen).
+- **Smoke-Test mit dem fertigen 0.3.29-Build:** 26.1.2, 1.21.11, 1.20.1, 1.16.5 und 1.8.9 bestanden. 26.3 schlug im ersten Lauf fehl: Die Testfigur war im Elytra-Schritt durch Fallschaden gestorben, der Todesbildschirm verdrängte das Menü. Der Testschritt belebt jetzt zuerst wieder; danach neu gebaut und 26.3 bestanden. Im letzten Lauf wechselte das Mausrad nicht in die Kategorie, weil der Test das Rad an der Bildschirmmitte dreht, der Mauszeiger aber woanders stand (das Menü folgt der Maus).
+- **Nicht geprüft:** Mausrad-Halten auf einen echten Spieler (im Einzelspieler gibt es keinen; der Test öffnet das Menü direkt), Party und Profilkarte im Spiel (Social-Verbindung im Test aus; nur im Servertest), das Client-Profil neben dem Ring, die OP-Stufe auf Servern, 1.8.9/1.12.2 liefern immer OP-Stufe 0, ein echtes Selbst-Update von 0.3.28 auf 0.3.29.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.28 (2026-11-11):**
 - **Build:** `gradlew clean build` erfolgreich, 484 Unit-Tests ohne Fehler (1 übersprungen); keine neuen Unit-Tests (die Änderungen liegen in den Versionsmodulen).
 - **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. In 26.3 neuer Smoke-Schritt für die Hotbar (Blöcke, Items, Stapelzahl, beschädigtes Werkzeug, Schild in der Zweithand; Vanilla-, Lumora- und Minecraft-Hotbar als Aufnahme), auch unter Vulkan und mit den Einstellungen des Spielers, der den Fehler gemeldet hat (GUI-Größe 2, seine Paket-Reihenfolge): Lumora-Hotbar mit denselben Pixelfarben wie Minecrafts eigene. Den Fehler selbst (Rot und Alpha vertauscht) konnte ich in der Testumgebung nicht nachstellen; er ist nur durch das F2-Bildschirmfoto des Spielers belegt.

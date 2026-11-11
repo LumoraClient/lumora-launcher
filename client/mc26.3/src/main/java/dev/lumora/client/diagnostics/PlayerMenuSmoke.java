@@ -19,6 +19,14 @@ final class PlayerMenuSmoke {
     private PlayerMenuSmoke() {
     }
 
+    /** The player may have died in an earlier step (fall damage): respawn and close the death screen first. */
+    static void prepare(Minecraft mc) {
+        if (mc.player != null && mc.player.isDeadOrDying()) {
+            mc.player.respawn();
+        }
+        mc.gui.setScreen(null);
+    }
+
     static void open() {
         tracker = new RegistrationTracker();
         PlayerMenu menu = ApiSmoke.core().playerMenu().scoped("smoke", tracker, () -> { });

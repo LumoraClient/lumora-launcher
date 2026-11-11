@@ -50,6 +50,8 @@ public final class AddonAssets {
      * @param warn      receives problems (an unreadable jar is skipped, the others still count)
      */
     public static Path prepare(Path addonsDir, Path target, byte[] packMeta, Consumer<String> warn) {
+        // jars replaced from the addon library go first, otherwise the old copy (first by name) would win the assets
+        AddonLibrary.removePending(addonsDir);
         List<Path> jars = jars(addonsDir);
         String stamp = stamp(jars, packMeta);
         Path marker = target.resolve(MARKER);

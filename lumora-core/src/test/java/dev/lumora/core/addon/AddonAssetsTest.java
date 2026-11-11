@@ -110,6 +110,20 @@ class AddonAssetsTest {
     }
 
     @Test
+    void anUpdateFromTheLibraryBringsTheNewLanguageFilesAtOnce() throws IOException {
+        // the hub replaced LumoraVoice-0.8.3.jar while it was loaded: the old jar waits in .lumora-remove
+        Path addons = tmp.resolve("addons");
+        jar(addons.resolve("LumoraVoice-0.8.3.jar"), Map.of("lumora-addon.json", "{}", "assets/lumoravoice/lang/en_us.json", "{\"old\":\"x\"}"));
+        jar(addons.resolve("LumoraVoice-0.8.4.jar"), Map.of("lumora-addon.json", "{}", "assets/lumoravoice/lang/en_us.json", "{\"new\":\"y\"}"));
+        Files.writeString(addons.resolve(AddonLibrary.REMOVE_FILE), "LumoraVoice-0.8.3.jar\n");
+        Path target = tmp.resolve("out");
+        AddonAssets.prepare(addons, target, null, w -> { });
+        assertEquals("{\"new\":\"y\"}", Files.readString(target.resolve("assets/lumoravoice/lang/en_us.json")));
+        assertFalse(Files.exists(addons.resolve("LumoraVoice-0.8.3.jar")), "old copy deleted before the assets are taken");
+        assertFalse(Files.exists(addons.resolve(AddonLibrary.REMOVE_FILE)));
+    }
+
+    @Test
     void noAddonsOrNoAssetsMeansNoPack() throws IOException {
         assertNull(AddonAssets.prepare(tmp.resolve("missing"), tmp.resolve("out1"), null, w -> { }));
         Path addons = tmp.resolve("addons");

@@ -193,13 +193,13 @@ public final class PlayerInteraction {
 
     private void builtins() {
         registry.builtin(PlayerMenuEntry.builder("friend", "Freund hinzufügen").icon("✚").order(10)
-                .visibleWhen(t -> t instanceof Target && socialOnline() && t.lumoraUser() && !t.friend())
+                .visibleWhen(t -> t instanceof Target && client() != null && !t.friend())
                 .label(t -> switch (request(t)) {
                     case INCOMING -> t("Anfrage annehmen", "Accept request");
                     case OUTGOING -> t("Anfrage gesendet", "Request sent");
-                    default -> t("Freund hinzufügen", "Add friend");
+                    default -> t("Freund hinzufügen", "Add friend") + socialReason(target(t));
                 })
-                .enabledWhen(t -> request(t) != PlayerCard.Request.OUTGOING)
+                .enabledWhen(t -> socialReason(target(t)).isEmpty() && request(t) != PlayerCard.Request.OUTGOING)
                 .onSelect(t -> {
                     SocialClient c = client();
                     if (request(t) == PlayerCard.Request.INCOMING) {
@@ -209,23 +209,28 @@ public final class PlayerInteraction {
                     }
                 }).build());
         registry.builtin(PlayerMenuEntry.builder("party", "In Party einladen").icon("⚑").order(20)
-                .visibleWhen(t -> t instanceof Target && socialOnline() && t.lumoraUser() && partyEntryShown(target(t)))
+                // always offered once Lumora Social is set up; greyed out with the reason when it cannot work right now
+                .visibleWhen(t -> t instanceof Target && client() != null)
                 .label(t -> {
                     PlayerCard c = target(t).card;
-                    if (c.partyInvite != null) {
+                    if (c != null && c.partyInvite != null) {
                         return t("Party beitreten", "Join party");
                     }
-                    if (c.sameParty) {
+                    if (c != null && c.sameParty) {
                         return t("Aus Party entfernen", "Remove from party");
                     }
-                    return c.invited ? t("Einladung zurückziehen", "Withdraw invitation") : t("In Party einladen", "Invite to party");
+                    if (c != null && c.invited) {
+                        return t("Einladung zurückziehen", "Withdraw invitation");
+                    }
+                    return t("In Party einladen", "Invite to party") + partyReason(target(t));
                 })
+                .enabledWhen(t -> partyReason(target(t)).isEmpty())
                 .onSelect(t -> {
                     SocialClient s = client();
                     PlayerCard c = target(t).card;
-                    if (c.partyInvite != null) {
+                    if (c != null && c.partyInvite != null) {
                         report(s.acceptParty(c.partyInvite), t("Du bist in der Party von ", "You joined the party of ") + t.name());
-                    } else if (c.sameParty || c.invited) {
+                    } else if (c != null && (c.sameParty || c.invited)) {
                         report(s.kickFromParty(target(t).uuid32), c.sameParty ? t.name() + t(" ist nicht mehr in deiner Party", " left your party")
                                 : t("Einladung zurückgezogen", "Invitation withdrawn"));
                     } else {
@@ -263,18 +268,31 @@ public final class PlayerInteraction {
                 }).build());
     }
 
-    private boolean partyEntryShown(Target t) {
-        PlayerCard c = t.card;
-        if (c == null) {
-            return false;
+    /** Why friend and party entries cannot be used right now (" · reason"), or "" when they can. */
+    private String socialReason(Target t) {
+        if (!socialOnline()) {
+            return t(" · nicht verbunden", " · not connected");
         }
-        if (c.partyInvite != null) {
-            return true;
+        PlayerCard c = t.card;
+        if (c != null && !c.lumora) {
+            return t(" · nutzt Lumora nicht", " · no Lumora user");
+        }
+        return ""; // card still loading or unknown: the server answers the request itself
+    }
+
+    private String partyReason(Target t) {
+        String r = socialReason(t);
+        if (!r.isEmpty()) {
+            return r;
+        }
+        PlayerCard c = t.card;
+        if (c != null && c.partyInvite != null) {
+            return "";
         }
         SocialClient s = client();
         Party p = s == null ? null : s.party();
         boolean lead = p == null || (s.self() != null && p.leader.equals(s.self().uuid));
-        return lead; // members of someone else's party cannot invite or remove
+        return lead ? "" : t(" · nur der Anführer", " · leader only"); // members of someone else's party cannot invite
     }
 
     private static PlayerCard.Request request(PlayerTarget t) {

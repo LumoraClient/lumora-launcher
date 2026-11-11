@@ -189,6 +189,27 @@ class PlayerMenuTest {
     }
 
     @Test
+    void partyAndFriendAreOfferedGreyedOutWhileTheSocialServerIsUnreachable() {
+        // Lumora Social set up, but nothing listens on the server address
+        System.setProperty("lumora.social.server", "ws://127.0.0.1:1/");
+        try {
+            platform.gameSession = Optional.of(new dev.lumora.core.social.GameSession("Me", "99999999999999999999999999999999", () -> "x"));
+            core.clientStarted();
+            middle = true;
+            core.tick();
+            PlayerMenuView v = shown();
+            FakeGraphics g = pointAt(v, "Invite to party");
+            assertTrue(g.texts.stream().anyMatch(t -> t.contains("Invite to party · not connected")), "with the reason");
+            pointAt(v, "Add friend · not connected");
+            v.mouseClicked(200, 100, 0); // a click on a greyed out entry does nothing
+            assertFalse(platform.screenStack.isEmpty());
+            v.close();
+        } finally {
+            System.clearProperty("lumora.social.server");
+        }
+    }
+
+    @Test
     void addonEntriesWithCategoryPermissionAndAFailingOne() {
         RegistrationTracker tracker = new RegistrationTracker();
         PlayerMenu menu = core.playerMenu().scoped("demo", tracker, () -> { });

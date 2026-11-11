@@ -15,7 +15,7 @@ import java.util.Locale;
 /**
  * Lumora zoom (key C by default): narrows the field of view of the camera only - the same effect as OptiFine's
  * zoom, purely client-side. Optional: hold or toggle, smooth animation, scroll wheel to change the factor while
- * zoomed, lower mouse sensitivity, cinematic camera, dark border.
+ * zoomed, lower mouse sensitivity, cinematic camera, dark border, cinema bars.
  */
 public final class LumoraZoom {
     public static final double MIN = 1.5;
@@ -137,10 +137,40 @@ public final class LumoraZoom {
         return true;
     }
 
-    /** Dark border and the current factor after scrolling (HUD layer). */
+    /** How far the cinema bars are in (0 out, 1 in) and when that was last updated. */
+    private static float bars;
+    private static long barsAt;
+
+    /** Black bars that slide in from the top and bottom while zoomed and out again afterwards (off by default). */
+    private static void cinemaBars(GuiGraphics g, LumoraConfig c) {
+        long now = System.nanoTime();
+        float dt = barsAt == 0 ? 0 : Math.min(0.1f, (now - barsAt) / 1e9f);
+        barsAt = now;
+        float goal = c.zoomCinemaBars && active() ? 1 : 0;
+        bars += (goal - bars) * Math.min(1, dt * 10);
+        if (Math.abs(goal - bars) < 0.002f) {
+            bars = goal;
+        }
+        if (bars <= 0) {
+            return;
+        }
+        float eased = bars * bars * (3 - 2 * bars);
+        int w = g.guiWidth();
+        int h = g.guiHeight();
+        int bh = Math.round(h * 0.11f * eased);
+        if (bh > 0) {
+            g.fill(0, 0, w, bh, 0xFF000000);
+            g.fill(0, h - bh, w, h, 0xFF000000);
+        }
+    }
+
+    /** Dark border, cinema bars and the current factor after scrolling (HUD layer). */
     public static void overlay(GuiGraphics g) {
         LumoraConfig c = cfg();
         double f = factor(1f);
+        if (c != null) {
+            cinemaBars(g, c);
+        }
         if (c == null || f <= 1.05) {
             return;
         }

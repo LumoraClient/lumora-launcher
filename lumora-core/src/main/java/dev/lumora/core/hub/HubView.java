@@ -1388,7 +1388,7 @@ public final class HubView implements AddonView {
                 v -> host.set("zoomMode", v)).requires(enabled);
         String section = "lumora.zoom.section.behaviour";
         for (String[] o : new String[][]{{"smooth", "zoomSmooth"}, {"scroll", "zoomScroll"}, {"sensitivity", "zoomSensitivity"},
-                {"cinematic", "zoomCinematic"}, {"vignette", "zoomVignette"}}) {
+                {"cinematic", "zoomCinematic"}, {"vignette", "zoomVignette"}, {"cinema_bars", "zoomCinemaBars"}}) {
             if (host.has(o[1])) {
                 BooleanSetting b = s.checkbox(o[0], false).bind(() -> bool(o[1]), v -> host.set(o[1], v)).requires(enabled);
                 if (section != null) {

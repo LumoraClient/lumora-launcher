@@ -405,12 +405,14 @@ public final class SmokeTest {
                 ticks = 0;
             } else if (zoomPhase == 1 && ticks >= 15) {
                 screenshot(mc, "zoom-before");
+                LumoraClient.config().zoomCinemaBars = true; // cinema bars slide in with the zoom (off by default)
                 LumoraZoom.key().setDown(true);
                 zoomPhase = 2;
                 ticks = 0;
             } else if (zoomPhase == 2 && ticks >= 20) {
                 screenshot(mc, "zoom");
                 LumoraZoom.key().setDown(false);
+                LumoraClient.config().zoomCinemaBars = false;
                 zoomPhase = 3;
                 ticks = 0;
             } else if (zoomPhase == 3 && ticks >= 10) {

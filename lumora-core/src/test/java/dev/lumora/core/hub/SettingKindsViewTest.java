@@ -195,6 +195,7 @@ class SettingKindsViewTest {
         host.options.put("zoomMode", "hold");
         host.options.put("zoomSmooth", true);
         host.options.put("zoomVignette", false);
+        host.options.put("zoomCinemaBars", false);
         HubView hub = new HubView(new LumoraCore(new FakePlatform(dir)), host);
         SettingsGroup z = hub.zoomSettings();
         ChoiceSetting factor = (ChoiceSetting) z.get("factor").orElseThrow();
@@ -206,6 +207,10 @@ class SettingKindsViewTest {
         BooleanSetting vignette = (BooleanSetting) z.get("vignette").orElseThrow();
         vignette.toggle();
         assertEquals(true, host.options.get("zoomVignette"));
+        BooleanSetting bars = (BooleanSetting) z.get("cinema_bars").orElseThrow();
+        assertFalse(bars.get(), "cinema bars are off by default");
+        bars.toggle();
+        assertEquals(true, host.options.get("zoomCinemaBars"));
         assertTrue(z.get("cinematic").isEmpty(), "options this version does not have are left out");
         host.options.put("zoomEnabled", false);
         assertFalse(factor.isVisible(), "the rest only while zoom is on");

@@ -45,7 +45,7 @@ public final class LumoraConfig {
     /** Font when lumoraFont is on (id of dev.lumora.core.theme.LumoraFonts, e.g. "inter", "outfit"). */
     public String font = "inter";
     /** Zoom (key C): on/off, factor 1.5-50, "hold" or "toggle", smooth animation, scroll wheel, lower sensitivity,
-     *  cinematic camera and dark border while zoomed. */
+     *  cinematic camera, dark border and cinema bars while zoomed. */
     public boolean zoomEnabled = true;
     public double zoomFactor = 4.0;
     public String zoomMode = "hold";
@@ -54,6 +54,8 @@ public final class LumoraConfig {
     public boolean zoomSensitivity = true;
     public boolean zoomCinematic = false;
     public boolean zoomVignette = true;
+    /** Black bars that slide in at the top and bottom while zoomed. */
+    public boolean zoomCinemaBars = false;
     /** First-person swing animation (cosmetic): vanilla, smooth, spin, slap. */
     public String swingAnimation = "smooth";
     public boolean titleScreenButton = true;

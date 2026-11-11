@@ -1,5 +1,19 @@
 # Änderungen
 
+## 0.3.31 (2026-11-11)
+
+### Lumora-API 1.5.0 – Addons erweitern den Client
+- **Design:** Addons lesen deine Akzentfarbe und dein Theme (ein Wechsel wirkt sofort), zeichnen ihre Menüs mit Lumoras Steuerelementen (`UiKit`: Panel, Karte, Knopf, Schalter, Regler, Textfeld, Liste) und können eigene Akzentfarben im Hub anbieten (Berechtigung `design`). Die Farbreihe unter Themes bricht dafür um. Wählst du die Farbe eines Addons und ist das Addon aus, gilt Lila; mit dem Addon kommt deine Wahl zurück.
+- **HUD:** Widgets eines Addons können an einer der neun Ankerzonen hängen, wie im HUD-Editor (`WidgetPlacement.anchored`).
+- **Chat:** eigene Einträge im Menü von Chat-Nachrichten (Rechtsklick oder ⋯) und ein Event bei jeder neuen Nachricht mit Text, Absender und Links (Berechtigung `chat`).
+- **Social:** Freunde mit Online-Status und die Party lesen, Event bei Änderungen (Berechtigung `social`).
+- Das Spielermenü für Addons gibt es seit 1.4.0. Addons für ältere API-Versionen laden unverändert weiter.
+- Das API-Artefakt heißt jetzt `lumora-api-1.5.0` (in 0.3.29 und 0.3.30 hieß es fälschlich noch 1.3.0).
+
+### Doku
+- Addons werden nicht mehr als Fabric-Mod beschrieben: Lumora lädt sie mit seinem eigenen Addon-Loader aus dem Ordner `addons`. Die Anleitung „Ein Addon erstellen“ hat neue Beispiele zu Design, HUD-Anker, Spielermenü, Chat und Social; das Beispiel-Addon bringt keine `fabric.mod.json` mehr mit.
+- Die Addon-Vorlage, LumoraVoice und LumoraSpotify bauen jetzt gegen die API 1.5.0.
+
 ## 0.3.30 (2026-11-11)
 
 ### Spielermenü

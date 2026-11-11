@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.31 (2026-11-11):**
+- **Build:** `gradlew clean build` erfolgreich, 497 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für die Lumora-API 1.5 (Berechtigungen der neuen Dienste; Akzentfarbe eines Addons wird angeboten, gewählt, fällt beim Ausschalten auf Lila zurück und kommt mit dem Addon wieder; UiKit zeichnet in den Theme-Farben; Widget an einer Ankerzone und der alte Konstruktor; Chat-Menüeinträge mit Bedingung und Nachrichten-Event mit Absender und Link, entfernt mit dem Addon; Social ohne Verbindung leer).
+- **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3 und 1.8.9 bestanden. Addon-Vorlage, LumoraVoice 0.8.3 und LumoraSpotify 1.0.1 bauen gegen die API 1.5.0 (Voice 73 Tests, Spotify 18 Tests + 1 übersprungener Live-Test).
+- **Smoke-Test mit dem fertigen 0.3.31-Build:** 26.3, 26.1.2, 1.21.11, 1.20.1, 1.16.5 und 1.8.9 bestanden.
+- **Nicht geprüft:** ein Addon, das die neuen Dienste im Spiel nutzt (nur Unit-Tests), Social-Daten mit laufendem Server, eine Addon-Akzentfarbe im echten Hub, ein echtes Selbst-Update von 0.3.30 auf 0.3.31.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.30 (2026-11-11):**
 - **Build:** `gradlew clean build` erfolgreich, 491 Unit-Tests ohne Fehler (1 übersprungen). Neu: Spielermenü bei nicht erreichbarem Social-Server (Party und Freund erscheinen ausgegraut mit Grund, ein Klick darauf tut nichts); der Zoom-Einstellungstest prüft „Kinobalken“ (standardmäßig aus, umschaltbar).
 - **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3 und 1.8.9 bestanden; in der 26.3-Zoom-Aufnahme sind die Kinobalken zu sehen (Aufnahme angesehen).

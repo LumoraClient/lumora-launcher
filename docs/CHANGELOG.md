@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.30 (2026-11-11)
+
+### Spielermenü
+- **Party-Einladung immer im Menü:** „In Party einladen“ und „Freund hinzufügen“ erscheinen jetzt immer, sobald Lumora Social eingerichtet ist. Geht es gerade nicht, sind sie ausgegraut und nennen den Grund – „nicht verbunden“ (kein Lumora-Social-Server erreichbar), „nutzt Lumora nicht“ oder „nur der Anführer“ (du bist in einer fremden Party). Vorher fehlten sie in diesen Fällen ganz.
+
+### Zoom
+- **Kinobalken:** neue Option in den Zoom-Einstellungen (Hub → Zoom → Verhalten), standardmäßig aus. Beim Zoomen gleiten oben und unten schwarze Balken herein und beim Loslassen wieder heraus. Alle Minecraft-Versionen.
+
 ## 0.3.29 (2026-11-11)
 
 ### Spielermenü

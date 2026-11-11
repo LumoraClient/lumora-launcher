@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.30 (2026-11-11):**
+- **Build:** `gradlew clean build` erfolgreich, 491 Unit-Tests ohne Fehler (1 übersprungen). Neu: Spielermenü bei nicht erreichbarem Social-Server (Party und Freund erscheinen ausgegraut mit Grund, ein Klick darauf tut nichts); der Zoom-Einstellungstest prüft „Kinobalken“ (standardmäßig aus, umschaltbar).
+- **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3 und 1.8.9 bestanden; in der 26.3-Zoom-Aufnahme sind die Kinobalken zu sehen (Aufnahme angesehen).
+- **Smoke-Test mit dem fertigen 0.3.30-Build:** 26.3, 26.1.2, 1.21.11, 1.20.1, 1.16.5 und 1.8.9 bestanden.
+- **Nicht geprüft:** das Hinein- und Herausgleiten der Balken (die Aufnahme zeigt den Endzustand), die Party-Einladung mit einem echten zweiten Lumora-Spieler, ein echtes Selbst-Update von 0.3.29 auf 0.3.30.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.29 (2026-11-11):**
 - **Build:** `gradlew clean build` erfolgreich, 490 Unit-Tests ohne Fehler (1 übersprungen). Neu: 5 für das Spielermenü (Ring beginnt oben und Winkel wählen das Segment, Kategorie als äußerer Ring, Mausrad-Reihenfolge; Segmente mit Lücken und freier Mitte; Halten und Loslassen führt aus; kurzer Klick lässt offen, Mausrad und Klick; Addon-Einträge mit Kategorie, OP-Stufe und fehlerhaftem Eintrag) und 1 Servertest (Party einladen, annehmen, ablehnen, verlassen, Ende beim Offline-Gehen; Profilkarte für Fremde und Freunde).
 - **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3, 1.21.11, 1.16.5 und 1.8.9 bestanden; in 26.3 öffnet der Test das Menü mit Test-Einträgen und wechselt per Mausrad in den äußeren Ring einer Kategorie (Aufnahme angesehen).

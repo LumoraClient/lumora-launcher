@@ -36,6 +36,8 @@ public abstract class ChatMixin {
 
     @ModifyVariable(method = "addMessage(Lnet/minecraft/network/chat/Component;)V", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private Component lumora$chat(Component message) {
+        // every message for addons (Lumora API 1.5), also while the chat module is off
+        dev.lumora.core.chat.ChatApi.received(message == null ? null : message.getString());
         ChatModule c = ChatModule.active();
         if (c == null || message == null) {
             return message;

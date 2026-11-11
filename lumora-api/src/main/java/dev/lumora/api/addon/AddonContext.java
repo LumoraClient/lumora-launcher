@@ -89,12 +89,27 @@ public interface AddonContext {
         throw new UnsupportedOperationException("requires Lumora API 1.4");
     }
 
+    /** The player's theme and accent colour; no permission ({@code addAccent} needs {@code design}). @since 1.5.0 */
+    default dev.lumora.api.ui.Theme theme() {
+        throw new UnsupportedOperationException("requires Lumora API 1.5");
+    }
+
+    /** Chat message menu entries and the chat input (permission {@code chat}). @since 1.5.0 */
+    default dev.lumora.api.chat.Chat chat() {
+        throw new UnsupportedOperationException("requires Lumora API 1.5");
+    }
+
+    /** Lumora Social friends and party, read only (permission {@code social}). @since 1.5.0 */
+    default dev.lumora.api.social.SocialInfo social() {
+        throw new UnsupportedOperationException("requires Lumora API 1.5");
+    }
+
     /** The game's {@code config} folder (for the addon's own files). @since 1.1.0 */
     default java.nio.file.Path configDirectory() {
         throw new UnsupportedOperationException("requires Lumora API 1.1");
     }
 
-    /** Whether a Fabric mod with this id is installed. @since 1.1.0 */
+    /** Whether a mod with this id is installed next to Lumora. @since 1.1.0 */
     default boolean modLoaded(String modId) {
         throw new UnsupportedOperationException("requires Lumora API 1.1");
     }

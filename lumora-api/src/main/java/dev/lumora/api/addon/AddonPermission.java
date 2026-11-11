@@ -23,7 +23,13 @@ public enum AddonPermission {
     /** Icons next to player names ({@code AddonContext.nameTags()}), since 1.1.0. */
     NAMETAGS("nametags"),
     /** Own entries in the player menu ({@code AddonContext.playerMenu()}), since 1.4.0. */
-    PLAYER_MENU("playermenu");
+    PLAYER_MENU("playermenu"),
+    /** Own accent colours in the hub ({@code AddonContext.theme().addAccent}), since 1.5.0. Reading the theme needs none. */
+    DESIGN("design"),
+    /** Own entries in the chat message menu, open the chat ({@code AddonContext.chat()}), since 1.5.0. */
+    CHAT("chat"),
+    /** Read Lumora Social friends and party ({@code AddonContext.social()}), since 1.5.0. */
+    SOCIAL("social");
 
     private final String id;
 

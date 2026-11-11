@@ -1026,6 +1026,10 @@ public final class HubView implements AddonView {
             int sx = x + 2;
             LumoraTheme.Accent current = LumoraTheme.current();
             for (LumoraTheme.Accent a : LumoraTheme.ACCENTS) {
+                if (sx + d > x + w - 4) {
+                    sx = x + 2; // addons' accents: next row
+                    y += d + 8;
+                }
                 boolean sel = a == current;
                 boolean hover = in(mx, my, sx - 2, y - 2, d + 4, d + 4);
                 if (sel) {

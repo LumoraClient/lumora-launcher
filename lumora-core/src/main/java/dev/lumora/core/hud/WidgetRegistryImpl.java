@@ -152,6 +152,11 @@ public final class WidgetRegistryImpl {
         s.y = d.y();
         s.scale = clampScale(w, d.scale());
         s.layer = w.defaultLayer();
+        if (d.anchor() != null && Anchor.valid(d.anchor())) {
+            s.anchor = d.anchor(); // hangs on an anchor zone (Lumora API 1.5)
+            s.offsetX = d.offsetX();
+            s.offsetY = d.offsetY();
+        }
         return s;
     }
 

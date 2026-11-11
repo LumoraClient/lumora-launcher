@@ -1,6 +1,7 @@
 package dev.lumora.core.theme;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Look of Lumora's menus: the Lumora theme with an accent colour, or the Vanilla theme (Minecraft's own menus,
@@ -15,18 +16,24 @@ public final class LumoraTheme {
     public record Accent(String id, String german, String english, int color) {
     }
 
-    public static final List<Accent> ACCENTS = List.of(
+    /** Lumora's own accents, then those addons added (Lumora API 1.5, ids {@code <addon>:<id>}). */
+    public static final List<Accent> ACCENTS = new CopyOnWriteArrayList<>(List.of(
             new Accent("purple", "Lila", "Purple", 0xFF8B5CF6),
             new Accent("blue", "Blau", "Blue", 0xFF3B82F6),
             new Accent("cyan", "Türkis", "Cyan", 0xFF06B6D4),
             new Accent("green", "Grün", "Green", 0xFF22C55E),
             new Accent("amber", "Orange", "Orange", 0xFFF59E0B),
             new Accent("red", "Rot", "Red", 0xFFEF4444),
-            new Accent("pink", "Pink", "Pink", 0xFFEC4899));
+            new Accent("pink", "Pink", "Pink", 0xFFEC4899)));
 
     public static final Accent DEFAULT = ACCENTS.get(0);
+    /** How many of {@link #ACCENTS} are Lumora's own. */
+    public static final int BUILT_IN = ACCENTS.size();
 
     private static volatile Accent accent = DEFAULT;
+    /** The accent the player chose, also while it is not available (an addon's accent before the addon is on). */
+    private static volatile String wanted = DEFAULT.id();
+    private static final List<Runnable> listeners = new CopyOnWriteArrayList<>();
 
     private LumoraTheme() {
     }
@@ -42,7 +49,42 @@ public final class LumoraTheme {
     }
 
     public static void setAccent(String id) {
-        accent = accent(id);
+        wanted = id == null ? DEFAULT.id() : id;
+        update();
+    }
+
+    /** Runs {@code listener} whenever the accent in use changes (the clients copy it into their own fields). */
+    public static void onChange(Runnable listener) {
+        listeners.add(listener);
+    }
+
+    /** Offers an addon's accent; chosen again at once if the player had picked it before. */
+    public static void addAccent(Accent a) {
+        ACCENTS.removeIf(x -> x.id().equals(a.id()));
+        ACCENTS.add(a);
+        update();
+    }
+
+    public static void removeAccent(String id) {
+        if (ACCENTS.subList(0, BUILT_IN).stream().anyMatch(a -> a.id().equals(id))) {
+            return; // Lumora's own stay
+        }
+        ACCENTS.removeIf(a -> a.id().equals(id));
+        update();
+    }
+
+    private static void update() {
+        Accent before = accent;
+        accent = accent(wanted);
+        if (accent != before) {
+            for (Runnable l : listeners) {
+                try {
+                    l.run();
+                } catch (RuntimeException ignored) {
+                    // a broken listener must not stop the others
+                }
+            }
+        }
     }
 
     public static Accent current() {

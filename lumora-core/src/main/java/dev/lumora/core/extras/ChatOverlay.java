@@ -343,6 +343,13 @@ final class ChatOverlay {
             String label = links.size() == 1 ? module.tr("menu.copy_link") : module.tr("menu.copy_link_to", host(l));
             items.add(new Item(label, () -> copied(l)));
         }
+        dev.lumora.core.chat.ChatApi api = dev.lumora.core.chat.ChatApi.current();
+        if (api != null) {
+            // entries of addons (Lumora API 1.5) after Lumora's own
+            for (dev.lumora.core.chat.ChatApi.MenuItem m : api.menuEntries(new dev.lumora.api.chat.ChatLine(text, sender, links))) {
+                items.add(new Item(m.label(), m.action()));
+            }
+        }
         return items;
     }
 

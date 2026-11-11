@@ -1,5 +1,5 @@
-// Example Lumora addon that only uses the public API (no Minecraft or Fabric classes), so the same jar works on
-// every Minecraft version Lumora supports. Install: copy build/libs/lumora-session-timer-<version>.jar to mods/.
+// Example Lumora addon that only uses the public API (no Minecraft classes), so the same jar works on
+// every Minecraft version Lumora supports. Install: copy build/libs/lumora-session-timer-<version>.jar to the instance folder addons/.
 plugins {
     `java-library`
 }
@@ -18,7 +18,7 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.processResources {
     val v = project.version.toString()
     inputs.property("version", v)
-    filesMatching(listOf("fabric.mod.json", "lumora-addon.json")) {
+    filesMatching("lumora-addon.json") {
         expand("version" to v)
     }
 }

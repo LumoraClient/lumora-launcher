@@ -33,6 +33,15 @@ public final class LumoraUi {
         ACCENT_DARK = dev.lumora.core.theme.LumoraTheme.accentDark();
     }
 
+    static {
+        // an addon's accent the player chose can become available later (Lumora API 1.5)
+        dev.lumora.core.theme.LumoraTheme.onChange(() -> {
+            ACCENT = dev.lumora.core.theme.LumoraTheme.accent();
+            ACCENT_HOVER = dev.lumora.core.theme.LumoraTheme.accentHover();
+            ACCENT_DARK = dev.lumora.core.theme.LumoraTheme.accentDark();
+        });
+    }
+
     public static final Identifier BACKGROUND = Identifier.fromNamespaceAndPath("lumora", "textures/gui/background.png");
     public static final Identifier LOGO = Identifier.fromNamespaceAndPath("lumora", "icon.png");
     private static final int BG_W = 1920;

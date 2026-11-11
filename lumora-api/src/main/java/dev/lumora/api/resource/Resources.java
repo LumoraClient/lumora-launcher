@@ -3,8 +3,8 @@ package dev.lumora.api.resource;
 import dev.lumora.api.render.TextureRef;
 
 /**
- * Resources of the active resource packs and mod jars. An addon jar's {@code assets/<namespace>/...} folder is a
- * resource pack automatically (Fabric), so textures and translations ({@code assets/<namespace>/lang/*.json})
+ * Resources of the active resource packs and addon jars. An addon jar's {@code assets/<namespace>/...} folder is part
+ * of the always active resource pack "Lumora-Addons", so textures and translations ({@code assets/<namespace>/lang/*.json})
  * work without any registration.
  */
 public interface Resources {

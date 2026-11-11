@@ -311,6 +311,12 @@ public final class ChatModule implements LumoraAddon {
         }
     }
 
+    /** A message for addons (Lumora API 1.5): plain text without Lumora's timestamp, the sender and the links. */
+    public static dev.lumora.api.chat.ChatLine line(String plain, java.util.Collection<String> online) {
+        String text = clean(plain);
+        return new dev.lumora.api.chat.ChatLine(text, sender(text, List.of(), List.of(), online), links(text, List.of()));
+    }
+
     String ownName() {
         return platform == null ? "" : platform.game().player().map(p -> p.name()).orElse("");
     }

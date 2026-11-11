@@ -1,27 +1,23 @@
 # Ein Lumora-Addon erstellen
 
 Ein Lumora-Addon ist eine JAR mit einer `lumora-addon.json` und Klassen, die gegen die Lumora-API gebaut sind. Der
-Lumora-Client lädt Addons mit seinem **eigenen Addon-Loader**. Beim Start findet er sie, prüft Metadaten und
-Abhängigkeiten und ruft die Einstiegsklasse auf. Es gibt zwei Wege:
+Lumora-Client lädt Addons mit seinem **eigenen Addon-Loader** aus dem Ordner `addons/` der Instanz, z. B.
+`%APPDATA%\LumoraClient\instances\<version>\addons`. Beim Start findet er sie, prüft Metadaten und Abhängigkeiten und
+ruft die Einstiegsklasse auf. Ein Addon braucht keinen Mod-Loader und keine Minecraft-Klassen: Widgets, Menüs,
+Spielermenü, Chat, Design, Spieler, Plugin-Kanäle und Namensschild-Symbole gibt es über die API. Dieselbe JAR läuft
+deshalb in allen Minecraft-Versionen, die Lumora unterstützt (1.8.9 bis 26.3).
 
-| Weg | Ordner | Wann |
-|---|---|---|
-| **Addon-JAR** (empfohlen) | `addons/` der Instanz, z. B. `%APPDATA%\LumoraClient\instances\<version>\addons` | reine API-Addons. Kein Mod-Loader nötig: keine `fabric.mod.json` und keine Fabric-Abhängigkeit. |
-| **Fabric-Mod mit Addon** | `mods/` | Das Addon braucht Mixins oder die Fabric-API, oder die Mod soll auch ohne Lumora laufen (wie LabyVoice). Hinweis: Der Lumora-Launcher startet seit 0.3.2 über den Lumora Loader und lädt keine Fabric-Mods. Dieser Weg gilt nur für eigene Fabric-Installationen. |
-
-Im Ordner `addons/` bekommt jede JAR einen eigenen Class-Loader:
-- **Spielklassen zuerst:** Klassen der API, des Spiels und der Mods kommen immer aus dem Spiel. Ein Addon kann sie also nicht ersetzen.
-- **Gesperrte Pakete:** Eigene Klassen in den Paketen von Java, Minecraft, Fabric und Lumora (`dev.lumora.api`, `dev.lumora.core` …) sind gesperrt.
+Jede JAR bekommt einen eigenen Class-Loader:
+- **Spielklassen zuerst:** Klassen der API und des Spiels kommen immer aus dem Spiel. Ein Addon kann sie also nicht ersetzen.
+- **Gesperrte Pakete:** Eigene Klassen in den Paketen von Java, Minecraft und Lumora (`dev.lumora.api`, `dev.lumora.core` …) sind gesperrt.
 - **Andere Addons:** Klassen eines anderen Addons sieht ein Addon nur, wenn es dieses unter `depends` oder `optional` angibt.
-- **Fehler:** Eine fehlerhafte JAR (keine `lumora-addon.json`, kaputtes Archiv, Fabric-Mod im falschen Ordner) steht mit Grund in der Addon-Liste. Die anderen Addons laufen weiter.
+- **Fehler:** Eine fehlerhafte JAR (keine `lumora-addon.json`, kaputtes Archiv) steht mit Grund in der Addon-Liste. Die anderen Addons laufen weiter.
 
-Eine ID darf nur einmal vorkommen, egal in welchem der beiden Ordner.
-
-**Minecraft 26.3** läuft mit dem Lumora Loader, ohne Fabric. Dort gibt es nur den Weg über den Ordner `addons`. JARs im Ordner `mods` werden nicht geladen.
+Eine ID darf nur einmal vorkommen.
 
 Das vollständige, kompilierte Beispiel liegt in [`examples/session-timer-addon`](../examples/session-timer-addon):
 ein Widget mit der Zeit in der aktuellen Welt, ein Keybind zum Neustarten, eine Addon-Einstellung und eine
-Benachrichtigung. Es verwendet nur die API und läuft deshalb auf 26.1.2, 1.21.11 und 1.21.8 mit derselben JAR.
+Benachrichtigung. Es verwendet nur die API und läuft deshalb in allen Minecraft-Versionen mit derselben JAR.
 
 ## 1. Projekt
 
@@ -35,49 +31,28 @@ include(":examples:mein-addon")
 plugins { `java-library` }
 version = "1.0.0"
 dependencies { compileOnly(project(":lumora-api")) }   // zur Laufzeit liefert der Lumora-Client die API
-tasks.withType<JavaCompile>().configureEach { options.release.set(21) }  // läuft auch auf Minecraft 1.21.x
+tasks.withType<JavaCompile>().configureEach { options.release.set(21) }  // Java 21: läuft in allen Profilen
 tasks.processResources {
     val v = project.version.toString()
     inputs.property("version", v)
-    filesMatching(listOf("fabric.mod.json", "lumora-addon.json")) { expand("version" to v) }
+    filesMatching("lumora-addon.json") { expand("version" to v) }
 }
 ```
 
 In einem eigenen Projekt: zuerst im Lumora-Projekt `gradlew :lumora-api:publish` ausführen (schreibt
-`build/repo/dev/lumora/lumora-api/1.3.0/`), dann im Addon:
+`build/repo/dev/lumora/lumora-api/1.5.0/`), dann im Addon:
 
 ```groovy
 repositories {
     maven { url = file("../lumora-client/build/repo").toURI(); content { includeGroup 'dev.lumora' } }
 }
-dependencies { compileOnly 'dev.lumora:lumora-api:1.3.0' }
+dependencies { compileOnly 'dev.lumora:lumora-api:1.5.0' }
 ```
 
-Braucht das Addon Minecraft-Klassen (z. B. eigene Items zeichnen), ist es eine Loom-Mod für genau diese
-Minecraft-Version (wie LabyVoice) und nutzt `HudGraphics.unwrap(...)`. Seit API 1.1 kommen viele Addons ohne
-Minecraft-Klassen aus: Spieler, Plugin-Kanäle, Menüs und Namensschild-Symbole gibt es über die API (Abschnitt 8).
-LumoraVoice ist so eine JAR für alle 18 Profile.
+Einfacher ist die [Addon-Vorlage](https://github.com/LumoraClient/lumora-addon-template): Sie bringt die API als
+Quellmodul mit und baut ohne weitere Abhängigkeiten.
 
-## 2. fabric.mod.json (nur für den Weg als Fabric-Mod)
-
-Eine Addon-JAR für den Ordner `addons/` braucht diese Datei nicht. Liegt sie trotzdem bei, schadet das nicht: Dieselbe
-JAR läuft dann in beiden Ordnern (das Beispiel macht es so).
-
-```json
-{
-  "schemaVersion": 1,
-  "id": "mein-addon",
-  "version": "${version}",
-  "name": "Mein Addon",
-  "environment": "client",
-  "depends": { "fabricloader": ">=0.19.5", "lumora": "*" }
-}
-```
-
-Soll die Mod auch ohne Lumora laufen, `"suggests": { "lumora": "*" }` statt `depends` verwenden.
-Einen Fabric-Einstiegspunkt braucht ein reines API-Addon nicht.
-
-## 3. lumora-addon.json (im Ressourcen-Wurzelverzeichnis)
+## 2. lumora-addon.json (im Ressourcen-Wurzelverzeichnis)
 
 ```json
 {
@@ -95,14 +70,32 @@ Einen Fabric-Einstiegspunkt braucht ein reines API-Addon nicht.
 }
 ```
 
-Nur die Berechtigungen angeben, die gebraucht werden: `hud` (Widgets), `keybinds`, `notifications`, `tasks`
-(Timer, Hintergrundaufgaben), `game` (Spieler-/Welt-/Verbindungsdaten). Seit API 1.1 außerdem `screens` (eigene
-Menüs), `players` (andere Spieler, Sichtlinie), `session` (Konto, Mojang-Join), `network` (Plugin-Kanäle) und
-`nametags` (Symbole am Namen); ein Addon, das sie nutzt, gibt `"api": "1.1.0"` und `"lumora": ">=1.1.0"` an.
-Event-Bus, Übersetzungen, Ressourcen, die Addon-Einstellungen sowie `configDirectory()` und `modLoaded(id)` gehen immer.
-Felder: siehe [API_REFERENCE.md](API_REFERENCE.md#lumora-addonjson).
+`"api"` ist die **niedrigste** API-Version, die das Addon braucht: Ein Addon mit `"api": "1.1.0"` läuft auch auf 1.5,
+ein älterer Client lehnt ein zu neues Addon mit klarem Hinweis ab. Gib also die Version an, deren Dienste du nutzt.
 
-## 4. Einstiegsklasse
+Nur die Berechtigungen angeben, die gebraucht werden:
+
+| Berechtigung | seit | wofür |
+|---|---|---|
+| `hud` | 1.0 | Widgets |
+| `keybinds` | 1.0 | eigene Tasten |
+| `notifications` | 1.0 | Benachrichtigungen |
+| `tasks` | 1.0 | Timer, Hintergrundaufgaben |
+| `game` | 1.0 | Spieler-, Welt- und Verbindungsdaten |
+| `screens` | 1.1 | eigene Menüs |
+| `players` | 1.1 | andere Spieler, Sichtlinie, Tab-Liste |
+| `session` | 1.1 | Konto, Mojang-Join |
+| `network` | 1.1 | Plugin-Kanäle |
+| `nametags` | 1.1 | Symbole am Namen |
+| `playermenu` | 1.4 | eigene Einträge im Spielermenü |
+| `design` | 1.5 | eigene Akzentfarben im Hub (das Theme lesen geht ohne) |
+| `chat` | 1.5 | Einträge im Menü von Chat-Nachrichten, Chat öffnen |
+| `social` | 1.5 | Freunde und Party von Lumora Social lesen |
+
+Event-Bus, Übersetzungen, Ressourcen, die Addon-Einstellungen, das Theme sowie `configDirectory()` und `modLoaded(id)`
+gehen immer. Felder: siehe [API_REFERENCE.md](API_REFERENCE.md#lumora-addonjson).
+
+## 3. Einstiegsklasse
 
 Aus dem Beispiel (`SessionTimerAddon`):
 
@@ -150,16 +143,13 @@ Lebenszyklus und Regeln:
 Ein ausgeschaltetes Addon darf nicht weiterarbeiten: keine eigenen Threads, keine statischen Referenzen auf
 Spielobjekte, die `onDisable` überleben. Für Hintergrundarbeit `context.tasks().supplyAsync(...)` nutzen.
 
-## 5. Übersetzungen und Texturen
+## 4. Übersetzungen, Texturen, Schriften und Klänge
 
-`src/main/resources/assets/<namespace>/lang/de_de.json` und `en_us.json` (bis 1.12 auch `.lang`). Wie die Dateien
-gefunden werden, hängt vom Weg ab:
-- **Fabric-Mod:** Fabric macht die Assets jeder Mod zum Ressourcenpaket.
-- **Addon-JAR aus `addons/`:**
-  - `context.translations()` liest die Sprachdateien direkt aus der JAR. Erst kommt das Spiel (Ressourcenpakete können Texte überschreiben), dann die JAR, dann `en_us`.
-  - Eigene Dateien liest das Addon mit `getClass().getResourceAsStream("/…")`. Die JAR wird dabei zuerst durchsucht.
-  - **Texturen, Schriften und Klänge** (ab Client 0.3.7): Lumora kopiert beim Start die `assets/` aller Addon-JARs aus `addons/` nach `.lumora/addon-assets` und meldet den Ordner als immer aktives Ressourcenpaket „Lumora-Addons“ an. `TextureRef`, eigene Schriften (`font/*.json`) und Klänge funktionieren deshalb wie bei einer Fabric-Mod. Kopiert wird nur bei geänderten JARs. Die Namensräume `minecraft`, `realms` und `lumora` kann ein Addon nicht überschreiben, dafür gibt es normale Ressourcenpakete. Liefern zwei Addons dieselbe Datei, gewinnt die JAR, deren Dateiname alphabetisch zuerst kommt.
-  - **Bibliotheken** gehören entpackt in die Addon-JAR (verschachtelte JARs unter `META-INF/jars` packt nur Fabric aus). Jede JAR hat genau einen Klassenpfad.
+`src/main/resources/assets/<namespace>/lang/de_de.json` und `en_us.json` (bis 1.12 auch `.lang`).
+- `context.translations()` liest die Sprachdateien direkt aus der JAR. Erst kommt das Spiel (Ressourcenpakete können Texte überschreiben), dann die JAR, dann `en_us`.
+- Eigene Dateien liest das Addon mit `getClass().getResourceAsStream("/…")`. Die JAR wird dabei zuerst durchsucht.
+- **Texturen, Schriften und Klänge:** Lumora kopiert beim Start die `assets/` aller Addon-JARs nach `.lumora/addon-assets` und meldet den Ordner als immer aktives Ressourcenpaket „Lumora-Addons“ an. `TextureRef`, eigene Schriften (`font/*.json`) und Klänge funktionieren deshalb wie aus einem Ressourcenpaket. Kopiert wird nur bei geänderten JARs. Die Namensräume `minecraft`, `realms` und `lumora` kann ein Addon nicht überschreiben, dafür gibt es normale Ressourcenpakete. Liefern zwei Addons dieselbe Datei, gewinnt die JAR, deren Dateiname alphabetisch zuerst kommt.
+- **Bibliotheken** gehören entpackt in die Addon-JAR (verschachtelte JARs unter `META-INF/jars` werden nicht ausgepackt). Jede JAR hat genau einen Klassenpfad.
 
 Schlüssel, die Lumora erwartet:
 
@@ -170,7 +160,7 @@ Schlüssel, die Lumora erwartet:
 | `<addon>.setting.<setting>` | Addon-Einstellungen |
 | beliebig | Keybind-Namen (`nameKey` beim Registrieren) |
 
-## 6. Bauen und installieren
+## 5. Bauen und installieren
 
 ```bash
 gradlew :examples:session-timer-addon:jar
@@ -178,18 +168,17 @@ gradlew :examples:session-timer-addon:jar
 
 Die JAR (`examples/session-timer-addon/build/libs/lumora-session-timer-1.0.0.jar`) in den Ordner `addons` der
 Lumora-Instanz kopieren (`%APPDATA%\LumoraClient\instances\<version>\addons`). Im Spiel öffnet der Lumora-Hub unter
-**Addons** → **Addon-Ordner** genau diesen Ordner. Er wird beim ersten Start angelegt. Als Fabric-Mod gehört die JAR
-stattdessen in den Ordner `mods`.
+**Addons** → **Addon-Ordner** genau diesen Ordner. Er wird beim ersten Start angelegt.
 
 Nach dem Neustart erscheint das Addon im Lumora-Hub unter **Addons** (an/aus, Einstellungen, Fehlermeldung), sein
-Widget im **HUD-Editor**. Die Quelle steht unter dem Namen: `addons/<datei>.jar` bzw. die Mod-ID. Lumora gibt die
-JARs beim Beenden des Spiels frei, danach lassen sie sich ersetzen oder löschen.
+Widget im **HUD-Editor**. Die Quelle steht unter dem Namen (`addons/<datei>.jar`). Lumora gibt die JARs beim Beenden
+des Spiels frei, danach lassen sie sich ersetzen oder löschen.
 
 Addons sind Programmcode mit denselben Rechten wie das Spiel. Die Berechtigungen in `lumora-addon.json` regeln
 nur, welche Lumora-Dienste ein Addon nutzen darf, sie sind keine Sandbox. Installiere nur Addons aus Quellen, denen du
 vertraust.
 
-## 7. Prüfen
+## 6. Prüfen
 
 - Log: `Addon <id> <version> enabled` bzw. der Grund für `FAILED`.
 - Lumora-Smoke-Test (`LumoraLauncherCli --smoke-test --profile <version>`): der Bericht enthält unter `lumoraApi` alle
@@ -197,16 +186,17 @@ vertraust.
 - Unit-Tests ohne Spiel: `lumora-core` hat eine `FakePlatform` (siehe `lumora-core/src/test`), mit der sich Addons im
   echten `LumoraCore` starten lassen.
 
-## 8. Menüs und Namensschild-Symbole (API 1.1)
+## 7. Menüs und Namensschild-Symbole (API 1.1)
 
 Beides braucht `"api": "1.1.0"`, `"depends": { "lumora": ">=1.1.0" }` und die Berechtigungen `screens` bzw.
-`nametags`. Vollständiges Beispiel: LumoraVoice (`../LumoraVoice-SRC-0.8.0`, `dev.lumora.voice.lumora.LumoraVoiceAddon`).
+`nametags`. Vollständiges Beispiel: LumoraVoice (`dev.lumora.voice.lumora.LumoraVoiceAddon`).
 
 ### Menüs: `AddonView` und `registerMenu`
 
 Ein Menü ist eine `AddonView`: Sie zeichnet mit `HudGraphics` und bekommt Maus und Tastatur, ohne Minecraft-Klassen.
 Lumora zeigt sie in einem Bildschirm der laufenden Version (GUI-Koordinaten, Maustaste 0 = links, Tasten aus `Keys`,
-auch auf 1.8.9/1.12.2 mit LWJGL 2).
+auch auf 1.8.9/1.12.2 mit LWJGL 2). Seit 1.5 zeichnet `UiKit` die Lumora-Steuerelemente in den Farben des Spielers
+(Abschnitt 9).
 
 ```java
 final class MeinMenue implements AddonView {
@@ -254,7 +244,7 @@ Position, Durchsichtigkeit und Tab-Liste. Typisch ist ein Bitmap-Provider, z. B.
 ```json
 {
   "providers": [
-    {"type": "bitmap", "file": "mein-addon:icon/symbol.png", "ascent": 7, "height": 8, "chars": [""]}
+    {"type": "bitmap", "file": "mein-addon:icon/symbol.png", "ascent": 7, "height": 8, "chars": [""]}
   ]
 }
 ```
@@ -264,7 +254,7 @@ Registrieren in `onEnable`:
 
 ```java
 context.nameTags().register((player, place) -> spricht(player)
-        ? Optional.of(new NameTags.Icon("mein-addon:icons", "", 0x55FF55, "♪", ""))
+        ? Optional.of(new NameTags.Icon("mein-addon:icons", "", 0x55FF55, "♪", ""))
         : Optional.empty());
 ```
 
@@ -275,7 +265,7 @@ context.nameTags().register((player, place) -> spricht(player)
 - Das letzte Feld (`subtitle`) ist eine kleine Zeile unter dem Namensschild. Sie erscheint nur auf 26.x und 1.21.11
   (siehe [COMPATIBILITY.md](COMPATIBILITY.md#lumora-api-11-je-version)); auf anderen Versionen fehlt sie ohne Fehler.
 
-## 9. Einstellungen (API 1.3)
+## 8. Einstellungen (API 1.3)
 
 Einstellungen beschreibt ein Addon in `onInitialize` über `context.configuration().settings()` (Addon) oder in
 `configure(SettingsGroup)` (Widget). Lumora baut daraus die Einstellungsseite im Hub, speichert die Werte und setzt
@@ -307,3 +297,89 @@ s.button("reset_position", () -> { size.reset(); position.reset(); });
 - **Alle Einstellungen sind immer sichtbar.** Einen Schalter „Erweiterte Einstellungen“ gibt es nicht mehr; `.advanced()` bleibt nur, damit ältere Addons weiter kompilieren, und blendet nichts aus.
 - Ein Addon, das diese Arten nutzt, gibt in `lumora-addon.json` `"api": "1.3.0"` an. Ältere Clients lehnen es dann
   mit einem klaren Hinweis ab, statt beim Start zu scheitern.
+
+## 9. Design, HUD-Anker, Spielermenü, Chat und Social (API 1.4 und 1.5)
+
+Damit kann ein Addon alles erweitern, was der Client selbst zeigt. `"api"` entsprechend auf `"1.4.0"` (nur
+Spielermenü) oder `"1.5.0"` setzen und die Berechtigungen angeben.
+
+### Design: Theme und Lumora-Bausteine
+
+`context.theme()` liefert die Farben, die der Spieler im Hub gewählt hat – bei jedem Aufruf neu, ein Wechsel wirkt
+sofort. `UiKit` zeichnet damit Lumoras Steuerelemente; das Addon behält seinen Zustand selbst.
+
+```java
+Theme t = context.theme();
+UiKit.panel(g, t, 0, 0, width, height);
+UiKit.title(g, t, 20, 16, "Mein Addon");
+boolean hover = UiKit.inside(mouseX, mouseY, 20, 40, 120, 20);
+UiKit.button(g, t, 20, 40, 120, 20, "Start", hover, true);
+UiKit.toggle(g, t, 150, 44, aktiv, UiKit.inside(mouseX, mouseY, 150, 44, UiKit.TOGGLE_W, UiKit.TOGGLE_H));
+UiKit.slider(g, t, 20, 70, 120, lautstaerke, false);       // Klick → UiKit.sliderValue(mouseX, 20, 120)
+UiKit.textField(g, t, 20, 90, 160, 16, name, "Name …", fokus);
+
+// eigene Akzentfarbe im Hub anbieten (Berechtigung "design")
+t.addAccent("gold", "Gold", 0xD4A017);   // Id im Hub: "mein-addon:gold"
+```
+
+Weitere Bausteine: `card`, `secondaryButton`, `label`, `hint`, `listRow`, `badge`. Auch HUD-Widgets können mit
+`t.accent()` statt einer festen Farbe zeichnen.
+
+### HUD: Widgets an Ankerzonen
+
+```java
+@Override
+public WidgetPlacement defaultPlacement() {
+    // 4 px vom rechten, 30 px vom unteren Rand – bleibt dort bei jeder Fenster- und GUI-Größe
+    return WidgetPlacement.anchored("bottom_right", 4, 30).enabledByDefault();
+}
+```
+
+Die neun Zonen stehen in `WidgetPlacement.ANCHORS`, wie im HUD-Editor. Zieht der Spieler das Widget woanders hin,
+gilt seine Position.
+
+### Spielermenü (API 1.4, Berechtigung `playermenu`)
+
+Spieler anvisieren, Mausrad halten: Um den Spieler erscheint ein Ring. Eigene Einträge, auch in Kategorien:
+
+```java
+context.playerMenu().add(PlayerMenuEntry.builder("kick", "Kicken")
+        .icon("⚒").category("Moderation", "⚒")
+        .requiresPermissionLevel(2)             // nur mit OP-Stufe 2
+        .visibleWhen(PlayerTarget::multiplayer)
+        .onSelect(t -> context.chat().openChat("/kick " + t.name() + " "))
+        .build());
+```
+
+`PlayerTarget` sagt, ob der Spieler Lumora nutzt, dein Freund oder in deiner Party ist. `enabledWhen(...)` zeigt einen
+Eintrag ausgegraut, `keepMenuOpen()` lässt das Menü nach dem Klick offen.
+
+### Chat (Berechtigung `chat`)
+
+```java
+// Eintrag im Menü einer Chat-Nachricht (Rechtsklick oder ⋯), nach Lumoras eigenen
+context.chat().addMenuEntry(ChatMenuEntry.builder("translate", "Übersetzen")
+        .visibleWhen(line -> !line.text().isBlank())
+        .onSelect(line -> uebersetze(line.text()))
+        .build());
+
+// jede neue Nachricht, auch wenn das Chat-Modul aus ist
+context.events().subscribe(ChatMessageEvent.class, e -> {
+    ChatLine line = e.line();       // Text, Absender (falls erkennbar), Links
+});
+```
+
+Das Menü der Chat-Nachrichten gibt es, solange das Chat-Modul an ist.
+
+### Social (Berechtigung `social`)
+
+```java
+SocialInfo s = context.social();
+s.party().ifPresent(p -> sprachgruppe(p.members()));      // z. B. Voice-Gruppe = Party
+context.events().subscribe(SocialChangedEvent.class, e -> {
+    if (e.kind() == SocialChangedEvent.Kind.PARTY) { aktualisieren(s.party()); }
+});
+```
+
+Nur lesen: Freunde mit Online-Status (`friends()`, `isFriend`), die Party und das eigene Konto. Ohne Verbindung zum
+Lumora-Social-Server ist alles leer.

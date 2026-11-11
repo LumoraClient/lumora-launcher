@@ -65,6 +65,8 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.screen.ViewManager views;
     private final dev.lumora.core.interaction.PlayerMenuRegistry playerMenu;
     private final dev.lumora.core.interaction.PlayerInteraction interaction;
+    private final dev.lumora.core.theme.ThemeService themes;
+    private final dev.lumora.core.chat.ChatApi chat;
     private final dev.lumora.core.session.SessionServiceImpl session;
     private final dev.lumora.core.connection.ConnectionTracker connections;
     private HudEditorModel editor;
@@ -96,6 +98,20 @@ public final class LumoraCore implements Lumora {
         this.views = new dev.lumora.core.screen.ViewManager(platform.views(), log);
         this.playerMenu = new dev.lumora.core.interaction.PlayerMenuRegistry(log);
         this.interaction = new dev.lumora.core.interaction.PlayerInteraction(this, playerMenu);
+        this.themes = new dev.lumora.core.theme.ThemeService(platform.translations().language().startsWith("de"));
+        this.chat = new dev.lumora.core.chat.ChatApi(events, log);
+        chat.setOpener(text -> platform.extras().openChat(text));
+        chat.setParser(text -> {
+            java.util.List<String> online = new java.util.ArrayList<>();
+            try {
+                for (dev.lumora.api.game.WorldAccess.TabEntry e : platform.world().tabList()) {
+                    online.add(e.name());
+                }
+            } catch (RuntimeException ignored) {
+                // no tab list (menus)
+            }
+            return dev.lumora.core.extras.ChatModule.line(text, online);
+        });
         this.session = new dev.lumora.core.session.SessionServiceImpl(platform::session);
         this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
@@ -331,6 +347,16 @@ public final class LumoraCore implements Lumora {
     /** The player menu (middle mouse button on a player). */
     public dev.lumora.core.interaction.PlayerInteraction interaction() {
         return interaction;
+    }
+
+    /** The player's theme for addons (Lumora API 1.5). */
+    public dev.lumora.core.theme.ThemeService themes() {
+        return themes;
+    }
+
+    /** Chat menu entries and messages for addons (Lumora API 1.5). */
+    public dev.lumora.core.chat.ChatApi chat() {
+        return chat;
     }
 
     public dev.lumora.core.screen.ViewManager views() {

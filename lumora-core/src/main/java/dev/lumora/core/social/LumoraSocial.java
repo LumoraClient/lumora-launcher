@@ -141,6 +141,19 @@ public final class LumoraSocial {
         return c;
     }
 
+    /** Tells addons (Lumora API 1.5) that the connection, the friends or the party changed. */
+    private void addonEvent(SocialEvent.Kind kind) {
+        dev.lumora.api.event.social.SocialChangedEvent.Kind k = switch (kind) {
+            case STATUS -> dev.lumora.api.event.social.SocialChangedEvent.Kind.CONNECTION;
+            case FRIENDS -> dev.lumora.api.event.social.SocialChangedEvent.Kind.FRIENDS;
+            case PARTY -> dev.lumora.api.event.social.SocialChangedEvent.Kind.PARTY;
+            default -> null;
+        };
+        if (k != null && core.events().hasListeners(dev.lumora.api.event.social.SocialChangedEvent.class)) {
+            core.events().post(new dev.lumora.api.event.social.SocialChangedEvent(k));
+        }
+    }
+
     /** Shows a short note (player menu actions). */
     public void note(String title, String message, boolean error) {
         show(title, message, error ? NotificationType.ERROR : NotificationType.SUCCESS);
@@ -174,6 +187,7 @@ public final class LumoraSocial {
     }
 
     private void handle(SocialEvent e) {
+        addonEvent(e.kind);
         switch (e.kind) {
             case STATUS -> {
                 if (client.status() != SocialClient.Status.ONLINE) {

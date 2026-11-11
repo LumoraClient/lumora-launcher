@@ -36,6 +36,9 @@ final class AddonContextImpl implements AddonContext {
     private final dev.lumora.api.net.PluginChannels channels;
     private final dev.lumora.api.render.NameTags nameTags;
     private final dev.lumora.api.interaction.PlayerMenu playerMenu;
+    private final dev.lumora.api.ui.Theme theme;
+    private final dev.lumora.api.chat.Chat chat;
+    private final dev.lumora.api.social.SocialInfo social;
     private final dev.lumora.api.screen.AddonScreens screens;
     private volatile Translations ownTranslations;
 
@@ -75,6 +78,12 @@ final class AddonContextImpl implements AddonContext {
             requireActive();
             require(AddonPermission.PLAYER_MENU);
         });
+        this.theme = core.themes().scoped(id, record.tracker, this::requireActive, () -> require(AddonPermission.DESIGN));
+        this.chat = core.chat().scoped(id, record.tracker, () -> {
+            requireActive();
+            require(AddonPermission.CHAT);
+        });
+        this.social = new dev.lumora.core.social.SocialInfoImpl(core::social, () -> require(AddonPermission.SOCIAL));
         this.screens = core.views().scoped(id, record.tracker, () -> {
             requireActive();
             require(AddonPermission.SCREENS);
@@ -223,6 +232,23 @@ final class AddonContextImpl implements AddonContext {
     public dev.lumora.api.screen.AddonScreens screens() {
         require(AddonPermission.SCREENS);
         return screens;
+    }
+
+    @Override
+    public dev.lumora.api.ui.Theme theme() {
+        return theme;
+    }
+
+    @Override
+    public dev.lumora.api.chat.Chat chat() {
+        require(AddonPermission.CHAT);
+        return chat;
+    }
+
+    @Override
+    public dev.lumora.api.social.SocialInfo social() {
+        require(AddonPermission.SOCIAL);
+        return social;
     }
 
     @Override

@@ -1,8 +1,12 @@
-# Lumora-API – Referenz (Version 1.3.0)
+# Lumora-API – Referenz (Version 1.4.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.3.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.4.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
+
+**API 1.4.0** (`LumoraAPI.API_VERSION`) bringt das Spielermenü: Addons hängen eigene Einträge an
+(`AddonContext.playerMenu()`, Berechtigung `playermenu`, siehe [dev.lumora.api.interaction](#devlumoraapiinteraction)).
+Addons für 1.0 bis 1.3 laden unverändert weiter.
 
 **API 1.3.0** (`LumoraAPI.API_VERSION`) bringt die Einstellungs-Arten nach dem Vorbild von LabyMod: Häkchen-Kästen,
 Aufklapp-Listen, Knopfreihen, Enums, Buttons, Farben mit Regenbogen, Abschnitte und Einstellungen, die nur bei
@@ -50,7 +54,7 @@ Grundregeln:
 | `AddonContext` | `descriptor()`, `state()`, `logger()`, `lumora()`, `events()`, `widgets()` (HUD), `keybinds()` (KEYBINDS), `tasks()` (TASKS), `notifications()` (NOTIFICATIONS), `game()` (GAME), `translations()`, `resources()`, `configuration()`, `hasPermission(p)`. Seit 1.1: `world()` (PLAYERS), `session()` (SESSION), `channels()` (NETWORK), `screens()` (SCREENS), `nameTags()` (NAMETAGS), `configDirectory()` (`config`-Ordner des Spiels für eigene Dateien, ohne Berechtigung), `modLoaded(modId)` (ob eine Fabric-Mod mit dieser ID installiert ist, ohne Berechtigung). Ohne Berechtigung: `AddonPermissionException`. Registrieren außerhalb von `onEnable`/aktiv: `IllegalStateException`. |
 | `AddonDescriptor` | Geprüfte Metadaten (record): `id`, `name`, `version`, `description`, `authors`, `apiVersion`, `minecraftVersions`, `entrypoint`, `dependencies`, `permissions`, `builtIn`, `source`; `supportsMinecraft(v)`. |
 | `AddonDependency` | `id`, `versions` (`VersionRange`), `optional`. Die ID `lumora` steht für die API selbst. |
-| `AddonPermission` | `HUD("hud")`, `KEYBINDS("keybinds")`, `NOTIFICATIONS("notifications")`, `TASKS("tasks")`, `GAME("game")`; seit 1.1 `SCREENS("screens")`, `PLAYERS("players")`, `SESSION("session")`, `NETWORK("network")`, `NAMETAGS("nametags")`. `byId(id)` → Berechtigung oder `null`. |
+| `AddonPermission` | `HUD("hud")`, `KEYBINDS("keybinds")`, `NOTIFICATIONS("notifications")`, `TASKS("tasks")`, `GAME("game")`; seit 1.1 `SCREENS("screens")`, `PLAYERS("players")`, `SESSION("session")`, `NETWORK("network")`, `NAMETAGS("nametags")`; seit 1.4 `PLAYER_MENU("playermenu")`. `byId(id)` → Berechtigung oder `null`. |
 | `AddonState` | `LOADED`, `RESOLVED`, `INITIALIZED`, `ENABLING`, `ENABLED`, `DISABLED`, `UNLOADED`, `FAILED`. |
 | `AddonInfo` | `descriptor()`, `state()`, `error()`, `wanted()` (Wahl des Nutzers), `id()`. |
 | `AddonConfiguration` | `settings()` (`SettingsGroup`, gespeichert in `config/lumora/addons/<id>.json`), `save()`. |
@@ -351,6 +355,37 @@ einem Bildschirm der laufenden Minecraft-Version und leitet Zeichnen und Eingabe
 | `keyPressed(key, ctrl, shift)`, `charTyped(ch)` | Tastatur |
 | `closeRequested()` | Escape gedrückt; `false` hält die Ansicht offen (Standard `true`) |
 | `removed()` | Ansicht wird nicht mehr gezeigt (geschlossen, vom Spiel ersetzt oder Addon ausgeschaltet) |
+
+## dev.lumora.api.interaction (seit 1.4)
+
+Das **Spielermenü** ist fest im Client eingebaut: Spieler anvisieren, **Mausrad gedrückt halten** – um den Spieler
+erscheint ein Ring. Loslassen über einem Eintrag führt ihn aus; wer nur kurz klickt, wählt danach mit Klick oder
+Mausrad (drehen = nächster Eintrag), Rechtsklick geht zurück, Esc schließt. Über dem Ring steht die Spielerkarte
+(Kopf, Name, ob er Lumora nutzt, Freund/Party), unter dem Ring der gewählte Eintrag. Es gibt nur dieses eine Menü:
+Kategorien öffnen ihre Einträge als äußeren Ring daneben, das Client-Profil erscheint neben dem Ring.
+
+Lumoras eigene Einträge: *Freund hinzufügen* (bzw. *Anfrage annehmen*), *In Party einladen* (bzw. *Party beitreten*,
+*Aus Party entfernen*, *Einladung zurückziehen*), *Client-Profil öffnen*, *Lumora-Nachricht* (nur Freunde), *Privat
+schreiben* (`/msg Name`, nur auf Servern) und *Name kopieren*. Die Social-Einträge erscheinen nur, wenn der Lumora-
+Social-Server verbunden ist und der Spieler Lumora nutzt.
+
+| Typ | Inhalt |
+|---|---|
+| `PlayerMenu` (`AddonContext.playerMenu()`, Berechtigung `playermenu`) | `add(PlayerMenuEntry)` → `Registration`, `entries()`; Einträge verschwinden mit dem Addon |
+| `PlayerMenuEntry.builder(id, label)` | `icon(String)` (ein Zeichen) oder `icon(TextureRef)` (16×16), `label(Function<PlayerTarget,String>)`, `category(name, icon)`, `order(int)`, `requiresPermissionLevel(1..4)`, `requiresLumoraUser()`, `visibleWhen(...)`, `enabledWhen(...)` (sonst ausgegraut), `keepMenuOpen()`, `onSelect(Consumer<PlayerTarget>)` |
+| `PlayerTarget` | `id()`, `name()`, `multiplayer()`, `lumoraUser()`, `friend()`, `inYourParty()`, `partyLeader()`, `permissionLevel()` (eigene OP-Stufe 0–4; auf 1.8.9 und 1.12.2 immer 0) |
+
+```java
+PlayerMenu menu = context.playerMenu();
+menu.add(PlayerMenuEntry.builder("kick", "Kicken")
+        .category("Moderation", "⚒")
+        .requiresPermissionLevel(2)                 // nur mit OP-Stufe 2
+        .visibleWhen(PlayerTarget::multiplayer)
+        .onSelect(t -> chat("/kick " + t.name()))
+        .build());
+```
+
+Eine Bedingung, ein Label oder eine Aktion, die eine Ausnahme wirft, wird einmal geloggt; der Eintrag bleibt danach weg.
 
 ## dev.lumora.api.resource / i18n / task
 

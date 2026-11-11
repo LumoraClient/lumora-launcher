@@ -14,7 +14,10 @@ import dev.lumora.social.model.Friend;
 import dev.lumora.social.model.FriendRequest;
 import dev.lumora.social.model.Group;
 import dev.lumora.social.model.Member;
+import dev.lumora.social.model.Party;
+import dev.lumora.social.model.PartyInvite;
 import dev.lumora.social.model.Presence;
+import dev.lumora.social.model.Profile;
 import dev.lumora.social.model.Role;
 
 import java.time.Instant;
@@ -150,6 +153,10 @@ public final class SocialView {
         this.social = social;
         this.host = host;
         this.de = social.german();
+        String open = social.takeOpenConversation();
+        if (open != null) {
+            select(open); // opened from the player menu (Lumora message)
+        }
     }
 
     private String t(String german, String english) {
@@ -506,13 +513,19 @@ public final class SocialView {
         List<FriendRequest> requests = c.requests();
         List<Friend> friends = c.friends();
         List<Group> groups = c.groups();
-        int content = 14 + (focus == Focus.ADD_FRIEND ? 20 : 0) + 22 * (requests.size() + friends.size())
+        Party party = c.party();
+        List<PartyInvite> invites = c.partyInvites();
+        int partyRows = invites.size() + (party == null ? 0 : party.members.size() + party.invited.size());
+        int content = (partyRows > 0 ? 14 + 22 * partyRows + 6 : 0) + 14 + (focus == Focus.ADD_FRIEND ? 20 : 0) + 22 * (requests.size() + friends.size())
                 + (friends.isEmpty() && requests.isEmpty() ? 22 : 0) + 6 + 14 + (focus == Focus.NEW_GROUP ? 20 : 0)
                 + 22 * groups.size() + (groups.isEmpty() ? 22 : 0) + 4;
         int maxScroll = Math.max(0, content - (h - 4));
         sideScroll = Math.max(0, Math.min(maxScroll, sideScroll));
         g.enableScissor(x + 1, y + 1, x + w - 1, y + h - 1);
         int yy = y + 3 - (int) sideScroll;
+        if (partyRows > 0) {
+            yy = renderParty(g, c, party, invites, x, yy, w, mx, my);
+        }
         // friends header
         small(g, t("FREUNDE", "FRIENDS"), x + 6, yy + 4, MUTED);
         button(g, x + w - 17, yy + 1, 13, 11, "+", SURFACE_2, TEXT, mx, my, () -> {
@@ -588,6 +601,55 @@ public final class SocialView {
             yy += 22;
         }
         g.disableScissor();
+    }
+
+    /** Party: invitations to answer, then the members (leader first) and open invitations of your own party. */
+    private int renderParty(HudGraphics g, SocialClient c, Party party, List<PartyInvite> invites, int x, int yy, int w, int mx, int my) {
+        String me = c.self().uuid;
+        small(g, "PARTY", x + 6, yy + 4, MUTED);
+        if (party != null) {
+            String leave = t("Verlassen", "Leave");
+            int lw = g.textWidth(leave) + 8;
+            button(g, x + w - 4 - lw, yy + 1, lw, 11, leave, SURFACE_2, TEXT, mx, my, () -> run(c.leaveParty(), null));
+        }
+        yy += 14;
+        for (PartyInvite inv : invites) {
+            face(g, inv.from.uuid, inv.from.name, x + 5, yy + 3, 16);
+            int textW = w - 26 - 30;
+            g.text(fit(g, inv.from.name, textW, false), x + 25, yy + 3, TEXT, false);
+            small(g, fit(g, t("lädt dich in die Party ein", "invites you to a party"), textW, true), x + 25, yy + 13, LumoraTheme.accentHover());
+            int bx = x + w - 16;
+            button(g, bx, yy + 5, 12, 12, "✖", 0x55F2555A, FAIL, mx, my, () -> run(c.declineParty(inv.id), null));
+            button(g, bx - 14, yy + 5, 12, 12, "✔", 0x553DD68C, OK, mx, my, () -> run(c.acceptParty(inv.id), null));
+            yy += 22;
+        }
+        if (party != null) {
+            boolean lead = party.leader.equals(me);
+            for (Profile p : party.members) {
+                boolean self = p.uuid.equals(me);
+                boolean leader = p.uuid.equals(party.leader);
+                face(g, p.uuid, p.name, x + 5, yy + 3, 16);
+                int textW = w - 26 - (lead && !self ? 16 : 4);
+                g.text(fit(g, p.name + (self ? t(" (du)", " (you)") : ""), textW, false), x + 25, yy + 3, TEXT, false);
+                small(g, fit(g, leader ? t("Anführer", "Leader") : t("Mitglied", "Member"), textW, true), x + 25, yy + 13,
+                        leader ? LumoraTheme.accentHover() : MUTED);
+                if (lead && !self) {
+                    button(g, x + w - 16, yy + 5, 12, 12, "✖", 0x55F2555A, FAIL, mx, my, () -> run(c.kickFromParty(p.uuid), null));
+                }
+                yy += 22;
+            }
+            for (Profile p : party.invited) {
+                face(g, p.uuid, p.name, x + 5, yy + 3, 16);
+                int textW = w - 26 - (lead ? 16 : 4);
+                g.text(fit(g, p.name, textW, false), x + 25, yy + 3, MUTED, false);
+                small(g, fit(g, t("eingeladen", "invited"), textW, true), x + 25, yy + 13, DIM);
+                if (lead) {
+                    button(g, x + w - 16, yy + 5, 12, 12, "✖", 0x55F2555A, FAIL, mx, my, () -> run(c.kickFromParty(p.uuid), null));
+                }
+                yy += 22;
+            }
+        }
+        return yy + 6;
     }
 
     private String members(int n) {

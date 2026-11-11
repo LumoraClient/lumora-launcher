@@ -378,4 +378,26 @@ final class McExtras implements GameExtras {
     public boolean mouseLeftDown() {
         return mc().mouseHandler.isLeftPressed();
     }
+
+    @Override
+    public boolean mouseMiddleDown() {
+        return mc().mouseHandler.isMiddlePressed();
+    }
+
+    @Override
+    public int permissionLevel() {
+        if (mc().player == null) {
+            return 0;
+        }
+        net.minecraft.server.permissions.PermissionSet p = mc().player.permissions();
+        return p.hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_OWNER) ? 4
+                : p.hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_ADMIN) ? 3
+                : p.hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_GAMEMASTER) ? 2
+                : p.hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_MODERATOR) ? 1 : 0;
+    }
+
+    @Override
+    public void openChat(String text) {
+        mc().setScreen(new net.minecraft.client.gui.screens.ChatScreen(text, false));
+    }
 }

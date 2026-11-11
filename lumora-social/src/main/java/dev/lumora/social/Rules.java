@@ -20,6 +20,8 @@ public final class Rules {
     public static final int GROUP_MEMBERS_MAX = 100;
     public static final int GROUPS_PER_USER_MAX = 30;
     public static final int FRIENDS_MAX = 300;
+    /** Members of a party, the leader and open invitations included. */
+    public static final int PARTY_MAX = 8;
     public static final int PRESENCE_DETAIL_MAX = 64;
     public static final int HISTORY_PAGE = 50;
     /** Messages kept per conversation on the server. */

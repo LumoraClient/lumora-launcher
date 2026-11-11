@@ -63,6 +63,8 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.net.ChannelRegistry channels;
     private final dev.lumora.core.render.NameTagRegistry nameTags;
     private final dev.lumora.core.screen.ViewManager views;
+    private final dev.lumora.core.interaction.PlayerMenuRegistry playerMenu;
+    private final dev.lumora.core.interaction.PlayerInteraction interaction;
     private final dev.lumora.core.session.SessionServiceImpl session;
     private final dev.lumora.core.connection.ConnectionTracker connections;
     private HudEditorModel editor;
@@ -92,6 +94,8 @@ public final class LumoraCore implements Lumora {
         this.channels = new dev.lumora.core.net.ChannelRegistry(platform.channels(), log);
         this.nameTags = new dev.lumora.core.render.NameTagRegistry(log);
         this.views = new dev.lumora.core.screen.ViewManager(platform.views(), log);
+        this.playerMenu = new dev.lumora.core.interaction.PlayerMenuRegistry(log);
+        this.interaction = new dev.lumora.core.interaction.PlayerInteraction(this, playerMenu);
         this.session = new dev.lumora.core.session.SessionServiceImpl(platform::session);
         this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
@@ -178,6 +182,11 @@ public final class LumoraCore implements Lumora {
         widgets.tick();
         addons.tick();
         try {
+            interaction.tick();
+        } catch (RuntimeException | LinkageError e) {
+            log.warn("Player menu failed: " + e);
+        }
+        try {
             connections.tick();
         } catch (RuntimeException | LinkageError e) {
             // a broken version adapter must never stop the core tick
@@ -213,6 +222,9 @@ public final class LumoraCore implements Lumora {
     /** In-game HUD: widgets, then notifications on top. */
     public void renderHud(HudGraphics g, RenderContext ctx) {
         renderer.render(g, ctx);
+        if (!ctx.preview()) {
+            interaction.frame();
+        }
     }
 
     /** Notifications only (also drawn over menus by the adapter). */
@@ -309,6 +321,16 @@ public final class LumoraCore implements Lumora {
     /** Name tag icons; asked by the version adapter's name tag and tab list mixins. */
     public dev.lumora.core.render.NameTagRegistry nameTags() {
         return nameTags;
+    }
+
+    /** Entries of the player menu (Lumora's own and those of addons). */
+    public dev.lumora.core.interaction.PlayerMenuRegistry playerMenu() {
+        return playerMenu;
+    }
+
+    /** The player menu (middle mouse button on a player). */
+    public dev.lumora.core.interaction.PlayerInteraction interaction() {
+        return interaction;
     }
 
     public dev.lumora.core.screen.ViewManager views() {

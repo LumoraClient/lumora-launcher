@@ -35,6 +35,7 @@ final class AddonContextImpl implements AddonContext {
     private final Notifications notifications;
     private final dev.lumora.api.net.PluginChannels channels;
     private final dev.lumora.api.render.NameTags nameTags;
+    private final dev.lumora.api.interaction.PlayerMenu playerMenu;
     private final dev.lumora.api.screen.AddonScreens screens;
     private volatile Translations ownTranslations;
 
@@ -69,6 +70,10 @@ final class AddonContextImpl implements AddonContext {
         this.nameTags = core.nameTags().scoped(id, record.tracker, () -> {
             requireActive();
             require(AddonPermission.NAMETAGS);
+        });
+        this.playerMenu = core.playerMenu().scoped(id, record.tracker, () -> {
+            requireActive();
+            require(AddonPermission.PLAYER_MENU);
         });
         this.screens = core.views().scoped(id, record.tracker, () -> {
             requireActive();
@@ -218,6 +223,12 @@ final class AddonContextImpl implements AddonContext {
     public dev.lumora.api.screen.AddonScreens screens() {
         require(AddonPermission.SCREENS);
         return screens;
+    }
+
+    @Override
+    public dev.lumora.api.interaction.PlayerMenu playerMenu() {
+        require(AddonPermission.PLAYER_MENU);
+        return playerMenu;
     }
 
     @Override

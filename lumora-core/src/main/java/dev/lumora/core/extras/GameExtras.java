@@ -188,6 +188,20 @@ public interface GameExtras {
     default void setChatInput(String text) {
     }
 
+    /** Middle mouse button (the mouse wheel) held: opens the player menu. */
+    default boolean mouseMiddleDown() {
+        return false;
+    }
+
+    /** Own operator level on the current server or world, 0 to 4 (0 if the version does not tell). */
+    default int permissionLevel() {
+        return 0;
+    }
+
+    /** Opens the chat with {@code text} in the input field ("Privat schreiben" in the player menu). */
+    default void openChat(String text) {
+    }
+
     /** Left mouse button held (dragging the chat edges). */
     default boolean mouseLeftDown() {
         return false;

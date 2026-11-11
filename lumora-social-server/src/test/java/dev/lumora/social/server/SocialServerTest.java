@@ -6,6 +6,7 @@ import dev.lumora.social.SocialEvent;
 import dev.lumora.social.model.ChatMessage;
 import dev.lumora.social.model.Group;
 import dev.lumora.social.model.Presence;
+import dev.lumora.social.model.PlayerCard;
 import dev.lumora.social.model.Profile;
 import dev.lumora.social.model.Role;
 import org.junit.jupiter.api.AfterEach;
@@ -239,6 +240,66 @@ class SocialServerTest {
             }
         }
         throw new AssertionError("role " + name);
+    }
+
+    @Test
+    void partyInviteAcceptLeaveAndPlayerCard() throws Exception {
+        startServer();
+        SocialClient max = connect(MAX, "game");
+        SocialClient toby = connect(TOBY, "game");
+        SocialClient sarah = connect(SARAH, "game");
+
+        // the card: Lumora user, not friends, nothing shared; strangers see no online state
+        PlayerCard card = get(max.playerCard(TOBY.uuid));
+        assertTrue(card.lumora);
+        assertEquals("Toby", card.name);
+        assertFalse(card.friend);
+        assertEquals(null, card.presence);
+        assertFalse(get(max.playerCard("44444444444444444444444444444444")).lumora, "never used Lumora");
+
+        // max invites toby: a party with max as leader and toby invited
+        get(max.inviteToParty(TOBY.uuid));
+        await(() -> toby.partyInvites().size() == 1 && max.party() != null, "invite");
+        assertEquals(MAX.uuid, max.party().leader);
+        assertTrue(max.party().isInvited(TOBY.uuid));
+        assertEquals("CuzImMax", toby.partyInvites().get(0).from.name);
+        assertEquals(get(toby.playerCard(MAX.uuid)).partyInvite, toby.partyInvites().get(0).id, "the card shows the invitation");
+        assertTrue(get(max.playerCard(TOBY.uuid)).invited);
+        get(toby.acceptParty(toby.partyInvites().get(0).id));
+        await(() -> toby.party() != null && max.party().members.size() == 2, "joined");
+        assertTrue(toby.partyInvites().isEmpty());
+        assertTrue(get(max.playerCard(TOBY.uuid)).sameParty);
+
+        // only the leader invites; sarah declines
+        Exception notLeader = assertThrows(SocialClient.SocialException.class, () -> get(toby.inviteToParty(SARAH.uuid)));
+        assertTrue(notLeader.getMessage().contains("Anführer"), notLeader.getMessage());
+        get(max.inviteToParty(SARAH.uuid));
+        await(() -> sarah.partyInvites().size() == 1, "invite sarah");
+        get(sarah.declineParty(sarah.partyInvites().get(0).id));
+        await(() -> sarah.partyInvites().isEmpty() && max.party().invited.isEmpty(), "declined");
+
+        // the leader leaves: toby leads alone without invitations, so the party ends
+        get(max.leaveParty());
+        await(() -> max.party() == null && toby.party() == null, "party ended");
+
+        // a new party; when the invited player goes offline the invitation ends
+        get(toby.inviteToParty(SARAH.uuid));
+        await(() -> sarah.partyInvites().size() == 1, "invite again");
+        sarah.close();
+        await(() -> toby.party() == null, "invitee offline: party of one ends");
+        Exception offline = assertThrows(SocialClient.SocialException.class, () -> get(toby.inviteToParty(SARAH.uuid)));
+        assertTrue(offline.getMessage().contains("nicht mit Lumora online"), offline.getMessage());
+
+        // friends see each other's online state on the card
+        get(max.addFriend("Toby"));
+        await(() -> toby.incomingRequests() == 1, "request");
+        assertEquals(PlayerCard.Request.INCOMING, get(toby.playerCard(MAX.uuid)).request);
+        get(toby.acceptFriend(MAX.uuid));
+        await(() -> max.friend(TOBY.uuid) != null, "friends");
+        PlayerCard friend = get(max.playerCard(TOBY.uuid));
+        assertTrue(friend.friend);
+        assertNotNull(friend.presence);
+        assertTrue(friend.presence.online());
     }
 
     @Test

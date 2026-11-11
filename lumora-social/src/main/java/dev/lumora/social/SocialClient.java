@@ -6,6 +6,9 @@ import dev.lumora.social.model.ConversationInfo;
 import dev.lumora.social.model.Friend;
 import dev.lumora.social.model.FriendRequest;
 import dev.lumora.social.model.Group;
+import dev.lumora.social.model.Party;
+import dev.lumora.social.model.PartyInvite;
+import dev.lumora.social.model.PlayerCard;
 import dev.lumora.social.model.Member;
 import dev.lumora.social.model.Presence;
 import dev.lumora.social.model.Profile;
@@ -98,6 +101,8 @@ public final class SocialClient implements AutoCloseable {
     private Profile self;
     private final Map<String, Friend> friends = new LinkedHashMap<>();
     private List<FriendRequest> requests = List.of();
+    private Party party;
+    private List<PartyInvite> partyInvites = List.of();
     private final Map<String, Group> groups = new LinkedHashMap<>();
     private final Map<String, ConversationInfo> convs = new HashMap<>();
     private final Map<String, List<ChatMessage>> messages = new HashMap<>();
@@ -413,6 +418,20 @@ public final class SocialClient implements AutoCloseable {
                     fire(new SocialEvent(SocialEvent.Kind.CONVERSATION, c.conv, null, null));
                 }
             }
+            case "party" -> {
+                Party p = Party.read(Js.obj(o, "party"));
+                synchronized (this) {
+                    party = p;
+                }
+                fire(SocialEvent.of(SocialEvent.Kind.PARTY));
+            }
+            case "party.invites" -> {
+                List<PartyInvite> list = Js.list(o, "invites", PartyInvite::read);
+                synchronized (this) {
+                    partyInvites = List.copyOf(list);
+                }
+                fire(SocialEvent.of(SocialEvent.Kind.PARTY));
+            }
             case "msg" -> onMessage(o);
             case "history" -> onHistory(o);
             case "notice" -> fire(new SocialEvent(SocialEvent.Kind.NOTICE, null, null, Rules.clean(Js.str(o, "text", ""), 200, false)));
@@ -461,6 +480,8 @@ public final class SocialClient implements AutoCloseable {
         List<FriendRequest> rl = Js.list(o, "requests", FriendRequest::read);
         List<Group> gl = Js.list(o, "groups", Group::read);
         List<ConversationInfo> cl = Js.list(o, "conversations", ConversationInfo::read);
+        Party pa = Party.read(Js.obj(o, "party"));
+        List<PartyInvite> pi = Js.list(o, "partyInvites", PartyInvite::read);
         List<Pending> resend;
         Presence p;
         String focus;
@@ -471,6 +492,8 @@ public final class SocialClient implements AutoCloseable {
                 friends.put(f.profile.uuid, f);
             }
             requests = List.copyOf(rl);
+            party = pa;
+            partyInvites = List.copyOf(pi);
             groups.clear();
             for (Group g : gl) {
                 groups.put(g.id, g);
@@ -495,6 +518,7 @@ public final class SocialClient implements AutoCloseable {
         fire(SocialEvent.of(SocialEvent.Kind.FRIENDS));
         fire(SocialEvent.of(SocialEvent.Kind.REQUESTS));
         fire(SocialEvent.of(SocialEvent.Kind.GROUPS));
+        fire(SocialEvent.of(SocialEvent.Kind.PARTY));
         if (focus != null) {
             loadHistory(focus);
         }
@@ -625,6 +649,33 @@ public final class SocialClient implements AutoCloseable {
 
     public CompletableFuture<Void> removeFriend(String uuid) {
         return action(Js.op("friend.remove").put("uuid", uuid));
+    }
+
+    /** Invites a player (UUID) into your party; starts a party if you have none. Only the leader invites. */
+    public CompletableFuture<Void> inviteToParty(String uuid) {
+        return action(Js.op("party.invite").put("uuid", uuid));
+    }
+
+    public CompletableFuture<Void> acceptParty(String partyId) {
+        return action(Js.op("party.accept").put("id", partyId));
+    }
+
+    public CompletableFuture<Void> declineParty(String partyId) {
+        return action(Js.op("party.decline").put("id", partyId));
+    }
+
+    public CompletableFuture<Void> leaveParty() {
+        return action(Js.op("party.leave"));
+    }
+
+    /** Removes a member or withdraws an invitation (leader only). */
+    public CompletableFuture<Void> kickFromParty(String uuid) {
+        return action(Js.op("party.kick").put("uuid", uuid));
+    }
+
+    /** What the server tells about a player (UUID): Lumora user, friendship, shared groups, party. */
+    public CompletableFuture<PlayerCard> playerCard(String uuid) {
+        return call(Js.op("player.card").put("uuid", uuid)).thenApply(r -> PlayerCard.read(Js.obj(r, "card")));
     }
 
     /** Creates a group; completes with its id. */
@@ -838,6 +889,16 @@ public final class SocialClient implements AutoCloseable {
 
     public synchronized List<FriendRequest> requests() {
         return requests;
+    }
+
+    /** Your party, or null. */
+    public synchronized Party party() {
+        return party;
+    }
+
+    /** Open invitations into other parties, newest first. */
+    public synchronized List<PartyInvite> partyInvites() {
+        return partyInvites;
     }
 
     /** Groups, most recent activity first. */

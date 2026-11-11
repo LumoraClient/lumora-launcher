@@ -8,7 +8,7 @@ import dev.lumora.social.model.ChatMessage;
  * CONVERSATION/MESSAGE/HISTORY, {@code text} for NOTICE/ERROR.
  */
 public final class SocialEvent {
-    public enum Kind { STATUS, FRIENDS, REQUESTS, GROUPS, CONVERSATION, MESSAGE, HISTORY, NOTICE, ERROR }
+    public enum Kind { STATUS, FRIENDS, REQUESTS, GROUPS, PARTY, CONVERSATION, MESSAGE, HISTORY, NOTICE, ERROR }
 
     public final Kind kind;
     public final String conv;

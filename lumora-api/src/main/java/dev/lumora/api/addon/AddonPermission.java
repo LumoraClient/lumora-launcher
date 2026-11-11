@@ -21,7 +21,9 @@ public enum AddonPermission {
     /** Plugin channels ({@code AddonContext.channels()}), since 1.1.0. */
     NETWORK("network"),
     /** Icons next to player names ({@code AddonContext.nameTags()}), since 1.1.0. */
-    NAMETAGS("nametags");
+    NAMETAGS("nametags"),
+    /** Own entries in the player menu ({@code AddonContext.playerMenu()}), since 1.4.0. */
+    PLAYER_MENU("playermenu");
 
     private final String id;
 

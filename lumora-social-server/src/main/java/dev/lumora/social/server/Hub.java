@@ -11,6 +11,8 @@ import dev.lumora.social.model.Friend;
 import dev.lumora.social.model.FriendRequest;
 import dev.lumora.social.model.Group;
 import dev.lumora.social.model.Member;
+import dev.lumora.social.model.Party;
+import dev.lumora.social.model.PartyInvite;
 import dev.lumora.social.model.Presence;
 import dev.lumora.social.model.Profile;
 import dev.lumora.social.model.Role;
@@ -23,6 +25,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -82,6 +85,7 @@ final class Hub implements WsServer.Handler {
         this.dev = dev;
         timer.scheduleWithFixedDelay(this::saveIfDirty, 1, 1, TimeUnit.SECONDS);
         timer.scheduleWithFixedDelay(this::pruneRates, 10, 10, TimeUnit.MINUTES);
+        timer.scheduleWithFixedDelay(this::pruneInvites, 30, 30, TimeUnit.SECONDS);
     }
 
     /** Rate-limit windows are at most 10 minutes long: older entries (and empty keys) are dropped. */
@@ -293,6 +297,8 @@ final class Hub implements WsServer.Handler {
             list.remove(c);
             if (list.isEmpty()) {
                 online.remove(uuid);
+                leaveParty(uuid);
+                dropInvites(uuid);
             }
         }
         State.User u = state.users.get(uuid);
@@ -456,7 +462,8 @@ final class Hub implements WsServer.Handler {
         }
         return Js.op("welcome").put("self", profile(uuid).json()).put("friends", friendsJson(uuid))
                 .put("requests", requestsJson(uuid)).put("groups", groups)
-                .put("conversations", Js.array(convs, ConversationInfo::json)).json();
+                .put("conversations", Js.array(convs, ConversationInfo::json))
+                .put("party", partyJson(uuid)).put("partyInvites", invitesJson(uuid)).json();
     }
 
     private void sendFriends(String uuid) {
@@ -585,6 +592,117 @@ final class Hub implements WsServer.Handler {
                     sendRequests(me);
                     sendRequests(other);
                 }
+            }
+            case "party.invite" -> {
+                limit(me + ":party", 20, 60_000, "Zu viele Party-Einladungen, bitte kurz warten.");
+                String other = uuidArg(o);
+                if (other.equals(me)) {
+                    throw new Refusal("Du kannst dich nicht selbst einladen.");
+                }
+                State.User u = state.users.get(other);
+                if (u == null) {
+                    throw new Refusal("Dieser Spieler nutzt Lumora nicht.");
+                }
+                if (!online.containsKey(other)) {
+                    throw new Refusal(u.name + " ist gerade nicht mit Lumora online.");
+                }
+                PartyRec p = parties.get(partyOf.getOrDefault(me, ""));
+                if (p == null) {
+                    p = new PartyRec(randomId(12), me);
+                    parties.put(p.id, p);
+                    partyOf.put(me, p.id);
+                } else if (!p.leader.equals(me)) {
+                    throw new Refusal("Nur der Party-Anführer kann einladen.");
+                }
+                if (p.members.contains(other)) {
+                    throw new Refusal(u.name + " ist schon in deiner Party.");
+                }
+                if (!p.invited.containsKey(other) && p.members.size() + p.invited.size() >= Rules.PARTY_MAX) {
+                    throw new Refusal("Die Party ist voll (" + Rules.PARTY_MAX + ").");
+                }
+                p.invited.put(other, System.currentTimeMillis());
+                sendParty(p);
+                sendInvites(other);
+            }
+            case "party.accept" -> {
+                PartyRec p = parties.get(Js.str(o, "id", ""));
+                if (p == null || !p.invited.containsKey(me)) {
+                    throw new Refusal("Die Einladung gilt nicht mehr.");
+                }
+                if (p.members.size() >= Rules.PARTY_MAX) {
+                    throw new Refusal("Die Party ist voll (" + Rules.PARTY_MAX + ").");
+                }
+                leaveParty(me);
+                p.invited.remove(me);
+                p.members.add(me);
+                partyOf.put(me, p.id);
+                sendParty(p);
+                sendInvites(me);
+            }
+            case "party.decline" -> {
+                PartyRec p = parties.get(Js.str(o, "id", ""));
+                if (p != null && p.invited.remove(me) != null) {
+                    sendInvites(me);
+                    if (!dissolveIfAlone(p)) {
+                        sendParty(p);
+                    }
+                }
+            }
+            case "party.leave" -> {
+                if (!leaveParty(me)) {
+                    throw new Refusal("Du bist in keiner Party.");
+                }
+            }
+            case "party.kick" -> {
+                String other = uuidArg(o);
+                PartyRec p = parties.get(partyOf.getOrDefault(me, ""));
+                if (p == null || !p.leader.equals(me)) {
+                    throw new Refusal("Nur der Party-Anführer kann Spieler entfernen.");
+                }
+                if (other.equals(me)) {
+                    throw new Refusal("Verlasse die Party stattdessen.");
+                }
+                if (p.invited.remove(other) != null) {
+                    sendInvites(other);
+                    if (!dissolveIfAlone(p)) {
+                        sendParty(p);
+                    }
+                } else if (p.members.contains(other)) {
+                    leaveParty(other);
+                } else {
+                    throw new Refusal("Dieser Spieler ist nicht in deiner Party.");
+                }
+            }
+            case "player.card" -> {
+                limit(me + ":card", 60, 60_000, "Zu viele Abfragen, bitte kurz warten.");
+                String other = uuidArg(o);
+                State.User u = state.users.get(other);
+                Js.Obj card = Js.obj().put("uuid", other).put("lumora", u != null);
+                if (u != null) {
+                    card.put("name", u.name);
+                }
+                Long since = state.friends.getOrDefault(me, Map.of()).get(other);
+                card.put("friend", since != null).put("friendSince", since == null ? 0 : since);
+                card.put("request", state.requests.getOrDefault(other, Map.of()).containsKey(me) ? "in"
+                        : state.requests.getOrDefault(me, Map.of()).containsKey(other) ? "out" : "");
+                if (since != null) {
+                    card.put("presence", presence(other).json()); // online state only for friends
+                }
+                JsonArray shared = new JsonArray();
+                for (State.GroupRec g : groupsOf(me)) {
+                    if (g.members.containsKey(other)) {
+                        shared.add(g.name);
+                    }
+                }
+                card.put("groups", shared);
+                PartyRec mine = parties.get(partyOf.getOrDefault(me, ""));
+                PartyRec theirs = parties.get(partyOf.getOrDefault(other, ""));
+                card.put("sameParty", mine != null && mine == theirs);
+                card.put("invited", mine != null && mine.invited.containsKey(other));
+                if (theirs != null && theirs.invited.containsKey(me)) {
+                    card.put("partyInvite", theirs.id);
+                }
+                reply = Js.op("ok").put("rid", rid).put("card", card.json()).json();
             }
             case "friend.remove" -> {
                 String other = uuidArg(o);
@@ -895,6 +1013,140 @@ final class Hub implements WsServer.Handler {
             sendConv(p, conv);
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------ parties (in memory only)
+
+    /** A party; ends when its last member leaves or the leader is left alone without open invitations. */
+    private static final class PartyRec {
+        final String id;
+        String leader;
+        final LinkedHashSet<String> members = new LinkedHashSet<>();
+        final LinkedHashMap<String, Long> invited = new LinkedHashMap<>();
+
+        PartyRec(String id, String leader) {
+            this.id = id;
+            this.leader = leader;
+            members.add(leader);
+        }
+    }
+
+    /** How long a party invitation stays open (shortened by tests). */
+    static long partyInviteMs = 300_000;
+    private final Map<String, PartyRec> parties = new HashMap<>();
+    private final Map<String, String> partyOf = new HashMap<>();
+
+    private JsonObject partyJson(String uuid) {
+        PartyRec p = parties.get(partyOf.getOrDefault(uuid, ""));
+        return p == null ? null : party(p).json();
+    }
+
+    private Party party(PartyRec p) {
+        List<Profile> members = new ArrayList<>();
+        for (String m : p.members) {
+            members.add(profile(m));
+        }
+        List<Profile> invited = new ArrayList<>();
+        for (String m : p.invited.keySet()) {
+            invited.add(profile(m));
+        }
+        return new Party(p.id, p.leader, members, invited);
+    }
+
+    private JsonArray invitesJson(String uuid) {
+        List<PartyInvite> l = new ArrayList<>();
+        for (PartyRec p : parties.values()) {
+            Long at = p.invited.get(uuid);
+            if (at != null) {
+                l.add(new PartyInvite(p.id, profile(p.leader), p.members.size(), at));
+            }
+        }
+        l.sort(Comparator.comparingLong(i -> -i.at));
+        return Js.array(l, PartyInvite::json);
+    }
+
+    private void sendParty(PartyRec p) {
+        String msg = Js.op("party").put("party", party(p).json()).toString();
+        for (String m : p.members) {
+            sendTo(m, msg);
+        }
+    }
+
+    private void sendInvites(String uuid) {
+        sendTo(uuid, Js.op("party.invites").put("invites", invitesJson(uuid)).toString());
+    }
+
+    /** Takes {@code uuid} out of its party; the next member leads if the leader left. False if not in a party. */
+    private boolean leaveParty(String uuid) {
+        PartyRec p = parties.get(partyOf.getOrDefault(uuid, ""));
+        if (p == null) {
+            return false;
+        }
+        partyOf.remove(uuid);
+        p.members.remove(uuid);
+        sendTo(uuid, Js.op("party").toString());
+        if (p.members.isEmpty()) {
+            dissolve(p);
+            return true;
+        }
+        if (p.leader.equals(uuid)) {
+            p.leader = p.members.iterator().next();
+        }
+        if (!dissolveIfAlone(p)) {
+            sendParty(p);
+        }
+        return true;
+    }
+
+    /** A leader alone without open invitations: the party ends. */
+    private boolean dissolveIfAlone(PartyRec p) {
+        if (p.members.size() > 1 || !p.invited.isEmpty()) {
+            return false;
+        }
+        for (String m : p.members) {
+            partyOf.remove(m);
+            sendTo(m, Js.op("party").toString());
+        }
+        dissolve(p);
+        return true;
+    }
+
+    private void dissolve(PartyRec p) {
+        parties.remove(p.id);
+        List<String> invited = new ArrayList<>(p.invited.keySet());
+        p.invited.clear();
+        for (String i : invited) {
+            sendInvites(i);
+        }
+    }
+
+    /** A player went offline: invitations to them end. */
+    private void dropInvites(String uuid) {
+        for (PartyRec p : new ArrayList<>(parties.values())) {
+            if (p.invited.remove(uuid) != null && !dissolveIfAlone(p)) {
+                sendParty(p);
+            }
+        }
+    }
+
+    synchronized void pruneInvites() {
+        long now = System.currentTimeMillis();
+        for (PartyRec p : new ArrayList<>(parties.values())) {
+            List<String> expired = new ArrayList<>();
+            p.invited.forEach((u, at) -> {
+                if (now - at > partyInviteMs) {
+                    expired.add(u);
+                }
+            });
+            if (expired.isEmpty()) {
+                continue;
+            }
+            expired.forEach(p.invited::remove);
+            expired.forEach(this::sendInvites);
+            if (!dissolveIfAlone(p)) {
+                sendParty(p);
+            }
+        }
     }
 
     private void befriend(String a, String b) {

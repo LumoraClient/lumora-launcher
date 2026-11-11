@@ -48,6 +48,8 @@ public final class LumoraSocial {
     private boolean primed;
     private long ticks;
     private String viewConv;
+    private volatile String openConversation;
+    private final Set<String> knownInvites = new HashSet<>();
 
     private LumoraSocial(LumoraCore core, Platform platform, SocialClient client, String disabledReason, boolean shareServer) {
         this.core = core;
@@ -126,6 +128,24 @@ public final class LumoraSocial {
         }
     }
 
+    /** Opens the social screen on {@code conv} (a direct message from the player menu). */
+    public void openConversation(String conv) {
+        openConversation = conv;
+        platform.openSocial();
+    }
+
+    /** The conversation the next social screen opens on (once), or null. */
+    public String takeOpenConversation() {
+        String c = openConversation;
+        openConversation = null;
+        return c;
+    }
+
+    /** Shows a short note (player menu actions). */
+    public void note(String title, String message, boolean error) {
+        show(title, message, error ? NotificationType.ERROR : NotificationType.SUCCESS);
+    }
+
     /** Client thread, every tick. */
     public void tick() {
         if (client == null) {
@@ -183,6 +203,18 @@ public final class LumoraSocial {
                 }
                 knownRequests.clear();
                 knownRequests.addAll(now);
+            }
+            case PARTY -> {
+                Set<String> now = new HashSet<>();
+                for (dev.lumora.social.model.PartyInvite inv : client.partyInvites()) {
+                    now.add(inv.id);
+                    if (!knownInvites.contains(inv.id) && client.status() == SocialClient.Status.ONLINE) {
+                        show(german ? "Party-Einladung" : "Party invitation", inv.from.name + (german
+                                ? " lädt dich in die Party ein (" + keyHint() + ")" : " invites you to a party (" + keyHint() + ")"), NotificationType.INFO);
+                    }
+                }
+                knownInvites.clear();
+                knownInvites.addAll(now);
             }
             case MESSAGE -> {
                 if (e.message == null || e.conv.equals(viewConv)) {

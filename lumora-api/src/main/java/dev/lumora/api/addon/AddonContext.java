@@ -84,6 +84,11 @@ public interface AddonContext {
         throw new UnsupportedOperationException("requires Lumora API 1.1");
     }
 
+    /** Own entries in the player menu (permission {@code playermenu}). @since 1.4.0 */
+    default dev.lumora.api.interaction.PlayerMenu playerMenu() {
+        throw new UnsupportedOperationException("requires Lumora API 1.4");
+    }
+
     /** The game's {@code config} folder (for the addon's own files). @since 1.1.0 */
     default java.nio.file.Path configDirectory() {
         throw new UnsupportedOperationException("requires Lumora API 1.1");

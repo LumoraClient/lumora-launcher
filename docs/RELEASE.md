@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.32 (2026-11-12):**
+- **Build:** `gradlew clean build` erfolgreich, 510 Unit-Tests ohne Fehler (1 übersprungen). Neu: 12 für die News-Artikel (Changelog-Parser mit Abschnitten, Unterpunkten und Absätzen; Kurzpunkte für die Liste; mitgelieferter Changelog vollständig und absteigend; Artikel mit Text, Screenshots und dem ganzen Changelog einer oder mehrerer Versionen; Changelog-Eintrag öffnet den News-Artikel oder die Version; Minecraft-News mit Link; jedes Bild der News ist mitgeliefert; sichere HTML-Umwandlung und verschachtelte Listen) und 1 für das Addon-Update aus der Bibliothek (neue Assets beim nächsten Start).
+- **Vor dem Release** (Entwicklungsstand): Launcher mit `--ui-shot` im Testordner: News-Seite, Changelog-Liste, Artikel einer News und einer Version (Aufnahmen angesehen). Smoke-Test 26.3 bestanden; die Aufnahmen des Spielermenüs sind ohne Testchat und Toasts und dienen als News-Bilder.
+- **Smoke-Test mit dem fertigen 0.3.32-Build:** nur 26.3 (die einzige geänderte Minecraft-Version; deckt den Start über den neuen Launcher ab) – bestanden. Die anderen Versionen wurden nicht erneut getestet, weil sich an ihnen nichts geändert hat.
+- **Nicht geprüft:** Bedienung des Artikels von Hand (Scrollen, Esc, Klick daneben, „Im Browser öffnen“), Minecraft-Patch-Notes als Artikel mit echter Verbindung, ein echtes Selbst-Update von 0.3.31 auf 0.3.32.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.31 (2026-11-11):**
 - **Build:** `gradlew clean build` erfolgreich, 497 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für die Lumora-API 1.5 (Berechtigungen der neuen Dienste; Akzentfarbe eines Addons wird angeboten, gewählt, fällt beim Ausschalten auf Lila zurück und kommt mit dem Addon wieder; UiKit zeichnet in den Theme-Farben; Widget an einer Ankerzone und der alte Konstruktor; Chat-Menüeinträge mit Bedingung und Nachrichten-Event mit Absender und Link, entfernt mit dem Addon; Social ohne Verbindung leer).
 - **Vor dem Release** (Entwicklungsstand): Alle 16 Client-Module kompiliert. Smoke-Test in 26.3 und 1.8.9 bestanden. Addon-Vorlage, LumoraVoice 0.8.3 und LumoraSpotify 1.0.1 bauen gegen die API 1.5.0 (Voice 73 Tests, Spotify 18 Tests + 1 übersprungener Live-Test).

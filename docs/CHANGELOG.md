@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.3.32 (2026-11-12)
+
+### Launcher
+- **News als Artikel:** Ein Klick auf eine News öffnet sie groß über dem ganzen Launcher, wie ein Artikel auf einer News-Seite: Titel, Kurzfassung, Datum, Autor und Version, ein großes Bild, dann der Text mit Zwischenüberschriften, Listen und Screenshots der neuen Funktionen und am Ende der komplette Changelog des Updates. Nur zum Lesen, ohne Kommentare oder Reaktionen. Esc, ✕ oder ein Klick daneben schließt den Artikel.
+- **Ganzer Changelog:** Unter News → Changelog stehen jetzt alle Lumora-Versionen (bisher nur bis 0.3.7), jede mit ihren wichtigsten Punkten. „Ganzen Changelog anzeigen“ öffnet den Artikel zur Version.
+- **Neue News** zu Lumora-API 1.5, Kinobalken, Spielermenü, HUD-Editor mit Ankerzonen, Hotbar & Leisten und Chat, Elytra-Streifen, Tastenanzeige und Addon-Bibliothek, mit Screenshots aus dem Spiel.
+- Minecraft-News und Patch Notes öffnen sich ebenfalls als Artikel; „Im Browser öffnen“ führt zum ganzen Artikel auf minecraft.net.
+- Lange Listen springen beim Öffnen einer Seite nicht mehr ans Ende.
+
+### Im Spiel
+- **Addon-Update aus der Bibliothek:** Nach dem Aktualisieren eines Addons gelten seine neuen Grafiken und Sprachdateien sofort beim nächsten Start (vorher konnte die alte Version gewinnen, z. B. rohe Schlüssel in den Einstellungen von LumoraVoice).
+
 ## 0.3.31 (2026-11-11)
 
 ### Lumora-API 1.5.0 – Addons erweitern den Client

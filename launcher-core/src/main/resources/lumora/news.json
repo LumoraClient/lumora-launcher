@@ -1,6 +1,21 @@
 {
   "news": [
     {
+      "id": "lumora-news-articles",
+      "date": "2026-11-12",
+      "author": "Lumora",
+      "version": "0.3.32",
+      "title": "News zum Lesen: Artikel mit Bildern und ganzem Changelog",
+      "text": "Ein Klick auf eine News öffnet sie jetzt als Artikel im Launcher – mit Screenshots der neuen Funktionen und dem kompletten Changelog des Updates.",
+      "image": "news-articles.png",
+      "body": [
+        {"p": "News waren bisher kurze Karten. Jetzt öffnet ein Klick die ganze Geschichte über dem Launcher: oben Titel, Kurzfassung, Datum und Version, darunter ein großes Bild und der Text mit Zwischenüberschriften, Listen und Screenshots aus dem Spiel. Am Ende steht der komplette Changelog der Version, Punkt für Punkt. Kommentare oder Reaktionen gibt es nicht – nur lesen. Esc, ✕ oder ein Klick daneben schließt den Artikel."},
+        {"h": "Der ganze Changelog"},
+        {"p": "Unter News → Changelog stehen jetzt alle Lumora-Versionen, nicht mehr nur die bis 0.3.7. Jede Version zeigt ihre wichtigsten Punkte, „Ganzen Changelog anzeigen“ öffnet den Artikel dazu. Neue Versionen erscheinen dort automatisch mit dem Update."},
+        {"p": "Auch Minecraft-News und Patch Notes öffnen sich als Artikel. „Im Browser öffnen“ führt zum vollständigen Artikel auf minecraft.net."}
+      ]
+    },
+    {
       "id": "lumora-api-15",
       "date": "2026-11-11",
       "author": "Lumora",

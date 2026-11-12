@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.33 (2026-11-12):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 510 Unit-Tests ohne Fehler (1 übersprungen). Alle 16 Client-Module kompiliert, Mixin-Ziele mit `check-mixins.pl` gegen die Minecraft-Jars geprüft.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test in 26.3, 26.1.2, 1.21.11, 1.21.8 und 1.8.9 bestanden, jeweils mit drei Vorschau-Spielern und Namensschild-Icons (neu im Smoke-Test von 26.3, 1.21.11, 1.21.8 und 1.8.9); auf den Aufnahmen steht das Icon rechts neben der Box.
+- **Smoke-Test mit dem fertigen 0.3.33-Build:** 26.3 bestanden. 1.8.9 im ersten Lauf am Chat-Test gescheitert (neueste Testnachricht nicht gefunden, Chat-Code unverändert), im zweiten Lauf bestanden.
+- **Nicht geprüft:** 26.2, 1.12.2 und 1.16.5 bis 1.21.4 nur kompiliert und per `check-mixins.pl` geprüft, nicht im Spiel; Namensschilder echter Spieler auf einem Server; ein echtes Selbst-Update von 0.3.32 auf 0.3.33.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.32 (2026-11-12):**
 - **Build:** `gradlew clean build` erfolgreich, 510 Unit-Tests ohne Fehler (1 übersprungen). Neu: 12 für die News-Artikel (Changelog-Parser mit Abschnitten, Unterpunkten und Absätzen; Kurzpunkte für die Liste; mitgelieferter Changelog vollständig und absteigend; Artikel mit Text, Screenshots und dem ganzen Changelog einer oder mehrerer Versionen; Changelog-Eintrag öffnet den News-Artikel oder die Version; Minecraft-News mit Link; jedes Bild der News ist mitgeliefert; sichere HTML-Umwandlung und verschachtelte Listen) und 1 für das Addon-Update aus der Bibliothek (neue Assets beim nächsten Start).
 - **Vor dem Release** (Entwicklungsstand): Launcher mit `--ui-shot` im Testordner: News-Seite, Changelog-Liste, Artikel einer News und einer Version (Aufnahmen angesehen). Smoke-Test 26.3 bestanden; die Aufnahmen des Spielermenüs sind ohne Testchat und Toasts und dienen als News-Bilder.

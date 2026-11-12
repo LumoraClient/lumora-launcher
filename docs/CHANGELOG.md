@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.33 (2026-11-12)
+
+### Im Spiel
+- **Namensschild-Icons neben dem Namensschild:** Symbole von Addons (z. B. die Voice-Symbole von LumoraVoice) stehen jetzt rechts neben der Namensschild-Box, als eigenes Zeichen ohne Hintergrund, statt mit in der Box. Die Box ist wieder so breit wie der Name. Gilt in allen Versionen von 1.8.9 bis 26.3, auch durch Wände (durchsichtiger Teil des Namensschilds). In der Tab-Liste steht das Symbol weiter hinter dem Namen.
+
 ## 0.3.32 (2026-11-12)
 
 ### Launcher

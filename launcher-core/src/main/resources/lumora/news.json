@@ -1,6 +1,19 @@
 {
   "news": [
     {
+      "id": "lumora-nametag-icons-beside",
+      "date": "2026-11-12",
+      "author": "Lumora",
+      "version": "0.3.33",
+      "title": "Namensschild-Symbole neben dem Namen",
+      "text": "Symbole von Addons stehen jetzt neben dem Namensschild statt darin – die Box ist wieder so breit wie der Name.",
+      "image": "news-nametag-icons.png",
+      "body": [
+        {"p": "Addons wie LumoraVoice zeigen über Spielern ein Symbol, etwa ob jemand gerade spricht, stummgeschaltet ist oder die Voice-Verbindung verloren hat. Bisher stand dieses Symbol mit in der dunklen Namensschild-Box. Jetzt steht es rechts daneben, als eigenes Zeichen ohne Hintergrund. Die Box ist wieder genau so breit wie der Name, und das Symbol ist auch durch Wände zu sehen."},
+        {"p": "Das gilt in allen Minecraft-Versionen von 1.8.9 bis 26.3. In der Tab-Liste steht das Symbol wie gewohnt hinter dem Namen."}
+      ]
+    },
+    {
       "id": "lumora-news-articles",
       "date": "2026-11-12",
       "author": "Lumora",

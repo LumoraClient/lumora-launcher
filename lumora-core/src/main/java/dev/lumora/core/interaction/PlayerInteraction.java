@@ -20,8 +20,9 @@ import java.util.concurrent.CompletionException;
 
 /**
  * The player menu, built into the client: looking at a player and pressing the middle mouse button (the mouse wheel)
- * opens it. Lumora's own entries: friend request, party invitation, client profile, Lumora message, private message
- * and copying the name; addons add theirs through {@link PlayerMenuRegistry}.
+ * opens it. Lumora's own entries: friend request, party invitation (the server's {@code /party invite}), Lumora
+ * message, private message and copying the name; addons add theirs through {@link PlayerMenuRegistry}. The player
+ * card next to the list shows the client profile.
  */
 public final class PlayerInteraction {
     private final LumoraCore core;
@@ -92,6 +93,13 @@ public final class PlayerInteraction {
     /** The menu shown right now (smoke test), or null. */
     public boolean isOpen() {
         return shown != null;
+    }
+
+    /** Opens the actions of a category in the open menu (smoke test; normally a click on its row). */
+    public void openCategory(String name) {
+        if (shown != null) {
+            shown.openCategory(name);
+        }
     }
 
     void close(PlayerMenuView v) {
@@ -208,42 +216,14 @@ public final class PlayerInteraction {
                         report(c.addFriend(t.name()), t("Freundschaftsanfrage an ", "Friend request sent to ") + t.name());
                     }
                 }).build());
+        // the party of the server (Hypixel, BedWars networks ...): the server's own /party command
         registry.builtin(PlayerMenuEntry.builder("party", "In Party einladen").icon("⚑").order(20)
-                // always offered once Lumora Social is set up; greyed out with the reason when it cannot work right now
-                .visibleWhen(t -> t instanceof Target && client() != null)
-                .label(t -> {
-                    PlayerCard c = target(t).card;
-                    if (c != null && c.partyInvite != null) {
-                        return t("Party beitreten", "Join party");
-                    }
-                    if (c != null && c.sameParty) {
-                        return t("Aus Party entfernen", "Remove from party");
-                    }
-                    if (c != null && c.invited) {
-                        return t("Einladung zurückziehen", "Withdraw invitation");
-                    }
-                    return t("In Party einladen", "Invite to party") + partyReason(target(t));
-                })
-                .enabledWhen(t -> partyReason(target(t)).isEmpty())
+                .visibleWhen(t -> t.multiplayer() && commandName(t.name()))
+                .label(t -> t("In Party einladen", "Invite to party"))
                 .onSelect(t -> {
-                    SocialClient s = client();
-                    PlayerCard c = target(t).card;
-                    if (c != null && c.partyInvite != null) {
-                        report(s.acceptParty(c.partyInvite), t("Du bist in der Party von ", "You joined the party of ") + t.name());
-                    } else if (c != null && (c.sameParty || c.invited)) {
-                        report(s.kickFromParty(target(t).uuid32), c.sameParty ? t.name() + t(" ist nicht mehr in deiner Party", " left your party")
-                                : t("Einladung zurückgezogen", "Invitation withdrawn"));
-                    } else {
-                        report(s.inviteToParty(target(t).uuid32), t("Party-Einladung an ", "Party invitation sent to ") + t.name());
-                    }
-                }).build());
-        registry.builtin(PlayerMenuEntry.builder("profile", "Client-Profil").icon("☺").order(30)
-                .visibleWhen(t -> t instanceof Target && client() != null)
-                .label(t -> shown != null && shown.profileShown() ? t("Profil ausblenden", "Hide profile") : t("Client-Profil öffnen", "Open client profile"))
-                .keepMenuOpen()
-                .onSelect(t -> {
-                    if (shown != null) {
-                        shown.toggleProfile();
+                    String command = "party invite " + t.name();
+                    if (!sendCommand(command)) {
+                        platform.extras().openChat("/" + command);
                     }
                 }).build());
         registry.builtin(PlayerMenuEntry.builder("message", "Lumora-Nachricht").icon("✉").order(40)
@@ -280,21 +260,6 @@ public final class PlayerInteraction {
         return ""; // card still loading or unknown: the server answers the request itself
     }
 
-    private String partyReason(Target t) {
-        String r = socialReason(t);
-        if (!r.isEmpty()) {
-            return r;
-        }
-        PlayerCard c = t.card;
-        if (c != null && c.partyInvite != null) {
-            return "";
-        }
-        SocialClient s = client();
-        Party p = s == null ? null : s.party();
-        boolean lead = p == null || (s.self() != null && p.leader.equals(s.self().uuid));
-        return lead ? "" : t(" · nur der Anführer", " · leader only"); // members of someone else's party cannot invite
-    }
-
     private static PlayerCard.Request request(PlayerTarget t) {
         PlayerCard c = t instanceof Target x ? x.card : null;
         return c == null ? PlayerCard.Request.NONE : c.request;
@@ -312,25 +277,29 @@ public final class PlayerInteraction {
         return c != null && c.status() == SocialClient.Status.ONLINE;
     }
 
-    /** The second line of the player card above the ring. */
-    String status(Target t) {
-        if (!socialOnline()) {
-            return t.multiplayer() ? t("Spieler", "Player") : t("Spieler in deiner Welt", "Player in your world");
+    /** Ping of the player in the server's tab list in milliseconds, -1 if unknown (singleplayer, old versions). */
+    int latency(Target t) {
+        if (!t.multiplayer()) {
+            return -1;
         }
-        PlayerCard c = t.card;
-        if (c == null) {
-            return t("Lädt …", "Loading …");
+        try {
+            return platform.extras().latency(t.id());
+        } catch (RuntimeException | LinkageError e) {
+            return -1;
         }
-        if (!c.lumora) {
-            return t("Nutzt Lumora nicht", "Does not use Lumora");
+    }
+
+    private boolean sendCommand(String command) {
+        try {
+            return platform.extras().sendCommand(command);
+        } catch (RuntimeException | LinkageError e) {
+            return false;
         }
-        if (c.sameParty) {
-            return t("Lumora · in deiner Party", "Lumora · in your party");
-        }
-        if (c.friend) {
-            return t("Lumora · Freund", "Lumora · friend");
-        }
-        return t("Lumora-Nutzer", "Lumora user");
+    }
+
+    /** A real player name (letters, digits, underscore), safe to put into a command; NPC names with spaces are not. */
+    static boolean commandName(String name) {
+        return name != null && name.matches("[A-Za-z0-9_]{1,16}");
     }
 
     String presence(Presence p) {

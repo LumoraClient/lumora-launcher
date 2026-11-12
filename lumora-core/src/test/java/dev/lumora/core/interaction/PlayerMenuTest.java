@@ -8,7 +8,6 @@ import dev.lumora.core.FakePlatform;
 import dev.lumora.core.LumoraCore;
 import dev.lumora.core.RegistrationTracker;
 import dev.lumora.core.extras.GameExtras;
-import dev.lumora.core.interaction.PlayerMenuLayout.Selection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +22,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerMenuTest {
@@ -85,87 +85,50 @@ class PlayerMenuTest {
     }
 
     @Test
-    void theRingStartsAtTheTopAndAnglesChooseTheSegment() {
+    void categoriesSitWhereTheirFirstEntryIs() {
         PlayerMenuLayout<String> l = layout("a", "mod/kick", "b", "mod/ban", "c", "mod/mute");
         assertEquals(4, l.size(), "a, the category mod (where its first entry is), b, c");
         assertTrue(l.slots().get(1).isCategory());
         assertEquals(List.of("mod/kick", "mod/ban", "mod/mute"), l.slots().get(1).entries);
-        assertEquals(new Selection(0, -1), l.hit(0, -50, -1), "up");
-        assertEquals(new Selection(1, -1), l.hit(50, 0, -1), "right");
-        assertEquals(new Selection(2, -1), l.hit(0, 50, -1), "down");
-        assertEquals(new Selection(3, -1), l.hit(-50, 0, -1), "left");
-        assertEquals(new Selection(0, -1), l.hit(0, -300, -1), "far outside still chooses by angle");
-        assertTrue(l.hit(3, 4, -1).none(), "near the center nothing");
-
-        // the open category: its outer ring is centered on its segment (right), one tenth of the circle per entry
-        double a = l.childCenter(1, 0);
-        double r = (PlayerMenuLayout.CHILD_INNER + PlayerMenuLayout.CHILD_OUTER) / 2.0;
-        assertEquals(new Selection(1, 0), l.hit(Math.sin(a) * r, -Math.cos(a) * r, 1));
-        double c = l.childCenter(1, 2);
-        assertEquals(new Selection(1, 2), l.hit(Math.sin(c) * r, -Math.cos(c) * r, 1));
-        assertEquals(new Selection(1, -1), l.hit(50, 0, 1), "inside the ring: the category itself");
-        assertEquals(new Selection(3, -1), l.hit(-r, 0, 1), "outside the outer ring: by angle");
-        assertEquals("mod/ban", l.entry(new Selection(1, 1)));
-        assertEquals(null, l.entry(new Selection(1, -1)), "a category is no entry");
-
-        // the wheel steps through the entries, the category's in its place
-        assertEquals(List.of(new Selection(0, -1), new Selection(1, 0), new Selection(1, 1), new Selection(1, 2),
-                new Selection(2, -1), new Selection(3, -1)), l.order());
-    }
-
-    @Test
-    void segmentsAreFilledWithGapsBetweenThem() {
-        double w = Math.PI / 2;
-        int[] runs = PlayerMenuLayout.runs(30, 70, 2, -w / 2, w, 4, 2.0);
-        assertTrue(runs.length > 0 && runs.length % 4 == 0);
-        // straight up at radius 50 is segment 0; on the diagonal (boundary between 0 and 1) nothing
-        assertEquals(0, segmentAt(runs, 0, -50, 2));
-        assertEquals(1, segmentAt(runs, 50, 0, 2));
-        assertEquals(-1, segmentAt(runs, 35.4, -35.4, 2), "gap on the boundary");
-        assertEquals(-1, segmentAt(runs, 0, -10, 2), "the inside stays free for the player");
-        assertEquals(-1, segmentAt(runs, 0, -80, 2));
-    }
-
-    static int segmentAt(int[] runs, double x, double y, int q) {
-        int sx = (int) Math.floor(x * q);
-        int sy = (int) Math.floor(y * q);
-        for (int i = 0; i < runs.length; i += 4) {
-            if (runs[i] == sy && sx >= runs[i + 1] && sx < runs[i + 2]) {
-                return runs[i + 3];
-            }
-        }
-        return -1;
+        assertEquals(l.slots().get(1), l.category("mod"));
+        assertNull(l.category("gone"));
+        assertNull(l.category(null));
     }
 
     PlayerMenuView shown() {
         return assertInstanceOf(PlayerMenuView.class, platform.screenStack.peek());
     }
 
-    /** Moves the mouse onto the segment whose label is {@code label} and draws a frame. */
-    FakeGraphics pointAt(PlayerMenuView v, String label) {
-        for (double a = 0; a < 2 * Math.PI; a += Math.PI / 90) {
-            int mx = 200 + (int) Math.round(Math.sin(a) * 50);
-            int my = 150 - (int) Math.round(Math.cos(a) * 50);
-            FakeGraphics g = new FakeGraphics();
-            v.render(g, 400, 300, mx, my);
-            if (g.texts.stream().anyMatch(t -> t.contains(label))) {
-                return g;
+    /** Moves the mouse onto the row whose label contains {@code label} and draws a frame; returns the mouse position. */
+    int[] pointAt(PlayerMenuView v, String label) {
+        v.render(new FakeGraphics(), 400, 300, 0, 0); // where the mouse rests when the menu opens
+        for (int y = 0; y < 300; y += 3) {
+            for (int x = 200; x < 400; x += 20) {
+                v.render(new FakeGraphics(), 400, 300, x, y);
+                String c = v.chosen();
+                if (c != null && c.contains(label)) {
+                    return new int[] {x, y};
+                }
             }
         }
-        throw new AssertionError("no segment " + label);
+        throw new AssertionError("no row " + label);
     }
 
     @Test
-    void holdingTheMiddleButtonOpensReleasingRunsTheEntry() {
+    void holdingTheMiddleButtonOpensReleasingRunsTheEntry() throws InterruptedException {
         middle = true;
         core.tick();
         PlayerMenuView v = shown();
         assertTrue(core.interaction().isOpen());
+        FakeGraphics card = new FakeGraphics();
+        v.render(card, 400, 300, 0, 0);
+        assertTrue(card.texts.contains("Steve"), "the player card next to the list");
+        assertTrue(card.texts.contains("Player interactions"));
         // in singleplayer without the Lumora server: only "Copy name" (English test platform)
-        FakeGraphics g = pointAt(v, "Copy name");
-        assertTrue(g.texts.stream().anyMatch(t -> t.contains("Steve")), "the player card above the ring");
+        int[] at = pointAt(v, "Copy name");
+        Thread.sleep(400); // held longer than a click
         middle = false;
-        v.render(new FakeGraphics(), 400, 300, 200, 100); // notices the release
+        v.render(new FakeGraphics(), 400, 300, at[0], at[1]); // notices the release
         assertEquals("Steve", platform.clipboard);
         assertTrue(platform.screenStack.isEmpty(), "closed");
         assertFalse(core.interaction().isOpen());
@@ -176,20 +139,39 @@ class PlayerMenuTest {
         middle = true;
         core.tick();
         PlayerMenuView v = shown();
+        v.render(new FakeGraphics(), 400, 300, 200, 150);
         middle = false;
-        v.mouseReleased(200, 150, 2); // released right away in the middle
+        v.mouseReleased(200, 150, 2); // released right away, even over an action
         assertFalse(platform.screenStack.isEmpty(), "stays open");
+        assertEquals(null, v.chosen(), "the resting mouse chooses nothing");
         v.mouseScrolled(200, 150, -1); // the wheel chooses the first entry
-        FakeGraphics g = new FakeGraphics();
-        v.render(g, 400, 300, 200, 150);
-        assertTrue(g.texts.stream().anyMatch(t -> t.contains("Copy name")));
-        v.mouseClicked(200, 150, 0);
+        v.render(new FakeGraphics(), 400, 300, 200, 150);
+        assertEquals("Copy name", v.chosen());
+        v.keyPressed(dev.lumora.api.input.Keys.ENTER, false, false);
         assertEquals("Steve", platform.clipboard);
         assertTrue(platform.screenStack.isEmpty());
     }
 
     @Test
-    void partyAndFriendAreOfferedGreyedOutWhileTheSocialServerIsUnreachable() {
+    void partyInviteIsTheServersPartyCommand() {
+        platform.connection = new dev.lumora.api.game.ConnectionInfo(dev.lumora.api.game.ConnectionInfo.Kind.MULTIPLAYER, "mc.example.net", 20);
+        platform.inWorld = true;
+        middle = true;
+        core.tick();
+        PlayerMenuView v = shown();
+        int[] at = pointAt(v, "Invite to party");
+        v.mouseClicked(at[0], at[1], 0);
+        // GameExtras.NONE cannot send commands: the chat opens with the command instead
+        assertEquals(List.of("/party invite Steve"), chat);
+        assertTrue(platform.screenStack.isEmpty());
+
+        assertTrue(PlayerInteraction.commandName("Steve_99"));
+        assertFalse(PlayerInteraction.commandName("§6Shop NPC"));
+        assertFalse(PlayerInteraction.commandName("a b"));
+    }
+
+    @Test
+    void theFriendEntryIsGreyedOutWithTheReasonWhileTheSocialServerIsUnreachable() {
         // Lumora Social set up, but nothing listens on the server address
         System.setProperty("lumora.social.server", "ws://127.0.0.1:1/");
         try {
@@ -198,11 +180,13 @@ class PlayerMenuTest {
             middle = true;
             core.tick();
             PlayerMenuView v = shown();
-            FakeGraphics g = pointAt(v, "Invite to party");
-            assertTrue(g.texts.stream().anyMatch(t -> t.contains("Invite to party · not connected")), "with the reason");
-            pointAt(v, "Add friend · not connected");
-            v.mouseClicked(200, 100, 0); // a click on a greyed out entry does nothing
+            int[] at = pointAt(v, "Add friend · not connected");
+            v.mouseClicked(at[0], at[1], 0); // a click on a greyed out entry does nothing
             assertFalse(platform.screenStack.isEmpty());
+            FakeGraphics g = new FakeGraphics();
+            v.render(g, 400, 300, at[0], at[1]);
+            assertTrue(g.texts.contains("offline"), "the card says why");
+            assertFalse(g.texts.stream().anyMatch(t -> t.contains("party")), "no party entry in singleplayer");
             v.close();
         } finally {
             System.clearProperty("lumora.social.server");
@@ -225,23 +209,31 @@ class PlayerMenuTest {
         middle = true;
         core.tick();
         PlayerMenuView v = shown();
-        pointAt(v, "Winken");
+        int[] at = pointAt(v, "Winken");
+        v.mouseClicked(at[0], at[1], 0);
         middle = false;
-        v.render(new FakeGraphics(), 400, 300, 200, 150);
-        assertEquals(List.of("wave"), ran, "released over the entry chosen in the last frame");
+        assertEquals(List.of("wave"), ran);
         assertTrue(platform.screenStack.isEmpty());
         assertTrue(platform.logs.stream().anyMatch(l -> l.contains("demo:broken")), "the failing entry is logged and left out");
 
         core.tick(); // the button is up again
-        // operator level 2: the category appears and opens its outer ring in the same menu
+        // operator level 2: the category appears and opens its own list in the same menu
         permission = 2;
         middle = true;
         core.tick();
         v = shown();
-        FakeGraphics g = pointAt(v, "Moderation");
-        assertTrue(g.texts.stream().anyMatch(t -> t.contains("Moderation")));
-        v.mouseClicked(0, 0, 1); // right click: back (closes the outer ring)
-        v.close();
+        at = pointAt(v, "Moderation");
+        v.mouseClicked(at[0], at[1], 0);
+        int[] kick = pointAt(v, "Kicken");
+        pointAt(v, "< Moderation");
+        v.mouseClicked(0, 0, 1); // right click: back to the main list
+        v.render(new FakeGraphics(), 400, 300, kick[0], kick[1]);
+        assertFalse("Kicken".equals(v.chosen()));
+        v.mouseClicked(at[0], at[1], 0);
+        v.render(new FakeGraphics(), 400, 300, kick[0], kick[1]);
+        v.mouseClicked(kick[0], kick[1], 0);
+        assertEquals(List.of("wave", "kick Steve"), ran);
+        assertTrue(platform.screenStack.isEmpty());
 
         tracker.closeAll(platform.logger(), "demo");
         assertTrue(menu.entries().isEmpty(), "removed with the addon");

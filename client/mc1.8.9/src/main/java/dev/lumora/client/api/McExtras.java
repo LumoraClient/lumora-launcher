@@ -372,4 +372,21 @@ final class McExtras implements GameExtras {
     public void openChat(String text) {
         mc().setScreen(new net.minecraft.client.gui.screen.ChatScreen(text));
     }
+
+    @Override
+    public boolean sendCommand(String command) {
+        ClientPlayerEntity p = mc().player;
+        if (p == null) {
+            return false;
+        }
+        p.sendChatMessage("/" + command);
+        return true;
+    }
+
+    @Override
+    public int latency(java.util.UUID player) {
+        net.minecraft.client.network.ClientPlayNetworkHandler c = mc().getNetworkHandler();
+        net.minecraft.client.network.PlayerListEntry e = c == null ? null : c.getPlayerListEntry(player);
+        return e == null ? -1 : e.getLatency();
+    }
 }

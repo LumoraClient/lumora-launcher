@@ -202,6 +202,19 @@ public interface GameExtras {
     default void openChat(String text) {
     }
 
+    /**
+     * Sends {@code command} (without the slash) to the server as if typed into the chat ("In Party einladen" in the
+     * player menu); false if not connected to a world.
+     */
+    default boolean sendCommand(String command) {
+        return false;
+    }
+
+    /** Ping of {@code player} in the tab list of the server in milliseconds, -1 if unknown. */
+    default int latency(java.util.UUID player) {
+        return -1;
+    }
+
     /** Left mouse button held (dragging the chat edges). */
     default boolean mouseLeftDown() {
         return false;

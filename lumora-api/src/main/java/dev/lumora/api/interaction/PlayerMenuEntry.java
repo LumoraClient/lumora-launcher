@@ -79,7 +79,7 @@ public final class PlayerMenuEntry {
         return texture;
     }
 
-    /** Name of the category (outer ring), or null for an entry in the ring itself. */
+    /** Name of the category (a row that opens its entries as a list), or null for an entry in the main list. */
     public String category() {
         return category;
     }
@@ -163,7 +163,7 @@ public final class PlayerMenuEntry {
             return this;
         }
 
-        /** Puts the entry into a category: one segment of the ring that opens its entries as an outer ring. */
+        /** Puts the entry into a category: one row of the menu that opens its entries as a list of their own. */
         public Builder category(String name, String icon) {
             if (name == null || name.isBlank()) {
                 throw new IllegalArgumentException("category");

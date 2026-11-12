@@ -563,7 +563,7 @@ public final class SmokeTest {
                 ticks = 0;
             }
         } else if (worldStep == modes.length + 13) {
-            // player menu: ring with Lumora's and test entries, the wheel opens the category's outer ring
+            // player menu: panel with the player card, Lumora's and test entries; then the category's own list
             if (ticks == 2) {
                 PlayerMenuSmoke.prepare(mc);
             } else if (ticks == 10) {
@@ -572,7 +572,7 @@ public final class SmokeTest {
                 PlayerMenuSmoke.check(extraProblems);
                 screenshot(mc, "playermenu");
             } else if (ticks == 16) {
-                PlayerMenuSmoke.wheel(mc, 3);
+                PlayerMenuSmoke.openCategory(mc);
             } else if (ticks == 18) {
                 screenshot(mc, "playermenu-category");
             } else if (ticks == 20) {

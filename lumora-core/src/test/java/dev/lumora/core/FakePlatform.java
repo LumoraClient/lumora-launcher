@@ -36,6 +36,8 @@ public final class FakePlatform implements Platform {
     public boolean inWorld;
     /** The own player (game().player()), null for none. */
     public PlayerSnapshot player;
+    /** What game().connection() reports. */
+    public ConnectionInfo connection = ConnectionInfo.NONE;
 
     @Override
     public dev.lumora.core.extras.GameExtras extras() {
@@ -138,7 +140,7 @@ public final class FakePlatform implements Platform {
 
             @Override
             public ConnectionInfo connection() {
-                return ConnectionInfo.NONE;
+                return connection;
             }
 
             @Override

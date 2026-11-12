@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  * Smoke test of the player menu: opened on a player (as by the middle mouse button), with test entries of an addon
- * (one in the ring, two in a category), the mouse wheel stepping into the category's outer ring, then closed.
+ * (one in the list, two in a category), the category opened with the wheel on its first entry, then closed.
  */
 final class PlayerMenuSmoke {
     private static RegistrationTracker tracker;
@@ -47,14 +47,13 @@ final class PlayerMenuSmoke {
         }
     }
 
-    /** Turns the mouse wheel {@code steps} times (down = next entry). */
-    static void wheel(Minecraft mc, int steps) {
+    /** Opens the test category and steps the wheel onto its first entry. */
+    static void openCategory(Minecraft mc) {
+        ApiSmoke.core().interaction().openCategory("Moderation");
         var s = mc.gui.screen();
-        if (s == null) {
-            return;
-        }
-        for (int i = 0; i < steps; i++) {
-            s.mouseScrolled(s.width / 2.0, s.height / 2.0, 0, -1);
+        if (s != null) {
+            s.mouseScrolled(0, 0, 0, -1);
+            s.mouseScrolled(0, 0, 0, -1);
         }
     }
 

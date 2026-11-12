@@ -364,16 +364,16 @@ einem Bildschirm der laufenden Minecraft-Version und leitet Zeichnen und Eingabe
 
 ## dev.lumora.api.interaction (seit 1.4)
 
-Das **Spielermenü** ist fest im Client eingebaut: Spieler anvisieren, **Mausrad gedrückt halten** – um den Spieler
-erscheint ein Ring. Loslassen über einem Eintrag führt ihn aus; wer nur kurz klickt, wählt danach mit Klick oder
-Mausrad (drehen = nächster Eintrag), Rechtsklick geht zurück, Esc schließt. Über dem Ring steht die Spielerkarte
-(Kopf, Name, ob er Lumora nutzt, Freund/Party), unter dem Ring der gewählte Eintrag. Es gibt nur dieses eine Menü:
-Kategorien öffnen ihre Einträge als äußeren Ring daneben, das Client-Profil erscheint neben dem Ring.
+Das **Spielermenü** ist fest im Client eingebaut: Spieler anvisieren, **Mausrad gedrückt halten** – in der Mitte
+erscheint ein Fenster *Spieler-Interaktionen*: links die Spielerkarte (Kopf, Name, Freund/Lumora, Online, Ping aus der
+Tab-Liste, Lumora-Profil), rechts die Einträge als Liste. Loslassen über einem Eintrag führt ihn aus; wer nur kurz
+klickt, wählt danach mit Klick, Mausrad oder Pfeiltasten (Enter führt aus), Rechtsklick geht zurück, Esc oder ✕
+schließt. Es gibt nur dieses eine Menü: Kategorien öffnen ihre Einträge als eigene Liste mit einer Zeile zurück.
 
-Lumoras eigene Einträge: *Freund hinzufügen* (bzw. *Anfrage annehmen*), *In Party einladen* (bzw. *Party beitreten*,
-*Aus Party entfernen*, *Einladung zurückziehen*), *Client-Profil öffnen*, *Lumora-Nachricht* (nur Freunde), *Privat
-schreiben* (`/msg Name`, nur auf Servern) und *Name kopieren*. Die Social-Einträge erscheinen nur, wenn der Lumora-
-Social-Server verbunden ist und der Spieler Lumora nutzt.
+Lumoras eigene Einträge: *Freund hinzufügen* (bzw. *Anfrage annehmen*), *In Party einladen* (schickt
+`/party invite Name` an den Server, nur auf Servern), *Lumora-Nachricht* (nur Freunde), *Privat schreiben*
+(`/msg Name`, nur auf Servern) und *Name kopieren*. Die Social-Einträge erscheinen nur, wenn Lumora Social
+eingerichtet ist; ohne Verbindung sind sie mit Grund ausgegraut.
 
 | Typ | Inhalt |
 |---|---|

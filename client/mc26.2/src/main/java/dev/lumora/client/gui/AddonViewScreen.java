@@ -81,7 +81,8 @@ public final class AddonViewScreen extends Screen {
 
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        // the view draws its own background
+        // the view draws its own background; its own stratum, so the HUD (text, items) is not drawn on top of it
+        g.nextStratum();
     }
 
     @Override

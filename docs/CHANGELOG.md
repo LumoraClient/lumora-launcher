@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.3.35 (2026-11-12)
+
+### Im Spiel
+- **Widget-Design:** Neues Modul im Hub (Kategorie Anzeige), mit dem du das Aussehen aller Widgets an einer Stelle festlegst: Hintergrund mit Farbe und Deckkraft, abgerundete Ecken, Rand, Akzentstreifen (Theme-Farbe oder eigene), Format von Beschriftung und Wert („FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“ oder nur der Wert), Beschriftung in Großbuchstaben, Textschatten, Farben von Beschriftung und Wert und die Größe aller Widgets. Dazu Vorlagen: Lumora, Minimal (nur Text) und Abgerundet mit Rand. Solange das Modul an ist, blenden die Widgets ihre eigenen Stil-Einstellungen aus; ab Werk ist es aus, damit sich nichts von selbst ändert.
+- Es gilt für alle eingebauten Widgets in allen Versionen (FPS, CPS, Koordinaten, Uhr, Ping, Tempo, Server, Rüstung, Info-Widgets, Blockinfo, Toggle Sprint), die Tastenanzeige (Hintergrund, Ecken, Rand, Akzent beim Drücken) und Hotbar & Leisten (Hintergrund, Rand, Schatten). Farben mit Bedeutung bleiben, z. B. ein grüner oder roter Ping und die Farben von Herzen und Hunger.
+- Die Größe aller Widgets gilt auch für Addon-Widgets; der HUD-Editor rechnet sie beim Ziehen und mit dem Mausrad mit ein.
+
+### Für Addon-Entwickler
+- **Lumora-API 1.6.0:** `Theme.widgetStyle()` liefert das Widget-Design (`active()`, Farben, Ecken, Rand, Format, `panel`, `line`, `lineWidth`), damit Addon-Widgets mitziehen können. Der Session-Timer zeigt es als Beispiel. Addons für 1.0 bis 1.5 laden unverändert.
+
 ## 0.3.34 (2026-11-12)
 
 ### Im Spiel

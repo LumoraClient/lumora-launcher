@@ -1,6 +1,30 @@
 {
   "news": [
     {
+      "id": "lumora-widget-design",
+      "date": "2026-11-12",
+      "author": "Lumora",
+      "version": "0.3.35",
+      "title": "Ein Design für alle Widgets",
+      "text": "Mit dem neuen Modul Widget-Design legst du Hintergrund, Ecken, Rand, Farben, Format und Größe aller Widgets an einer Stelle fest.",
+      "image": "news-widget-design.png",
+      "body": [
+        {"p": "Bisher hatte jedes Widget seine eigenen Stil-Einstellungen. Wer alle Widgets im gleichen Look wollte, musste jedes einzeln anpassen. Das neue Modul Widget-Design im Hub (Kategorie Anzeige) erledigt das jetzt mit einer einzigen Einstellungsseite."},
+        {"h": "Was du einstellen kannst"},
+        {"list": [
+          "Hintergrund mit eigener Farbe und Deckkraft, abgerundete Ecken und ein Rand",
+          "Akzentstreifen in der Farbe deines Themes oder einer eigenen",
+          "Format von Beschriftung und Wert: „FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“ oder nur der Wert",
+          "Beschriftung in Großbuchstaben, Textschatten, Farben von Beschriftung und Wert",
+          "Die Größe aller Widgets auf einmal",
+          "Vorlagen per Knopf: Lumora, Minimal (nur Text) und Abgerundet mit Rand"
+        ]},
+        {"img": "news-widget-design-keys.png", "caption": "Auch die Tastenanzeige, Hotbar & Leisten und eingebaute Info-Widgets folgen dem Design."},
+        {"p": "Solange das Modul an ist, blenden die Widgets ihre eigenen Stil-Einstellungen aus. Ab Werk ist es aus, damit sich dein HUD nicht von selbst ändert. Farben mit Bedeutung bleiben erhalten, etwa ein roter Ping oder die Farbe der Herzen."},
+        {"p": "Die Größe gilt auch für Widgets von Addons. Damit Addons auch Farben und Format übernehmen, gibt es in der Lumora-API 1.6 die neue Schnittstelle Theme.widgetStyle()."}
+      ]
+    },
+    {
       "id": "lumora-player-panel",
       "date": "2026-11-12",
       "author": "Lumora",

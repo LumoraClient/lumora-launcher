@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.35 (2026-11-12):**
+- **Build:** `gradlew clean build` erfolgreich, 516 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für das Widget-Design (eigenes Aussehen der Widgets, solange es aus ist; Formate „FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“, nur Wert, Großbuchstaben, Farben mit Bedeutung bleiben; Rand lässt das Innere frei, Hintergrund und Akzentstreifen; Größe aller Widgets mal eigene Größe; Modul ab Werk aus, eigene Stil-Einstellungen der Widgets ausgeblendet, Änderungen sofort sichtbar, Vorlagen; Addon-API `Theme.widgetStyle()`). Alle 16 Client-Module kompiliert; keine Mixins geändert.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 mit eingeschaltetem Widget-Design (runde Ecken, Rand, ohne Akzentstreifen, „[FPS] 60“, Großbuchstaben, Größe 1,25) bestanden; Aufnahme angesehen: eingebaute Widgets, Tastenanzeige und Session-Timer im gemeinsamen Design. Die Aufnahme dient als News-Bild.
+- **Smoke-Test mit dem fertigen 0.3.35-Build:** 26.3 und 1.8.9 (Widgets in allen Versionsmodulen geändert; 1.8.9 als älteste Version) – beide bestanden, mit ausgeschaltetem Widget-Design; HUD-Aufnahme von 1.8.9 unverändert. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** die Einstellungsseite des Moduls im Hub von Hand; Ziehen und Mausrad im HUD-Editor mit geänderter Größe aller Widgets; das Widget-Design in 1.8.9 bis 26.2 im Spiel; ein echtes Selbst-Update von 0.3.34 auf 0.3.35.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.34 (2026-11-12):**
 - **Build:** `gradlew clean build` erfolgreich, 510 Unit-Tests ohne Fehler (1 übersprungen). Die Spielermenü-Tests prüfen jetzt das Fenster: Halten und Loslassen über einer Aktion, kurzer Klick lässt es offen, Mausrad und Enter, `/party invite <Name>` auf Servern (ohne Befehlsversand öffnet sich der Chat mit dem Befehl), nur echte Spielernamen, ausgegrauter Freund-Eintrag mit Grund ohne Lumora-Verbindung, Addon-Kategorie mit eigener Liste und Zurück. Alle 16 Client-Module kompiliert (neu `sendCommand` und `latency` je Version); keine Mixins geändert.
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 bestanden; Aufnahmen angesehen: Fenster mit Spielerkarte und Aktionsliste, geöffnete Kategorie, HUD-Widgets liegen hinter dem Fenster. Die Aufnahme des Fensters dient als News-Bild.

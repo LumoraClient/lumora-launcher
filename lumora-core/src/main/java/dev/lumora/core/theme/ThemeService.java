@@ -44,6 +44,11 @@ public final class ThemeService {
             }
 
             @Override
+            public dev.lumora.api.ui.WidgetStyle widgetStyle() {
+                return dev.lumora.core.hud.WidgetStyleView.INSTANCE;
+            }
+
+            @Override
             public List<Accent> accents() {
                 List<Accent> l = new ArrayList<>();
                 for (LumoraTheme.Accent a : LumoraTheme.ACCENTS) {

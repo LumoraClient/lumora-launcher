@@ -64,6 +64,11 @@ public interface Theme {
         return 0xFFF2555A;
     }
 
+    /** The look of all HUD widgets the player set in the hub ("Widget-Design"); not active by default. @since 1.6.0 */
+    default WidgetStyle widgetStyle() {
+        return WidgetStyle.NONE;
+    }
+
     /** An accent colour the player can choose. */
     record Accent(String id, String name, int color) {
     }

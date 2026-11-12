@@ -66,17 +66,18 @@ public final class HubView implements AddonView {
     /** Built-in addons whose widgets get their own cards (the addon itself has no card). */
     private static final Set<String> WIDGET_CONTAINERS = Set.of("lumora", "lumora-info");
     /** Category and icon of the built-in modules. */
-    private static final Map<String, String[]> BUILT_IN = Map.of(
-            "lumora-crosshair", new String[]{WidgetCategory.COMBAT, "crosshair"},
-            "lumora-attackindicator", new String[]{WidgetCategory.COMBAT, "attackindicator"},
-            "lumora-blockoverlay", new String[]{WidgetCategory.WORLD, "blockoverlay"},
-            "lumora-connection", new String[]{WidgetCategory.SERVER, "connection"},
-            "lumora-togglesprint", new String[]{WidgetCategory.PLAYER, "togglesprint"},
-            "lumora-fullbright", new String[]{WidgetCategory.WORLD, "fullbright"},
-            "lumora-chat", new String[]{WidgetCategory.SERVER, "chat"},
-            "lumora-tab", new String[]{WidgetCategory.SERVER, "tab"},
-            "lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"},
-            "lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"});
+    private static final Map<String, String[]> BUILT_IN = Map.ofEntries(
+            Map.entry("lumora-crosshair", new String[]{WidgetCategory.COMBAT, "crosshair"}),
+            Map.entry("lumora-attackindicator", new String[]{WidgetCategory.COMBAT, "attackindicator"}),
+            Map.entry("lumora-blockoverlay", new String[]{WidgetCategory.WORLD, "blockoverlay"}),
+            Map.entry("lumora-connection", new String[]{WidgetCategory.SERVER, "connection"}),
+            Map.entry("lumora-togglesprint", new String[]{WidgetCategory.PLAYER, "togglesprint"}),
+            Map.entry("lumora-fullbright", new String[]{WidgetCategory.WORLD, "fullbright"}),
+            Map.entry("lumora-chat", new String[]{WidgetCategory.SERVER, "chat"}),
+            Map.entry("lumora-tab", new String[]{WidgetCategory.SERVER, "tab"}),
+            Map.entry("lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"}),
+            Map.entry("lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"}),
+            Map.entry("lumora-widgetdesign", new String[]{WidgetCategory.GENERAL, "widget"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     private static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",

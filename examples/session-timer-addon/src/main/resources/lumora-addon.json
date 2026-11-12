@@ -5,7 +5,7 @@
   "version": "${version}",
   "description": "Zeit in der aktuellen Welt als HUD-Widget",
   "authors": ["Lumora"],
-  "api": "1.3.0",
+  "api": "1.6.0",
   "minecraft": ["*"],
   "entrypoint": "dev.lumora.example.timer.SessionTimerAddon",
   "depends": { "lumora": ">=1.0.0" },

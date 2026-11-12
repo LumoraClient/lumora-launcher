@@ -12,7 +12,7 @@ import java.util.List;
  */
 public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
-            "lumora-attackindicator", "lumora-statusbars");
+            "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign");
 
     private Extras() {
     }
@@ -32,6 +32,10 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-blockoverlay", "Block-Overlay",
                         "Umrandung des anvisierten Blocks: Farbe, Regenbogen, Dicke, Einblenden, Blockinfo", BlockOverlayModule.class),
                         () -> new BlockOverlayModule(platform)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-widgetdesign", "Widget-Design",
+                        "Ein Aussehen für alle Widgets: Hintergrund, Rand, Ecken, Akzent, Farben, Textschatten, Format und Größe",
+                        WidgetDesignModule.class),
+                        WidgetDesignModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-buttons", "Button-Design",
                         "Knöpfe im Stil Blackout, Hyperium, Liquid, Lunar, PvPClient oder Rounded", ButtonStyleModule.class),
                         ButtonStyleModule::new),

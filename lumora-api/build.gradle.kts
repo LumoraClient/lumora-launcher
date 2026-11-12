@@ -6,7 +6,7 @@ plugins {
 }
 
 // The artifact carries the API version (LumoraAPI.API_VERSION), not the client version.
-version = "1.5.0"
+version = "1.6.0"
 
 java {
     withSourcesJar()

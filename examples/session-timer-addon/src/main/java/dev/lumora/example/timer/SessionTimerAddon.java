@@ -37,7 +37,7 @@ public final class SessionTimerAddon implements LumoraAddon {
 
     @Override
     public void onEnable(AddonContext context) {
-        SessionTimerWidget w = new SessionTimerWidget(context.game());
+        SessionTimerWidget w = new SessionTimerWidget(context.game(), context.theme().widgetStyle());
         widget = w;
         context.widgets().register(w);
         context.events().subscribe(WorldJoinEvent.class, e -> {

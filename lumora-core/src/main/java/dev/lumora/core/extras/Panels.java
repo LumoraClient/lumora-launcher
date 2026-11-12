@@ -7,6 +7,7 @@ import dev.lumora.api.hud.HudWidget;
 import dev.lumora.api.hud.RenderContext;
 import dev.lumora.api.render.Colors;
 import dev.lumora.api.render.HudGraphics;
+import dev.lumora.core.hud.WidgetDesign;
 
 import java.util.List;
 
@@ -17,6 +18,9 @@ import java.util.List;
 final class Panels {
     static final int PAD = 4;
     static final int LINE = 10;
+
+    /** Shows a widget's own look settings only while "Widget-Design" is off. */
+    static final java.util.function.BooleanSupplier OWN_LOOK = () -> !WidgetDesign.active();
 
     private Panels() {
     }
@@ -43,10 +47,11 @@ final class Panels {
 
         @Override
         public void configure(SettingsGroup s) {
-            background = s.toggle("background", true).name("lumora.widget.setting.background");
-            accent = s.toggle("accent", true).name("lumora.widget.setting.accent");
-            labelColor = s.color("label_color", Colors.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced();
-            valueColor = s.color("value_color", Colors.TEXT, false).name("lumora.widget.setting.value_color").advanced();
+            // hidden while "Widget-Design" sets the look of all widgets
+            background = s.toggle("background", true).name("lumora.widget.setting.background").visibleWhen(OWN_LOOK);
+            accent = s.toggle("accent", true).name("lumora.widget.setting.accent").visibleWhen(OWN_LOOK);
+            labelColor = s.color("label_color", Colors.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced().visibleWhen(OWN_LOOK);
+            valueColor = s.color("value_color", Colors.TEXT, false).name("lumora.widget.setting.value_color").advanced().visibleWhen(OWN_LOOK);
             extra(s);
         }
 
@@ -54,6 +59,9 @@ final class Panels {
         }
 
         void panel(HudGraphics g, int w, int h) {
+            if (WidgetDesign.panel(g, w, h)) {
+                return;
+            }
             if (background.get()) {
                 g.fill(0, 0, w, h, Colors.withAlpha(Colors.BACKGROUND, 0x9C));
                 g.fill(0, 0, w, 1, Colors.withAlpha(0xFFFFFFFF, 0x10));
@@ -118,19 +126,15 @@ final class Panels {
             List<String[]> l = lines;
             int w = 0;
             for (String[] line : l) {
-                w = Math.max(w, g.textWidth(line[0]) + (line[0].isEmpty() ? 0 : 4) + g.textWidth(line[1]));
+                w = Math.max(w, WidgetDesign.lineWidth(g::textWidth, line[0], line[1]));
             }
             width = Math.max(20, w + PAD * 2 + 2);
             panel(g, width, height(ctx));
             int y = PAD;
             for (String[] line : l) {
-                int x = PAD + 2;
-                if (!line[0].isEmpty()) {
-                    g.text(line[0], x, y, labelColor.argb(), true);
-                    x += g.textWidth(line[0]) + 4;
-                }
-                int color = line.length > 2 && line[2] != null ? (int) Long.parseLong(line[2].substring(1), 16) : valueColor.argb();
-                g.text(line[1], x, y, color, true);
+                boolean fixed = line.length > 2 && line[2] != null;
+                int color = fixed ? (int) Long.parseLong(line[2].substring(1), 16) : valueColor.argb();
+                WidgetDesign.line(g, PAD + 2, y, line[0], line[1], labelColor.argb(), color, true, fixed);
                 y += LINE;
             }
         }

@@ -13,6 +13,7 @@ import dev.lumora.api.hud.WidgetCategory;
 import dev.lumora.api.hud.WidgetPlacement;
 import dev.lumora.api.render.Colors;
 import dev.lumora.api.render.HudGraphics;
+import dev.lumora.core.hud.WidgetDesign;
 import dev.lumora.core.Platform;
 
 import java.util.Locale;
@@ -135,8 +136,9 @@ public final class StatusBarsModule implements LumoraAddon {
             format = s.selection("format", "value", "value", "value_max", "percent").visibleWhen(() -> !vanilla());
             extraLook(s);
             barWidth = s.slider("bar_width", 80, 40, 160).step(5).visibleWhen(() -> "bar".equals(style.get()));
-            background = s.checkbox("background", true).visibleWhen(() -> !vanilla());
-            shadow = s.checkbox("shadow", true);
+            // background and shadow come from "Widget-Design" while it is on
+            background = s.checkbox("background", true).visibleWhen(() -> !vanilla() && !WidgetDesign.active());
+            shadow = s.checkbox("shadow", true).visibleWhen(() -> !WidgetDesign.active());
             textColor = s.chroma("text_color", defaultText(), false).section(p + "section.colors")
                     .visibleWhen(() -> !vanilla());
             barColor = s.color("bar_color", barDefault(), false).visibleWhen(() -> "bar".equals(style.get()));
@@ -200,7 +202,7 @@ public final class StatusBarsModule implements LumoraAddon {
         }
 
         private int pad() {
-            return background.get() ? PAD : 0;
+            return WidgetDesign.background(background.get()) ? PAD : 0;
         }
 
         @Override
@@ -240,23 +242,23 @@ public final class StatusBarsModule implements LumoraAddon {
             if ("bar".equals(st)) {
                 double max = max(s);
                 float f = max <= 0 ? 0 : (float) Math.max(0, Math.min(1, value(s) / max));
-                g.roundedRect(0, 0, w, h, 2, background.get() ? 0xB0101018 : 0x60101018);
+                WidgetDesign.track(g, 0, 0, w, h, 2, background.get() ? 0xB0101018 : 0x60101018);
                 int fill = Math.round((w - 2) * f);
                 if (fill > 0) {
                     g.roundedRect(1, 1, fill, h - 2, 2, barColor.argb());
                 }
-                g.centeredText(text, w / 2, 2, color, shadow.get());
+                g.centeredText(text, w / 2, 2, color, WidgetDesign.shadow(shadow.get()));
                 return;
             }
-            if (background.get()) {
-                g.roundedRect(0, 0, w, h, 3, Colors.withAlpha(Colors.BACKGROUND, 0xB0));
+            if (WidgetDesign.active() || background.get()) {
+                WidgetDesign.box(g, 0, 0, w, h, 3, Colors.withAlpha(Colors.BACKGROUND, 0xB0));
             }
             int x = pad();
             if ("compact".equals(st)) {
                 icon(g, x, pad(), s);
                 x += 11;
             }
-            g.text(text, x, pad() + 1, color, shadow.get());
+            g.text(text, x, pad() + 1, color, WidgetDesign.shadow(shadow.get()));
         }
 
         @Override
@@ -572,8 +574,9 @@ public final class StatusBarsModule implements LumoraAddon {
             style = s.selection("style", "vanilla", "vanilla", "compact", "bar", "number").section(p + "section.look");
             format = s.selection("format", "value", "value", "value_max", "percent").visibleWhen(() -> !vanilla());
             barWidth = s.slider("bar_width", 80, 40, 182).step(2).visibleWhen(() -> "bar".equals(style.get()));
-            background = s.checkbox("background", true).visibleWhen(() -> !vanilla());
-            shadow = s.checkbox("shadow", true);
+            // background and shadow come from "Widget-Design" while it is on
+            background = s.checkbox("background", true).visibleWhen(() -> !vanilla() && !WidgetDesign.active());
+            shadow = s.checkbox("shadow", true).visibleWhen(() -> !WidgetDesign.active());
             textColor = s.chroma("text_color", LEVEL_GREEN, false).section(p + "section.colors").visibleWhen(() -> !vanilla());
             barColor = s.color("bar_color", 0xFF7CD63A, false).visibleWhen(() -> "bar".equals(style.get()));
         }
@@ -678,7 +681,7 @@ public final class StatusBarsModule implements LumoraAddon {
             style = s.selection("style", "vanilla", "vanilla", "lumora").section(p + "section.look");
             vertical = s.checkbox("vertical", false);
             numbers = s.checkbox("numbers", false);
-            accent = s.chroma("accent", Colors.ACCENT, false).visibleWhen(() -> "lumora".equals(style.get()));
+            accent = s.chroma("accent", Colors.ACCENT, false).visibleWhen(() -> "lumora".equals(style.get()) && !WidgetDesign.active());
             offhand = s.selection("offhand", "left", "left", "right", "off").section(p + "section.offhand");
             offhandSpecial = s.toggle("offhand_special", true).visibleWhen(() -> !"off".equals(offhand.get()));
         }
@@ -791,7 +794,8 @@ public final class StatusBarsModule implements LumoraAddon {
 
         private void drawLumora(HudGraphics g, RenderContext ctx, GameExtras.Status s, boolean v, int bar, int off,
                                 boolean showOffhand) {
-            int accentColor = accent.argbAt(ctx.timeMillis());
+            WidgetDesign.Look look = WidgetDesign.look();
+            int accentColor = look != null ? look.accent() : accent.argbAt(ctx.timeMillis());
             boolean world = !ctx.preview() && ctx.game().inWorld();
             for (int i = 0; i < 9; i++) {
                 int x = v ? 2 : bar + i * 22;

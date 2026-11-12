@@ -84,15 +84,17 @@ public final class KeystrokesView {
         gap = s.slider("gap", 2, 0, 6).unit(" px");
         spaceHeight = s.slider("space_height", 9, 4, 28).unit(" px");
         textSize = s.slider("text_size", 100, 50, 150).step(10).unit(" %");
-        rounded = s.toggle("rounded", false);
-        outline = s.toggle("outline", false);
-        outlineWidth = s.slider("outline_width", 1, 1, 3).unit(" px").requires(outline);
-        outlineColor = s.color("outline_color", 0xFFFFFFFF, true).requires(outline);
-        shadow = s.toggle("shadow", true);
+        // the look settings are hidden while "Widget-Design" sets the look of all widgets
+        java.util.function.BooleanSupplier own = () -> !WidgetDesign.active();
+        rounded = s.toggle("rounded", false).visibleWhen(own);
+        outline = s.toggle("outline", false).visibleWhen(own);
+        outlineWidth = s.slider("outline_width", 1, 1, 3).unit(" px").visibleWhen(() -> own.getAsBoolean() && outline.get());
+        outlineColor = s.color("outline_color", 0xFFFFFFFF, true).visibleWhen(() -> own.getAsBoolean() && outline.get());
+        shadow = s.toggle("shadow", true).visibleWhen(own);
         animation = s.selection("animation", "fade", "fade", "fill").section(k + "section.animation");
         fade = s.slider("fade", 100, 0, 400).step(25).unit(" ms");
-        keyColor = s.color("key_color", defaultKey, true).section(k + "section.colors");
-        pressed = s.chroma("pressed", defaultPressed, false);
+        keyColor = s.color("key_color", defaultKey, true).section(k + "section.colors").visibleWhen(own);
+        pressed = s.chroma("pressed", defaultPressed, false).visibleWhen(own);
         pressedText = s.chroma("pressed_text", 0xFF0E0A16, false);
         s.button("preset_liquidbounce", this::liquidBounce).label(k + "apply").section(k + "section.presets");
         s.button("preset_lumora", this::lumora).label(k + "apply");
@@ -189,7 +191,8 @@ public final class KeystrokesView {
         int k = k();
         int gp = g();
         int full = k * 3 + gp * 2;
-        int text = textColor == 0 ? defaultText : textColor;
+        WidgetDesign.Look look = WidgetDesign.look();
+        int text = look != null ? look.valueColor() : textColor == 0 ? defaultText : textColor;
         key(g, k + gp, 0, k, k, in.label(Key.UP), null, Key.UP, background, text, now);
         key(g, 0, k + gp, k, k, in.label(Key.LEFT), null, Key.LEFT, background, text, now);
         key(g, k + gp, k + gp, k, k, in.label(Key.DOWN), null, Key.DOWN, background, text, now);
@@ -214,16 +217,18 @@ public final class KeystrokesView {
                      int text, long now) {
         boolean grow = "fill".equals(animation.get());
         float t = grow ? ease(glow[key.ordinal()]) : glow[key.ordinal()];
-        int base = keyColor.argb();
-        if (!background) {
+        // "Widget-Design": its background, corners, border, accent (pressed) and shadow for all keys
+        WidgetDesign.Look look = WidgetDesign.look();
+        int base = look != null ? look.backgroundColor() : keyColor.argb();
+        if (look != null ? !look.background() : !background) {
             base = Colors.withAlpha(base, (base >>> 24) / 2);
         }
-        int active = Colors.withAlpha(pressed.argbAt(now), grow ? 0xFF : 0xD0);
+        int active = Colors.withAlpha(look != null ? look.accent() : pressed.argbAt(now), grow ? 0xFF : 0xD0);
         int fill = grow ? base : mix(base, active, t);
-        int r = rounded.get() ? Math.min(4, h / 3) : 0;
-        if (outline.get()) {
-            int oc = outlineColor.argb();
-            int n = outlineWidth.get();
+        int r = look != null ? Math.min(look.radius(), h / 3) : rounded.get() ? Math.min(4, h / 3) : 0;
+        if (look != null ? look.border() : outline.get()) {
+            int oc = look != null ? look.borderColor() : outlineColor.argb();
+            int n = look != null ? 1 : outlineWidth.get();
             if (r > 0) {
                 g.roundedRect(x - n, y - n, w + 2 * n, h + 2 * n, r + n, oc);
             } else {
@@ -256,7 +261,7 @@ public final class KeystrokesView {
         // fill: the label keeps its colour until the fill reaches the middle (it sits on the key colour until then)
         float tt = grow ? Math.max(0f, (t - 0.75f) / 0.25f) : t;
         int color = mix(text, pressedText.argbAt(now), tt);
-        boolean shade = shadow.get() && tt < 0.5f;
+        boolean shade = (look != null ? look.shadow() : shadow.get()) && tt < 0.5f;
         float ts = textSize.get() / 100f;
         float cx = x + w / 2f;
         float cy = y + h / 2f;

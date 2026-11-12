@@ -69,12 +69,16 @@ public final class HudRenderer {
         return true;
     }
 
-    /** Position to pixels: at its anchor and offsets, or (no anchor) x = fraction * (screen - scaled width). */
+    /**
+     * Position to pixels: at its anchor and offsets, or (no anchor) x = fraction * (screen - scaled width). The size is
+     * the widget's own times the size of all widgets ("Widget-Design").
+     */
     public static void place(Bounds b, WidgetState s, int rawW, int rawH, int screenW, int screenH) {
+        float scale = scale(s);
         b.rawWidth = rawW;
         b.rawHeight = rawH;
-        b.width = Math.max(1, Math.round(rawW * s.scale));
-        b.height = Math.max(1, Math.round(rawH * s.scale));
+        b.width = Math.max(1, Math.round(rawW * scale));
+        b.height = Math.max(1, Math.round(rawH * scale));
         if (s.anchor != null) {
             int[] p = Anchor.place(s.anchor, s.offsetX, s.offsetY, b.width, b.height, screenW, screenH);
             b.x = p[0];
@@ -86,12 +90,17 @@ public final class HudRenderer {
         b.valid = true;
     }
 
+    /** The size a widget is drawn at: its own times the size of all widgets ("Widget-Design", 1 while off). */
+    public static float scale(WidgetState s) {
+        return s.scale * WidgetDesign.scale();
+    }
+
     /** Lays out and draws one widget at its place (also used by the editor). */
     public void draw(HudGraphics g, RenderContext ctx, WidgetEntry e) {
         if (!layout(e, ctx)) {
             return;
         }
-        float s = e.state.scale;
+        float s = scale(e.state);
         g.push();
         try {
             g.translate(e.bounds.x, e.bounds.y);
@@ -110,7 +119,7 @@ public final class HudRenderer {
         for (int i = list.size() - 1; i >= 0; i--) {
             WidgetEntry e = list.get(i);
             if (e.active() && e.bounds.contains(mx, my)) {
-                float s = e.state.scale;
+                float s = scale(e.state);
                 try {
                     if (e.widget.mouseClicked((mx - e.bounds.x) / s, (my - e.bounds.y) / s, button)) {
                         return true;

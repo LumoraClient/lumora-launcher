@@ -1,8 +1,12 @@
-# Lumora-API – Referenz (Version 1.5.0)
+# Lumora-API – Referenz (Version 1.6.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.5.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.6.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
+
+**API 1.6.0** (`LumoraAPI.API_VERSION`) bringt das Widget-Design: `Theme.widgetStyle()` liefert das Aussehen, das der
+Spieler im Hub für alle Widgets gewählt hat (siehe [dev.lumora.api.ui](#devlumoraapiui-seit-15)). Addons für 1.0 bis
+1.5 laden unverändert weiter.
 
 **API 1.5.0** (`LumoraAPI.API_VERSION`) öffnet den Client für Addons: Design (`AddonContext.theme()` mit Akzentfarbe
 und eigenen Akzenten, `ui.UiKit` mit Lumoras Steuerelementen), HUD-Widgets an Ankerzonen
@@ -399,9 +403,25 @@ Eine Bedingung, ein Label oder eine Aktion, die eine Ausnahme wirft, wird einmal
 |---|---|
 | `Theme` (`AddonContext.theme()`, ohne Berechtigung) | `style()` („lumora“ oder „vanilla“), `accentId()`, `accent()`, `accentHover()`, `accentDark()`, `background()`, `surface()`, `surface2()`, `border()`, `text()`, `muted()`, `ok()`, `warning()`, `error()`, `accents()` (alle Akzente im Hub), `addAccent(id, name, farbe)` → `Registration` (Berechtigung `design`; Id im Hub `<addon>:<id>`) |
 | `UiKit` (statisch, nur Zeichnen) | `panel`, `card`, `title`, `label`, `hint`, `button`, `secondaryButton`, `toggle` (`TOGGLE_W` × `TOGGLE_H`), `slider` + `sliderValue(mx, x, w)`, `textField` (Platzhalter, blinkender Cursor), `listRow`, `badge`, `inside(mx, my, x, y, w, h)`, `alpha(farbe, a)` |
+| `WidgetStyle` (`Theme.widgetStyle()`, seit 1.6) | Das Aussehen aller Widgets aus dem Modul *Widget-Design*: `active()`, `background()`, `backgroundColor()`, `cornerRadius()`, `border()`, `borderColor()`, `accentBar()`, `accentColor()`, `labelColor()`, `valueColor()`, `textShadow()`, `format()` (`space`, `colon`, `brackets`, `value_first`, `value_only`), `uppercaseLabels()`, `scale()`, `label(text)`; Zeichnen: `panel(g, w, h)`, `lineWidth(g, label, value)`, `line(g, x, y, label, value)`. `WidgetStyle.NONE`: nicht aktiv |
 
 Die Farben werden bei jedem Aufruf neu gelesen: Wählt der Spieler eine andere Akzentfarbe, folgen Widgets und Menüs
 sofort. Wählt er die Akzentfarbe eines Addons und ist das Addon aus, gilt Lila; mit dem Addon kommt seine Wahl zurück.
+
+**Widget-Design (seit 1.6):** Schaltet der Spieler im Hub das Modul *Widget-Design* ein, legt es Hintergrund, Rand,
+Ecken, Akzentstreifen, Farben, Textschatten, Format („FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“, „60“) und Größe aller
+Widgets fest. Die Größe wendet Lumora selbst auf jedes Widget an, auch auf Addon-Widgets. Für den Rest fragt ein
+Addon-Widget `context.theme().widgetStyle()`: Solange `active()` gilt, zeichnet es damit statt mit den eigenen
+Einstellungen (und blendet diese am besten mit `visibleWhen(() -> !style.active())` aus). Beispiel im Session-Timer:
+
+```java
+WidgetStyle style = context.theme().widgetStyle();
+if (style.active()) {
+    int w = style.lineWidth(g, "Session", text) + 12;
+    style.panel(g, w, 17);
+    style.line(g, 6, 5, "Session", text);
+}
+```
 
 ## dev.lumora.api.chat (seit 1.5)
 

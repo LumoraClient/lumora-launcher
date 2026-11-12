@@ -1,6 +1,7 @@
 package dev.lumora.client.hud;
 
 import net.minecraft.network.chat.TranslatableComponent;
+import dev.lumora.core.hud.WidgetDesign;
 import dev.lumora.api.config.BooleanSetting;
 import dev.lumora.api.config.ChoiceSetting;
 import dev.lumora.api.config.ColorSetting;
@@ -45,6 +46,9 @@ public final class BuiltInWidgets {
         return List.of(new Fps(), new Cps(), new Coords(), new Keystrokes(), new Ping(), new Clock(), new Speed(), new Armor(), new Server());
     }
 
+    /** Shows a widget's own look settings only while "Widget-Design" is off. */
+    static final java.util.function.BooleanSupplier OWN_LOOK = () -> !WidgetDesign.active();
+
     static String t(String key) {
         return new TranslatableComponent(key).getString();
     }
@@ -72,10 +76,11 @@ public final class BuiltInWidgets {
 
         @Override
         public void configure(SettingsGroup s) {
-            background = (BooleanSetting) s.toggle("background", true).name("lumora.widget.setting.background");
-            accent = (BooleanSetting) s.toggle("accent", true).name("lumora.widget.setting.accent");
-            labelColor = (ColorSetting) s.color("label_color", LumoraUi.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced();
-            valueColor = (ColorSetting) s.color("value_color", LumoraUi.TEXT, false).name("lumora.widget.setting.value_color").advanced();
+            // hidden while "Widget-Design" sets the look of all widgets
+            background = (BooleanSetting) s.toggle("background", true).name("lumora.widget.setting.background").visibleWhen(OWN_LOOK);
+            accent = (BooleanSetting) s.toggle("accent", true).name("lumora.widget.setting.accent").visibleWhen(OWN_LOOK);
+            labelColor = (ColorSetting) s.color("label_color", LumoraUi.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced().visibleWhen(OWN_LOOK);
+            valueColor = (ColorSetting) s.color("value_color", LumoraUi.TEXT, false).name("lumora.widget.setting.value_color").advanced().visibleWhen(OWN_LOOK);
             extra(s);
         }
 
@@ -83,6 +88,9 @@ public final class BuiltInWidgets {
         }
 
         void panel(HudGraphics g, int w, int h) {
+            if (WidgetDesign.panel(g, w, h)) {
+                return;
+            }
             if (background.get()) {
                 g.fill(0, 0, w, h, Colors.withAlpha(LumoraUi.BG, 0x9C));
                 g.fill(0, 0, w, 1, Colors.withAlpha(0xFFFFFFFF, 0x10));
@@ -124,7 +132,7 @@ public final class BuiltInWidgets {
             List<String[]> l = lines(mc, mc.player == null);
             int w = 0;
             for (String[] line : l) {
-                w = Math.max(w, mc.font.width(line[0]) + (line[0].isEmpty() ? 0 : 4) + mc.font.width(line[1]));
+                w = Math.max(w, WidgetDesign.lineWidth(str -> mc.font.width(str), line[0], line[1]));
             }
             lines = l;
             width = w + PAD * 2 + 2;
@@ -146,12 +154,7 @@ public final class BuiltInWidgets {
             panel(g, width, l.size() * LINE + PAD * 2 - 1);
             int y = PAD;
             for (String[] line : l) {
-                int x = PAD + 2;
-                if (!line[0].isEmpty()) {
-                    g.text(line[0], x, y, labelColor.argb(), true);
-                    x += g.textWidth(line[0]) + 4;
-                }
-                g.text(line[1], x, y, valueColor.argb(), true);
+                WidgetDesign.line(g, PAD + 2, y, line[0], line[1], labelColor.argb(), valueColor.argb(), true, false);
                 y += LINE;
             }
         }
@@ -449,7 +452,7 @@ public final class BuiltInWidgets {
 
         @Override
         public void render(HudGraphics g, RenderContext ctx) {
-            view.render(g, input, background.get(), valueColor.argb(), System.currentTimeMillis());
+            view.render(g, input, background.get(), WidgetDesign.valueColor(valueColor.argb()), System.currentTimeMillis());
         }
 
         private static String label(KeyMapping k) {
@@ -534,7 +537,7 @@ public final class BuiltInWidgets {
                     String text = "percent".equals(durability.get()) ? Math.round(f * 100) + "%" : Integer.toString(left);
                     g.text(text, PAD + 22, y + 5, f > 0.5f ? LumoraUi.OK : f > 0.2f ? LumoraUi.WARN : 0xFFF2555A, true);
                 } else if (st.getCount() > 1) {
-                    g.text("×" + st.getCount(), PAD + 22, y + 5, valueColor.argb(), true);
+                    g.text("×" + st.getCount(), PAD + 22, y + 5, WidgetDesign.valueColor(valueColor.argb()), true);
                 }
                 y += 17;
             }

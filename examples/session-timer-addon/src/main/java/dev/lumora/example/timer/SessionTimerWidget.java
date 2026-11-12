@@ -12,13 +12,16 @@ import dev.lumora.api.hud.WidgetCategory;
 import dev.lumora.api.hud.WidgetPlacement;
 import dev.lumora.api.render.Colors;
 import dev.lumora.api.render.HudGraphics;
+import dev.lumora.api.ui.WidgetStyle;
 
 /**
  * Time since joining the current world. The text is rebuilt in {@link #tick()} (20x per second) and only drawn in
- * {@link #render}, so the frame itself allocates nothing.
+ * {@link #render}, so the frame itself allocates nothing. While the player set one look for all widgets in the hub
+ * ("Widget-Design", Lumora API 1.6), the widget draws with it instead of its own background and colour.
  */
 public final class SessionTimerWidget extends HudWidget {
     private final GameContext game;
+    private final WidgetStyle style;
     private TextSetting label;
     private ChoiceSetting format;
     private BooleanSetting background;
@@ -27,9 +30,10 @@ public final class SessionTimerWidget extends HudWidget {
     private String text = "00:12:34";
     private int textWidth = -1;
 
-    public SessionTimerWidget(GameContext game) {
+    public SessionTimerWidget(GameContext game, WidgetStyle style) {
         super("timer");
         this.game = game;
+        this.style = style;
     }
 
     @Override
@@ -48,8 +52,10 @@ public final class SessionTimerWidget extends HudWidget {
         // Lumora API 1.3: sections, a row of buttons, a check box and a color with the rainbow option
         label = settings.text("label", "Session", 24).section("session-timer.widget.timer.section.text");
         format = settings.selection("format", "hms", "hms", "hm", "minutes");
-        background = settings.checkbox("background", true).section("session-timer.widget.timer.section.look");
-        color = settings.chroma("color", Colors.ACCENT_HOVER, false);
+        // Lumora API 1.6: the own look is hidden while "Widget-Design" sets the look of all widgets
+        background = settings.checkbox("background", true).section("session-timer.widget.timer.section.look")
+                .visibleWhen(() -> !style.active());
+        color = settings.chroma("color", Colors.ACCENT_HOVER, false).visibleWhen(() -> !style.active());
     }
 
     void start() {
@@ -92,6 +98,12 @@ public final class SessionTimerWidget extends HudWidget {
 
     @Override
     public void render(HudGraphics g, RenderContext context) {
+        if (style.active()) {
+            textWidth = style.lineWidth(g, label.get(), text);
+            style.panel(g, 12 + textWidth, 17);
+            style.line(g, 6, 5, label.get(), text);
+            return;
+        }
         String l = line();
         if (textWidth < 0) {
             textWidth = g.textWidth(l);

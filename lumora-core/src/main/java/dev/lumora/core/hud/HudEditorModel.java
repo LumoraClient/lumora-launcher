@@ -372,12 +372,14 @@ public final class HudEditorModel {
         boolean bottom = corner == 2 || corner == 3;
         double w = right ? mx - startX : startX + startW - mx;
         double h = bottom ? my - startY : startY + startH - my;
-        float scale = (float) Math.max(w / rawW, h / rawH);
+        // the dragged size includes the size of all widgets ("Widget-Design"); the widget keeps its own part
+        float all = WidgetDesign.scale();
+        float scale = (float) Math.max(w / rawW, h / rawH) / all;
         scale = Math.round(scale / SCALE_STEP) * SCALE_STEP;
         scale = WidgetRegistryImpl.clampScale(selected.widget, scale);
         selected.state.scale = scale;
-        int nw = Math.max(1, Math.round(rawW * scale));
-        int nh = Math.max(1, Math.round(rawH * scale));
+        int nw = Math.max(1, Math.round(rawW * scale * all));
+        int nh = Math.max(1, Math.round(rawH * scale * all));
         double nx = right ? startX : startX + startW - nw;
         double ny = bottom ? startY : startY + startH - nh;
         setPosition(selected, nx, ny, nw, nh);
@@ -446,8 +448,8 @@ public final class HudEditorModel {
             double cx = e.bounds.x + e.bounds.width / 2.0;
             double cy = e.bounds.y + e.bounds.height / 2.0;
             e.state.scale = scale;
-            int nw = Math.max(1, Math.round(e.bounds.rawWidth * scale));
-            int nh = Math.max(1, Math.round(e.bounds.rawHeight * scale));
+            int nw = Math.max(1, Math.round(e.bounds.rawWidth * scale * WidgetDesign.scale()));
+            int nh = Math.max(1, Math.round(e.bounds.rawHeight * scale * WidgetDesign.scale()));
             setPosition(e, cx - nw / 2.0, cy - nh / 2.0, nw, nh);
             commitCoalesced(b);
             events.post(new WidgetScaledEvent(e, scale));

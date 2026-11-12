@@ -91,7 +91,7 @@ public final class SessionStore {
             byte[] magic = Arrays.copyOf(data, 4);
             byte[] payload = Arrays.copyOfRange(data, 4, data.length);
             byte[] plain;
-            if (Arrays.equals(magic, MAGIC_DPAPI)) {
+            if (Arrays.equals(magic, MAGIC_DPAPI) && useDpapi) {
                 plain = Crypt32Util.cryptUnprotectData(payload, ENTROPY, 0, null);
             } else if (Arrays.equals(magic, MAGIC_PLAIN) && !useDpapi) {
                 plain = payload;

@@ -11,14 +11,9 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -315,12 +310,46 @@ public final class NewsPage extends JPanel {
         return d.equals(today) ? "Heute" : d.equals(today.minusDays(1)) ? "Gestern" : DATE.format(d);
     }
 
+    /** Opens the article of a news card over the launcher (Lumora: text, screenshots and the full changelog). */
     private void open(NewsFeed.Item it) {
-        if (it.link() != null) {
-            host.browse(it.link());
-        } else {
-            detail(it.title(), "<p>" + esc(it.text()) + "</p>", it.image());
+        ArticleView.open(host.frame(), NewsFeed.article(it), this::image, host::browse);
+    }
+
+    private void open(NewsFeed.Change c) {
+        if (c.source() == NewsFeed.Source.LUMORA) {
+            ArticleView.open(host.frame(), NewsFeed.article(c), this::image, host::browse);
+        } else if (c.contentUrl() != null) {
+            showPatchNotes(c);
         }
+    }
+
+    /**
+     * Deep link (also for {@code --ui-shot --pages news/…}): {@code news}, {@code changelog}, {@code article} (newest
+     * news), {@code article=<id>} or {@code release=<version>} (article of a Lumora release).
+     */
+    public void closeArticle() {
+        ArticleView.closeAll(host.frame());
+    }
+
+    public void show(String what) {
+        closeArticle();
+        if (what.equals("news") || what.equals("changelog")) {
+            if (!view.equals(what)) {
+                view = what;
+                snapshots.setVisible(what.equals("changelog"));
+                rebuild();
+            }
+            return;
+        }
+        if (what.startsWith("release=")) {
+            String v = what.substring("release=".length());
+            NewsFeed.lumoraChangelog().stream().filter(c -> c.version().equals(v)).findFirst().ifPresent(this::open);
+            return;
+        }
+        List<NewsFeed.Item> items = new ArrayList<>(NewsFeed.lumoraNews());
+        items.sort(Comparator.comparing(NewsFeed.Item::date, Comparator.nullsLast(Comparator.reverseOrder())));
+        String id = what.startsWith("article=") ? what.substring("article=".length()) : null;
+        items.stream().filter(i -> id == null || i.id().equals(id)).findFirst().ifPresent(this::open);
     }
 
     // ------------------------------------------------------------------ news cards
@@ -390,7 +419,6 @@ public final class NewsPage extends JPanel {
             this.it = it;
             setPreferredSize(new Dimension(300, 290));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            setToolTipText(it.link() != null ? "Auf minecraft.net lesen" : null);
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -493,14 +521,16 @@ public final class NewsPage extends JPanel {
             for (String item : c.items()) {
                 text.add(Ui.wrapText("•  " + item, 13, Theme.MUTED));
             }
-        } else if (c.contentUrl() != null) {
-            text.add(Box.createVerticalStrut(4));
-            text.add(Ui.label("Patch Notes anzeigen", 13, Font.PLAIN, Theme.ACCENT_HOVER));
+        }
+        boolean lumora = c.source() == NewsFeed.Source.LUMORA;
+        if (lumora || c.contentUrl() != null) {
+            text.add(Box.createVerticalStrut(6));
+            text.add(Ui.label(lumora ? "Ganzen Changelog anzeigen" : "Patch Notes anzeigen", 13, Font.PLAIN, Theme.ACCENT_HOVER));
             card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             card.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    showPatchNotes(c);
+                    open(c);
                 }
             });
         }
@@ -517,8 +547,8 @@ public final class NewsPage extends JPanel {
             } catch (Exception e) {
                 html = null;
             }
-            String body = html == null ? "<p>Die Patch Notes sind gerade nicht erreichbar.</p>" : sanitize(html);
-            SwingUtilities.invokeLater(() -> detail(c.title(), body, null));
+            dev.lumora.launcher.core.news.Article a = NewsFeed.patchNotesArticle(c, html == null ? null : sanitize(html));
+            SwingUtilities.invokeLater(() -> ArticleView.open(host.frame(), a, this::image, host::browse));
         });
     }
 
@@ -530,29 +560,4 @@ public final class NewsPage extends JPanel {
                 .replaceAll("(?is)\\s(style|href|src)\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)", "");
     }
 
-    private static String esc(String s) {
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>");
-    }
-
-    private void detail(String title, String html, String image) {
-        JDialog d = new JDialog(host.frame(), title, java.awt.Dialog.ModalityType.APPLICATION_MODAL);
-        JEditorPane pane = new JEditorPane();
-        HTMLEditorKit kit = new HTMLEditorKit();
-        StyleSheet css = new StyleSheet();
-        css.addRule("body { font-family: 'Inter', sans-serif; font-size: 13pt; color: #E8EAED; background: #191C22; margin: 18px; }");
-        css.addRule("h1 { font-size: 17pt; color: #FFFFFF; margin-top: 16px; } h2 { font-size: 15pt; color: #FFFFFF; } h3 { font-size: 13pt; color: #FFFFFF; }");
-        css.addRule("li { margin-bottom: 4px; } code { color: #26C7E0; }");
-        kit.setStyleSheet(css);
-        pane.setEditorKit(kit);
-        pane.setEditable(false);
-        pane.setBackground(Theme.SURFACE);
-        pane.setText("<html><body><h1>" + esc(title) + "</h1>" + html + "</body></html>");
-        pane.setCaretPosition(0);
-        JScrollPane sp = new JScrollPane(pane);
-        sp.setBorder(BorderFactory.createEmptyBorder());
-        d.setContentPane(sp);
-        d.setSize(760, 620);
-        d.setLocationRelativeTo(host.frame());
-        d.setVisible(true);
-    }
 }

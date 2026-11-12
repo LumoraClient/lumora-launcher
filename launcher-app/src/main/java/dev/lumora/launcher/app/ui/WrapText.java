@@ -19,7 +19,7 @@ public final class WrapText extends JTextArea {
     private int lastWidth = -1;
 
     public WrapText(String text, float size, Color color) {
-        super(text);
+        super();
         setLineWrap(true);
         setWrapStyleWord(true);
         setEditable(false);
@@ -29,6 +29,9 @@ public final class WrapText extends JTextArea {
         setFont(Theme.font(Font.PLAIN, size));
         setForeground(color);
         setAlignmentX(Component.LEFT_ALIGNMENT);
+        // read-only text: setText must not scroll the page to this component
+        ((javax.swing.text.DefaultCaret) getCaret()).setUpdatePolicy(javax.swing.text.DefaultCaret.NEVER_UPDATE);
+        setText(text);
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {

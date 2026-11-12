@@ -218,8 +218,13 @@ final class LauncherWindow implements PageHost {
     @Override
     public void showPage(String id) {
         int slash = id.indexOf('/');
+        if (newsPage != null) {
+            newsPage.closeArticle();
+        }
         nav.select(slash < 0 ? id : id.substring(0, slash));
-        if (slash > 0 && id.startsWith("account/")) {
+        if (slash > 0 && id.startsWith("news/")) {
+            newsPage.show(id.substring(slash + 1));
+        } else if (slash > 0 && id.startsWith("account/")) {
             accountPage.selectTab(id.substring(slash + 1));
         } else if (slash > 0 && id.startsWith("settings/")) {
             settingsPage.showCategory(id.substring(slash + 1));

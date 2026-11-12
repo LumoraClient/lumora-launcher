@@ -31,7 +31,8 @@ import java.util.Set;
 /**
  * News and changelog for the launcher's "Neuigkeiten" page:
  * <ul>
- *   <li>Lumora: news and changelog shipped with the launcher ({@code /lumora/news.json}),</li>
+ *   <li>Lumora: news shipped with the launcher ({@code /lumora/news.json}, with article bodies and screenshots) and
+ *       the complete changelog ({@code /lumora/CHANGELOG.md}, copied from {@code docs/} at build time),</li>
  *   <li>Minecraft: Java Edition news and patch notes from Mojang's launcher content service
  *       ({@code launchercontent.mojang.com/v2/news.json}, {@code javaPatchNotes.json}), the same public files the
  *       official launcher shows. Only that host is contacted, without redirects, with size limits.</li>
@@ -93,7 +94,79 @@ public final class NewsFeed {
         return out;
     }
 
+    private static volatile List<Changelog.Release> releases;
+
+    /** All Lumora releases from the bundled {@code CHANGELOG.md}, newest first (empty if it is missing). */
+    public static List<Changelog.Release> lumoraReleases() {
+        List<Changelog.Release> r = releases;
+        if (r == null) {
+            try (InputStream in = NewsFeed.class.getResourceAsStream("/lumora/CHANGELOG.md")) {
+                r = in == null ? List.of() : Changelog.parse(new String(in.readAllBytes(), StandardCharsets.UTF_8));
+            } catch (IOException | RuntimeException e) {
+                Log.warn("Bundled CHANGELOG.md unreadable: " + e);
+                r = List.of();
+            }
+            releases = r;
+        }
+        return r;
+    }
+
+    public static Changelog.Release lumoraRelease(String version) {
+        for (Changelog.Release r : lumoraReleases()) {
+            if (r.version().equals(version)) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    /** Versions a bundled news item belongs to ({@code "version": "0.3.29"} or {@code ["0.3.29", "0.3.30"]}). */
+    private static List<String> versions(JsonObject o) {
+        List<String> out = new ArrayList<>();
+        if (o.has("version") && o.get("version").isJsonArray()) {
+            for (JsonElement v : o.getAsJsonArray("version")) {
+                out.add(v.getAsString());
+            }
+        } else if (!str(o, "version").isEmpty()) {
+            out.add(str(o, "version"));
+        }
+        return out;
+    }
+
+    /** The newest bundled news item about this release, or null. */
+    private static JsonObject newsFor(String version) {
+        for (JsonElement e : array(bundled(), "news")) {
+            if (versions(e.getAsJsonObject()).contains(version)) {
+                return e.getAsJsonObject();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The Lumora changelog: every release of the bundled {@code CHANGELOG.md} (title from the news item about it, else
+     * its first two changes), or the short list in {@code news.json} if the file is missing.
+     */
     public static List<Change> lumoraChangelog() {
+        List<Changelog.Release> all = lumoraReleases();
+        if (!all.isEmpty()) {
+            List<Change> out = new ArrayList<>();
+            for (Changelog.Release r : all) {
+                JsonObject news = newsFor(r.version());
+                List<String> lead = r.highlights(2, 60);
+                String title = news != null ? str(news, "title")
+                        : !lead.isEmpty() ? String.join(" · ", lead)
+                        : r.sections().isEmpty() ? "Lumora " + r.version() : String.join(" · ", r.sections());
+                String image = news != null && news.has("image") ? "bundled:" + str(news, "image") : null;
+                out.add(new Change(Source.LUMORA, "lumora-" + r.version(), title, r.version(), "lumora", r.date(), image,
+                        null, r.highlights(4, 90)));
+            }
+            return out;
+        }
+        return legacyChangelog();
+    }
+
+    private static List<Change> legacyChangelog() {
         List<Change> out = new ArrayList<>();
         for (JsonElement e : array(bundled(), "changelog")) {
             JsonObject o = e.getAsJsonObject();
@@ -103,6 +176,117 @@ public final class NewsFeed {
             }
             out.add(new Change(Source.LUMORA, "lumora-" + str(o, "version"), str(o, "title"), str(o, "version"), "lumora",
                     date(str(o, "date")), null, null, items));
+        }
+        return out;
+    }
+
+    // ------------------------------------------------------------------ articles
+
+    /** Teasers up to this length are shown as the article's subtitle, longer ones as its first paragraph. */
+    static final int SUBTITLE_MAX = 240;
+
+    /**
+     * The article for a news card. Lumora: the text, the body from {@code news.json} (paragraphs, headings, lists and
+     * screenshots) and the complete changelog of the releases it is about. Minecraft: picture and teaser (the full
+     * article is on minecraft.net, see {@link Article#link()}).
+     */
+    public static Article article(Item it) {
+        if (it.source() == Source.MINECRAFT) {
+            List<Article.Block> blocks = new ArrayList<>();
+            boolean sub = it.text().length() <= SUBTITLE_MAX;
+            if (!sub) {
+                blocks.add(Article.Block.paragraph(it.text()));
+            }
+            return new Article(Source.MINECRAFT, it.id(), it.title(), sub ? it.text() : null, it.date(),
+                    it.author() == null || it.author().isBlank() ? "Minecraft" : it.author(), null, it.image(), it.link(), blocks);
+        }
+        JsonObject o = null;
+        for (JsonElement e : array(bundled(), "news")) {
+            if (str(e.getAsJsonObject(), "id").equals(it.id())) {
+                o = e.getAsJsonObject();
+                break;
+            }
+        }
+        List<Article.Block> blocks = new ArrayList<>();
+        List<Article.Block> body = o == null ? List.of() : body(o);
+        boolean sub = !body.isEmpty() || it.text().length() <= SUBTITLE_MAX;
+        if (!sub) {
+            blocks.add(Article.Block.paragraph(it.text()));
+        }
+        blocks.addAll(body);
+        List<String> versions = o == null ? List.of() : versions(o);
+        for (String v : versions) {
+            Changelog.Release r = lumoraRelease(v);
+            if (r != null) {
+                blocks.add(Article.Block.section("Changelog · Lumora " + r.version()));
+                blocks.addAll(r.blocks());
+            }
+        }
+        String badge = versions.isEmpty() ? null : "Lumora " + versions.get(versions.size() - 1);
+        return new Article(Source.LUMORA, it.id(), it.title(), sub ? it.text() : null, it.date(),
+                it.author() == null || it.author().isBlank() ? "Lumora" : it.author(), badge, it.image(), null, blocks);
+    }
+
+    /**
+     * The article for a Lumora changelog entry: the news article about this release if there is one, else the
+     * release's complete changelog. Minecraft patch notes are built with {@link #patchNotesArticle}.
+     */
+    public static Article article(Change c) {
+        JsonObject news = c.source() == Source.LUMORA ? newsFor(c.version()) : null;
+        if (news != null) {
+            for (Item it : lumoraNews()) {
+                if (it.id().equals(str(news, "id"))) {
+                    return article(it);
+                }
+            }
+        }
+        Changelog.Release r = c.source() == Source.LUMORA ? lumoraRelease(c.version()) : null;
+        List<Article.Block> blocks = new ArrayList<>();
+        if (r != null) {
+            blocks.add(Article.Block.section("Changelog · Lumora " + r.version()));
+            blocks.addAll(r.blocks());
+        } else {
+            for (String i : c.items()) {
+                blocks.add(Article.Block.list(List.of(i)));
+            }
+        }
+        String subtitle = r == null || r.sections().isEmpty() ? null
+                : r.changes() + (r.changes() == 1 ? " Änderung – " : " Änderungen – ") + String.join(", ", r.sections());
+        return new Article(c.source(), c.id(), c.title(), subtitle, c.date(), "Lumora", "Lumora " + c.version(), c.image(),
+                null, blocks);
+    }
+
+    /** Minecraft patch notes with their (already sanitized) HTML body, or a note when they could not be loaded. */
+    public static Article patchNotesArticle(Change c, String sanitizedHtml) {
+        List<Article.Block> blocks = List.of(sanitizedHtml == null
+                ? Article.Block.paragraph("Die Patch Notes sind gerade nicht erreichbar.")
+                : Article.Block.html(sanitizedHtml));
+        return new Article(Source.MINECRAFT, c.id(), c.title(), "Minecraft: Java Edition " + c.version(), c.date(),
+                "Mojang", c.snapshot() ? "Snapshot" : "Release", c.image(), null, blocks);
+    }
+
+    /** {@code "body"} of a bundled news item: {@code {"h": …}}, {@code {"p": …}}, {@code {"list": [...]}}, {@code {"img": "x.png", "caption": …}}. */
+    private static List<Article.Block> body(JsonObject o) {
+        List<Article.Block> out = new ArrayList<>();
+        for (JsonElement e : array(o, "body")) {
+            if (!e.isJsonObject()) {
+                continue;
+            }
+            JsonObject b = e.getAsJsonObject();
+            if (b.has("h")) {
+                out.add(Article.Block.heading(str(b, "h")));
+            } else if (b.has("p")) {
+                out.add(Article.Block.paragraph(str(b, "p")));
+            } else if (b.has("list")) {
+                List<String> items = new ArrayList<>();
+                for (JsonElement i : array(b, "list")) {
+                    items.add(i.getAsString());
+                }
+                out.add(Article.Block.list(items));
+            } else if (b.has("img") && str(b, "img").matches("[a-z0-9-]+\\.png")) {
+                String caption = str(b, "caption");
+                out.add(Article.Block.image("bundled:" + str(b, "img"), caption.isEmpty() ? null : caption));
+            }
         }
         return out;
     }

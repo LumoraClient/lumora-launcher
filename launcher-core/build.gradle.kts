@@ -43,6 +43,8 @@ tasks.processResources {
     filesMatching("lumora-build.properties") {
         expand("version" to v)
     }
+    // the complete changelog for the launcher's news articles and changelog list
+    from(rootProject.file("docs/CHANGELOG.md")) { into("lumora") }
 }
 
 tasks.jar {

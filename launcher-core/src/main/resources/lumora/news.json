@@ -1,7 +1,151 @@
 {
   "news": [
     {
+      "id": "lumora-api-15",
+      "date": "2026-11-11",
+      "author": "Lumora",
+      "version": "0.3.31",
+      "title": "Lumora-API 1.5: Addons gestalten den Client mit",
+      "text": "Addons können jetzt dein Design übernehmen, Widgets an Ankerzonen hängen, Einträge in Chat und Spielermenü ergänzen und Lumora Social lesen.",
+      "image": "api-15.png",
+      "body": [
+        {"p": "Mit Lumora 0.3.31 kommt die Lumora-API 1.5.0. Sie öffnet Addon-Entwicklern die Teile des Clients, die bisher nur Lumora selbst nutzen konnte. Für dich heißt das: Addons sehen aus wie Lumora und fügen sich dort ein, wo du sie erwartest."},
+        {"h": "Design"},
+        {"p": "Addons lesen deine Akzentfarbe und dein Theme. Wechselst du die Farbe im Hub, ändern sich auch die Addons sofort. Für eigene Menüs gibt es Lumoras Bausteine: Panel, Karte, Knopf, Schalter, Regler, Textfeld und Liste. Ein Addon kann außerdem eigene Akzentfarben anbieten, die unter Themes neben den Lumora-Farben erscheinen."},
+        {"h": "HUD, Chat, Spielermenü und Social"},
+        {"list": [
+          "**HUD:** Widgets eines Addons hängen an einer der neun Ankerzonen, genau wie im HUD-Editor.",
+          "**Chat:** Addons hängen eigene Einträge in das Menü einer Chat-Nachricht (Rechtsklick oder ⋯) und erfahren von neuen Nachrichten.",
+          "**Spielermenü:** eigene Einträge und Kategorien im Ring (seit API 1.4).",
+          "**Social:** Freunde mit Online-Status und die Party lesen."
+        ]},
+        {"img": "player-menu-category.png", "caption": "Einträge eines Addons im Spielermenü: die Kategorie „Moderation“ öffnet sich als äußerer Ring."},
+        {"img": "chat-menu.png", "caption": "Das Menü einer Chat-Nachricht: Addons können hier jetzt eigene Einträge ergänzen."},
+        {"h": "LumoraVoice und LumoraSpotify"},
+        {"p": "Beide Addons nutzen die neue API schon: LumoraVoice 0.8.3 bringt im Spielermenü die Kategorie „Sprachchat“ mit „Stimme blockieren“ und „Sprachchat öffnen“, LumoraSpotify 1.0.1 kann den Fortschrittsbalken in deiner Akzentfarbe zeichnen. Addons für ältere API-Versionen laufen unverändert weiter."}
+      ]
+    },
+    {
+      "id": "lumora-zoom-cinema-bars",
+      "date": "2026-11-11",
+      "author": "Lumora",
+      "version": "0.3.30",
+      "title": "Kinobalken beim Zoomen",
+      "text": "Neue Option für den Zoom: Beim Heranzoomen gleiten schwarze Balken ins Bild, beim Loslassen wieder heraus.",
+      "image": "zoom-cinema.png",
+      "body": [
+        {"p": "Wer beim Zoomen einen Filmlook mag, schaltet im Hub unter Zoom → Verhalten die Kinobalken ein. Solange du heranzoomst, gleiten oben und unten schwarze Balken ins Bild, beim Loslassen gleiten sie wieder heraus. Ab Werk ist die Option aus. Sie gibt es in allen Minecraft-Versionen."},
+        {"h": "Spielermenü: Party-Einladung immer sichtbar"},
+        {"p": "„In Party einladen“ und „Freund hinzufügen“ stehen jetzt immer im Spielermenü, sobald Lumora Social eingerichtet ist. Geht es gerade nicht, sind die Einträge ausgegraut und nennen den Grund: nicht verbunden, nutzt Lumora nicht oder nur der Anführer."}
+      ]
+    },
+    {
+      "id": "lumora-player-menu",
+      "date": "2026-11-11",
+      "author": "Lumora",
+      "version": "0.3.29",
+      "title": "Das Spielermenü: Mausrad auf einen Spieler",
+      "text": "Spieler anvisieren, Mausrad gedrückt halten: Ein Ring mit Freundschaft, Party, Profil, Nachrichten und den Einträgen deiner Addons erscheint.",
+      "image": "player-menu.png",
+      "body": [
+        {"p": "Lumora hat jetzt ein Spielermenü, fest im Client und nicht als Modul. Schau einen Spieler an und halte das Mausrad gedrückt: Um den Spieler erscheint ein Ring. Lässt du über einem Eintrag los, wird er ausgeführt. Ein kurzer Klick lässt das Menü offen, dann wählst du mit einem Klick oder durch Drehen am Mausrad. Rechtsklick geht zurück, Esc schließt das Menü."},
+        {"h": "Ein Menü für alles"},
+        {"list": [
+          "**Social:** Freund hinzufügen (oder Anfrage annehmen), In Party einladen, Client-Profil öffnen.",
+          "**Nachrichten:** Lumora-Nachricht an Freunde, Privat schreiben (/msg auf Servern), Name kopieren.",
+          "**Spielerkarte** über dem Ring mit Kopf, Name, Lumora-Nutzer, Freund und Party; der gewählte Eintrag steht unter dem Ring.",
+          "**Client-Profil** neben dem Ring: ob der Spieler Lumora nutzt, Freund seit, Online-Status, Party und gemeinsame Gruppen."
+        ]},
+        {"img": "player-menu-category.png", "caption": "Kategorien öffnen ihre Einträge als äußeren Ring – hier die Einträge eines Addons."},
+        {"h": "Party"},
+        {"p": "Der Lumora-Social-Server kennt jetzt Partys: einladen, annehmen, ablehnen, verlassen und entfernen. Nur der Anführer lädt ein, Einladungen laufen nach fünf Minuten ab. Im Social-Menü (U) steht die Party oben mit Einladungen, Mitgliedern und „Verlassen“."},
+        {"h": "Für Addons"},
+        {"p": "Mit der Lumora-API 1.4.0 fügen Addons eigene Einträge hinzu, mit Symbol, Kategorie, Reihenfolge, nötiger OP-Stufe und Bedingungen."}
+      ]
+    },
+    {
+      "id": "lumora-hud-editor-anchors",
+      "date": "2026-11-10",
+      "author": "Lumora",
+      "version": ["0.3.27", "0.3.28"],
+      "title": "HUD-Editor mit Ankerzonen",
+      "text": "Widgets merken sich jetzt, an welcher Ecke sie hängen – ein Widget unten rechts bleibt unten rechts, egal wie groß das Fenster ist.",
+      "image": "hud-anchors.png",
+      "body": [
+        {"p": "Beim Ziehen eines Widgets teilt sich der Bildschirm in 3 × 3 Zonen. Die Zone unter der Maus leuchtet mit ihrem Ankerpunkt auf, und das Widget hängt danach an dieser Ecke, Kante oder Mitte. Änderst du Fenstergröße oder GUI-Größe, behält es seinen Abstand dazu."},
+        {"list": [
+          "**Magnet sichtbar:** Das Widget, an dem du einrastest, wird umrahmt, die Hilfslinie leuchtet.",
+          "**Positionsanzeige** beim Ziehen und Skalieren, dazu ein feines Raster.",
+          "**Suche** über der Widget-Liste und die Aktionen direkt am gewählten Widget.",
+          "**Freie Sicht:** Liste und Karte verschwinden, solange du ziehst."
+        ]},
+        {"p": "Lumora 0.3.28 behebt außerdem falsche Farben der Hotbar in Minecraft 26.x: Hotbar, Herzen und die anderen Minecraft-Grafiken kommen jetzt aus Minecrafts eigenem GUI-Atlas."}
+      ]
+    },
+    {
+      "id": "lumora-hotbar-chat",
+      "date": "2026-11-10",
+      "author": "Lumora",
+      "version": "0.3.26",
+      "title": "Hotbar & Leisten und ein neuer Chat",
+      "text": "Hotbar, Herzen, Rüstung, Hunger, Luft und Erfahrung als eigene Widgets – und ein Chat mit Nachrichten-Menü, Größe zum Ziehen und mehr Verlauf.",
+      "image": "hotbar.png",
+      "body": [
+        {"p": "Das neue Modul „Hotbar & Leisten“ (Hub → Spieler, ab Werk aus) macht aus Hotbar, Herzen, Rüstung, Hunger, Luft und Erfahrung sechs eigene Widgets. Du verschiebst und skalierst sie im HUD-Editor und blendest sie einzeln aus."},
+        {"list": [
+          "**Leisten:** Stil Vanilla, Kompakt, Balken oder Nur Zahl, mit eigenen Farben.",
+          "**Hotbar:** Vanilla- oder Lumora-Stil, Slot-Nummern, senkrecht, Zweithand links, rechts oder aus."
+        ]},
+        {"h": "Chat"},
+        {"p": "Im offenen Chat erscheint neben der Nachricht unter der Maus ein „⋯“ (oder Rechtsklick): Nachricht kopieren, Name kopieren, privat antworten, Link kopieren. Breite und Höhe ziehst du direkt am Rand des Chats, der Verlauf hält bis zu 1000 Nachrichten."},
+        {"img": "chat-menu.png", "caption": "Das Nachrichten-Menü im Chat."}
+      ]
+    },
+    {
+      "id": "lumora-elytra-trails",
+      "date": "2026-11-10",
+      "author": "Lumora",
+      "version": ["0.3.22", "0.3.23"],
+      "title": "Elytra-Streifen",
+      "text": "Hinter den Flügelspitzen gleitender Spieler ziehen jetzt Streifen her – als Dampfstreifen oder Wirbel, auf Wunsch leuchtend.",
+      "image": "elytra-trails.png",
+      "body": [
+        {"p": "Das neue Modul „Elytra-Streifen“ (Kategorie Spieler, Minecraft 1.12.2 bis 26.3) zeichnet zwei Streifen hinter den Flügelspitzen, die nach hinten breiter und blasser werden. In Kurven und bei hohem Tempo werden sie breiter, mit „Leuchten“ bekommen sie einen hellen Saum, der vor allem nachts wirkt."},
+        {"list": [
+          "**Stile:** Dampfstreifen (gerade Linien) oder Wirbel (gegenläufige Spiralen).",
+          "**Einstellungen:** eigene Streifen und die anderer Spieler getrennt, Farbe mit Deckkraft und Regenbogen, Länge, Breite und Mindesttempo."
+        ]}
+      ]
+    },
+    {
+      "id": "lumora-keystrokes",
+      "date": "2026-11-09",
+      "author": "Lumora",
+      "version": ["0.3.19", "0.3.20", "0.3.25"],
+      "title": "Tastenanzeige mit Animationen",
+      "text": "Die Tastenanzeige bekommt die Einstellungen bekannter Keystrokes-Mods: Größe, Abstand, Rahmen, Farben, CPS auf den Maustasten und zwei Animationen.",
+      "image": "keystrokes.png",
+      "body": [
+        {"p": "Die Tastenanzeige zeigt jetzt auf Wunsch die CPS direkt auf den Maustasten und die Schleichen-Taste. Tastengröße, Abstand, abgerundete Tasten, Rahmen und Farben stellst du selbst ein. Beim Drücken blenden die Tasten weich über oder füllen sich vom Rand zur Mitte."},
+        {"p": "Seit 0.3.25 sitzen die Buchstaben genau in der Mitte jeder Taste."}
+      ]
+    },
+    {
+      "id": "lumora-addon-library",
+      "date": "2026-11-09",
+      "author": "Lumora",
+      "version": ["0.3.18", "0.3.21"],
+      "title": "Addon-Bibliothek und Favoriten im Hub",
+      "text": "Addons aus dem Lumora-Ordner installierst und aktualisierst du jetzt direkt im Hub. Lieblingsmodule markierst du mit einem Herz.",
+      "image": "addon-library.png",
+      "body": [
+        {"p": "Lege Lumora-Addons in den Ordner addons im Lumora-Ordner (unter Windows %APPDATA%\\LumoraClient\\addons). Im Hub unter Allgemein › Addons erscheinen sie als Karten mit Name, Beschreibung, Version und Autor. „Installieren“ kopiert ein Addon in die Instanz, „Aktualisieren“ ersetzt eine ältere Version. Aus der Bibliothek wird nur die Beschreibung gelesen, kein Code ausgeführt."},
+        {"p": "Jede Modulkarte hat oben links ein Herz: Favoriten stehen ganz oben und haben einen eigenen Eintrag in der Seitenleiste. Passt ein Addon nicht zu deiner Minecraft-Version, zeigt ein Hover-Fenster den Grund."}
+      ]
+    },
+    {
       "id": "lumora-settings-api-13",
+      "version": ["0.3.11", "0.3.13"],
       "date": "2026-11-05",
       "author": "Lumora",
       "title": "Neue Einstellungen und Lumora API 1.3",
@@ -10,6 +154,7 @@
     },
     {
       "id": "lumora-attack-indicator",
+      "version": ["0.3.9", "0.3.14", "0.3.15"],
       "date": "2026-11-05",
       "author": "Lumora",
       "title": "Angriffsanzeige",
@@ -18,6 +163,7 @@
     },
     {
       "id": "lumora-crosshair-editor",
+      "version": "0.3.8",
       "date": "2026-11-04",
       "author": "Lumora",
       "title": "Fadenkreuz-Editor",
@@ -26,6 +172,7 @@
     },
     {
       "id": "lumora-screenshot-manager",
+      "version": "0.3.8",
       "date": "2026-11-04",
       "author": "Lumora",
       "title": "Screenshot-Manager im Spiel",
@@ -34,6 +181,7 @@
     },
     {
       "id": "lumora-addon-assets-voice",
+      "version": "0.3.7",
       "date": "2026-11-04",
       "author": "Lumora",
       "title": "LumoraVoice als Lumora-Addon",
@@ -42,6 +190,7 @@
     },
     {
       "id": "lumora-launcher-settings",
+      "version": "0.3.6",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Neue Launcher-Einstellungen",
@@ -50,6 +199,7 @@
     },
     {
       "id": "lumora-launcher-security",
+      "version": "0.3.5",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Konto mit Sicherheit und Verlauf",
@@ -58,6 +208,7 @@
     },
     {
       "id": "lumora-button-design",
+      "version": "0.3.4",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Button-Design für alle Menüs",
@@ -66,6 +217,7 @@
     },
     {
       "id": "lumora-fonts",
+      "version": "0.3.3",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Neun Schriften zur Auswahl",
@@ -74,6 +226,7 @@
     },
     {
       "id": "lumora-hub-2",
+      "version": "0.3.2",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Neuer Lumora-Hub mit Themes und Akzentfarbe",
@@ -82,6 +235,7 @@
     },
     {
       "id": "lumora-world-loading",
+      "version": "0.3.1",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Neuer Ladebildschirm beim Betreten einer Welt",
@@ -90,6 +244,7 @@
     },
     {
       "id": "lumora-loader",
+      "version": "0.3.0",
       "date": "2026-11-03",
       "author": "Lumora",
       "title": "Lumora läuft ohne Fabric",
@@ -98,6 +253,7 @@
     },
     {
       "id": "lumora-addon-loader",
+      "version": ["0.2.0", "0.2.1", "0.2.2"],
       "date": "2026-11-02",
       "author": "Lumora",
       "title": "Eigener Addon-Loader, blaues Design und neues Verbindungssystem",

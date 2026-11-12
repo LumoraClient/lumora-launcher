@@ -19,12 +19,17 @@ final class PlayerMenuSmoke {
     private PlayerMenuSmoke() {
     }
 
-    /** The player may have died in an earlier step (fall damage): respawn and close the death screen first. */
+    /**
+     * The player may have died in an earlier step (fall damage): respawn and close the death screen first. Chat lines
+     * and toasts of the earlier steps are cleared, so the screenshots show the menu (also used for the news).
+     */
     static void prepare(Minecraft mc) {
         if (mc.player != null && mc.player.isDeadOrDying()) {
             mc.player.respawn();
         }
         mc.gui.setScreen(null);
+        mc.gui.hud.getChat().clearMessages(false);
+        mc.gui.toastManager().clear();
     }
 
     static void open() {

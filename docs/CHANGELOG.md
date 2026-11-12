@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.37 (2026-11-12)
+
+### Im Spiel
+- **Alben im Screenshot-Manager:** Neue Reiter „Fotos“ und „Alben“. Unter Alben stehen deine eigenen Alben (mit „Neues Album“) und automatische Alben nach Server, Spielern in der Nähe und Account – jeweils mit dem neuesten Bild als Titelbild und der Anzahl. Ein Klick öffnet das Album mit Suche, Filter und allen Aktionen; eigene Alben lassen sich umbenennen und löschen (die Bilder bleiben).
+- Bei jedem neuen Screenshot (F2) merkt sich Lumora den Server (oder Einzelspieler), deinen Account und bis zu 8 Spieler in der Nähe. Ältere Screenshots haben diese Angaben nicht und erscheinen deshalb nicht in den automatischen Alben.
+- Unter Fotos fügt „Zu Album“ die Auswahl in ein Album ein oder legt direkt ein neues an; in einem eigenen Album gibt es „Aus Album“. Die Suche findet jetzt auch Server-, Account- und Spielernamen, die Vorschau zeigt, wo und mit wem das Bild entstand. Beim Umbenennen eines Bildes ziehen Alben und Angaben mit.
+- Auf schmalen Fenstern passt sich die Suche den Reitern an, und „Extern öffnen“ macht Platz, wenn er nicht reicht.
+
 ## 0.3.36 (2026-11-12)
 
 ### Im Spiel

@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.37 (2026-11-12):**
+- **Build:** `gradlew clean build` erfolgreich, 521 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die Screenshot-Alben (eigene Alben auch nach Umbenennen, Löschen und Neustart; automatische Alben nach Server, Spieler und Account, Suche nach Spielern; neue Screenshots merken sich Server ohne Standard-Port, Account und Spieler in der Nähe, nicht sich selbst, ältere bleiben ohne Angaben; Alben-Reiter, Album öffnen, Esc zurück, neues Album mit der Auswahl). Alle 16 Client-Module kompiliert; keine Mixins geändert.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 bestanden, mit neuer Aufnahme des Alben-Reiters (mit Beispiel-Angaben in der Test-Instanz, danach entfernt); Aufnahmen angesehen: Reiter Fotos und Alben, „Neues Album“, eigenes Album mit Titelbild, Fotos mit „Zu Album“. Auf schmalem Fenster überdeckte die Suche zuerst den Reiter „Alben“ – behoben, erneut bestanden.
+- **Smoke-Test mit dem fertigen 0.3.37-Build:** nur 26.3 (Änderungen im Kern, im Versionsmodul nur der Smoke-Test) – bestanden; die Screenshots des Tests in der Welt wurden mit „Einzelspieler“ und dem Account des Tests eingetragen. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** automatische Alben mit Screenshots von einem echten Server und mit echten Spielern in der Nähe; Album anlegen, füllen, umbenennen und löschen von Hand; ein echtes Selbst-Update von 0.3.36 auf 0.3.37.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.36 (2026-11-12):**
 - **Build:** `gradlew clean build` erfolgreich, 518 Unit-Tests ohne Fehler (1 übersprungen). Neu: RGB-Effekt (Farbe wechselt mit der Zeit, Werte nur wenn gewählt, Rand behält seine Transparenz, ohne Sättigung grau, Welle nach Position) und Widget-Design unter Themes (keine Modulkarte, Themes › Widgets öffnet die Einstellungen); Vorlagen RGB und Lumora im Modul-Test. Alle 16 Client-Module kompiliert; keine Mixins geändert.
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 mit Widget-Design und RGB (Welle, Geschwindigkeit 4, Regenbogen-Rand, runde Ecken) bestanden; Aufnahme angesehen: die Widgets laufen nach Position durch den Regenbogen, auch die Tastenanzeige. Die Aufnahme dient als News-Bild. Der Hub zeigt 30 statt 31 Module.

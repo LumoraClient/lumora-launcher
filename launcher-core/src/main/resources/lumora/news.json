@@ -1,6 +1,27 @@
 {
   "news": [
     {
+      "id": "lumora-screenshot-albums",
+      "date": "2026-11-12",
+      "author": "Lumora",
+      "version": "0.3.37",
+      "title": "Alben für deine Screenshots",
+      "text": "Der Screenshot-Manager sortiert deine Bilder jetzt in Alben – eigene und automatische nach Server, Spielern und Account.",
+      "image": "news-screenshot-albums.png",
+      "body": [
+        {"p": "Im Screenshot-Manager gibt es jetzt zwei Reiter: „Fotos“ mit allen Bildern wie bisher und „Alben“. Dort findest du deine eigenen Alben und Alben, die sich ganz von selbst füllen."},
+        {"h": "Automatische Alben"},
+        {"list": [
+          "Server: alle Screenshots eines Servers, Einzelspieler extra",
+          "Spieler: Bilder mit Freunden und anderen Spielern, die in der Nähe waren",
+          "Accounts: getrennt nach dem Account, mit dem du gespielt hast"
+        ]},
+        {"p": "Lumora merkt sich das bei jedem neuen Screenshot (F2) – ältere Bilder haben diese Angaben noch nicht."},
+        {"h": "Eigene Alben"},
+        {"p": "Mit „Neues Album“ legst du ein Album an. Unter Fotos markierst du Bilder (Strg oder Umschalt für mehrere) und fügst sie mit „Zu Album“ hinzu. Alben lassen sich umbenennen und löschen, die Bilder bleiben dabei erhalten. Die Suche findet jetzt auch Server und Spieler."}
+      ]
+    },
+    {
       "id": "lumora-widget-rgb",
       "date": "2026-11-12",
       "author": "Lumora",

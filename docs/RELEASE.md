@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.36 (2026-11-12):**
+- **Build:** `gradlew clean build` erfolgreich, 518 Unit-Tests ohne Fehler (1 übersprungen). Neu: RGB-Effekt (Farbe wechselt mit der Zeit, Werte nur wenn gewählt, Rand behält seine Transparenz, ohne Sättigung grau, Welle nach Position) und Widget-Design unter Themes (keine Modulkarte, Themes › Widgets öffnet die Einstellungen); Vorlagen RGB und Lumora im Modul-Test. Alle 16 Client-Module kompiliert; keine Mixins geändert.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 mit Widget-Design und RGB (Welle, Geschwindigkeit 4, Regenbogen-Rand, runde Ecken) bestanden; Aufnahme angesehen: die Widgets laufen nach Position durch den Regenbogen, auch die Tastenanzeige. Die Aufnahme dient als News-Bild. Der Hub zeigt 30 statt 31 Module.
+- **Smoke-Test mit dem fertigen 0.3.36-Build:** nur 26.3 (Änderungen im Kern, in den Versionsmodulen nur Übersetzungen) – bestanden. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** der Abschnitt Themes › Widgets im Spiel (liegt unterhalb der Smoke-Aufnahme der Themes-Seite; nur per Unit-Test); RGB in anderen Versionen; ein echtes Selbst-Update von 0.3.35 auf 0.3.36.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.35 (2026-11-12):**
 - **Build:** `gradlew clean build` erfolgreich, 516 Unit-Tests ohne Fehler (1 übersprungen). Neu: 6 für das Widget-Design (eigenes Aussehen der Widgets, solange es aus ist; Formate „FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“, nur Wert, Großbuchstaben, Farben mit Bedeutung bleiben; Rand lässt das Innere frei, Hintergrund und Akzentstreifen; Größe aller Widgets mal eigene Größe; Modul ab Werk aus, eigene Stil-Einstellungen der Widgets ausgeblendet, Änderungen sofort sichtbar, Vorlagen; Addon-API `Theme.widgetStyle()`). Alle 16 Client-Module kompiliert; keine Mixins geändert.
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 mit eingeschaltetem Widget-Design (runde Ecken, Rand, ohne Akzentstreifen, „[FPS] 60“, Großbuchstaben, Größe 1,25) bestanden; Aufnahme angesehen: eingebaute Widgets, Tastenanzeige und Session-Timer im gemeinsamen Design. Die Aufnahme dient als News-Bild.

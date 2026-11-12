@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.36 (2026-11-12)
+
+### Im Spiel
+- **Widget-Design unter Themes:** Das Widget-Design ist keine Modulkarte mehr, sondern steht unter Themes › Widgets: mit einer Live-Vorschau von zwei Beispiel-Widgets, dem Schalter „Ein Design für alle Widgets“ und „Einstellungen › Öffnen“ für alle Optionen.
+- **RGB-Effekt:** Neuer Abschnitt „RGB“ in den Einstellungen des Widget-Designs. Akzentstreifen & Tasten, Rand, Beschriftung und Wert können einzeln durch den Regenbogen laufen; einstellbar sind Geschwindigkeit (1–10, ein Durchlauf in 12 bis 1,2 Sekunden), Sättigung und Helligkeit. Mit „Welle über die Widgets“ ist jedes Widget je nach Position etwas weiter im Regenbogen, so laufen die Farben über den Bildschirm. Dazu die Vorlage „RGB (Regenbogen-Rand)“. Gilt für alle eingebauten Widgets, die Tastenanzeige, die Leisten und Addon-Widgets, die das Widget-Design der API nutzen. Die Farbwähler des Widget-Designs haben dafür keinen eigenen Regenbogen mehr.
+
 ## 0.3.35 (2026-11-12)
 
 ### Im Spiel

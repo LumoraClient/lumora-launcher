@@ -1,6 +1,27 @@
 {
   "news": [
     {
+      "id": "lumora-widget-rgb",
+      "date": "2026-11-12",
+      "author": "Lumora",
+      "version": "0.3.36",
+      "title": "RGB für deine Widgets",
+      "text": "Das Widget-Design steht jetzt unter Themes › Widgets – und bringt einen RGB-Effekt mit Geschwindigkeit, Sättigung, Helligkeit und Welle mit.",
+      "image": "news-widget-rgb.png",
+      "body": [
+        {"p": "Das Widget-Design findest du jetzt unter Themes › Widgets statt bei den Modulen. Dort siehst du eine Live-Vorschau, schaltest das gemeinsame Design an und öffnest mit „Einstellungen“ alle Optionen."},
+        {"h": "Der RGB-Effekt"},
+        {"list": [
+          "Einzeln wählbar: Akzentstreifen & Tasten, Rand, Beschriftung und Wert",
+          "Geschwindigkeit von 1 bis 10 – ein Durchlauf dauert 12 bis 1,2 Sekunden",
+          "Sättigung und Helligkeit für kräftige oder sanfte Farben",
+          "Welle über die Widgets: Die Farben laufen über den ganzen Bildschirm",
+          "Vorlage „RGB (Regenbogen-Rand)“ für den schnellen Start"
+        ]},
+        {"p": "Der Effekt gilt für alle eingebauten Widgets, die Tastenanzeige mit gedrückten Tasten, die Leisten und für Addon-Widgets, die das Widget-Design der Lumora-API nutzen."}
+      ]
+    },
+    {
       "id": "lumora-widget-design",
       "date": "2026-11-12",
       "author": "Lumora",

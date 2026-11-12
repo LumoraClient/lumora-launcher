@@ -573,5 +573,16 @@
   "lumora.extras.widgetdesign.label_theme": "Beschriftung in Akzentfarbe",
   "lumora.extras.widgetdesign.label_color": "Farbe Beschriftung",
   "lumora.extras.widgetdesign.value_color": "Farbe Wert",
-  "lumora.extras.widgetdesign.scale": "Größe aller Widgets"
+  "lumora.extras.widgetdesign.scale": "Größe aller Widgets",
+  "lumora.extras.widgetdesign.preset_rgb": "RGB (Regenbogen-Rand)",
+  "lumora.extras.widgetdesign.section.rgb": "RGB",
+  "lumora.extras.widgetdesign.rgb": "RGB-Effekt",
+  "lumora.extras.widgetdesign.rgb_accent": "Akzentstreifen & Tasten",
+  "lumora.extras.widgetdesign.rgb_border": "Rand",
+  "lumora.extras.widgetdesign.rgb_label": "Beschriftung",
+  "lumora.extras.widgetdesign.rgb_value": "Wert",
+  "lumora.extras.widgetdesign.rgb_speed": "Geschwindigkeit",
+  "lumora.extras.widgetdesign.rgb_saturation": "Sättigung",
+  "lumora.extras.widgetdesign.rgb_brightness": "Helligkeit",
+  "lumora.extras.widgetdesign.rgb_wave": "Welle über die Widgets"
 }

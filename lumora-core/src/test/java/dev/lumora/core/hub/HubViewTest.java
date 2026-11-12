@@ -187,6 +187,37 @@ class HubViewTest {
     }
 
     @Test
+    void widgetDesignIsOnTheThemesPageNotAModuleCard() {
+        LumoraCore core = core();
+        FakeHost host = new FakeHost();
+        HubView view = new HubView(core, host);
+        assertFalse(view.cards().stream().anyMatch(c -> c.id().equals("addon:lumora-widgetdesign")), "no module card");
+        HubView.select(1);
+        boolean found = false;
+        for (int i = 0; i < 40 && !found; i++) {
+            FakeGraphics g = new FakeGraphics();
+            view.render(g, 854, 480, 427, 300);
+            found = g.texts.contains("Ein Design für alle Widgets") || g.texts.contains("One design for all widgets");
+            if (!found) {
+                view.mouseScrolled(427, 300, -2);
+            }
+        }
+        assertTrue(found, "Themes › Widgets");
+        for (int i = 0; i < 30; i++) { // the section sits near the bottom of the page: scroll down
+            view.mouseScrolled(427, 300, -5);
+            view.render(new FakeGraphics(), 854, 480, 427, 300);
+        }
+        // the row below the switch opens the settings of the design
+        for (int y = 40; y < 480 && host.openedTitle == null; y += 3) {
+            HubView.select(1);
+            view.render(new FakeGraphics(), 854, 480, 600, y);
+            view.mouseClicked(600, y, 0);
+        }
+        assertEquals("Widget-Design", host.openedTitle);
+        core.stopping();
+    }
+
+    @Test
     void theHeartMarksAFavoriteThatComesFirst() {
         LumoraCore core = core();
         HubView view = new HubView(core, new FakeHost());

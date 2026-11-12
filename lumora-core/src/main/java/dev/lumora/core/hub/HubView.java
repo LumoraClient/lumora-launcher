@@ -76,8 +76,7 @@ public final class HubView implements AddonView {
             Map.entry("lumora-chat", new String[]{WidgetCategory.SERVER, "chat"}),
             Map.entry("lumora-tab", new String[]{WidgetCategory.SERVER, "tab"}),
             Map.entry("lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"}),
-            Map.entry("lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"}),
-            Map.entry("lumora-widgetdesign", new String[]{WidgetCategory.GENERAL, "widget"}));
+            Map.entry("lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     private static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",
@@ -91,7 +90,7 @@ public final class HubView implements AddonView {
     /** Addons switched with the theme (Lumora's server and world lists, connection screens, button design). */
     static final List<String> THEME_ADDONS = List.of("lumora-browser", "lumora-connection", "lumora-buttons");
     /** Built-in modules set on the Themes page only (no module card). */
-    static final Set<String> THEMES_PAGE_ADDONS = Set.of("lumora-buttons", "lumora-browser");
+    static final Set<String> THEMES_PAGE_ADDONS = Set.of("lumora-buttons", "lumora-browser", "lumora-widgetdesign");
     private static final int[] DURATIONS = {150, 220, 350, 500};
     private static final String[] ZOOM_FACTORS = {"2", "3", "4", "6", "8", "10"};
     private static final String[] SWING = {"vanilla", "smooth", "spin", "slap"};
@@ -1088,6 +1087,7 @@ public final class HubView implements AddonView {
             }
             y += 10;
         }
+        y = widgetDesign(g, x, y, w, mx, my);
         spaced(g, t("ANIMATIONEN", "ANIMATIONS"), x, y, DIM);
         y += 13;
         String style = str("transitionStyle", "fade");
@@ -1184,6 +1184,61 @@ public final class HubView implements AddonView {
         g.text(t("Gilt für alle Menüs: Minecraft- und Lumora-Menüs, Hub, Server- und Weltliste",
                 "Applies to every menu: Minecraft's and Lumora's menus, hub, server and world list"), x, y, DIM, false);
         return y + 20;
+    }
+
+    static final String WIDGET_DESIGN = "lumora-widgetdesign";
+
+    /**
+     * Themes › Widgets: module "Widget-Design" with a live preview, its switch and its settings (one look for all HUD
+     * widgets). Returns the y below the section.
+     */
+    private int widgetDesign(HudGraphics g, int x, int y, int w, int mx, int my) {
+        AddonRecord r = core.addonManager().record(WIDGET_DESIGN).orElse(null);
+        if (r == null || r.configuration() == null) {
+            return y;
+        }
+        boolean on = core.addon(WIDGET_DESIGN).map(AddonInfo::wanted).orElse(false);
+        spaced(g, "WIDGETS", x, y, DIM);
+        y += 13;
+        y = widgetPreview(g, x, y, w) + 4;
+        y = row(g, x, y, w, t("Ein Design für alle Widgets", "One design for all widgets"), mx, my,
+                (rx, ry) -> switchControl(g, rx, ry, on),
+                () -> core.addonManager().setWanted(WIDGET_DESIGN, !on).ifPresent(this::toast));
+        y = row(g, x, y, w, t("Einstellungen", "Settings"), mx, my, (rx, ry) -> pill(g, rx, ry, t("Öffnen", "Open")),
+                () -> host.openSettings("Widget-Design", t("Aussehen, Farben, RGB, Format und Größe aller Widgets",
+                        "Look, colours, RGB, format and size of all widgets"), r.configuration().settings(), List.of(),
+                        r.configuration()::save, true));
+        g.text(on ? t("Gilt für alle Widgets; ihre eigenen Stil-Einstellungen sind ausgeblendet",
+                        "Applies to every widget; their own look settings are hidden")
+                : t("Aus: jedes Widget nutzt seine eigenen Einstellungen", "Off: every widget uses its own settings"),
+                x, y, DIM, false);
+        return y + 20;
+    }
+
+    /** Two sample widgets in the current widget design (Lumora's own look while it is off). */
+    private int widgetPreview(HudGraphics g, int x, int y, int w) {
+        int h = 41;
+        g.roundedRect(x, y, w, h, 4, 0xFF27384A);
+        String[][] samples = {{"FPS", "144", null}, {"Ping", "23 ms", "ok"}};
+        int px = x + 7;
+        for (String[] s : samples) {
+            int lw = dev.lumora.core.hud.WidgetDesign.lineWidth(g::textWidth, s[0], s[1]);
+            int pw = lw + 12;
+            int ph = 17;
+            int py = y + (h - ph) / 2;
+            g.push();
+            g.translate(px, py);
+            dev.lumora.core.hud.WidgetDesign.position(px, py);
+            if (!dev.lumora.core.hud.WidgetDesign.panel(g, pw, ph)) {
+                g.fill(0, 0, pw, ph, 0x9C0F0C17);
+                g.fill(0, 0, 2, ph, LumoraTheme.accent());
+            }
+            dev.lumora.core.hud.WidgetDesign.line(g, 6, 5, s[0], s[1], LumoraTheme.accentHover(),
+                    s[2] != null ? OK : TEXT, true, s[2] != null);
+            g.pop();
+            px += pw + 8;
+        }
+        return y + h;
     }
 
     /** Animation state of the button design previews. */

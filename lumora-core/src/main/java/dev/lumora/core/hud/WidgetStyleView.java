@@ -42,7 +42,7 @@ public final class WidgetStyleView implements WidgetStyle {
     @Override
     public int borderColor() {
         WidgetDesign.Look l = WidgetDesign.look();
-        return l == null ? NONE.borderColor() : l.borderColor();
+        return l == null ? NONE.borderColor() : l.borderNow();
     }
 
     @Override
@@ -66,7 +66,7 @@ public final class WidgetStyleView implements WidgetStyle {
     @Override
     public int valueColor() {
         WidgetDesign.Look l = WidgetDesign.look();
-        return l == null ? NONE.valueColor() : l.valueColor();
+        return l == null ? NONE.valueColor() : l.value();
     }
 
     @Override

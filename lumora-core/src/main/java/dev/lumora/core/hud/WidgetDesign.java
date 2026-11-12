@@ -30,18 +30,57 @@ public final class WidgetDesign {
     private static final long REFRESH_NANOS = 50_000_000L;
 
     /**
+     * The RGB effect: the chosen parts cycle through the colours of the rainbow. {@code speed} 1 (one cycle in 12 s) to
+     * 10 (1.2 s), {@code saturation} and {@code brightness} in percent; {@code wave}: each widget is a little further
+     * along the rainbow than the one to its left and above, so the colours run across the screen.
+     */
+    public record Rgb(boolean on, boolean accent, boolean border, boolean label, boolean value, int speed,
+                      int saturation, int brightness, boolean wave) {
+        public static final Rgb OFF = new Rgb(false, false, false, false, false, 4, 100, 100, false);
+
+        /** The rainbow colour now (with {@code alpha} of the colour it replaces). */
+        int color(int alpha) {
+            double hue = System.currentTimeMillis() * Math.max(1, speed) / 12000.0 + (wave ? waveOffset : 0);
+            return (alpha & 0xFF000000) | (hsv((float) (hue % 1.0), saturation / 100f, brightness / 100f) & 0xFFFFFF);
+        }
+    }
+
+    /**
      * The chosen look. {@code accentColor} and {@code labelColor} 0: the accent of the theme (follows a change of the
-     * accent at once).
+     * accent at once). The colour methods ({@link #accent()}, {@link #label()}, {@link #value()},
+     * {@link #borderNow()}) include the RGB effect and change from frame to frame while it is on.
      */
     public record Look(boolean background, int backgroundColor, int radius, boolean border, int borderColor,
                        boolean accentBar, int accentColor, int labelColor, int valueColor, boolean shadow,
-                       String format, boolean uppercase, float scale) {
+                       String format, boolean uppercase, float scale, Rgb rgb) {
+        public Look(boolean background, int backgroundColor, int radius, boolean border, int borderColor,
+                    boolean accentBar, int accentColor, int labelColor, int valueColor, boolean shadow,
+                    String format, boolean uppercase, float scale) {
+            this(background, backgroundColor, radius, border, borderColor, accentBar, accentColor, labelColor, valueColor,
+                    shadow, format, uppercase, scale, Rgb.OFF);
+        }
+
         public int accent() {
+            if (rgb.on && rgb.accent) {
+                return rgb.color(0xFF000000);
+            }
             return accentColor == 0 ? LumoraTheme.accent() : accentColor;
         }
 
         public int label() {
+            if (rgb.on && rgb.label) {
+                return rgb.color(0xFF000000);
+            }
             return labelColor == 0 ? LumoraTheme.accentHover() : labelColor;
+        }
+
+        public int value() {
+            return rgb.on && rgb.value ? rgb.color(valueColor) : valueColor;
+        }
+
+        /** The border colour now (RGB keeps the alpha of the chosen border colour). */
+        public int borderNow() {
+            return rgb.on && rgb.border ? rgb.color(borderColor) : borderColor;
         }
 
         /** The label as drawn (capitals, colon, brackets); "" when the format shows no label. */
@@ -58,6 +97,8 @@ public final class WidgetDesign {
         }
     }
 
+    /** Position of the widget being drawn along the rainbow ("wave"), set by the HUD before each widget. */
+    private static volatile double waveOffset;
     private static volatile Supplier<Look> source;
     private static volatile Look cached;
     private static volatile long cachedAt;
@@ -69,6 +110,36 @@ public final class WidgetDesign {
     public static void use(Supplier<Look> look) {
         source = look;
         cached = null;
+    }
+
+    /**
+     * Where the widget about to be drawn sits (screen GUI pixels): with the RGB "wave", widgets further right and
+     * further down are further along the rainbow (one cycle per 400 pixels).
+     */
+    public static void position(int x, int y) {
+        waveOffset = (x + y) / 400.0;
+    }
+
+    /** Colour of hue {@code h} (0..1) at {@code s} saturation and {@code v} brightness (0..1), opaque. */
+    static int hsv(float h, float s, float v) {
+        float x = (h % 1f + 1f) % 1f * 6f;
+        int i = (int) x;
+        float f = x - i;
+        float p = v * (1 - s);
+        float q = v * (1 - s * f);
+        float t = v * (1 - s * (1 - f));
+        float r;
+        float g;
+        float b;
+        switch (i) {
+            case 0 -> { r = v; g = t; b = p; }
+            case 1 -> { r = q; g = v; b = p; }
+            case 2 -> { r = p; g = v; b = t; }
+            case 3 -> { r = p; g = q; b = v; }
+            case 4 -> { r = t; g = p; b = v; }
+            default -> { r = v; g = p; b = q; }
+        }
+        return 0xFF000000 | Math.round(r * 255) << 16 | Math.round(g * 255) << 8 | Math.round(b * 255);
     }
 
     /** A setting of the design changed: the next call reads the look again. */
@@ -120,7 +191,7 @@ public final class WidgetDesign {
 
     public static int valueColor(int own) {
         Look l = look();
-        return l == null ? own : l.valueColor;
+        return l == null ? own : l.value();
     }
 
     /**
@@ -169,7 +240,7 @@ public final class WidgetDesign {
         }
         g.roundedRect(x, y, w, h, l.radius, c);
         if (l.border) {
-            outline(g, x, y, w, h, l.radius, l.borderColor);
+            outline(g, x, y, w, h, l.radius, l.borderNow());
         }
     }
 
@@ -178,7 +249,7 @@ public final class WidgetDesign {
             g.roundedRect(x, y, w, h, l.radius, l.backgroundColor);
         }
         if (l.border) {
-            outline(g, x, y, w, h, l.radius, l.borderColor);
+            outline(g, x, y, w, h, l.radius, l.borderNow());
         }
     }
 
@@ -234,7 +305,7 @@ public final class WidgetDesign {
             return;
         }
         String lb = l.label(label);
-        int vc = fixedValue ? valueColor : l.valueColor;
+        int vc = fixedValue ? valueColor : l.value();
         if (lb.isEmpty()) {
             g.text(value, x, y, vc, l.shadow);
         } else if (VALUE_FIRST.equals(l.format)) {

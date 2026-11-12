@@ -412,7 +412,7 @@ sofort. Wählt er die Akzentfarbe eines Addons und ist das Addon aus, gilt Lila;
 Ecken, Akzentstreifen, Farben, Textschatten, Format („FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“, „60“) und Größe aller
 Widgets fest. Die Größe wendet Lumora selbst auf jedes Widget an, auch auf Addon-Widgets. Für den Rest fragt ein
 Addon-Widget `context.theme().widgetStyle()`: Solange `active()` gilt, zeichnet es damit statt mit den eigenen
-Einstellungen (und blendet diese am besten mit `visibleWhen(() -> !style.active())` aus). Beispiel im Session-Timer:
+Einstellungen (und blendet diese am besten mit `visibleWhen(() -> !style.active())` aus). Mit dem RGB-Effekt ändern sich die Farben von Bild zu Bild: in `render` jedes Mal neu lesen. Beispiel im Session-Timer:
 
 ```java
 WidgetStyle style = context.theme().widgetStyle();

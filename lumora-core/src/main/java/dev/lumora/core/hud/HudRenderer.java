@@ -100,6 +100,7 @@ public final class HudRenderer {
         if (!layout(e, ctx)) {
             return;
         }
+        WidgetDesign.position(e.bounds.x, e.bounds.y);
         float s = scale(e.state);
         g.push();
         try {

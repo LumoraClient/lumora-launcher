@@ -192,7 +192,7 @@ public final class KeystrokesView {
         int gp = g();
         int full = k * 3 + gp * 2;
         WidgetDesign.Look look = WidgetDesign.look();
-        int text = look != null ? look.valueColor() : textColor == 0 ? defaultText : textColor;
+        int text = look != null ? look.value() : textColor == 0 ? defaultText : textColor;
         key(g, k + gp, 0, k, k, in.label(Key.UP), null, Key.UP, background, text, now);
         key(g, 0, k + gp, k, k, in.label(Key.LEFT), null, Key.LEFT, background, text, now);
         key(g, k + gp, k + gp, k, k, in.label(Key.DOWN), null, Key.DOWN, background, text, now);
@@ -227,7 +227,7 @@ public final class KeystrokesView {
         int fill = grow ? base : mix(base, active, t);
         int r = look != null ? Math.min(look.radius(), h / 3) : rounded.get() ? Math.min(4, h / 3) : 0;
         if (look != null ? look.border() : outline.get()) {
-            int oc = look != null ? look.borderColor() : outlineColor.argb();
+            int oc = look != null ? look.borderNow() : outlineColor.argb();
             int n = look != null ? 1 : outlineWidth.get();
             if (r > 0) {
                 g.roundedRect(x - n, y - n, w + 2 * n, h + 2 * n, r + n, oc);

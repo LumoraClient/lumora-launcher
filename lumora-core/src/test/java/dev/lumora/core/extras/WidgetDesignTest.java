@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WidgetDesignTest {
@@ -134,6 +135,32 @@ class WidgetDesignTest {
     }
 
     @Test
+    void rgbRunsThroughTheRainbowAtTheChosenSpeed() throws InterruptedException {
+        WidgetDesign.Rgb rgb = new WidgetDesign.Rgb(true, true, true, true, false, 10, 100, 100, false);
+        WidgetDesign.Look l = new WidgetDesign.Look(true, 0x80000000, 0, true, 0x80FFFFFF, true, 0xFF00FF00, 0xFFAA0000,
+                0xFF0000AA, true, WidgetDesign.SPACE, false, 1f, rgb);
+        int first = l.accent();
+        Thread.sleep(200); // speed 10: one cycle in 1.2 s
+        assertNotEquals(first, l.accent(), "the colour moves on");
+        assertEquals(0xFF0000AA, l.value(), "values are not part of the effect");
+        assertEquals(0x80, l.borderNow() >>> 24, "the border keeps its transparency");
+
+        WidgetDesign.Look grey = new WidgetDesign.Look(true, 0, 0, false, 0, true, 0, 0, 0xFFFFFFFF, true,
+                WidgetDesign.SPACE, false, 1f, new WidgetDesign.Rgb(true, true, false, false, false, 1, 0, 50, false));
+        int c = grey.accent();
+        assertEquals(c >> 16 & 0xFF, c & 0xFF, "no saturation: grey");
+        assertEquals(c >> 8 & 0xFF, c & 0xFF);
+
+        WidgetDesign.Look wave = new WidgetDesign.Look(true, 0, 0, false, 0, true, 0, 0, 0xFFFFFFFF, true,
+                WidgetDesign.SPACE, false, 1f, new WidgetDesign.Rgb(true, true, false, false, false, 1, 100, 100, true));
+        WidgetDesign.position(0, 0);
+        int left = wave.accent();
+        WidgetDesign.position(200, 0);
+        assertNotEquals(left, wave.accent(), "with the wave a widget further right is further along the rainbow");
+        WidgetDesign.position(0, 0);
+    }
+
+    @Test
     void theSizeOfAllWidgetsMultipliesEachWidgetsOwnSize() {
         WidgetState s = new WidgetState();
         s.scale = 1.5f;
@@ -173,7 +200,11 @@ class WidgetDesignTest {
         ((dev.lumora.api.config.ButtonSetting) design.get("preset_minimal").orElseThrow()).press();
         assertFalse(WidgetDesign.look().background());
         assertFalse(WidgetDesign.look().accentBar());
+        ((dev.lumora.api.config.ButtonSetting) design.get("preset_rgb").orElseThrow()).press();
+        assertTrue(WidgetDesign.look().rgb().on(), "RGB preset");
+        assertTrue(WidgetDesign.look().border());
         ((dev.lumora.api.config.ButtonSetting) design.get("preset_lumora").orElseThrow()).press();
+        assertFalse(WidgetDesign.look().rgb().on(), "Lumora preset switches RGB off");
         assertTrue(WidgetDesign.look().background());
         assertEquals(WidgetDesign.SPACE, WidgetDesign.look().format());
 

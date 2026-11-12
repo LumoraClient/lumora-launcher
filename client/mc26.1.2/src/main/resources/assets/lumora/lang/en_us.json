@@ -573,5 +573,16 @@
   "lumora.extras.widgetdesign.label_theme": "Labels in the accent colour",
   "lumora.extras.widgetdesign.label_color": "Label colour",
   "lumora.extras.widgetdesign.value_color": "Value colour",
-  "lumora.extras.widgetdesign.scale": "Size of all widgets"
+  "lumora.extras.widgetdesign.scale": "Size of all widgets",
+  "lumora.extras.widgetdesign.preset_rgb": "RGB (rainbow border)",
+  "lumora.extras.widgetdesign.section.rgb": "RGB",
+  "lumora.extras.widgetdesign.rgb": "RGB effect",
+  "lumora.extras.widgetdesign.rgb_accent": "Accent stripe & keys",
+  "lumora.extras.widgetdesign.rgb_border": "Border",
+  "lumora.extras.widgetdesign.rgb_label": "Labels",
+  "lumora.extras.widgetdesign.rgb_value": "Values",
+  "lumora.extras.widgetdesign.rgb_speed": "Speed",
+  "lumora.extras.widgetdesign.rgb_saturation": "Saturation",
+  "lumora.extras.widgetdesign.rgb_brightness": "Brightness",
+  "lumora.extras.widgetdesign.rgb_wave": "Wave across the widgets"
 }

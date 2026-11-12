@@ -67,7 +67,7 @@ jobs:
         run: |
           $env:LUMORA_HOME = "$env:RUNNER_TEMP\lumora-home"
           & build\release\LumoraLauncher\LumoraLauncherCli.exe --version
-          & build\release\LumoraLauncher\LumoraLauncherCli.exe --install-only --profile vulkan
+          & build\release\LumoraLauncher\LumoraLauncherCli.exe --install-only --profile 26.3
           if ($LASTEXITCODE -ne 0) { exit 1 }
       # A full --smoke-test needs a GPU; hosted runners have none. Run it on a self-hosted GPU runner.
       - uses: actions/upload-artifact@v4

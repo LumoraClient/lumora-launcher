@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.3.34 (2026-11-12)
+
+### Im Spiel
+- **Spielermenü als Fenster:** Mausrad auf einem Spieler öffnet jetzt das Fenster *Spieler-Interaktionen* statt des Rings: links die Spielerkarte mit großem Kopf, Name, Freund- bzw. Lumora-Abzeichen, Online, Ping aus der Tab-Liste (auf Servern) und dem Lumora-Profil (Freund seit, gemeinsame Gruppen), rechts alle Aktionen als Liste mit Symbol. Kategorien von Addons öffnen eine eigene Liste mit einer Zeile zurück. Wie bisher: halten und über einer Aktion loslassen, oder kurz klicken und dann mit Klick, Mausrad oder neu mit Pfeiltasten und Enter wählen. Rechtsklick geht zurück, Esc oder ✕ schließt. „Client-Profil“ ist kein eigener Eintrag mehr, das Profil steht immer in der Karte.
+- **In Party einladen** schickt jetzt `/party invite <Name>` an den Server (z. B. für Partys auf Netzwerken) statt einer Lumora-Social-Party. Nur auf Servern und nur bei echten Spielernamen.
+- HUD-Widgets (z. B. Blockinfo, Combo) werden nicht mehr über dem Spielermenü und anderen Lumora-Fenstern gezeichnet (1.21.8 bis 26.3).
+
+### Für Addon-Entwickler
+- Kategorien im Spielermenü sind jetzt Zeilen, die eine eigene Liste öffnen (vorher äußerer Ring); die API bleibt gleich.
+
 ## 0.3.33 (2026-11-12)
 
 ### Im Spiel

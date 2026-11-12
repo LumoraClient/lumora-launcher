@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.34 (2026-11-12):**
+- **Build:** `gradlew clean build` erfolgreich, 510 Unit-Tests ohne Fehler (1 übersprungen). Die Spielermenü-Tests prüfen jetzt das Fenster: Halten und Loslassen über einer Aktion, kurzer Klick lässt es offen, Mausrad und Enter, `/party invite <Name>` auf Servern (ohne Befehlsversand öffnet sich der Chat mit dem Befehl), nur echte Spielernamen, ausgegrauter Freund-Eintrag mit Grund ohne Lumora-Verbindung, Addon-Kategorie mit eigener Liste und Zurück. Alle 16 Client-Module kompiliert (neu `sendCommand` und `latency` je Version); keine Mixins geändert.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 bestanden; Aufnahmen angesehen: Fenster mit Spielerkarte und Aktionsliste, geöffnete Kategorie, HUD-Widgets liegen hinter dem Fenster. Die Aufnahme des Fensters dient als News-Bild.
+- **Smoke-Test mit dem fertigen 0.3.34-Build:** nur 26.3 (dort wirken Fenster und HUD-Korrektur, deckt den Start über den Launcher ab) – bestanden, Aufnahmen angesehen. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** `/party invite` und der Ping auf einem echten Server; die Spielerkarte mit verbundenem Lumora Social; die HUD-Korrektur in 1.21.8, 1.21.11, 26.1.2 und 26.2 im Spiel; ein echtes Selbst-Update von 0.3.33 auf 0.3.34.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.33 (2026-11-12):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 510 Unit-Tests ohne Fehler (1 übersprungen). Alle 16 Client-Module kompiliert, Mixin-Ziele mit `check-mixins.pl` gegen die Minecraft-Jars geprüft.
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test in 26.3, 26.1.2, 1.21.11, 1.21.8 und 1.8.9 bestanden, jeweils mit drei Vorschau-Spielern und Namensschild-Icons (neu im Smoke-Test von 26.3, 1.21.11, 1.21.8 und 1.8.9); auf den Aufnahmen steht das Icon rechts neben der Box.

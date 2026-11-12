@@ -1,6 +1,28 @@
 {
   "news": [
     {
+      "id": "lumora-player-panel",
+      "date": "2026-11-12",
+      "author": "Lumora",
+      "version": "0.3.34",
+      "title": "Das Spielermenü als Fenster",
+      "text": "Spieler-Interaktionen jetzt als übersichtliches Fenster mit Spielerkarte und Aktionsliste – und „In Party einladen“ nutzt den /party-Befehl des Servers.",
+      "image": "news-player-panel.png",
+      "body": [
+        {"p": "Mit dem Mausrad auf einem Spieler öffnet sich jetzt ein Fenster in der Mitte des Bildschirms statt des Rings. Links steht die Spielerkarte: großer Kopf, Name, ein Abzeichen für Freunde und Lumora-Nutzer, ob der Spieler online ist und auf Servern sein Ping aus der Tab-Liste. Mit Lumora Social zeigt die Karte außerdem, seit wann ihr befreundet seid und wie viele Gruppen ihr teilt."},
+        {"p": "Rechts stehen alle Aktionen als Liste – Lumoras eigene und die von Addons. Kategorien von Addons öffnen eine eigene Liste mit einer Zeile zurück."},
+        {"h": "Bedienung"},
+        {"list": [
+          "Mausrad halten und über einer Aktion loslassen – oder kurz klicken und dann mit Klick wählen.",
+          "Mausrad drehen oder Pfeiltasten: nächste Aktion, Enter führt sie aus.",
+          "Rechtsklick geht zurück, Esc oder ✕ schließt das Fenster."
+        ]},
+        {"h": "Party über den Server"},
+        {"p": "„In Party einladen“ schickt jetzt /party invite mit dem Namen des Spielers an den Server, so wie auf vielen Netzwerken üblich. Der Eintrag erscheint nur auf Servern."},
+        {"p": "Außerdem werden HUD-Widgets wie die Blockinfo nicht mehr über dem Spielermenü gezeichnet."}
+      ]
+    },
+    {
       "id": "lumora-nametag-icons-beside",
       "date": "2026-11-12",
       "author": "Lumora",

@@ -568,14 +568,14 @@ public final class SmokeTest {
                 PlayerMenuSmoke.prepare(mc);
             } else if (ticks == 10) {
                 PlayerMenuSmoke.open();
-            } else if (ticks == 14) {
+            } else if (ticks == 17) {
                 PlayerMenuSmoke.check(extraProblems);
                 screenshot(mc, "playermenu");
-            } else if (ticks == 16) {
-                PlayerMenuSmoke.openCategory(mc);
             } else if (ticks == 18) {
-                screenshot(mc, "playermenu-category");
+                PlayerMenuSmoke.openCategory(mc);
             } else if (ticks == 20) {
+                screenshot(mc, "playermenu-category");
+            } else if (ticks == 22) {
                 PlayerMenuSmoke.close(mc, extraProblems);
                 worldStep++;
                 ticks = 0;

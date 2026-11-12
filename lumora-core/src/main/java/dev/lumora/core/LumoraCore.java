@@ -69,6 +69,7 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.chat.ChatApi chat;
     private final dev.lumora.core.session.SessionServiceImpl session;
     private final dev.lumora.core.connection.ConnectionTracker connections;
+    private final dev.lumora.core.hub.ScreenshotWatcher screenshots;
     private HudEditorModel editor;
     private dev.lumora.core.social.LumoraSocial social;
     private boolean started;
@@ -114,6 +115,7 @@ public final class LumoraCore implements Lumora {
         });
         this.session = new dev.lumora.core.session.SessionServiceImpl(platform::session);
         this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
+        this.screenshots = new dev.lumora.core.hub.ScreenshotWatcher(this);
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
         this.jarAddons = new dev.lumora.core.addon.JarAddonLoader(platform.addonsDir(), platform.addonParentLoader(), log);
         this.hudEditor = new HudEditor() {
@@ -207,6 +209,11 @@ public final class LumoraCore implements Lumora {
         } catch (RuntimeException | LinkageError e) {
             // a broken version adapter must never stop the core tick
             log.warn("Connection tracking failed: " + e);
+        }
+        try {
+            screenshots.tick();
+        } catch (RuntimeException | LinkageError e) {
+            log.warn("Screenshot albums failed: " + e);
         }
         if (events.hasListeners(ClientTickEvent.class)) {
             events.post(new ClientTickEvent(tasks.currentTick()));

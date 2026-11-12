@@ -105,20 +105,42 @@ public final class ScreenshotView implements AddonView {
     private String toast = "";
     private long toastAt;
     private boolean textures = true;
+    /** The "Alben" tab (album overview) instead of "Fotos". */
+    private boolean albumsTab;
+    /** The opened album (its photos are shown), or null. */
+    private ScreenshotLibrary.Kind albumKind;
+    private String albumName;
+    /** Footer for albums: "pick" (add the selection to an album), "new", "renameAlbum", "deleteAlbum"; null if none. */
+    private String albumMode;
+    /** After "new": add the selection to the new album. */
+    private boolean addAfterCreate;
+    private int albumsHeight;
 
     public ScreenshotView(LumoraCore core) {
         this.core = core;
-        Path game = core.platform().configDir().getParent();
-        this.lib = new ScreenshotLibrary(game.resolve("screenshots"), core.platform().configDir().resolve("lumora").resolve("screenshots.json"));
+        this.lib = library(core);
         Translations tr = core.translations();
         String lang = tr == null ? "" : tr.language();
         this.de = lang != null && lang.toLowerCase(Locale.ROOT).startsWith("de");
         reload();
     }
 
+    /** The screenshots of the game with favourites, albums and places (shared with {@link ScreenshotWatcher}). */
+    static ScreenshotLibrary library(LumoraCore core) {
+        Path config = core.platform().configDir();
+        return ScreenshotLibrary.shared(config.getParent().resolve("screenshots"), config.resolve("lumora").resolve("screenshots.json"));
+    }
+
     /** Opens the screenshot manager on top of the current screen (main menu, pause menu, hub). */
     public static void open(LumoraCore core) {
         core.platform().views().show(new ScreenshotView(core));
+    }
+
+    /** Opens the screenshot manager on its "Alben" tab. */
+    public static void openAlbums(LumoraCore core) {
+        ScreenshotView v = new ScreenshotView(core);
+        v.tab(true);
+        core.platform().views().show(v);
     }
 
     private static ExecutorService decoder() {
@@ -144,7 +166,12 @@ public final class ScreenshotView implements AddonView {
     }
 
     private void update() {
-        shown = lib.view(search, favoritesOnly, sort);
+        ScreenshotLibrary.Album a = openAlbum();
+        if (albumName != null && a == null) {
+            albumName = null; // the album is gone (deleted, or its last screenshot)
+            albumKind = null;
+        }
+        shown = lib.view(search, favoritesOnly, sort, a);
         Set<String> names = new HashSet<>();
         for (ScreenshotLibrary.Shot s : shown) {
             names.add(s.name());
@@ -154,6 +181,68 @@ public final class ScreenshotView implements AddonView {
 
     List<ScreenshotLibrary.Shot> shown() {
         return shown;
+    }
+
+    /** The opened album with its current shots, or null. */
+    private ScreenshotLibrary.Album openAlbum() {
+        if (albumName == null || albumKind == null) {
+            return null;
+        }
+        if (albumKind == ScreenshotLibrary.Kind.OWN) {
+            return lib.album(albumName);
+        }
+        for (ScreenshotLibrary.Album a : lib.autoAlbums(albumKind)) {
+            if (a.name().equals(albumName)) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    /** Opens an album: its photos with the usual search, filter and actions (tests: by kind and name). */
+    void openAlbum(ScreenshotLibrary.Kind kind, String name) {
+        albumKind = kind;
+        albumName = name;
+        albumMode = null;
+        selected.clear();
+        scrollTarget = 0;
+        scroll = 0;
+        update();
+    }
+
+    private void closeAlbum() {
+        albumKind = null;
+        albumName = null;
+        albumMode = null;
+        albumsTab = true;
+        selected.clear();
+        scrollTarget = 0;
+        scroll = 0;
+        update();
+    }
+
+    void tab(boolean albums) {
+        albumsTab = albums;
+        albumKind = null;
+        albumName = null;
+        albumMode = null;
+        closePreview();
+        scrollTarget = 0;
+        scroll = 0;
+        update();
+    }
+
+    /** Shown name of an album ("" server = singleplayer). */
+    private String albumTitle(ScreenshotLibrary.Kind kind, String name) {
+        return kind == ScreenshotLibrary.Kind.SERVER && name.isEmpty() ? t("Einzelspieler", "Singleplayer") : name;
+    }
+
+    private boolean albumView() {
+        return albumName != null;
+    }
+
+    private boolean overview() {
+        return albumsTab && !albumView() && preview == null;
     }
 
     private List<ScreenshotLibrary.Shot> selection() {
@@ -447,6 +536,105 @@ public final class ScreenshotView implements AddonView {
         }
     }
 
+    // ------------------------------------------------------------------ album actions
+
+    private void cancelAlbumMode() {
+        albumMode = null;
+        addAfterCreate = false;
+        if ("album".equals(focus)) {
+            focus = null;
+        }
+    }
+
+    /** Footer: choose an own album for the selection (or make a new one). */
+    private void startPick() {
+        if (selection().isEmpty()) {
+            return;
+        }
+        confirmDelete = false;
+        renaming = false;
+        albumMode = "pick";
+    }
+
+    /** Footer: name a new album ({@code addSelection}: the selected photos go into it). */
+    void startNewAlbum(boolean addSelection) {
+        confirmDelete = false;
+        renaming = false;
+        albumMode = "new";
+        addAfterCreate = addSelection;
+        focus = "album";
+        buffer.setLength(0);
+    }
+
+    private void startRenameAlbum() {
+        if (albumKind != ScreenshotLibrary.Kind.OWN) {
+            return;
+        }
+        albumMode = "renameAlbum";
+        focus = "album";
+        buffer.setLength(0);
+        buffer.append(albumName);
+    }
+
+    private void addSelectionTo(String album) {
+        List<ScreenshotLibrary.Shot> sel = selection();
+        int n = lib.addToAlbum(album, sel);
+        cancelAlbumMode();
+        toast(n == 0 ? t("Schon im Album „", "Already in \"") + album + t("“", "\"")
+                : (n == 1 ? t("1 Bild zu „", "1 image added to \"") : n + t(" Bilder zu „", " images added to \"")) + album
+                + t("“ hinzugefügt", "\""));
+    }
+
+    /** Enter in the album name field: makes the album (and adds the selection) or renames the opened one. */
+    void commitAlbumName() {
+        String name = buffer.toString();
+        String mode = albumMode;
+        String problem = lib.checkAlbumName(name, "renameAlbum".equals(mode) ? albumName : null);
+        if (problem != null) {
+            toast(problem.equals("exists") ? t("Dieses Album gibt es schon", "That album already exists")
+                    : t("Ungültiger Name (1–40 Zeichen)", "Invalid name (1–40 characters)"));
+            return;
+        }
+        if ("renameAlbum".equals(mode)) {
+            String to = name.strip();
+            if (lib.renameAlbum(albumName, to)) {
+                albumName = to;
+                toast(t("Album umbenannt", "Album renamed"));
+            }
+        } else {
+            String created = lib.createAlbum(name);
+            boolean add = addAfterCreate;
+            if (created != null && add) {
+                int n = lib.addToAlbum(created, selection());
+                toast(t("Album „", "Album \"") + created + t("“ mit ", "\" made with ") + n + (n == 1 ? t(" Bild erstellt", " image")
+                        : t(" Bildern erstellt", " images")));
+            } else if (created != null) {
+                toast(t("Album „", "Album \"") + created + t("“ erstellt – füge Bilder unter Fotos hinzu", "\" made - add images under Photos"));
+            }
+        }
+        cancelAlbumMode();
+        update();
+    }
+
+    private void removeFromAlbum() {
+        if (albumKind != ScreenshotLibrary.Kind.OWN) {
+            return;
+        }
+        int n = lib.removeFromAlbum(albumName, selection());
+        selected.clear();
+        update();
+        toast(n == 1 ? t("1 Bild aus dem Album entfernt", "1 image removed from the album")
+                : n + t(" Bilder aus dem Album entfernt", " images removed from the album"));
+    }
+
+    private void deleteAlbum() {
+        String name = albumName;
+        lib.deleteAlbum(name);
+        albumMode = null;
+        closeAlbum();
+        toast(t("Album „", "Album \"") + name + t("“ gelöscht – die Bilder bleiben", "\" deleted - the images stay"));
+    }
+
     /** Click on a card: select (Ctrl adds, Shift a range), a second click soon after opens the preview. */
     private void clickCard(int index, boolean ctrl, boolean shift) {
         ScreenshotLibrary.Shot s = shown.get(index);
@@ -529,6 +717,8 @@ public final class ScreenshotView implements AddonView {
         contentBottom = py + ph - footerH - 4;
         if (preview != null) {
             previewArea(g, px + 6, contentTop, pw - 12, contentBottom - contentTop, mx, my);
+        } else if (overview()) {
+            albums(g, left, right, mx, my);
         } else {
             grid(g, left, right, mx, my);
         }
@@ -559,6 +749,10 @@ public final class ScreenshotView implements AddonView {
         g.scale(1.5f);
         g.text("§l" + t("Screenshots", "Screenshots"), 0, 0, TEXT, false);
         g.pop();
+        // "Fotos" and "Alben" like two tabs
+        int tx = left + 38 + Math.round(g.textWidth("§lScreenshots") * 1.5f) + 12;
+        tx = tabButton(g, tx, y, t("Fotos", "Photos"), !albumsTab && !albumView(), mx, my, () -> tab(false)) + 4;
+        int tabsEnd = tabButton(g, tx, y, t("Alben", "Albums"), albumsTab || albumView(), mx, my, () -> tab(true));
         // folder and refresh on the right, search left of them
         int ix = right - 16;
         iconButton(g, ix, y, "folder", t("Ordner öffnen", "Open folder"), mx, my, this::showInFolder);
@@ -567,12 +761,26 @@ public final class ScreenshotView implements AddonView {
             reload();
             toast(t("Neu geladen", "Refreshed"));
         });
-        int sbw = Math.max(80, Math.min(150, (right - left) / 4));
-        searchBox(g, ix - 6 - sbw, y, sbw, 16, mx, my);
+        // the search takes the room between the tabs and the buttons (at most 150)
+        int sbw = Math.min(150, ix - 6 - (tabsEnd + 8));
+        if (sbw >= 50) {
+            searchBox(g, ix - 6 - sbw, y, sbw, 16, mx, my);
+        }
     }
 
     private void close() {
         core.platform().views().close(this);
+    }
+
+    /** A tab button starting at {@code x}; returns its right edge. */
+    private int tabButton(HudGraphics g, int x, int y, String label, boolean on, int mx, int my, Runnable action) {
+        int w = g.textWidth(label) + 16;
+        boolean hover = HubView.in(mx, my, x, y, w, 16);
+        int accent = LumoraTheme.accent();
+        g.card(x, y, w, 16, 5, on ? accent : hover ? 0x2AFFFFFF : 0x16FFFFFF, on ? LumoraTheme.accentHover() : HubView.BORDER);
+        g.text(label, x + 8, y + 4, on ? 0xFFFFFFFF : hover ? TEXT : MUTED, false);
+        hit(x, y, w, 16, action);
+        return x + w;
     }
 
     private void iconButton(HudGraphics g, int x, int y, String glyph, String hint, int mx, int my, Runnable action) {
@@ -620,6 +828,34 @@ public final class ScreenshotView implements AddonView {
 
     /** Counts on the left, filter and sort chips on the right. */
     private void toolbar(HudGraphics g, int left, int right, int y, int mx, int my) {
+        if (overview()) {
+            int own = lib.albumNames().size();
+            int servers = lib.autoAlbums(ScreenshotLibrary.Kind.SERVER).size();
+            int players = lib.autoAlbums(ScreenshotLibrary.Kind.PLAYER).size();
+            g.text(own + t(" eigene", " own") + "  ·  " + servers + " Server  ·  " + players + t(" Spieler", " players"), left, y + 3, MUTED, false);
+            chip(g, right, y, t("+ Neues Album", "+ New album"), false, mx, my, () -> startNewAlbum(false));
+            return;
+        }
+        if (albumView() && preview == null) {
+            chip(g, left + g.textWidth(t("‹ Alben", "‹ Albums")) + 14, y, t("‹ Alben", "‹ Albums"), false, mx, my, this::closeAlbum);
+            int x = left + g.textWidth(t("‹ Alben", "‹ Albums")) + 20;
+            String title = albumTitle(albumKind, albumName);
+            int count = shown.size();
+            int rx = right;
+            if (albumKind == ScreenshotLibrary.Kind.OWN) {
+                rx = chip(g, rx, y, t("Album löschen", "Delete album"), false, mx, my, () -> albumMode = "deleteAlbum") - 4;
+                rx = chip(g, rx, y, t("Umbenennen", "Rename"), false, mx, my, this::startRenameAlbum) - 4;
+            }
+            String kind = switch (albumKind) {
+                case OWN -> t("Album", "Album");
+                case SERVER -> "Server";
+                case PLAYER -> t("Spieler", "Player");
+                case ACCOUNT -> "Account";
+            };
+            String label = kind + ": " + title + "  ·  " + count + (count == 1 ? t(" Bild", " image") : t(" Bilder", " images"));
+            g.text(HubView.trim(g, label, rx - x - 6), x, y + 3, TEXT, false);
+            return;
+        }
         String info = lib.all().size() + (lib.all().size() == 1 ? t(" Bild", " image") : t(" Bilder", " images"))
                 + "  ·  " + size(lib.totalBytes()) + "  ·  " + lib.favoriteCount() + " ";
         g.text(info, left, y + 3, MUTED, false);
@@ -721,6 +957,118 @@ public final class ScreenshotView implements AddonView {
         }
     }
 
+    /**
+     * The "Alben" tab: own albums (with "Neues Album" first), then the automatic albums by server, player nearby and
+     * account; each card shows the newest screenshot as cover, the name and how many there are.
+     */
+    private void albums(HudGraphics g, int left, int right, int mx, int my) {
+        int w = right - left - 6;
+        int gap = 8;
+        int cols = Math.max(2, Math.min(6, (w + gap) / (128 + gap)));
+        int cw = (w - (cols - 1) * gap) / cols;
+        int thumbH = cw * 9 / 16;
+        int ch = thumbH + 26;
+        int view = contentBottom - contentTop;
+        maxScroll = Math.max(0, albumsHeight - view);
+        scrollTarget = Math.max(0, Math.min(maxScroll, scrollTarget));
+        scroll += (scrollTarget - scroll) * 0.4f;
+        if (Math.abs(scrollTarget - scroll) < 0.5f) {
+            scroll = scrollTarget;
+        }
+        g.enableScissor(left - 2, contentTop - 1, right, contentBottom);
+        clipHits = true;
+        int top = contentTop - Math.round(scroll);
+        int y = top;
+
+        List<ScreenshotLibrary.Album> own = lib.ownAlbums();
+        y = sectionTitle(g, left, right - 6, y, t("Meine Alben", "My albums"));
+        List<ScreenshotLibrary.Album> withNew = new ArrayList<>();
+        withNew.add(null); // the "Neues Album" card
+        withNew.addAll(own);
+        y = albumCards(g, left, y, cols, cw, thumbH, ch, gap, withNew, mx, my) + 10;
+
+        boolean anyAuto = false;
+        String[][] kinds = {{"SERVER", "Server"}, {"PLAYER", t("Spieler", "Players")}, {"ACCOUNT", "Accounts"}};
+        for (String[] k : kinds) {
+            List<ScreenshotLibrary.Album> list = lib.autoAlbums(ScreenshotLibrary.Kind.valueOf(k[0]));
+            if (list.isEmpty()) {
+                continue;
+            }
+            anyAuto = true;
+            y = sectionTitle(g, left, right - 6, y, k[1]);
+            y = albumCards(g, left, y, cols, cw, thumbH, ch, gap, list, mx, my) + 10;
+        }
+        if (!anyAuto) {
+            for (String l : HubView.wrap(g, t("Server, Spieler und Accounts füllen sich mit neuen Screenshots: Lumora merkt sich beim "
+                    + "Aufnehmen (F2), auf welchem Server, mit welchem Account und mit welchen Spielern in der Nähe du warst.",
+                    "Servers, players and accounts fill up with new screenshots: when you take one (F2), Lumora remembers the "
+                            + "server, your account and the players nearby."), w)) {
+                g.text(l, left, y, DIM, false);
+                y += 10;
+            }
+        }
+        albumsHeight = y - top;
+        clipHits = false;
+        g.disableScissor();
+        if (maxScroll > 0) {
+            int barH = Math.max(16, view * view / Math.max(1, albumsHeight));
+            int barY = contentTop + Math.round((view - barH) * (scroll / maxScroll));
+            g.roundedRect(right - 2, contentTop, 2, view, 1, 0x18FFFFFF);
+            g.roundedRect(right - 2, barY, 2, barH, 1, LumoraTheme.alpha(LumoraTheme.accent(), 0xC0));
+        }
+    }
+
+    /** "Title ———" over a section; returns the y below it. */
+    private int sectionTitle(HudGraphics g, int left, int right, int y, String title) {
+        g.text(title, left, y, TEXT, false);
+        int tw = g.textWidth(title);
+        g.fill(left + tw + 8, y + 4, right, y + 5, HubView.BORDER);
+        return y + 14;
+    }
+
+    /** A row (or rows) of album cards; {@code null} is the "Neues Album" card. Returns the y below them. */
+    private int albumCards(HudGraphics g, int left, int y, int cols, int cw, int thumbH, int ch, int gap,
+                           List<ScreenshotLibrary.Album> list, int mx, int my) {
+        int accent = LumoraTheme.accent();
+        for (int i = 0; i < list.size(); i++) {
+            int cx = left + (i % cols) * (cw + gap);
+            int cy = y + (i / cols) * (ch + gap);
+            if (cy + ch < contentTop || cy > contentBottom) {
+                continue;
+            }
+            ScreenshotLibrary.Album a = list.get(i);
+            boolean hover = my >= contentTop && my < contentBottom && HubView.in(mx, my, cx, cy, cw, ch);
+            g.card(cx, cy, cw, ch, 6, hover ? HubView.CARD_HOVER : HubView.CARD, hover ? accent : HubView.BORDER);
+            if (a == null) {
+                g.fill(cx + 4, cy + 4, cx + cw - 4, cy + thumbH, hover ? 0xFF1E1A2A : 0xFF15121E);
+                g.push();
+                g.translate(cx + cw / 2f, cy + 4 + (thumbH - 4) / 2f);
+                g.scale(2f);
+                g.text("+", -g.textWidth("+") / 2, -4, hover ? LumoraTheme.accentHover() : MUTED, false);
+                g.pop();
+                g.text(t("Neues Album", "New album"), cx + 5, cy + thumbH + 4, hover ? TEXT : 0xFFCFC9DC, false);
+                g.text(t("Bilder sammeln", "Collect images"), cx + 5, cy + thumbH + 14, DIM, false);
+                hit(cx, cy, cw, ch, () -> startNewAlbum(false));
+                continue;
+            }
+            if (a.shots().isEmpty()) {
+                g.fill(cx + 4, cy + 4, cx + cw - 4, cy + thumbH, 0xFF0B0A10);
+                HubGlyphs.draw(g, "folder", cx + (cw - HubGlyphs.SIZE) / 2, cy + (thumbH - HubGlyphs.SIZE) / 2, DIM);
+            } else {
+                image(g, thumb(a.shots().get(0)), cx + 4, cy + 4, cw - 8, thumbH - 4);
+            }
+            String title = albumTitle(a.kind(), a.name());
+            g.text(HubView.trim(g, title, cw - 10), cx + 5, cy + thumbH + 4, hover ? TEXT : 0xFFCFC9DC, false);
+            int n = a.shots().size();
+            g.text(n + (n == 1 ? t(" Bild", " image") : t(" Bilder", " images")), cx + 5, cy + thumbH + 14, DIM, false);
+            ScreenshotLibrary.Kind kind = a.kind();
+            String name = a.name();
+            hit(cx, cy, cw, ch, () -> openAlbum(kind, name));
+        }
+        int rows = (list.size() + cols - 1) / cols;
+        return y + rows * ch + Math.max(0, rows - 1) * gap;
+    }
+
     /** Draws a texture fitted into the box (centred, shape kept), or a placeholder while it loads. */
     private void image(HudGraphics g, Tex t, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, 0xFF0B0A10);
@@ -744,6 +1092,14 @@ public final class ScreenshotView implements AddonView {
         String res = previewTex != null && previewTex.sourceWidth > 0 ? previewTex.sourceWidth + " × " + previewTex.sourceHeight + "  ·  " : "";
         String info = s.name() + "  ·  " + res
                 + date(s.modified()) + "  ·  " + size(s.size());
+        ScreenshotLibrary.Meta where = lib.meta(s);
+        if (where != null) {
+            // where it was taken: server or singleplayer, players nearby
+            info += "  ·  " + albumTitle(ScreenshotLibrary.Kind.SERVER, where.server());
+            if (!where.players().isEmpty()) {
+                info += t(" mit ", " with ") + String.join(", ", where.players());
+            }
+        }
         g.centeredText(HubView.trim(g, info, w - 20), x + w / 2, y, MUTED, false);
         int iy = y + 12;
         int ih = h - 14;
@@ -774,6 +1130,9 @@ public final class ScreenshotView implements AddonView {
         g.fill(left - 12, y - 3, right + 12, y - 2, HubView.BORDER);
         int by = y + 2;
         List<ScreenshotLibrary.Shot> sel = selection();
+        if (albumFooter(g, left, right, by, sel, mx, my)) {
+            return;
+        }
         if (confirmDelete) {
             String q = sel.size() == 1 ? t("„", "\"") + sel.get(0).name() + t("“ löschen?", "\" delete?")
                     : sel.size() + t(" Screenshots löschen?", " screenshots - delete?");
@@ -805,16 +1164,33 @@ public final class ScreenshotView implements AddonView {
             button(g, x - 6, by, t("Speichern", "Save"), true, false, mx, my, this::commitRename);
             return;
         }
+        if (overview()) {
+            int x = button(g, right, by, t("Im Ordner zeigen", "Show in folder"), false, false, mx, my, this::showInFolder) - 5;
+            g.text(HubView.trim(g, t("Klick auf ein Album: seine Bilder  ·  Bilder kommen unter Fotos mit „Zu Album“ hinein",
+                    "Click an album: its images  ·  add images under Photos with \"To album\""), x - left - 8), left, by + 4, DIM, false);
+            return;
+        }
         boolean any = !sel.isEmpty();
         boolean one = sel.size() == 1;
         int x = right;
         x = button(g, x, by, t("Löschen", "Delete"), false, !any, mx, my, this::askDelete) - 5;
+        if (albumKind == ScreenshotLibrary.Kind.OWN) {
+            x = button(g, x, by, t("Aus Album", "Remove from album"), false, !any, mx, my, this::removeFromAlbum) - 5;
+        }
+        x = button(g, x, by, t("Zu Album", "To album"), false, !any, mx, my, this::startPick) - 5;
         x = button(g, x, by, t("Umbenennen", "Rename"), false, !one, mx, my, this::startRename) - 5;
         boolean allFav = any && sel.stream().allMatch(lib::isFavorite);
         x = button(g, x, by, allFav ? t("Kein Favorit", "Unfavourite") : t("Favorit", "Favourite"), false, !any, mx, my, this::toggleFavorite) - 5;
-        x = button(g, x, by, t("Im Ordner zeigen", "Show in folder"), false, false, mx, my, this::showInFolder) - 5;
-        x = button(g, x, by, t("Extern öffnen", "Open externally"), false, !one, mx, my, this::openExternal) - 5;
-        if (preview == null) {
+        // on narrow windows the folder (also in the header) and the system viewer give way
+        String folder = t("Im Ordner zeigen", "Show in folder");
+        if (x - left > g.textWidth(folder) + 14 + 70) {
+            x = button(g, x, by, folder, false, false, mx, my, this::showInFolder) - 5;
+        }
+        String external = t("Extern öffnen", "Open externally");
+        if (x - left > g.textWidth(external) + 14 + 70) {
+            x = button(g, x, by, external, false, !one, mx, my, this::openExternal) - 5;
+        }
+        if (preview == null && x - left > g.textWidth(t("Ansehen", "View")) + 14) {
             button(g, x, by, t("Ansehen", "View"), true, !one, mx, my, () -> showPreview(sel.get(0)));
         }
         String hint = preview != null ? t("← → blättern  ·  Esc zurück", "← → browse  ·  Esc back")
@@ -824,6 +1200,68 @@ public final class ScreenshotView implements AddonView {
         if (room > 40) {
             g.text(HubView.trim(g, hint, room), left, by + 4, DIM, false);
         }
+    }
+
+    /** The footer while an album action runs (choose an album, name one, delete one); false if none runs. */
+    private boolean albumFooter(HudGraphics g, int left, int right, int by, List<ScreenshotLibrary.Shot> sel, int mx, int my) {
+        if (albumMode == null) {
+            return false;
+        }
+        switch (albumMode) {
+            case "pick" -> {
+                int x = button(g, right, by, t("Abbrechen", "Cancel"), false, false, mx, my, this::cancelAlbumMode) - 6;
+                x = button(g, x, by, t("+ Neues Album", "+ New album"), true, false, mx, my, () -> startNewAlbum(true)) - 8;
+                String label = (sel.size() == 1 ? t("1 Bild zu:", "1 image to:") : sel.size() + t(" Bilder zu:", " images to:"));
+                g.text(label, left, by + 4, MUTED, false);
+                int cx = left + g.textWidth(label) + 8;
+                for (String name : lib.albumNames()) {
+                    int cw = g.textWidth(name) + 14;
+                    if (cx + cw > x) {
+                        break; // the rest does not fit: "+ Neues Album" or fewer albums
+                    }
+                    boolean hover = HubView.in(mx, my, cx, by + 1, cw, 14);
+                    g.card(cx, by + 1, cw, 14, 7, hover ? LumoraTheme.alpha(LumoraTheme.accent(), 0x60) : 0x16FFFFFF,
+                            hover ? LumoraTheme.accent() : HubView.BORDER);
+                    g.text(name, cx + 7, by + 4, hover ? TEXT : 0xFFCFC9DC, false);
+                    hit(cx, by + 1, cw, 14, () -> addSelectionTo(name));
+                    cx += cw + 4;
+                }
+                if (lib.albumNames().isEmpty()) {
+                    g.text(t("noch keine Alben", "no albums yet"), cx, by + 4, DIM, false);
+                }
+            }
+            case "new", "renameAlbum" -> {
+                boolean rename = "renameAlbum".equals(albumMode);
+                String label = rename ? t("Neuer Name:", "New name:") : t("Albumname:", "Album name:");
+                g.text(label, left, by + 4, MUTED, false);
+                int fx = left + g.textWidth(label) + 6;
+                int fw = Math.max(60, right - fx - 170);
+                boolean focused = "album".equals(focus);
+                g.card(fx, by, fw, 16, 8, HubView.FIELD, focused ? LumoraTheme.accent() : HubView.BORDER);
+                String visible = buffer.toString();
+                while (g.textWidth(visible) > fw - 16 && !visible.isEmpty()) {
+                    visible = visible.substring(1);
+                }
+                if (visible.isEmpty() && !focused) {
+                    g.text(t("z. B. Basis, Freunde, Events", "e.g. Base, Friends, Events"), fx + 8, by + 4, DIM, false);
+                }
+                g.text(visible, fx + 8, by + 4, TEXT, false);
+                caret(g, focused, fx + 8 + g.textWidth(visible), by + 3, by + 13);
+                hit(fx, by, fw, 16, () -> focus = "album");
+                int x = button(g, right, by, t("Abbrechen", "Cancel"), false, false, mx, my, this::cancelAlbumMode);
+                button(g, x - 6, by, rename ? t("Speichern", "Save") : t("Erstellen", "Create"), true, false, mx, my, this::commitAlbumName);
+            }
+            case "deleteAlbum" -> {
+                g.text(HubView.trim(g, t("Album „", "Delete album \"") + albumName + t("“ löschen? Die Bilder bleiben erhalten.",
+                        "\"? The images stay."), right - left - 170), left, by + 4, TEXT, false);
+                int x = button(g, right, by, t("Abbrechen", "Cancel"), false, false, mx, my, this::cancelAlbumMode);
+                button(g, x - 6, by, t("Album löschen", "Delete album"), true, false, mx, my, this::deleteAlbum);
+            }
+            default -> {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** A footer button ending at {@code right}; returns its left edge. */
@@ -919,6 +1357,8 @@ public final class ScreenshotView implements AddonView {
             if (key == Keys.ENTER) {
                 if ("rename".equals(focus)) {
                     commitRename();
+                } else if ("album".equals(focus)) {
+                    commitAlbumName();
                 } else {
                     commitSearch();
                 }
@@ -933,7 +1373,7 @@ public final class ScreenshotView implements AddonView {
             focus("search", search);
             return true;
         }
-        if (ctrl && key == Keys.A && preview == null) {
+        if (ctrl && key == Keys.A && preview == null && !overview()) {
             for (ScreenshotLibrary.Shot s : shown) {
                 selected.add(s.name());
             }
@@ -969,7 +1409,7 @@ public final class ScreenshotView implements AddonView {
             return focus != null;
         }
         if (focus == null) {
-            if (ch == ' ' || preview != null || renaming || confirmDelete) {
+            if (ch == ' ' || preview != null || renaming || confirmDelete || albumMode != null || overview()) {
                 return false;
             }
             // typing starts the search
@@ -991,10 +1431,16 @@ public final class ScreenshotView implements AddonView {
         if (focus != null) {
             if ("search".equals(focus)) {
                 commitSearch();
+            } else if ("album".equals(focus)) {
+                cancelAlbumMode();
             } else {
                 focus = null;
                 renaming = false;
             }
+            return false;
+        }
+        if (albumMode != null) {
+            cancelAlbumMode();
             return false;
         }
         if (confirmDelete || renaming) {
@@ -1004,6 +1450,10 @@ public final class ScreenshotView implements AddonView {
         }
         if (preview != null) {
             closePreview();
+            return false;
+        }
+        if (albumView()) {
+            closeAlbum();
             return false;
         }
         return true;

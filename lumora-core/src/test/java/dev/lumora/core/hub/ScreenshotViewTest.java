@@ -53,6 +53,70 @@ class ScreenshotViewTest {
     }
 
     @Test
+    void newScreenshotsRememberServerAccountAndPlayersNearby() throws Exception {
+        FakePlatform p = platform();
+        p.inWorld = true;
+        p.connection = new dev.lumora.api.game.ConnectionInfo(dev.lumora.api.game.ConnectionInfo.Kind.MULTIPLAYER, "Play.Example.net:25565", 30);
+        java.util.UUID me = java.util.UUID.randomUUID();
+        p.player = new dev.lumora.api.game.PlayerSnapshot(me, "Steve", 0, 64, 0, 0, 0, 20, 20, 20, 0, 0, true, false, false, 0);
+        p.worldAccess = new dev.lumora.api.game.WorldAccess() {
+            @Override public java.util.Optional<ViewPoint> viewPoint() { return java.util.Optional.empty(); }
+            @Override public java.util.List<PlayerInfo> players(int limit) {
+                return java.util.List.of(new PlayerInfo(me, "Steve", 0, 64, 0, false, true, java.util.OptionalInt.empty()),
+                        new PlayerInfo(java.util.UUID.randomUUID(), "Far", 300, 64, 0, false, true, java.util.OptionalInt.empty()),
+                        new PlayerInfo(java.util.UUID.randomUUID(), "Alex", 5, 64, 0, false, true, java.util.OptionalInt.empty()));
+            }
+            @Override public java.util.List<TabEntry> tabList() { return java.util.List.of(); }
+            @Override public java.util.Optional<TabEntry> crosshairPlayer() { return java.util.Optional.empty(); }
+            @Override public boolean lineOfSightBlocked(double a, double b, double c, double d, double e, double f) { return false; }
+            @Override public int seaLevel() { return 63; }
+            @Override public String remoteIp() { return ""; }
+            @Override public void actionBar(String message) { }
+            @Override public void playClickSound() { }
+        };
+        png("before.png", 32, 18, System.currentTimeMillis() - 60_000);
+        LumoraCore core = new LumoraCore(p);
+        ScreenshotWatcher w = new ScreenshotWatcher(core);
+        png("taken.png", 32, 18, System.currentTimeMillis() + 2_000);
+        w.check();
+        ScreenshotLibrary lib = ScreenshotView.library(core);
+        lib.refresh();
+        ScreenshotLibrary.Shot taken = lib.all().stream().filter(s -> s.name().equals("taken.png")).findFirst().orElseThrow();
+        ScreenshotLibrary.Meta m = lib.meta(taken);
+        assertEquals("play.example.net", m.server(), "without the default port");
+        assertEquals("Steve", m.account());
+        assertEquals(java.util.List.of("Alex"), m.players(), "only players nearby, not yourself");
+        assertTrue(lib.meta(lib.all().stream().filter(s -> s.name().equals("before.png")).findFirst().orElseThrow()) == null);
+
+        // the albums tab shows the automatic albums; an album opens its photos
+        ScreenshotView v = new ScreenshotView(core);
+        v.tab(true);
+        FakeGraphics g = renderUntil(v, p, 1);
+        assertTrue(g.texts.contains("My albums") || g.texts.contains("Meine Alben"), g.texts.toString());
+        assertTrue(g.texts.contains("New album") || g.texts.contains("Neues Album"));
+        assertTrue(g.texts.contains("play.example.net"));
+        assertTrue(g.texts.contains("Alex"));
+        v.openAlbum(ScreenshotLibrary.Kind.SERVER, "play.example.net");
+        assertEquals(1, v.shown().size());
+        assertTrue(v.closeRequested() == false, "Escape: back to the albums");
+
+        // photos: select all, make a new album with them
+        v.tab(false);
+        v.render(new FakeGraphics(), 854, 480, 0, 0);
+        Thread.sleep(220); // typing right after opening is ignored
+        v.keyPressed(dev.lumora.api.input.Keys.A, true, false);
+        v.startNewAlbum(true);
+        for (char c : "Ausflug".toCharArray()) {
+            v.charTyped(c);
+        }
+        v.keyPressed(dev.lumora.api.input.Keys.ENTER, false, false);
+        assertEquals(java.util.List.of("Ausflug"), lib.albumNames());
+        assertEquals(2, lib.album("Ausflug").shots().size());
+        v.removed();
+        core.stopping();
+    }
+
+    @Test
     void showsThumbnailsAsTexturesAndFreesThemOnClose() throws Exception {
         png("a.png", 640, 360, 1_000);
         png("b.png", 320, 180, 2_000);

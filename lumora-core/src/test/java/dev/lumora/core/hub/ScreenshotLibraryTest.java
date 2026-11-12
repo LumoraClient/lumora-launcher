@@ -40,6 +40,63 @@ class ScreenshotLibraryTest {
     }
 
     @Test
+    void ownAlbumsCollectScreenshotsAndKeepThemThroughRenameDeleteAndRestart() throws IOException {
+        shot("a.png", 10, 1_000);
+        shot("b.png", 10, 2_000);
+        shot("c.png", 10, 3_000);
+        ScreenshotLibrary l = lib();
+        assertEquals("Basis", l.createAlbum("  Basis "));
+        assertNull(l.createAlbum("basis"), "names are unique, ignoring case");
+        assertNull(l.createAlbum(""));
+        assertEquals("exists", l.checkAlbumName("BASIS", null));
+        List<ScreenshotLibrary.Shot> ab = l.view("", false, ScreenshotLibrary.Sort.NAME).subList(0, 2);
+        assertEquals(2, l.addToAlbum("Basis", ab));
+        assertEquals(0, l.addToAlbum("Basis", ab), "already in it");
+        assertEquals(List.of("b.png", "a.png"), names(l.album("Basis").shots()), "newest first: the cover is b");
+        assertEquals(List.of("b.png", "a.png"), names(l.view("", false, ScreenshotLibrary.Sort.NEWEST, l.album("Basis"))));
+
+        // a renamed screenshot stays in the album, a deleted one leaves it
+        ScreenshotLibrary.Shot a = l.all().stream().filter(s -> s.name().equals("a.png")).findFirst().orElseThrow();
+        l.rename(a, "Burg");
+        assertEquals(List.of("b.png", "Burg.png"), names(l.album("Basis").shots()));
+        ScreenshotLibrary.Shot b = l.all().stream().filter(s -> s.name().equals("b.png")).findFirst().orElseThrow();
+        l.delete(b, null);
+        assertEquals(List.of("Burg.png"), names(l.album("Basis").shots()));
+
+        assertTrue(l.renameAlbum("Basis", "Meine Burg"));
+        assertNull(l.album("Basis"));
+        ScreenshotLibrary again = lib(); // read back from the file
+        assertEquals(List.of("Meine Burg"), again.albumNames());
+        assertEquals(List.of("Burg.png"), names(again.album("Meine Burg").shots()));
+        assertEquals(1, again.removeFromAlbum("Meine Burg", again.album("Meine Burg").shots()));
+        again.deleteAlbum("Meine Burg");
+        assertTrue(again.albumNames().isEmpty());
+        assertEquals(2, again.all().size(), "deleting an album keeps the images");
+    }
+
+    @Test
+    void automaticAlbumsGroupByServerPlayerAndAccount() throws IOException {
+        shot("1.png", 10, 1_000);
+        shot("2.png", 10, 2_000);
+        shot("3.png", 10, 3_000);
+        shot("old.png", 10, 500);
+        ScreenshotLibrary l = lib();
+        l.record("1.png", new ScreenshotLibrary.Meta("play.example.net", "Steve", List.of("Alex", "Notch")));
+        l.record("2.png", new ScreenshotLibrary.Meta("play.example.net", "Steve", List.of("Alex")));
+        l.record("3.png", new ScreenshotLibrary.Meta("", "Herobrine", List.of()));
+        List<ScreenshotLibrary.Album> servers = l.autoAlbums(ScreenshotLibrary.Kind.SERVER);
+        assertEquals(List.of("play.example.net", ""), servers.stream().map(ScreenshotLibrary.Album::name).toList(), "largest first");
+        assertEquals(List.of("2.png", "1.png"), names(servers.get(0).shots()));
+        List<ScreenshotLibrary.Album> players = l.autoAlbums(ScreenshotLibrary.Kind.PLAYER);
+        assertEquals(List.of("Alex", "Notch"), players.stream().map(ScreenshotLibrary.Album::name).toList());
+        assertEquals(2, players.get(0).shots().size());
+        assertEquals(List.of("Steve", "Herobrine"), l.autoAlbums(ScreenshotLibrary.Kind.ACCOUNT).stream().map(ScreenshotLibrary.Album::name).toList());
+        assertNull(l.meta(l.all().stream().filter(s -> s.name().equals("old.png")).findFirst().orElseThrow()), "taken before Lumora watched");
+        assertEquals(List.of("2.png", "1.png"), names(l.view("alex", false, ScreenshotLibrary.Sort.NEWEST)), "the search finds players");
+        assertEquals(List.of("3.png"), names(lib().view("herobrine", false, ScreenshotLibrary.Sort.NEWEST)), "kept in the file");
+    }
+
+    @Test
     void listsImagesOnlyAndSortsAndFilters() throws IOException {
         shot("2026-11-01_10.00.00.png", 300, 1_000);
         shot("2026-11-03_20.41.07.png", 100, 3_000);

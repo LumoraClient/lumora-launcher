@@ -189,6 +189,11 @@ public final class SmokeTest {
                         dev.lumora.core.hub.ScreenshotView.open(dev.lumora.client.api.LumoraRuntime.core());
                         return null;
                     }, 60));
+                    // the albums tab: own albums with "New album", automatic albums by server, player and account
+                    pending.add(new Shot("screenshot-albums", parent -> {
+                        dev.lumora.core.hub.ScreenshotView.openAlbums(dev.lumora.client.api.LumoraRuntime.core());
+                        return null;
+                    }, 60));
                     // setting kinds of Lumora API 1.3 on the attack indicator page: sections, button row, drop-down,
                     // check boxes, rainbow colors; then the drop-down list and the color picker open
                     for (String popup : new String[]{"", "position", "color"}) {

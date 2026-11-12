@@ -67,7 +67,31 @@ public final class SmokeTest {
     private String savedSwing;
     private int zoomPhase;
     private Boolean labyVoiceBefore;
+    private dev.lumora.core.RegistrationTracker nameTagPreview;
     private final List<String> extraProblems = new ArrayList<>();
+
+    /**
+     * Three client-side preview players in front of the camera (idle, speaking, muted) for the name tag icons;
+     * returns their UUIDs with the state index. Only in the throwaway smoke world.
+     */
+    private static Map<java.util.UUID, Integer> addPreviewPlayers(Minecraft mc) {
+        var self = mc.player;
+        var forward = self.getViewVector(1).multiply(1, 0, 1).normalize();
+        var right = forward.cross(new net.minecraft.world.phys.Vec3(0, 1, 0)).normalize();
+        String[] names = {"Bereit", "Spricht", "Stumm"};
+        Map<java.util.UUID, Integer> states = new java.util.HashMap<>();
+        for (int i = 0; i < names.length; i++) {
+            var id = java.util.UUID.nameUUIDFromBytes(("lumora-nametag-preview-" + i).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            var remote = new net.minecraft.client.player.RemotePlayer(mc.level, new com.mojang.authlib.GameProfile(id, names[i]));
+            remote.setId(0x6F000001 + i);
+            var at = self.position().add(forward.scale(4.5)).add(right.scale((i - 1) * 2.2));
+            remote.setPos(at.x, at.y, at.z);
+            remote.setYRot(self.getYRot() + 180);
+            mc.level.addEntity(remote);
+            states.put(id, i);
+        }
+        return states;
+    }
 
     private final Path report;
     private Phase phase = Phase.WAIT_MENU;
@@ -435,12 +459,23 @@ public final class SmokeTest {
             mc.gui.setScreen(null);
             // LabyVoice HUD on for the widget screenshot (singleplayer: nothing connects, no microphone)
             labyVoiceBefore = ApiSmoke.setLabyVoiceEnabled(true);
+            if (ApiSmoke.voiceLoaded()) {
+                nameTagPreview = ApiSmoke.nameTagPreview(addPreviewPlayers(mc));
+            }
             worldStep++;
             ticks = 0;
         } else if (worldStep == modes.length + 3 && ticks >= SCREEN_TICKS * 2) {
             screenshot(mc, "hud-ingame");
             ApiSmoke.restoreLabyVoice(labyVoiceBefore);
-            worldResult = "PASSED: demo world, " + modes.length + " swing modes, pause menu, hub, HUD";
+            String icons = "";
+            if (nameTagPreview != null) {
+                nameTagPreview.closeAll(dev.lumora.client.api.LumoraRuntime.core().logger(), "smoke");
+                icons = dev.lumora.client.render.NameTagIcons.drawn() ? ", name tag icons" : "";
+                if (icons.isEmpty()) {
+                    extraProblems.add("name tag icons were not drawn");
+                }
+            }
+            worldResult = "PASSED: demo world, " + modes.length + " swing modes, pause menu, hub, HUD" + icons;
             // look at the ground for the Block-Overlay screenshot
             if (mc.player != null) {
                 mc.player.setXRot(70f);

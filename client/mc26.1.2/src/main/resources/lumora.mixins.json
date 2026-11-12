@@ -20,6 +20,7 @@
     "MinecraftReloadMixin",
     "EntityRenderStatePlayerIdMixin",
     "NameTagIconMixin",
+    "NameTagBesideMixin",
     "TabListIconMixin",
     "AvatarSubtitleMixin",
     "OptionInstanceAccessor",

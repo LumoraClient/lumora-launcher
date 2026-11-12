@@ -15,6 +15,7 @@
     "GameRendererZoomMixin",
     "MouseZoomMixin",
     "MinecraftReloadMixin",
+    "NameTagBesideMixin",
     "PlayerNameTagMixin",
     "TabListIconMixin"
   ,

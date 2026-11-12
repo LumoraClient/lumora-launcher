@@ -185,7 +185,7 @@ Symbole hinter Spielernamen: am Namensschild über dem Spieler und am Namen in d
 | Feld | Bedeutung |
 |---|---|
 | `font` | Schrift-ID `namespace:path` einer Schrift, die das Addon mitbringt (`assets/<namespace>/font/<path>.json`, meist ein Bitmap-Provider, der das Zeichen auf eine Symbol-Textur abbildet); muss `[a-z0-9_.-]+:[a-z0-9_./-]+` entsprechen |
-| `glyph` | Zeichen, das mit dieser Schrift gezeichnet wird (nicht leer); erscheint nach einem Leerzeichen hinter dem Namen |
+| `glyph` | Zeichen, das mit dieser Schrift gezeichnet wird (nicht leer); `WORLD`: rechts neben dem Namensschild (eigener Text ohne Hintergrund, nicht in der Box), `TAB_LIST`: nach einem Leerzeichen hinter dem Namen |
 | `color` | RGB-Tönung des Zeichens (Weiß lässt eine farbige Textur unverändert) und Farbe des Fallbacks |
 | `fallback` | reiner Text für Versionen ohne eigene Schriften (1.8.9, 1.12.2), z. B. `"♪"`; dort in der nächstliegenden Chatfarbe. `null` → `""` (kein Symbol) |
 | `subtitle` | kleine Zeile unter dem Namensschild (nur `WORLD`), sonst `""`; `null` → `""`. Wird nur auf 26.x und 1.21.11 gezeichnet, siehe [COMPATIBILITY.md](COMPATIBILITY.md#lumora-api-11-je-version) |

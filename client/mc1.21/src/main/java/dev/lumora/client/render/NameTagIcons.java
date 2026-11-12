@@ -29,24 +29,50 @@ public final class NameTagIcons {
         return core.nameTags().icon(player, place);
     }
 
-    /** {@code name} with the icon of {@code player} appended, or {@code name} unchanged. */
-    public static Component decorate(Component name, UUID player, NameTags.Place place) {
+    /** The icon of {@code player} as a styled glyph, or empty. */
+    public static Optional<Component> glyph(UUID player, NameTags.Place place) {
         var found = icon(player, place);
         if (found.isEmpty()) {
-            return name;
+            return Optional.empty();
         }
         var icon = found.get();
         Style style;
         try {
             style = Style.EMPTY.withFont(ResourceLocation.parse(icon.font())).withColor(TextColor.fromRgb(icon.color())).withBold(false).withItalic(false);
         } catch (RuntimeException invalid) {
-            return name;
+            return Optional.empty();
         }
         if (!logged) {
             logged = true;
             LumoraClient.LOG.info("LUMORA_NAMETAG_ICON first icon drawn ({}, {})", icon.font(), place);
         }
-        return name.copy().append(Component.literal(" ").withStyle(Style.EMPTY)).append(Component.literal(icon.glyph()).withStyle(style));
+        return Optional.of(Component.literal(icon.glyph()).withStyle(style));
+    }
+
+    /** {@code name} with the icon of {@code player} appended (tab list), or {@code name} unchanged. */
+    public static Component decorate(Component name, UUID player, NameTags.Place place) {
+        return glyph(player, place).<Component>map(icon -> name.copy().append(" ").append(icon)).orElse(name);
+    }
+
+    /** Gap between the end of the name and the icon: the name tag box reaches 1 px past the text. */
+    public static final float GAP = 3;
+
+    /** Icon of the player whose name tag is drawn right now: drawn next to the box, not inside it. */
+    private static Component current;
+
+    /** Right before a player's name tag is drawn: remembers the icon for {@link #current()}. */
+    public static void begin(UUID player) {
+        current = glyph(player, NameTags.Place.WORLD).orElse(null);
+    }
+
+    /** After the name tag: nothing pending any more. */
+    public static void end() {
+        current = null;
+    }
+
+    /** The icon to draw next to the name tag being drawn, or {@code null}. */
+    public static Component current() {
+        return current;
     }
 
     /** Whether an icon was drawn since start (smoke test). */

@@ -17,6 +17,7 @@
     "JarFileSystemMixin",
     "RecipeJarFileSystemMixin",
     "NameTagIconMixin",
+    "NameTagBesideMixin",
     "TabListIconMixin"
   ,
     "CrosshairMixin",

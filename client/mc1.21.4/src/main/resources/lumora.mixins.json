@@ -19,6 +19,7 @@
     "MinecraftReloadMixin",
     "EntityRenderStatePlayerIdMixin",
     "NameTagIconMixin",
+    "NameTagBesideMixin",
     "PlayerNameTagMixin",
     "TabListIconMixin"
   ,

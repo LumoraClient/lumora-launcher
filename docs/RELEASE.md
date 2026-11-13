@@ -11,7 +11,7 @@
    ```
 4. Distribution bauen (Windows, mit Installations-Assistent):
    ```bat
-   gradlew.bat :launcher-app:setupExe :launcher-app:portableExe :launcher-app:releaseDist
+   gradlew.bat :launcher-app:portableExe :launcher-app:releaseDist
    ```
 5. Smoke-Test **auf einem Rechner mit GPU** für alle Versionen, aus dem entpackten ZIP:
    ```bat
@@ -28,7 +28,6 @@
 ```
 build/release/
 ├── LumoraClient-<v>-windows-x64.zip     LumoraLauncher/ gepackt
-├── LumoraClient-Setup-<v>.exe           Installations-Assistent (setupExe)
 ├── LumoraLauncher/
 │   ├── LumoraLauncher.exe               GUI (Doppelklick)
 │   ├── LumoraLauncherCli.exe            Konsole: --smoke-test, --install-only, --system-check

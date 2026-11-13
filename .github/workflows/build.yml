@@ -39,7 +39,7 @@ jobs:
           path: '**/build/reports/tests/**'
 
   windows-release:
-    name: Windows release (EXE, ZIP, installer)
+    name: Windows release (EXE, ZIP)
     needs: test
     runs-on: windows-latest
     steps:
@@ -49,20 +49,23 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
+      - name: Build release
+        run: ./gradlew :launcher-app:portableExe :launcher-app:releaseDist --no-daemon
+        shell: bash
+      # The setup (github.com/LumoraClient/lumora-installer) installs from LumoraClient.exe: check that this build still fits
       - uses: actions/checkout@v4
         with:
           repository: LumoraClient/lumora-installer
           path: lumora-installer
-      - name: Build release
-        run: ./gradlew :launcher-app:setupExe :launcher-app:releaseDist -PinstallerDir=lumora-installer --no-daemon
-        shell: bash
-      - name: Silent install and uninstall test of the setup
+      - name: Install this LumoraClient.exe with the setup (silent, sandbox) and uninstall
         shell: pwsh
         run: |
+          powershell -ExecutionPolicy Bypass -File lumora-installer\build.ps1 -Version ci -Out "$env:RUNNER_TEMP\LumoraClient-Setup.exe"
           $env:LUMORA_HOME = "$env:RUNNER_TEMP\setup-home"
+          $env:LUMORA_SETUP_SANDBOX = "1"
           $dir = "$env:RUNNER_TEMP\setup-app"
-          $setup = Get-ChildItem build\release\LumoraClient-Setup-*.exe | Select-Object -First 1
-          $p = Start-Process $setup.FullName -ArgumentList "/S","--dir=$dir","--versions=26.1.2,1.8.9","--theme=vanilla","--no-desktop","--no-startmenu" -Wait -PassThru
+          $exe = (Resolve-Path build\release\LumoraClient.exe).Path
+          $p = Start-Process "$env:RUNNER_TEMP\LumoraClient-Setup.exe" -ArgumentList "/S","--dir=$dir","--source=$exe","--versions=26.1.2,1.8.9","--theme=vanilla" -Wait -PassThru
           if ($p.ExitCode -ne 0 -or -not (Test-Path "$dir\LumoraLauncher\LumoraLauncher.exe")) { Get-Content "$env:TEMP\LumoraSetup.log"; exit 1 }
           if (-not (Test-Path "$env:LUMORA_HOME\config\setup.json")) { exit 1 }
           $p = Start-Process "$dir\Deinstallieren.exe" -ArgumentList "/S" -Wait -PassThru

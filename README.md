@@ -37,7 +37,7 @@ Java und Minecraft muss niemand selbst installieren: Launcher öffnen, anmelden,
 ## Schnellstart (Nutzer)
 
 1. **`LumoraClient.exe`** doppelklicken (eine Datei, keine Installation; der erste Start entpackt sich einmalig).
-   Alternativ: `LumoraClient-Setup-<version>.exe` ausführen (Assistent: Minecraft-Versionen, Ordner und Design wählen, Deinstallation über die Windows-Einstellungen) oder ZIP entpacken und `LumoraLauncher.exe` starten.
+   Alternativ: `LumoraClient-Setup.exe` aus [lumora-installer](https://github.com/LumoraClient/lumora-installer) ausführen (lädt den neuesten Launcher; Assistent: Minecraft-Versionen, Ordner und Design wählen, Deinstallation über die Windows-Einstellungen) oder ZIP entpacken und `LumoraLauncher.exe` starten.
 2. Im Launcher auf **Spielen** klicken.
 3. Beim ersten Mal: Downloads abwarten, Code auf microsoft.com/link eingeben.
 

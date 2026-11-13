@@ -124,7 +124,6 @@ val jpackageImage = tasks.register<Exec>("jpackageImage") {
 }
 
 val releaseDir = rootProject.layout.buildDirectory.dir("release")
-val installerDir = layout.buildDirectory.dir("installer")
 
 /** Output of :lumora-social-server:jar (fixed file name, see lumora-social-server/build.gradle.kts). */
 val socialServerJar = rootProject.layout.projectDirectory.file("lumora-social-server/build/libs/lumora-social-server.jar")
@@ -138,7 +137,6 @@ val releaseDist = tasks.register("releaseDist") {
     inputs.dir(image)
     inputs.files(rootProject.file("LICENSE"), rootProject.file("docs/THIRD_PARTY_NOTICES.md"),
         rootProject.file("packaging/windows/README.txt"), rootProject.fileTree("packaging/licenses"))
-    inputs.files(installerDir).optional()
     inputs.files(layout.buildDirectory.dir("portable")).optional()
     outputs.dir(releaseDir)
     doLast {
@@ -168,18 +166,13 @@ val releaseDist = tasks.register("releaseDist") {
         ant.withGroovyBuilder {
             "zip"("destfile" to zip.absolutePath, "basedir" to rel.absolutePath, "includes" to "$appName/**,LumoraSocialServer/**")
         }
-        val builtInstaller = installerDir.get().asFile.resolve("LumoraClient-Setup-${project.version}.exe")
-        val installer = rel.resolve(builtInstaller.name)
-        if (builtInstaller.exists()) {
-            builtInstaller.copyTo(installer, true)
-        }
         val builtPortable = layout.buildDirectory.file("portable/LumoraClient.exe").get().asFile
         val portable = rel.resolve("LumoraClient.exe")
         if (builtPortable.exists()) {
             builtPortable.copyTo(portable, true)
         }
         val sums = listOfNotNull(portable.takeIf { it.exists() }, appDir.resolve("$appName.exe"),
-            appDir.resolve("LumoraLauncherCli.exe"), zip, installer.takeIf { it.exists() },
+            appDir.resolve("LumoraLauncherCli.exe"), zip,
             social.resolve("lumora-social-server.jar"))
             .joinToString("") { f -> "${sha(f, "SHA-256")}  ${f.relativeTo(rel).invariantSeparatorsPath}\n" }
         rel.resolve("SHA256SUMS.txt").writeText(sums)
@@ -198,56 +191,6 @@ val releaseDist = tasks.register("releaseDist") {
             println("No signing key: SHA256SUMS.txt.sig not written (self-update needs it)")
         }
         println("Release written to $rel")
-    }
-}
-
-/**
- * Windows installer LumoraClient-Setup-<version>.exe: the WPF wizard from the separate repository
- * github.com/LumoraClient/lumora-installer (checked out next to this repository, or -PinstallerDir=<path>), built by
- * its build.ps1 with the csc.exe that ships with Windows. Embeds this launcher's app image with its licences and the
- * version list from profiles.json.
- */
-val setupExe = tasks.register("setupExe") {
-    group = "distribution"
-    description = "Builds LumoraClient-Setup-<version>.exe with ../lumora-installer (or -PinstallerDir)"
-    dependsOn(jpackageImage)
-    val image = layout.buildDirectory.dir("jpackage/image/$appName")
-    val installerRepo = rootProject.file((findProperty("installerDir") as String?) ?: "../lumora-installer")
-    val profiles = rootProject.file("launcher-core/src/main/resources/lumora/profiles.json")
-    inputs.dir(image)
-    inputs.files(profiles, rootProject.file("LICENSE"), rootProject.fileTree("packaging/licenses"))
-    inputs.files(project.fileTree(installerRepo) { include("build.ps1", "src/**", "assets/**", "LICENSE") })
-    val outFile = installerDir.map { it.file("LumoraClient-Setup-${project.version}.exe") }
-    outputs.file(outFile)
-    onlyIf {
-        val ok = org.gradle.internal.os.OperatingSystem.current().isWindows && installerRepo.resolve("build.ps1").exists()
-        if (!ok) {
-            logger.warn("setupExe skipped: needs Windows and github.com/LumoraClient/lumora-installer in $installerRepo")
-        }
-        ok
-    }
-    doLast {
-        // launcher with its licences, as in the release folder (staged in %TEMP%: short paths for csc)
-        val stage = File(System.getenv("TEMP"), "lumora-setup-app-${project.version}")
-        project.delete(stage)
-        val app = stage.resolve(appName)
-        image.get().asFile.copyRecursively(app, overwrite = true)
-        val licenses = app.resolve("licenses")
-        licenses.mkdirs()
-        rootProject.file("LICENSE").copyTo(licenses.resolve("LICENSE-GPL-3.0.txt"), true)
-        rootProject.file("packaging/licenses").copyRecursively(licenses, true)
-        rootProject.file("docs/THIRD_PARTY_NOTICES.md").copyTo(licenses.resolve("THIRD_PARTY_NOTICES.txt"), true)
-        rootProject.file("packaging/windows/README.txt").copyTo(app.resolve("README.txt"), true)
-        val out = outFile.get().asFile
-        val proc = ProcessBuilder("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
-            installerRepo.resolve("build.ps1").absolutePath, "-AppImage", app.absolutePath, "-Profiles", profiles.absolutePath,
-            "-Version", project.version.toString(), "-Out", out.absolutePath)
-            .redirectErrorStream(true).start()
-        val log = proc.inputStream.bufferedReader().readText()
-        val code = proc.waitFor()
-        project.delete(stage)
-        check(code == 0 && out.exists()) { "lumora-installer/build.ps1 failed:\n$log" }
-        println(log.lines().lastOrNull { it.startsWith("Installer:") } ?: "Installer: $out")
     }
 }
 
@@ -301,7 +244,7 @@ val portableExe = tasks.register("portableExe") {
     }
 }
 
-releaseDist.configure { mustRunAfter(setupExe, portableExe) }
+releaseDist.configure { mustRunAfter(portableExe) }
 
 tasks.jar {
     from(rootProject.file("LICENSE")) { rename { "LICENSE_lumora" } }

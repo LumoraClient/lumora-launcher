@@ -123,12 +123,21 @@ public final class DiscordPresence implements Closeable {
         }
         String body = new String(transport.read(len), StandardCharsets.UTF_8);
         JsonObject o = JsonParser.parseString(body).getAsJsonObject();
-        if (op == OP_CLOSE || (o.has("evt") && "ERROR".equals(o.get("evt").getAsString()))) {
-            String msg = o.has("message") ? o.get("message").getAsString()
-                    : o.has("data") && o.getAsJsonObject("data").has("message") ? o.getAsJsonObject("data").get("message").getAsString() : body;
-            throw new IOException("Discord hat abgelehnt: " + msg);
+        // command answers carry "evt": null (only READY / ERROR set it), so every field is read null-safe
+        if (op == OP_CLOSE || "ERROR".equals(text(o, "evt"))) {
+            String msg = text(o, "message");
+            if (msg == null && o.get("data") instanceof JsonObject data) {
+                msg = text(data, "message");
+            }
+            throw new IOException("Discord hat abgelehnt: " + (msg != null ? msg : body));
         }
         return o;
+    }
+
+    /** The string field, or null if it is missing, JSON null or not a string. */
+    static String text(JsonObject o, String key) {
+        com.google.gson.JsonElement e = o.get(key);
+        return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() ? e.getAsString() : null;
     }
 
     private void disconnect() {

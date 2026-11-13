@@ -151,6 +151,10 @@ public final class PlayService {
             sysProps.add("-Dlumora.launcher.version=" + BuildInfo.VERSION);
             sysProps.add("-Dlumora.profile=" + instanceId);
             sysProps.add("-Dlumora.diagnosticsDir=" + paths.diagnostics().toAbsolutePath());
+            // the game reports menu / singleplayer / server there (Discord Rich Presence); a stale file of the last run goes first
+            Path statusFile = dev.lumora.launcher.core.integrations.GameStatus.file(prepared.gameDir());
+            java.nio.file.Files.deleteIfExists(statusFile);
+            sysProps.add("-Dlumora.statusFile=" + statusFile.toAbsolutePath());
             if (mode == Mode.SMOKE_TEST_DEMO && smokeReport != null) {
                 sysProps.add("-Dlumora.smokeTest=" + smokeReport.toAbsolutePath());
             }

@@ -36,10 +36,17 @@ public final class GameProcess {
 
     private final Process process;
     private final CompletableFuture<Exit> exit;
+    private final Path gameDir;
 
-    private GameProcess(Process process, CompletableFuture<Exit> exit) {
+    private GameProcess(Process process, CompletableFuture<Exit> exit, Path gameDir) {
         this.process = process;
         this.exit = exit;
+        this.gameDir = gameDir;
+    }
+
+    /** The instance folder the game runs in. */
+    public Path gameDir() {
+        return gameDir;
     }
 
     public static final class AlreadyRunningException extends IOException {
@@ -119,7 +126,7 @@ public final class GameProcess {
         }, "game-output");
         pump.setDaemon(true);
         pump.start();
-        return new GameProcess(p, exit);
+        return new GameProcess(p, exit, gameDir);
     }
 
     static Optional<Path> newestCrashReport(Path gameDir, long sinceMillis) {

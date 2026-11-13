@@ -70,6 +70,7 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.session.SessionServiceImpl session;
     private final dev.lumora.core.connection.ConnectionTracker connections;
     private final dev.lumora.core.hub.ScreenshotWatcher screenshots;
+    private final LauncherStatus launcherStatus;
     private HudEditorModel editor;
     private dev.lumora.core.social.LumoraSocial social;
     private boolean started;
@@ -117,6 +118,7 @@ public final class LumoraCore implements Lumora {
         this.session = new dev.lumora.core.session.SessionServiceImpl(platform::session);
         this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
         this.screenshots = new dev.lumora.core.hub.ScreenshotWatcher(this);
+        this.launcherStatus = LauncherStatus.fromSystemProperty(platform::game, platform.minecraftVersion());
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
         this.jarAddons = new dev.lumora.core.addon.JarAddonLoader(platform.addonsDir(), platform.addonParentLoader(), log);
         this.hudEditor = new HudEditor() {
@@ -215,6 +217,13 @@ public final class LumoraCore implements Lumora {
             screenshots.tick();
         } catch (RuntimeException | LinkageError e) {
             log.warn("Screenshot albums failed: " + e);
+        }
+        if (launcherStatus != null) {
+            try {
+                launcherStatus.tick();
+            } catch (RuntimeException | LinkageError e) {
+                log.warn("Launcher status failed: " + e);
+            }
         }
         if (events.hasListeners(ClientTickEvent.class)) {
             events.post(new ClientTickEvent(tasks.currentTick()));

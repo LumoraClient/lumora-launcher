@@ -130,6 +130,10 @@ final class LauncherWindow implements PageHost {
     private final dev.lumora.launcher.core.integrations.DiscordPresence discord = new dev.lumora.launcher.core.integrations.DiscordPresence();
     private final long launcherStarted = java.time.Instant.now().getEpochSecond();
     private long gameStarted;
+    /** What the running game reported last (Discord shows it); null without a running Lumora game. */
+    private dev.lumora.launcher.core.integrations.GameStatus lastGameStatus;
+    /** Looks every 5 s whether the game changed menu / world / server (for Discord). */
+    private final javax.swing.Timer gameStatusTimer = new javax.swing.Timer(5000, e -> pollGameStatus());
 
     private final CardLayout pages = new CardLayout();
     private final JPanel pageHost = new JPanel(pages);
@@ -187,6 +191,7 @@ final class LauncherWindow implements PageHost {
         }
         social.apply();
         updateDiscord();
+        gameStatusTimer.start();
         updateNewsBadge();
         if (ctx.configLoad.recoveredFromCorruption()) {
             JOptionPane.showMessageDialog(frame, "Die Einstellungsdatei war beschädigt und wurde auf Standardwerte zurückgesetzt.\n"
@@ -716,17 +721,41 @@ final class LauncherWindow implements PageHost {
         });
     }
 
-    /** Discord shows "Im Launcher" or the running version (only with Rich Presence on and an application ID). */
+    /**
+     * Discord shows "Im Launcher" or what the game does: "Lumora 26.3" / "auf eineip.de" (from the status file the Lumora
+     * game writes; older clients and Vanilla: only the version). Only with Rich Presence on and an application ID.
+     */
     private void updateDiscord() {
         dev.lumora.launcher.core.integrations.DiscordPresence.Activity a;
-        if (ctx.play.runningGame().isPresent()) {
+        java.util.Optional<dev.lumora.launcher.core.launch.GameProcess> running = ctx.play.runningGame();
+        if (running.isPresent()) {
             ProfileCatalog.Profile p = ctx.selectedProfile();
-            a = new dev.lumora.launcher.core.integrations.DiscordPresence.Activity("Spielt Minecraft " + p.minecraftVersion,
+            lastGameStatus = gameStatus(running.get());
+            a = lastGameStatus != null
+                    ? lastGameStatus.activity("Lumora", p.minecraftVersion, gameStarted, ctx.config.discordShowServer)
+                    : new dev.lumora.launcher.core.integrations.DiscordPresence.Activity("Spielt Minecraft " + p.minecraftVersion,
                     currentFlavor().label(), gameStarted);
         } else {
+            lastGameStatus = null;
             a = new dev.lumora.launcher.core.integrations.DiscordPresence.Activity("Im Launcher", "Lumora " + BuildInfo.VERSION, launcherStarted);
         }
         discord.update(ctx.config, a);
+    }
+
+    private static dev.lumora.launcher.core.integrations.GameStatus gameStatus(dev.lumora.launcher.core.launch.GameProcess game) {
+        return dev.lumora.launcher.core.integrations.GameStatus.read(dev.lumora.launcher.core.integrations.GameStatus.file(game.gameDir()))
+                .orElse(null);
+    }
+
+    /** Timer: updates Discord when the running game moved between menu, world and server. */
+    private void pollGameStatus() {
+        if (!ctx.config.discordRichPresence) {
+            return;
+        }
+        dev.lumora.launcher.core.integrations.GameStatus now = ctx.play.runningGame().map(LauncherWindow::gameStatus).orElse(null);
+        if (!java.util.Objects.equals(now, lastGameStatus)) {
+            updateDiscord();
+        }
     }
 
     /** True if the profile ships the Lumora client mod (Lumora menus, HUD editor, addons). */
@@ -1705,6 +1734,7 @@ final class LauncherWindow implements PageHost {
             currentLogin.cancel();
         }
         social.shutdown();
+        gameStatusTimer.stop();
         discord.close();
         if (taskbarPinned) {
             dev.lumora.launcher.core.integrations.WindowsTaskbar.clear(frame);

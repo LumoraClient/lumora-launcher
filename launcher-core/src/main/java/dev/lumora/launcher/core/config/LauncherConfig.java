@@ -102,6 +102,8 @@ public final class LauncherConfig {
     public boolean discordRichPresence = false;
     /** Discord application ID (a numeric "snowflake") from the Discord Developer Portal. */
     public String discordAppId;
+    /** Discord shows the server you play on ("auf eineip.de"); off: only "Mehrspieler". */
+    public boolean discordShowServer = true;
     /**
      * Anonymous launcher statistics. There is no Lumora statistics server yet: the switch is stored, nothing is sent.
      * Off by default.

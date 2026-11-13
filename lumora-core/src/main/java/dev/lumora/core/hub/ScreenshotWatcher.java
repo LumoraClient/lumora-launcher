@@ -126,7 +126,7 @@ public final class ScreenshotWatcher {
     }
 
     /** "play.example.net:25565" → "play.example.net" (the default port says nothing). */
-    static String host(String address) {
+    public static String host(String address) {
         if (address == null) {
             return "";
         }

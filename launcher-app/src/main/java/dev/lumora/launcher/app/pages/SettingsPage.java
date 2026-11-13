@@ -648,9 +648,13 @@ public final class SettingsPage extends JPanel {
                         + "wird als Symbol angezeigt.", "Discord Rich Presence", JOptionPane.INFORMATION_MESSAGE);
             }
         });
-        add("Integrationen", Icons.Kind.DISCORD, "Launcher Discord Rich Presence", "Zeigt in Discord, ob du im Launcher bist oder welche "
-                + "Minecraft-Version du spielst. Läuft nur über die Discord-App auf diesem PC, mit deiner eigenen Anwendungs-ID.", false,
-                row(discordId, discord));
+        add("Integrationen", Icons.Kind.DISCORD, "Discord Rich Presence", "Zeigt in Discord, ob du im Launcher bist oder was du spielst, "
+                + "z. B. „Lumora 26.3 auf eineip.de“ mit der Zeit seit dem Beitritt. Läuft nur über die Discord-App auf diesem PC, "
+                + "mit deiner eigenen Anwendungs-ID.", false, row(discordId, discord));
+        ToggleSwitch discordServer = toggle(cfg.discordShowServer, on -> cfg.discordShowServer = on);
+        discordServer.onChange(on -> hooks.discordChanged());
+        add("Integrationen", Icons.Kind.SERVER, "Server in Discord zeigen", "Zeigt in Discord die Adresse des Servers, auf dem du spielst. "
+                + "Ausgeschaltet steht dort nur „Mehrspieler“.", false, discordServer);
         add("Integrationen", Icons.Kind.CHART, "Anonyme Launcherstatistiken", "Würde anonyme Angaben wie Betriebssystem und Version teilen. "
                 + "Es gibt noch keinen Lumora-Statistikserver: Auch eingeschaltet wird nichts gesendet.", false,
                 toggle(cfg.anonymousStats, on -> cfg.anonymousStats = on));

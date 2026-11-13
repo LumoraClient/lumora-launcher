@@ -1,10 +1,14 @@
-# Lumora-API – Referenz (Version 1.7.0)
+# Lumora-API – Referenz (Version 1.8.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.7.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.8.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
 
-**API 1.7.0** (`LumoraAPI.API_VERSION`) bringt Textzeilen über und unter dem Namensschild
+**API 1.8.0** (`LumoraAPI.API_VERSION`) bringt Texturen, die ein Addon zur Laufzeit aus Pixeln macht
+(`AddonContext.textures()` → `DynamicTextures.upload(name, w, h, argb)`), etwa ein Album-Cover, in allen
+Minecraft-Versionen. Addons für 1.0 bis 1.7 laden unverändert weiter.
+
+**API 1.7.0** brachte Textzeilen über und unter dem Namensschild
 (`NameTags.Decorator.lines` → `NameTags.Lines(above, below)`) und eigene Zeilen im Tooltip von Items
 (`event.client.ItemTooltipEvent`: `item()`, `count()`, `add(line)`), beides in allen Minecraft-Versionen. Addons für
 1.0 bis 1.6 laden unverändert weiter.
@@ -68,7 +72,7 @@ Grundregeln:
 | Typ | Zweck |
 |---|---|
 | `LumoraAddon` | Einstieg. `onInitialize(ctx)` einmal (Einstellungen definieren), `onEnable(ctx)` (registrieren), `onDisable(ctx)` (eigene Ressourcen freigeben). Öffentlicher Konstruktor ohne Parameter. |
-| `AddonContext` | `descriptor()`, `state()`, `logger()`, `lumora()`, `events()`, `widgets()` (HUD), `keybinds()` (KEYBINDS), `tasks()` (TASKS), `notifications()` (NOTIFICATIONS), `game()` (GAME), `translations()`, `resources()`, `configuration()`, `hasPermission(p)`. Seit 1.1: `world()` (PLAYERS), `session()` (SESSION), `channels()` (NETWORK), `screens()` (SCREENS), `nameTags()` (NAMETAGS), `configDirectory()` (`config`-Ordner des Spiels für eigene Dateien, ohne Berechtigung), `modLoaded(modId)` (ob eine Mod mit dieser ID installiert ist, ohne Berechtigung). Seit 1.4: `playerMenu()` (PLAYER_MENU). Seit 1.5: `theme()` (ohne Berechtigung; `addAccent` braucht DESIGN), `chat()` (CHAT), `social()` (SOCIAL). Ohne Berechtigung: `AddonPermissionException`. Registrieren außerhalb von `onEnable`/aktiv: `IllegalStateException`. |
+| `AddonContext` | `descriptor()`, `state()`, `logger()`, `lumora()`, `events()`, `widgets()` (HUD), `keybinds()` (KEYBINDS), `tasks()` (TASKS), `notifications()` (NOTIFICATIONS), `game()` (GAME), `translations()`, `resources()`, `configuration()`, `hasPermission(p)`. Seit 1.1: `world()` (PLAYERS), `session()` (SESSION), `channels()` (NETWORK), `screens()` (SCREENS), `nameTags()` (NAMETAGS), `configDirectory()` (`config`-Ordner des Spiels für eigene Dateien, ohne Berechtigung), `modLoaded(modId)` (ob eine Mod mit dieser ID installiert ist, ohne Berechtigung). Seit 1.4: `playerMenu()` (PLAYER_MENU). Seit 1.5: `theme()` (ohne Berechtigung; `addAccent` braucht DESIGN), `chat()` (CHAT), `social()` (SOCIAL). Seit 1.8: `textures()` (Laufzeit-Texturen, ohne Berechtigung). Ohne Berechtigung: `AddonPermissionException`. Registrieren außerhalb von `onEnable`/aktiv: `IllegalStateException`. |
 | `AddonDescriptor` | Geprüfte Metadaten (record): `id`, `name`, `version`, `description`, `authors`, `apiVersion`, `minecraftVersions`, `entrypoint`, `dependencies`, `permissions`, `builtIn`, `source`; `supportsMinecraft(v)`. |
 | `AddonDependency` | `id`, `versions` (`VersionRange`), `optional`. Die ID `lumora` steht für die API selbst. |
 | `AddonPermission` | `HUD("hud")`, `KEYBINDS("keybinds")`, `NOTIFICATIONS("notifications")`, `TASKS("tasks")`, `GAME("game")`; seit 1.1 `SCREENS("screens")`, `PLAYERS("players")`, `SESSION("session")`, `NETWORK("network")`, `NAMETAGS("nametags")`; seit 1.4 `PLAYER_MENU("playermenu")`; seit 1.5 `DESIGN("design")`, `CHAT("chat")`, `SOCIAL("social")`. `byId(id)` → Berechtigung oder `null`. |
@@ -178,6 +182,20 @@ Version, z. B. `GuiGraphicsExtractor` in 26.1.2, `GuiGraphics` in 1.21.x – Cod
 
 `TextureRef(namespace, path)` – einmal anlegen und behalten. `Colors` – `argb`, `withAlpha`, `fade`, `mix`, `toHex`,
 `parseHex` und die Lumora-Farben (`ACCENT`, `TEXT`, `MUTED`, `SURFACE`, `BORDER`, `OK`, `WARNING`, `ERROR`, …).
+
+### DynamicTextures (seit 1.8, `AddonContext.textures()`, ohne Berechtigung)
+
+Texturen aus Pixeln, die ein Addon zur Laufzeit erzeugt (Album-Cover, heruntergeladene Bilder), gezeichnet wie jede andere
+Textur mit `HudGraphics.texture`.
+
+| Methode | Zweck |
+|---|---|
+| `upload(name, width, height, argb)` | Lädt `width * height` ARGB-Pixel (zeilenweise) als Textur `name` des Addons hoch (`[a-z0-9_.-]`, 1 bis 32 Zeichen, Größe 1 bis `MAX_SIZE` = 512); eine frühere Textur mit diesem Namen wird ersetzt. Nur auf dem Render-Thread (z. B. in `render` eines Widgets) und nur, wenn sich das Bild geändert hat. → `TextureRef` oder `null`, wenn die Minecraft-Version keine Texturen erzeugen kann oder das Addon schon `MAX_TEXTURES` (32) andere hält – dann etwas anderes zeichnen. Ungültiger Name, Größe oder Pixelzahl: `IllegalArgumentException` |
+| `release(name)` | Gibt die Textur frei (Render-Thread); unbekannte Namen werden ignoriert |
+
+Beim Abschalten des Addons werden alle seine Texturen freigegeben; intern liegen sie unter `lumora:addon/<addon-id>/<name>`.
+Auf einem Lumora mit API vor 1.8 gibt es `textures()` nicht (Aufruf → `NoSuchMethodError`); Addons, die auch dort laufen
+sollen, fangen das ab und zeichnen etwas anderes.
 
 ### NameTags (seit 1.1, Berechtigung `nametags`)
 

@@ -113,4 +113,9 @@ public interface AddonContext {
     default boolean modLoaded(String modId) {
         throw new UnsupportedOperationException("requires Lumora API 1.1");
     }
+
+    /** Textures this addon makes at runtime from pixels (e.g. an album cover); no permission. @since 1.8.0 */
+    default dev.lumora.api.render.DynamicTextures textures() {
+        throw new UnsupportedOperationException("requires Lumora API 1.8");
+    }
 }

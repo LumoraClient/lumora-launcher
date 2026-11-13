@@ -40,6 +40,7 @@ final class AddonContextImpl implements AddonContext {
     private final dev.lumora.api.chat.Chat chat;
     private final dev.lumora.api.social.SocialInfo social;
     private final dev.lumora.api.screen.AddonScreens screens;
+    private final AddonTextures textures;
     private volatile Translations ownTranslations;
 
     AddonContextImpl(AddonRecord record, LumoraCore core) {
@@ -47,6 +48,7 @@ final class AddonContextImpl implements AddonContext {
         this.core = core;
         String id = record.descriptor.id();
         this.logger = logger(core.logger(), id);
+        this.textures = new AddonTextures(core.platform(), id, record.tracker, this::requireActive);
         Runnable active = this::requireActive;
         this.events = new OwnedEventBus(core.eventBus(), id, record.tracker, active);
         this.widgets = core.widgetRegistry().scoped(id, record.tracker, () -> {
@@ -271,5 +273,10 @@ final class AddonContextImpl implements AddonContext {
     @Override
     public boolean modLoaded(String modId) {
         return core.platform().modLoaded(modId);
+    }
+
+    @Override
+    public dev.lumora.api.render.DynamicTextures textures() {
+        return textures;
     }
 }

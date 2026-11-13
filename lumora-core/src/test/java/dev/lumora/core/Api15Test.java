@@ -64,7 +64,7 @@ class Api15Test {
         assertThrows(AddonPermissionException.class, () -> context.theme().addAccent("gold", "Gold", 0xFFD4A017));
         assertThrows(AddonPermissionException.class, () -> context.chat());
         assertThrows(AddonPermissionException.class, () -> context.social());
-        assertEquals("1.7.0", core.apiVersion());
+        assertEquals("1.8.0", core.apiVersion());
     }
 
     @Test

@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.38 (2026-11-13):**
+- **Build:** `gradlew clean build` erfolgreich, alle Unit-Tests ohne Fehler. Neu: 2 für die Lumora-API 1.7 (Zeilen am Namensschild vom ersten Decorator mit Zeilen, leere Zeilen zählen nicht; Tooltip-Zeilen von Addons, ohne Listener keine Arbeit, Listener verschwindet mit dem Addon). Alle 16 Client-Module kompiliert; geändert: `NameTagBesideMixin` (bzw. `NameTagIconMixin` auf 1.8.9) in allen Versionen, neu `ItemTooltipMixin` in allen Versionen. `check-mixins.pl`: Ziele vorhanden (die gemeldeten Abweichungen betreffen Handler ohne Zielparameter, wie bei den bestehenden Mixins).
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3, 26.2, 26.1.2, 1.21.11, 1.21.8, 1.16.5, 1.12.2 und 1.8.9 bestanden, damit jede Mixin-Familie einmal im Spiel. Aufnahmen der Vorschau-Spieler angesehen auf 26.3, 26.1.2, 1.21.11, 1.21.8 und 1.8.9: Zeile über und unter dem Namen, die kleine Zeile eines Symbols rückt darunter. Auf 1.8.9 ohne Kasten und ohne die Zeichen 💵/💀.
+- **Smoke-Test mit dem fertigen 0.3.38-Build:** nicht abgewartet. Der fertige Build unterscheidet sich vom getesteten Entwicklungsstand nur durch Versionsnummer, News und Changelog.
+- **Nicht geprüft:** die Tooltip-Zeilen im Spiel (das Mixin lädt in allen getesteten Versionen, die Logik ist nur per Unit-Test geprüft); 26.2, 1.16.5 und 1.12.2 ohne Aufnahme der Zeilen (keine Vorschau-Spieler im Smoke-Test); 1.17.1 bis 1.21.4 nur kompiliert; ein Server mit Punktezeile unter dem Namen; ein echtes Selbst-Update von 0.3.37 auf 0.3.38.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.37 (2026-11-12):**
 - **Build:** `gradlew clean build` erfolgreich, 521 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die Screenshot-Alben (eigene Alben auch nach Umbenennen, Löschen und Neustart; automatische Alben nach Server, Spieler und Account, Suche nach Spielern; neue Screenshots merken sich Server ohne Standard-Port, Account und Spieler in der Nähe, nicht sich selbst, ältere bleiben ohne Angaben; Alben-Reiter, Album öffnen, Esc zurück, neues Album mit der Auswahl). Alle 16 Client-Module kompiliert; keine Mixins geändert.
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 bestanden, mit neuer Aufnahme des Alben-Reiters (mit Beispiel-Angaben in der Test-Instanz, danach entfernt); Aufnahmen angesehen: Reiter Fotos und Alben, „Neues Album“, eigenes Album mit Titelbild, Fotos mit „Zu Album“. Auf schmalem Fenster überdeckte die Suche zuerst den Reiter „Alben“ – behoben, erneut bestanden.

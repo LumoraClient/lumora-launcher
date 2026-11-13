@@ -1,6 +1,28 @@
 {
   "news": [
     {
+      "id": "lumora-api-17",
+      "date": "2026-11-13",
+      "author": "Lumora",
+      "version": "0.3.38",
+      "title": "Lumora-API 1.7: Zeilen am Namensschild und im Item-Tooltip",
+      "text": "Addons können jetzt Text über und unter den Namen von Spielern setzen und eigene Zeilen in den Tooltip von Items schreiben.",
+      "image": "news-api-17.png",
+      "body": [
+        {"p": "Mit Lumora 0.3.38 kommt die Lumora-API 1.7.0. Sie gibt Addons zwei Stellen im Spiel, die bisher fehlten – in allen Versionen von 1.8.9 bis 26.3."},
+        {"h": "Zeilen am Namensschild"},
+        {"p": "Ein Addon kann eine Zeile direkt über und eine direkt unter den Namen eines Spielers setzen. Sie sehen aus wie der Name selbst und sind wie er durch Wände sichtbar. Im Bild: ein Kontostand über und ein Kopfgeld unter dem Namen."},
+        {"h": "Zeilen im Item-Tooltip"},
+        {"p": "Fährst du über ein Item, können Addons eigene Zeilen unter die des Spiels hängen, zum Beispiel Kauf- und Verkaufspreise eines Servers."},
+        {"h": "Für Addon-Entwickler"},
+        {"list": [
+          "NameTags.Decorator.lines liefert NameTags.Lines(above, below)",
+          "ItemTooltipEvent mit item(), count() und add(line)",
+          "Addons für die API 1.0 bis 1.6 laden unverändert"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-screenshot-albums",
       "date": "2026-11-12",
       "author": "Lumora",

@@ -1,6 +1,6 @@
 # Änderungen
 
-## Unveröffentlicht
+## 0.3.38 (2026-11-13)
 
 ### Für Addon-Entwickler
 - **Lumora-API 1.7.0:** Addons können Textzeilen über und unter das Namensschild eines Spielers setzen (`NameTags.Decorator.lines` → `NameTags.Lines(above, below)`), gezeichnet wie der Name selbst, und eigene Zeilen an den Tooltip von Items hängen (`ItemTooltipEvent` mit `item()`, `count()`, `add(line)`). Beides in allen Versionen von 1.8.9 bis 26.3. Hat ein Spieler eine Zeile unter dem Namen, rückt die kleine Zeile eines Symbols (`Icon.subtitle`) eine Zeile tiefer. Addons für 1.0 bis 1.6 laden unverändert.

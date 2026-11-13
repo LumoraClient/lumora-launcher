@@ -7,7 +7,7 @@
 | JDK | **25** (getestet: Amazon Corretto 25.0.3) | Minecraft 26.1 und Fabric Loom verlangen Java 25. Gradle sucht passende Toolchains automatisch. |
 | Gradle | nicht nötig | Der Wrapper (`gradlew`/`gradlew.bat`) lädt Gradle 9.7.1 und prüft die SHA-256-Summe. |
 | Windows-Packaging | im JDK enthalten (`jpackage`) | erzeugt `LumoraLauncher.exe` als App-Image ohne Zusatzwerkzeuge |
-| Installer (optional) | Inno Setup 6 (`ISCC.exe`) | nur für `LumoraClient-Setup-<v>.exe` |
+| Installer | in Windows enthalten (`csc.exe` des .NET Framework 4.8, WPF) | für `LumoraClient-Setup-<v>.exe`, kein Zusatzwerkzeug |
 | Internet | – | Beim ersten Build lädt Loom Minecraft 26.1.2 und Fabric (~200 MB in den Gradle-Cache) |
 
 ## Befehle (Windows, PowerShell oder cmd)
@@ -44,18 +44,32 @@ Zielordner für Tests: `LUMORA_PORTABLE_DIR`.
 ```bat
 gradlew.bat :launcher-app:setupExe :launcher-app:releaseDist
 ```
-Wie oben, zusätzlich mit **`LumoraClient-Setup-<v>.exe`**: eine einzelne Datei, gebaut mit dem in Windows
-enthaltenen **IExpress** (kein Zusatzwerkzeug). Das Setup installiert ohne Admin-Rechte nach
-`%LOCALAPPDATA%\Programs\LumoraClient`, legt Startmenü- und Desktop-Verknüpfung sowie `Deinstallieren.cmd` an
-und startet den Launcher. Für stille Installationen und Tests: `LUMORA_NO_SHORTCUTS=1`, `LUMORA_NO_START=1`,
-Aufruf `LumoraClient-Setup-<v>.exe /Q`.
+Wie oben, zusätzlich mit **`LumoraClient-Setup-<v>.exe`**: ein eigener Installations-Assistent im Look des
+Launchers (WPF, kompiliert mit dem `csc.exe` aus Windows, kein Zusatzwerkzeug). Der Quellcode liegt im eigenen
+Repository [lumora-installer](https://github.com/LumoraClient/lumora-installer); es muss neben diesem
+Repository ausgecheckt sein (`..\lumora-installer`, anderer Ort: `-PinstallerDir=<Pfad>`), sonst wird `setupExe`
+übersprungen. Der Launcher samt Java-Runtime, die Inter-Schrift, das Logo und die Versionsliste aus
+`profiles.json` sind eingebettet. Schritte:
 
-```bat
-gradlew.bat :launcher-app:installerExe :launcher-app:releaseDist
-```
-Alternative mit Inno Setup 6 (Assistent mit Sprachauswahl und Deinstallation über die Windows-Einstellungen),
-falls installiert (Pfad über `-PisccPath=...` oder Umgebungsvariable `ISCC`). Beide Tasks erzeugen denselben
-Dateinamen. Es sollte nur einer verwendet werden.
+1. **Willkommen** (zeigt ein Update von einer installierten Version an)
+2. **Versionen**: Minecraft-Versionen frei wählen (Empfohlen/Alle/Keine), optional gleich herunterladen
+3. **Speicherorte**: Programmordner (Standard `%LOCALAPPDATA%\Programs\LumoraClient`) und Spieldaten
+   (Standard `%APPDATA%\LumoraClient`), Desktop-/Startmenü-Verknüpfung, Mit Windows starten
+4. **Design**: Lumora Theme oder klassisch im Minecraft Style (gilt für die Menüs im Spiel)
+5. **Installation** mit Fortschritt, 6. **Fertig** (Lumora starten)
+
+Installiert wird ohne Admin-Rechte, mit Eintrag unter Windows-Einstellungen › Apps und `Deinstallieren.exe`
+(gleicher Look, Spieldaten nur auf Wunsch löschen). Die Auswahl übergibt das Setup in
+`%APPDATA%\LumoraClient\config\setup.json`; der Launcher (oder seine CLI, mit der das Setup die Versionen lädt)
+übernimmt sie beim nächsten Start (`SetupHandoff`). Das Design wird pro Instanz einmal gesetzt
+(`GameThemeSeeder`), spätere Änderungen im Hub bleiben erhalten.
+
+Stille Installation: `LumoraClient-Setup-<v>.exe /S [--dir=<Programm>] [--data=<Spieldaten>]
+[--versions=26.1.2,1.8.9] [--theme=lumora|vanilla] [--download] [--no-desktop] [--no-startmenu] [--start]`,
+stille Deinstallation: `Deinstallieren.exe /S [--purge]`. Protokoll: `%TEMP%\LumoraSetup.log`.
+Für Tests ohne Eingriff in eine echte Installation: `LUMORA_HOME=<Testordner>` und `LUMORA_SETUP_SANDBOX=1`
+(eigene Registry-Schlüssel, keine Verknüpfungen, kein Autostart-Eintrag). Seiten-Screenshots ohne sichtbares
+Fenster: `LumoraClient-Setup-<v>.exe --ui-shot=seite.png --page=<0-5>`.
 
 Linux/macOS: dieselben Befehle mit `./gradlew`. `jpackageImage` läuft nur unter Windows (sonst übersprungen).
 Launcher-Core und Mod bauen und testen plattformunabhängig.
@@ -108,5 +122,5 @@ Start mit einem Konto ist dann nicht möglich, und der Launcher meldet das verst
 | `Could not resolve com.mojang:minecraft:26.1.2` | keine Internetverbindung beim ersten Build |
 | `Anwendungszielverzeichnis … ist bereits vorhanden` (jpackage) | ältere Builds: `launcher-app\build\jpackage` löschen (aktuelle Builds räumen selbst auf) |
 | `jpackageImage SKIPPED` | nicht unter Windows ausgeführt |
-| `installerExe SKIPPED` | Inno Setup nicht gefunden, `-PisccPath=C:\…\ISCC.exe` angeben |
+| `setupExe SKIPPED` | nicht unter Windows, oder `..\lumora-installer` fehlt (github.com/LumoraClient/lumora-installer daneben auschecken oder `-PinstallerDir=…`) |
 | `companion mod jar was not built` | `:client-mc26.1.2:jar` fehlgeschlagen, Ausgabe davor prüfen |

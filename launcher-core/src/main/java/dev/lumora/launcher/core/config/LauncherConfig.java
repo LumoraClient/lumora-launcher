@@ -21,6 +21,15 @@ public final class LauncherConfig {
     /** Data directory; null means the platform default (%APPDATA%\LumoraClient on Windows). */
     public String installDir;
     public String selectedProfile;
+    /**
+     * Minecraft versions shown in the launcher (version menu, profile list), chosen in the installer or under
+     * Einstellungen › Spiel › Versionen. Empty = all versions.
+     */
+    public List<String> visibleProfiles = new ArrayList<>();
+    /** Design for the game chosen in the installer: "lumora" or "vanilla"; null = untouched (see GameThemeSeeder). */
+    public String gameTheme;
+    /** Id of the installer run that chose {@link #gameTheme}; every instance gets that choice once. */
+    public String gameThemeSeed;
     public int maxMemoryMb = 4096;
     public int minMemoryMb = 1024;
     /** Optional java executable. Null means: use Mojang's official runtime for the profile. */
@@ -172,6 +181,24 @@ public final class LauncherConfig {
                 notes.add("unknown profile '" + selectedProfile + "' replaced by '" + defaultProfile + "'");
             }
             selectedProfile = defaultProfile;
+        }
+        if (visibleProfiles == null) {
+            visibleProfiles = new ArrayList<>();
+        }
+        List<String> visible = new ArrayList<>(new LinkedHashSet<>(visibleProfiles));
+        if (visible.removeIf(p -> p == null || !knownProfiles.contains(p))) {
+            notes.add("removed unknown versions from visibleProfiles");
+        }
+        visibleProfiles = visible;
+        if (!visibleProfiles.isEmpty() && !visibleProfiles.contains(selectedProfile)) {
+            notes.add("selected profile '" + selectedProfile + "' is hidden, now '" + visibleProfiles.get(0) + "'");
+            selectedProfile = visibleProfiles.get(0);
+        }
+        if (gameTheme != null && !List.of("lumora", "vanilla").contains(gameTheme)) {
+            gameTheme = null;
+        }
+        if (gameThemeSeed != null && !gameThemeSeed.matches("[A-Za-z0-9_.-]{1,64}")) {
+            gameThemeSeed = null;
         }
         if (maxMemoryMb < MIN_MEMORY_MB || maxMemoryMb > MAX_MEMORY_MB) {
             int fixed = Math.clamp(maxMemoryMb, MIN_MEMORY_MB, MAX_MEMORY_MB);

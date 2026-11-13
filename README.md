@@ -37,7 +37,7 @@ Java und Minecraft muss niemand selbst installieren: Launcher öffnen, anmelden,
 ## Schnellstart (Nutzer)
 
 1. **`LumoraClient.exe`** doppelklicken (eine Datei, keine Installation; der erste Start entpackt sich einmalig).
-   Alternativ: ZIP entpacken und `LumoraLauncher.exe` starten oder `LumoraClient-Setup-<version>.exe` ausführen.
+   Alternativ: `LumoraClient-Setup-<version>.exe` ausführen (Assistent: Minecraft-Versionen, Ordner und Design wählen, Deinstallation über die Windows-Einstellungen) oder ZIP entpacken und `LumoraLauncher.exe` starten.
 2. Im Launcher auf **Spielen** klicken.
 3. Beim ersten Mal: Downloads abwarten, Code auf microsoft.com/link eingeben.
 
@@ -65,7 +65,7 @@ lumora-client/
 ├── lumora-loader/        Lumora Loader: startet Minecraft ohne Mod-Loader (Klassenlader, Mixin, Umbenennen der Spiel-JAR)
 ├── client/mc<version>/   Lumora-Client je Version (26.3 … 1.8.9, eigene Plattform-Hooks per Mixin) inkl. Minecraft-Adapter der API
 ├── examples/             Beispiel-Addon session-timer-addon
-├── packaging/            Icons + Generator, Inno-Setup-Skript, Windows-README, Lizenztexte
+├── packaging/            Icons + Generator, portable EXE, Windows-README, Lizenztexte
 ├── docs/                 Dokumentation, Screenshots, Testnachweise
 ├── .github/workflows/    CI (Linux + Windows, Release-Artefakte)
 └── gradle/               Wrapper (SHA-256-gepinnt) + Versionskatalog
@@ -95,7 +95,7 @@ lumora-client/
   stattdessen über Lumora Social; das braucht einen eigenen Server (keiner voreingestellt). Nachrichten liegen dort im
   Klartext, wer den Server betreibt, kann sie lesen.
 - Lumora-Keybinds von Addons stehen in den Lumora-Einstellungen (Hub → Zahnrad auf der Karte des Addons), nicht unter Optionen → Steuerung. Addons sind keine Sandbox.
-- EXE nicht code-signiert. Installer nur mit Inno Setup baubar.
+- EXE nicht code-signiert.
 - Keine belegten FPS-Vergleiche. Das Messwerkzeug ist eingebaut, eine In-World-Messreihe steht aus.
 
 ## Lizenz

@@ -339,6 +339,49 @@ public final class SettingsPage extends JPanel {
         }
     }
 
+    /** One chip per Minecraft version plus "Alle"; at least one version stays shown. Empty list = all versions. */
+    private JComponent versionChooser() {
+        JPanel chips = new JPanel(new dev.lumora.launcher.app.ui.WrapLayout(java.awt.FlowLayout.LEFT, 6, 6));
+        chips.setOpaque(false);
+        List<dev.lumora.launcher.core.profile.ProfileCatalog.Profile> all = host.ctx().catalog.profiles();
+        List<javax.swing.JToggleButton> buttons = new java.util.ArrayList<>();
+        Runnable store = () -> {
+            List<String> chosen = new java.util.ArrayList<>();
+            for (int i = 0; i < all.size(); i++) {
+                if (buttons.get(i).isSelected()) {
+                    chosen.add(all.get(i).id);
+                }
+            }
+            cfg.visibleProfiles = chosen.size() == all.size() ? new java.util.ArrayList<>() : chosen;
+            if (!chosen.isEmpty() && !chosen.contains(cfg.selectedProfile)) {
+                cfg.selectedProfile = chosen.get(0);
+            }
+            save();
+        };
+        for (var p : all) {
+            boolean on = cfg.visibleProfiles == null || cfg.visibleProfiles.isEmpty() || cfg.visibleProfiles.contains(p.id);
+            javax.swing.JToggleButton b = new javax.swing.JToggleButton(p.minecraftVersion, on);
+            b.setFont(Theme.font(Font.BOLD, 12f));
+            b.setFocusable(false);
+            b.addActionListener(e -> {
+                if (buttons.stream().noneMatch(javax.swing.AbstractButton::isSelected)) {
+                    b.setSelected(true); // keep at least one version
+                    return;
+                }
+                store.run();
+            });
+            buttons.add(b);
+            chips.add(b);
+        }
+        JButton allButton = button("Alle");
+        allButton.addActionListener(e -> {
+            buttons.forEach(b -> b.setSelected(true));
+            store.run();
+        });
+        chips.add(allButton);
+        return chips;
+    }
+
     private ToggleSwitch toggle(boolean value, Consumer<Boolean> change) {
         ToggleSwitch t = new ToggleSwitch(value);
         t.onChange(on -> {
@@ -485,6 +528,8 @@ public final class SettingsPage extends JPanel {
                 + "(Direct3D). Ausschalten hilft bei Grafikfehlern durch Treiber. Wirkt nach einem Neustart.", true, hw);
 
         // --- Spiel
+        add("Spiel", Icons.Kind.CUBE, "Versionen im Launcher", "Welche Minecraft-Versionen das Versionsmenü zeigt (wie im "
+                + "Installer). Ausgeblendete Versionen behalten ihre Welten und Einstellungen.", false, versionChooser(), true);
         add("Spiel", Icons.Kind.ARCHIVE, "Mehrere Instanzen", "Mehrere Minecraft-Versionen gleichzeitig starten. Jede Version "
                 + "(Lumora, Vanilla) läuft trotzdem nur einmal.", false, toggle(cfg.multipleInstances, on -> cfg.multipleInstances = on));
         add("Spiel", Icons.Kind.ROCKET, "Aktion nach dem Start", "Was der Launcher macht, sobald Minecraft läuft.", false,

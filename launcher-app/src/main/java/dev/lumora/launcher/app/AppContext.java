@@ -44,7 +44,16 @@ public final class AppContext {
                 catalog.profiles().stream().map(p -> p.id).toList(), catalog.allExtensionIds(), catalog.defaultProfile());
         configLoad = configStore.load();
         config = configLoad.config();
-        paths = new LauncherPaths(config.installDir != null ? Path.of(config.installDir) : defaultRoot);
+        // choices from the Windows installer (data directory, versions, design), once
+        if (dev.lumora.launcher.core.config.SetupHandoff.apply(bootstrap.configFile(), config,
+                catalog.profiles().stream().map(p -> p.id).toList())) {
+            try {
+                configStore.save(config);
+            } catch (IOException e) {
+                Log.warn("Could not save the installer choices", e);
+            }
+        }
+        paths =new LauncherPaths(config.installDir != null ? Path.of(config.installDir) : defaultRoot);
         InstanceMigration.migrate(paths);
         downloader = new Downloader(config.parallelDownloads);
         Path bundledDir = BundledMods.locate();
@@ -63,6 +72,15 @@ public final class AppContext {
 
     public ProfileCatalog.Profile selectedProfile() {
         return catalog.profile(config.selectedProfile).orElseGet(() -> catalog.profile(catalog.defaultProfile()).orElseThrow());
+    }
+
+    /** Versions shown in the launcher (installer / settings choice; all when none is chosen), always with the selected one. */
+    public java.util.List<ProfileCatalog.Profile> visibleProfiles() {
+        java.util.List<ProfileCatalog.Profile> all = catalog.profiles();
+        if (config.visibleProfiles == null || config.visibleProfiles.isEmpty()) {
+            return all;
+        }
+        return all.stream().filter(p -> config.visibleProfiles.contains(p.id) || p.id.equals(config.selectedProfile)).toList();
     }
 
     public void saveConfig() throws IOException {

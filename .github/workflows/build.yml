@@ -49,19 +49,24 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Install Inno Setup (if missing)
-        shell: pwsh
-        run: |
-          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - uses: actions/checkout@v4
+        with:
+          repository: LumoraClient/lumora-installer
+          path: lumora-installer
       - name: Build release
-        run: ./gradlew :launcher-app:installerExe :launcher-app:releaseDist --no-daemon
+        run: ./gradlew :launcher-app:setupExe :launcher-app:releaseDist -PinstallerDir=lumora-installer --no-daemon
         shell: bash
-      - name: Silent install test of the Inno Setup installer
+      - name: Silent install and uninstall test of the setup
         shell: pwsh
         run: |
+          $env:LUMORA_HOME = "$env:RUNNER_TEMP\setup-home"
+          $dir = "$env:RUNNER_TEMP\setup-app"
           $setup = Get-ChildItem build\release\LumoraClient-Setup-*.exe | Select-Object -First 1
-          Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
-          if (-not (Test-Path "$env:LOCALAPPDATA\Programs\LumoraClient\LumoraLauncher.exe")) { exit 1 }
+          $p = Start-Process $setup.FullName -ArgumentList "/S","--dir=$dir","--versions=26.1.2,1.8.9","--theme=vanilla","--no-desktop","--no-startmenu" -Wait -PassThru
+          if ($p.ExitCode -ne 0 -or -not (Test-Path "$dir\LumoraLauncher\LumoraLauncher.exe")) { Get-Content "$env:TEMP\LumoraSetup.log"; exit 1 }
+          if (-not (Test-Path "$env:LUMORA_HOME\config\setup.json")) { exit 1 }
+          $p = Start-Process "$dir\Deinstallieren.exe" -ArgumentList "/S" -Wait -PassThru
+          if ($p.ExitCode -ne 0 -or (Test-Path "$dir\LumoraLauncher")) { Get-Content "$env:TEMP\LumoraSetup.log"; exit 1 }
       - name: Launcher self-check (no game start, no account)
         shell: pwsh
         run: |

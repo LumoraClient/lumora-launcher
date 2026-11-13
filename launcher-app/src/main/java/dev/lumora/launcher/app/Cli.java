@@ -43,8 +43,12 @@ final class Cli {
                 return 0;
             }
             if (a.contains("--install-only")) {
-                var prepared = ctx.installer.prepare(profile, ctx.config, a.contains("--repair"), consoleProgress());
+                boolean machine = a.contains("--machine-progress");
+                var prepared = ctx.installer.prepare(profile, ctx.config, a.contains("--repair"),
+                        machine ? machineProgress() : consoleProgress());
+                dev.lumora.launcher.core.install.GameThemeSeeder.seed(prepared.gameDir(), ctx.config);
                 System.out.println("OK: profile " + profile.id + " installed, java=" + prepared.javaExecutable());
+                System.out.flush();
                 return 0;
             }
             if (a.contains("--ui-shot")) {
@@ -293,6 +297,34 @@ final class Cli {
                 if (now - last > 2000 && fraction >= 0) {
                     last = now;
                     System.out.printf("  %3.0f%% %s%n", fraction * 100, detail);
+                }
+            }
+        };
+    }
+
+    /**
+     * Progress for the Windows installer (packaging/windows/setup), which runs {@code --install-only} for every chosen
+     * version: UTF-8 lines "@stage text" and "@progress 0.42 detail", at most about seven per second.
+     */
+    private static ProgressListener machineProgress() {
+        java.io.PrintStream out = new java.io.PrintStream(new java.io.FileOutputStream(java.io.FileDescriptor.out), true,
+                java.nio.charset.StandardCharsets.UTF_8);
+        System.setOut(out);
+        return new ProgressListener() {
+            private long last;
+
+            @Override
+            public void stage(String description) {
+                out.println("@stage " + description.replace('\n', ' '));
+            }
+
+            @Override
+            public void progress(double fraction, String detail) {
+                long now = System.currentTimeMillis();
+                if (now - last > 140 || fraction >= 1) {
+                    last = now;
+                    out.println(String.format(java.util.Locale.ROOT, "@progress %.4f %s", fraction,
+                            detail == null ? "" : detail.replace('\n', ' ')));
                 }
             }
         };

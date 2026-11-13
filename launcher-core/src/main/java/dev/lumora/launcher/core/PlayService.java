@@ -133,6 +133,9 @@ public final class PlayService {
         try {
             setState(listener, State.INSTALLING, "Prüfe Installation…");
             ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
+            if (flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA) {
+                dev.lumora.launcher.core.install.GameThemeSeeder.seed(prepared.gameDir(), config);
+            }
             LaunchCommandBuilder.Identity identity;
             if (mode == Mode.SMOKE_TEST_DEMO) {
                 identity = new LaunchCommandBuilder.Identity("DemoSmokeTest",

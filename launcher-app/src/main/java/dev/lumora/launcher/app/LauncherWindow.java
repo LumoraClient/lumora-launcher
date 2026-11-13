@@ -580,6 +580,15 @@ final class LauncherWindow implements PageHost {
         popup.show(heroArrow, heroArrow.getWidth() - w, heroArrow.getHeight() + 6);
     }
 
+    /** Subtitle of the version menu: how many versions are shown (installer / settings choice). */
+    private String versionCountText() {
+        int all = ctx.catalog.profiles().size();
+        int shown = ctx.visibleProfiles().size();
+        return shown < all
+                ? shown + " von " + all + " Versionen · weitere unter Einstellungen › Spiel"
+                : all + " Versionen · jede mit eigenem Spielordner";
+    }
+
     /** Content of the version menu; {@code close} hides the menu. */
     JPanel versionMenuBody(Runnable close) {
         JPanel body = column();
@@ -590,7 +599,7 @@ final class LauncherWindow implements PageHost {
         JLabel title = label("Version wählen", 15, Font.BOLD, Theme.TEXT);
         body.add(title);
         body.add(Box.createVerticalStrut(2));
-        body.add(label(ctx.catalog.profiles().size() + " Versionen · jede mit eigenem Spielordner", 12, Font.PLAIN, Theme.MUTED));
+        body.add(label(versionCountText(), 12, Font.PLAIN, Theme.MUTED));
         body.add(Box.createVerticalStrut(12));
 
         // start type: Lumora or plain Minecraft (selectable mod loaders are removed for now)
@@ -621,7 +630,7 @@ final class LauncherWindow implements PageHost {
 
         // versions by major version: the same cards as the old version grid (pixel art or newest screenshot)
         List<VersionGrid.Version> list = new ArrayList<>();
-        for (ProfileCatalog.Profile p : ctx.catalog.profiles()) {
+        for (ProfileCatalog.Profile p : ctx.visibleProfiles()) {
             boolean recommended = p.id.equals(ctx.catalog.defaultProfile());
             String played = playInfo.get(p.id);
             list.add(new VersionGrid.Version(p.id, p.minecraftVersion, "<html><b>Minecraft " + p.minecraftVersion + "</b>"
@@ -904,7 +913,7 @@ final class LauncherWindow implements PageHost {
         right.setVisible(nav == null || !"home".equals(nav.selected()));
         profileBox = new JComboBox<>();
         profileBox.setMaximumRowCount(12);
-        for (ProfileCatalog.Profile p : ctx.catalog.profiles()) {
+        for (ProfileCatalog.Profile p : ctx.visibleProfiles()) {
             profileBox.addItem(p);
         }
         profileBox.setRenderer(new DefaultListCellRenderer() {

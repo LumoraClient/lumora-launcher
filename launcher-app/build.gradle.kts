@@ -201,106 +201,53 @@ val releaseDist = tasks.register("releaseDist") {
     }
 }
 
-/** Optional: Windows installer via Inno Setup (ISCC.exe must be installed; path via -PisccPath or ISCC env). */
-val installerExe = tasks.register<Exec>("installerExe") {
-    group = "distribution"
-    description = "Builds LumoraClient-Setup-<version>.exe with Inno Setup"
-    dependsOn(jpackageImage)
-    val iscc = (findProperty("isccPath") as String?) ?: System.getenv("ISCC")
-        ?: "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"
-    onlyIf { file(iscc).exists() }
-    executable = iscc
-    args(
-        "/DAppVersion=${project.version}",
-        "/DSourceDir=${layout.buildDirectory.dir("jpackage/image/$appName").get().asFile.absolutePath}",
-        "/DRepoRoot=${rootProject.projectDir.absolutePath}",
-        "/O${installerDir.get().asFile.absolutePath}",
-        rootProject.file("packaging/windows/LumoraClient.iss").absolutePath
-    )
-}
-
 /**
- * Single-file installer without extra tools: Windows' built-in IExpress wraps the app image (as zip) and
- * packaging/windows/sfx/install.cmd into LumoraClient-Setup-<version>.exe (per-user install, no admin).
- * Staged in %TEMP% because IExpress/makecab cannot handle paths longer than 260 characters.
+ * Windows installer LumoraClient-Setup-<version>.exe: the WPF wizard from the separate repository
+ * github.com/LumoraClient/lumora-installer (checked out next to this repository, or -PinstallerDir=<path>), built by
+ * its build.ps1 with the csc.exe that ships with Windows. Embeds this launcher's app image with its licences and the
+ * version list from profiles.json.
  */
 val setupExe = tasks.register("setupExe") {
     group = "distribution"
-    description = "Builds LumoraClient-Setup-<version>.exe with the Windows-builtin IExpress"
+    description = "Builds LumoraClient-Setup-<version>.exe with ../lumora-installer (or -PinstallerDir)"
     dependsOn(jpackageImage)
     val image = layout.buildDirectory.dir("jpackage/image/$appName")
-    val sfx = rootProject.file("packaging/windows/sfx")
+    val installerRepo = rootProject.file((findProperty("installerDir") as String?) ?: "../lumora-installer")
+    val profiles = rootProject.file("launcher-core/src/main/resources/lumora/profiles.json")
     inputs.dir(image)
-    inputs.dir(sfx)
+    inputs.files(profiles, rootProject.file("LICENSE"), rootProject.fileTree("packaging/licenses"))
+    inputs.files(project.fileTree(installerRepo) { include("build.ps1", "src/**", "assets/**", "LICENSE") })
     val outFile = installerDir.map { it.file("LumoraClient-Setup-${project.version}.exe") }
     outputs.file(outFile)
-    val iexpress = File(System.getenv("SystemRoot") ?: "C:\\Windows", "System32\\iexpress.exe")
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows && iexpress.exists() }
-    doLast {
-        val stage = File(System.getenv("TEMP"), "lumora-sfx-${project.version}")
-        project.delete(stage)
-        stage.mkdirs()
-        ant.withGroovyBuilder {
-            "zip"("destfile" to stage.resolve("LumoraClient.zip").absolutePath,
-                "basedir" to image.get().asFile.parentFile.absolutePath, "includes" to "$appName/**")
+    onlyIf {
+        val ok = org.gradle.internal.os.OperatingSystem.current().isWindows && installerRepo.resolve("build.ps1").exists()
+        if (!ok) {
+            logger.warn("setupExe skipped: needs Windows and github.com/LumoraClient/lumora-installer in $installerRepo")
         }
-        sfx.resolve("install.cmd").copyTo(stage.resolve("install.cmd"), true)
-        sfx.resolve("uninstall.cmd").copyTo(stage.resolve("uninstall.cmd"), true)
-        val target = stage.resolve("LumoraClient-Setup.exe")
-        val sed = """
-            [Version]
-            Class=IEXPRESS
-            SEDVersion=3
-            [Options]
-            PackagePurpose=InstallApp
-            ShowInstallProgramWindow=0
-            HideExtractAnimation=0
-            UseLongFileName=1
-            InsideCompressed=0
-            CAB_FixedSize=0
-            CAB_ResvCodeSigning=0
-            RebootMode=N
-            InstallPrompt=%InstallPrompt%
-            DisplayLicense=%DisplayLicense%
-            FinishMessage=%FinishMessage%
-            TargetName=%TargetName%
-            FriendlyName=%FriendlyName%
-            AppLaunched=%AppLaunched%
-            PostInstallCmd=%PostInstallCmd%
-            AdminQuietInstCmd=%AdminQuietInstCmd%
-            UserQuietInstCmd=%UserQuietInstCmd%
-            SourceFiles=SourceFiles
-            [Strings]
-            InstallPrompt=Lumora Client ${project.version} jetzt installieren?
-            DisplayLicense=
-            FinishMessage=
-            TargetName=${target.absolutePath}
-            FriendlyName=Lumora Client Setup
-            AppLaunched=cmd /c install.cmd
-            PostInstallCmd=<None>
-            AdminQuietInstCmd=
-            UserQuietInstCmd=
-            FILE0="install.cmd"
-            FILE1="uninstall.cmd"
-            FILE2="LumoraClient.zip"
-            [SourceFiles]
-            SourceFiles0=${stage.absolutePath}\
-            [SourceFiles0]
-            %FILE0%=
-            %FILE1%=
-            %FILE2%=
-        """.trimIndent().replace("\n", "\r\n")
-        val sedFile = stage.resolve("setup.sed")
-        sedFile.writeText(sed)
-        val proc = ProcessBuilder(iexpress.absolutePath, "/N", "/Q", sedFile.absolutePath)
-            .directory(stage).inheritIO().start()
-        check(proc.waitFor() == 0 || target.exists()) { "IExpress failed" }
-        check(target.exists() && target.length() > 1_000_000) { "IExpress produced no installer: $target" }
-        val out = outFile.get().asFile
-        out.parentFile.mkdirs()
-        target.copyTo(out, true)
+        ok
+    }
+    doLast {
+        // launcher with its licences, as in the release folder (staged in %TEMP%: short paths for csc)
+        val stage = File(System.getenv("TEMP"), "lumora-setup-app-${project.version}")
         project.delete(stage)
-        println("Installer: $out (${out.length() / 1048576} MB)")
+        val app = stage.resolve(appName)
+        image.get().asFile.copyRecursively(app, overwrite = true)
+        val licenses = app.resolve("licenses")
+        licenses.mkdirs()
+        rootProject.file("LICENSE").copyTo(licenses.resolve("LICENSE-GPL-3.0.txt"), true)
+        rootProject.file("packaging/licenses").copyRecursively(licenses, true)
+        rootProject.file("docs/THIRD_PARTY_NOTICES.md").copyTo(licenses.resolve("THIRD_PARTY_NOTICES.txt"), true)
+        rootProject.file("packaging/windows/README.txt").copyTo(app.resolve("README.txt"), true)
+        val out = outFile.get().asFile
+        val proc = ProcessBuilder("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+            installerRepo.resolve("build.ps1").absolutePath, "-AppImage", app.absolutePath, "-Profiles", profiles.absolutePath,
+            "-Version", project.version.toString(), "-Out", out.absolutePath)
+            .redirectErrorStream(true).start()
+        val log = proc.inputStream.bufferedReader().readText()
+        val code = proc.waitFor()
+        project.delete(stage)
+        check(code == 0 && out.exists()) { "lumora-installer/build.ps1 failed:\n$log" }
+        println(log.lines().lastOrNull { it.startsWith("Installer:") } ?: "Installer: $out")
     }
 }
 
@@ -354,7 +301,7 @@ val portableExe = tasks.register("portableExe") {
     }
 }
 
-releaseDist.configure { mustRunAfter(installerExe, setupExe, portableExe) }
+releaseDist.configure { mustRunAfter(setupExe, portableExe) }
 
 tasks.jar {
     from(rootProject.file("LICENSE")) { rename { "LICENSE_lumora" } }

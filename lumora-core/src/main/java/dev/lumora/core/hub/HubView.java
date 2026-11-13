@@ -1441,7 +1441,8 @@ public final class HubView implements AddonView {
     /** The zoom options of lumora-client.json as settings, bound to the client config (nothing is stored twice). */
     SettingsGroup zoomSettings() {
         SettingsGroup s = new SettingsGroup("lumora.zoom.");
-        BooleanSetting enabled = s.toggle("enabled", true).bind(() -> bool("zoomEnabled"), v -> host.set("zoomEnabled", v));
+        BooleanSetting enabled = s.toggle("enabled", true).bind(() -> bool("zoomEnabled"), v -> host.set("zoomEnabled", v))
+                .section("lumora.zoom.section.general");
         s.selection("factor", "4", ZOOM_FACTORS).bind(() -> nearestFactor(num("zoomFactor", 4)),
                 v -> host.set("zoomFactor", Double.parseDouble(v))).requires(enabled);
         s.selection("mode", "hold", "hold", "toggle").bind(() -> "toggle".equals(str("zoomMode", "hold")) ? "toggle" : "hold",

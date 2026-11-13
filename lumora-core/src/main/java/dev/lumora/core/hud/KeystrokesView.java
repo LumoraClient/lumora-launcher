@@ -76,6 +76,8 @@ public final class KeystrokesView {
     /** The widget's settings; the ids "mouse", "space" and "pressed" are the ones of earlier versions. */
     public void configure(SettingsGroup s) {
         String k = "lumora.widget.keystrokes.";
+        s.button("preset_liquidbounce", this::liquidBounce).label(k + "apply").section(k + "section.presets");
+        s.button("preset_lumora", this::lumora).label(k + "apply");
         mouse = s.toggle("mouse", true).section(k + "section.keys");
         cps = s.checkbox("cps", true).requires(mouse);
         space = s.toggle("space", true);
@@ -91,13 +93,11 @@ public final class KeystrokesView {
         outlineWidth = s.slider("outline_width", 1, 1, 3).unit(" px").visibleWhen(() -> own.getAsBoolean() && outline.get());
         outlineColor = s.color("outline_color", 0xFFFFFFFF, true).visibleWhen(() -> own.getAsBoolean() && outline.get());
         shadow = s.toggle("shadow", true).visibleWhen(own);
-        animation = s.selection("animation", "fade", "fade", "fill").section(k + "section.animation");
-        fade = s.slider("fade", 100, 0, 400).step(25).unit(" ms");
         keyColor = s.color("key_color", defaultKey, true).section(k + "section.colors").visibleWhen(own);
         pressed = s.chroma("pressed", defaultPressed, false).visibleWhen(own);
         pressedText = s.chroma("pressed_text", 0xFF0E0A16, false);
-        s.button("preset_liquidbounce", this::liquidBounce).label(k + "apply").section(k + "section.presets");
-        s.button("preset_lumora", this::lumora).label(k + "apply");
+        animation = s.selection("animation", "fade", "fade", "fill").section(k + "section.animation");
+        fade = s.slider("fade", 100, 0, 400).step(25).unit(" ms");
     }
 
     /** LiquidBounce's look: W A S D and a full-height space key, rounded, blue fill animation (200 ms, ease). */

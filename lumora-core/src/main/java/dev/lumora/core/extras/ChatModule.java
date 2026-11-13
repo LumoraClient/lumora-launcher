@@ -112,6 +112,13 @@ public final class ChatModule implements LumoraAddon {
         stack = s.toggle("stack", true).name(k + "stack");
         history = s.slider("history", 500, 100, 1000).step(50).name(k + "history").description(k + "history.description");
 
+        background = s.toggle("background", true).name(k + "background").section(k + "section.look");
+        backgroundOpacity = s.slider("background_opacity", 50, 0, 100).step(5).unit("%").name(k + "background_opacity")
+                .requires(background);
+        textShadow = s.toggle("text_shadow", true).name(k + "text_shadow");
+        fade = s.toggle("fade", true).name(k + "fade").description(k + "fade.description");
+        fadeSeconds = s.slider("fade_seconds", 10, 2, 120).unit(" s").name(k + "fade_seconds").requires(fade);
+
         customSize = s.toggle("custom_size", false).name(k + "custom_size").description(k + "custom_size.description")
                 .section(k + "section.window");
         width = s.slider("width", 320, 40, 1000).step(5).unit(" px").name(k + "width").requires(customSize);
@@ -127,15 +134,9 @@ public final class ChatModule implements LumoraAddon {
             refreshChat();
         }).name(k + "size_reset");
 
-        background = s.toggle("background", true).name(k + "background").section(k + "section.look");
-        backgroundOpacity = s.slider("background_opacity", 50, 0, 100).step(5).unit("%").name(k + "background_opacity")
-                .requires(background);
-        textShadow = s.toggle("text_shadow", true).name(k + "text_shadow");
-        fade = s.toggle("fade", true).name(k + "fade").description(k + "fade.description");
-        fadeSeconds = s.slider("fade_seconds", 10, 2, 120).unit(" s").name(k + "fade_seconds").requires(fade);
-
         menu = s.toggle("menu", true).name(k + "menu").description(k + "menu.description").section(k + "section.extras");
-        mention = s.toggle("mention_sound", true).name(k + "mention_sound").description(k + "mention_sound.description");
+        mention = s.toggle("mention_sound", true).name(k + "mention_sound").description(k + "mention_sound.description")
+                .section(k + "section.sounds");
         mentionVolume = s.slider("mention_volume", 70, 5, 100).step(5).unit("%").name(k + "mention_volume").requires(mention);
 
         width.onChange(v -> refreshChat());

@@ -65,10 +65,10 @@ public final class ElytraTrailsModule implements LumoraAddon {
         color = s.chroma("color", 0xC8FFFFFF, true).name(k + "color");
         length = s.slider("length", 2.0, 0.5, 6.0, 0.5).name(k + "length");
         width = s.slider("width", 4, 1, 10).name(k + "width");
-        minSpeed = s.slider("min_speed", 12, 0, 40).name(k + "min_speed");
         turnBoost = s.toggle("turn_boost", true).name(k + "turn_boost");
         speedWidth = s.toggle("speed_width", true).name(k + "speed_width");
         glow = s.toggle("glow", false).name(k + "glow");
+        minSpeed = s.slider("min_speed", 12, 0, 40).name(k + "min_speed").section(k + "section.behaviour");
     }
 
     @Override

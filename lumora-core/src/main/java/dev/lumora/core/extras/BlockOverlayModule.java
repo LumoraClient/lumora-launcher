@@ -68,9 +68,10 @@ public final class BlockOverlayModule implements LumoraAddon {
         SettingsGroup s = context.configuration().settings();
         String k = "lumora.extras.blockoverlay.";
         mode = s.selection("mode", "box", "box", "outline", "fill").name(k + "mode").section(k + "section.look");
-        color = s.color("color", 0xE6A27BFA, true).name(k + "color").visibleWhen(() -> !"fill".equals(mode.get()));
-        fillColor = s.color("fill_color", 0x508B5CF6, true).name(k + "fill_color").visibleWhen(() -> !"outline".equals(mode.get()));
         thickness = s.slider("thickness", 3, 1, 8).unit(" px").name(k + "thickness").visibleWhen(() -> !"fill".equals(mode.get()));
+        color = s.color("color", 0xE6A27BFA, true).name(k + "color").visibleWhen(() -> !"fill".equals(mode.get()))
+                .section(k + "section.colors");
+        fillColor = s.color("fill_color", 0x508B5CF6, true).name(k + "fill_color").visibleWhen(() -> !"outline".equals(mode.get()));
         rainbow = s.toggle("rainbow", false).name(k + "rainbow");
         rainbowSpeed = s.slider("rainbow_speed", 4, 1, 10).name(k + "rainbow_speed").requires(rainbow);
         fade = s.toggle("fade", true).name(k + "fade").section(k + "section.animation");
@@ -78,7 +79,7 @@ public final class BlockOverlayModule implements LumoraAddon {
         slide = s.toggle("slide", true).name(k + "slide");
         slideEasing = s.dropdown("slide_easing", "quad", "linear", "quad", "expo").name(k + "slide_easing").requires(slide).advanced();
         slideMillis = s.slider("slide_millis", 150, 20, 1000).step(10).unit(" ms").name(k + "slide_millis").requires(slide).advanced();
-        sideOnly = s.checkbox("side_only", false).name(k + "side_only").section(k + "section.show");
+        sideOnly = s.checkbox("side_only", false).name(k + "side_only").section(k + "section.behaviour");
         firstPersonOnly = s.checkbox("first_person_only", false).name(k + "first_person_only");
     }
 

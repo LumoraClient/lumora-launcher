@@ -41,7 +41,7 @@ public final class ButtonStyleModule implements LumoraAddon {
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
         style = s.dropdown("style", LUMORA, LUMORA, "blackout", "hyperium", "liquid", "lunar", "pvpclient", "rounded")
-                .name("lumora.extras.buttons.style");
+                .name("lumora.extras.buttons.style").section("lumora.extras.buttons.section.look");
         shadow = s.toggle("shadow", true).name("lumora.extras.buttons.shadow");
     }
 

@@ -51,7 +51,7 @@ public final class CrosshairModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        mode = s.choice("mode", "shape", MODES).name("lumora.extras.crosshair.mode");
+        mode = s.choice("mode", "shape", MODES).name("lumora.extras.crosshair.mode").section("lumora.extras.crosshair.section.general");
         style = s.choice("style", "gap", STYLES).name("lumora.extras.crosshair.style");
         preset = s.choice("preset", CrosshairPresets.all().get(0).id(), CrosshairPresets.ids())
                 .name("lumora.extras.crosshair.preset");

@@ -63,17 +63,17 @@ public final class WidgetDesignModule implements LumoraAddon {
         accentTheme = s.checkbox("accent_theme", true).name(K + "accent_theme").requires(accentBar);
         accentColor = s.color("accent_color", Colors.ACCENT, false).name(K + "accent_color")
                 .visibleWhen(() -> accentBar.get() && !accentTheme.get());
+        scale = s.slider("scale", 1.0, 0.5, 2.0, 0.05).unit("x").name(K + "scale");
 
         format = s.dropdown("format", WidgetDesign.SPACE, WidgetDesign.SPACE, WidgetDesign.COLON,
                 WidgetDesign.BRACKETS, WidgetDesign.VALUE_FIRST, WidgetDesign.VALUE_ONLY).name(K + "format").section(K + "section.text");
         uppercase = s.toggle("uppercase", false).name(K + "uppercase");
         shadow = s.toggle("shadow", true).name(K + "shadow");
-        labelTheme = s.toggle("label_theme", true).name(K + "label_theme");
+
+        labelTheme = s.toggle("label_theme", true).name(K + "label_theme").section(K + "section.colors");
         labelColor = s.color("label_color", Colors.ACCENT_HOVER, false).name(K + "label_color")
                 .visibleWhen(() -> !labelTheme.get());
         valueColor = s.color("value_color", Colors.TEXT, false).name(K + "value_color");
-
-        scale = s.slider("scale", 1.0, 0.5, 2.0, 0.05).unit("x").name(K + "scale").section(K + "section.size");
 
         // RGB: the chosen parts run through the rainbow (the colour pickers above have no rainbow of their own)
         rgb = s.toggle("rgb", false).name(K + "rgb").section(K + "section.rgb");

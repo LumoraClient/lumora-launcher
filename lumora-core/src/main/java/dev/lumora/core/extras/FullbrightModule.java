@@ -27,7 +27,8 @@ public final class FullbrightModule implements LumoraAddon {
 
     @Override
     public void onInitialize(AddonContext context) {
-        level = context.configuration().settings().slider("level", 10, 2, 15).name("lumora.extras.fullbright.level");
+        level = context.configuration().settings().slider("level", 10, 2, 15).name("lumora.extras.fullbright.level")
+                .section("lumora.extras.fullbright.section.general");
     }
 
     @Override

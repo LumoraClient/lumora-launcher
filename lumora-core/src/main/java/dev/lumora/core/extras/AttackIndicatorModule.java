@@ -88,6 +88,11 @@ public final class AttackIndicatorModule implements LumoraAddon {
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
         String k = "lumora.extras.attackindicator.";
+        cooldowns = s.checkbox("cooldowns", true).name(k + "cooldowns").section(k + "section.show");
+        charging = s.checkbox("charging", true).name(k + "charging");
+        using = s.checkbox("using", true).name(k + "using");
+        breaking = s.checkbox("breaking", true).name(k + "breaking");
+        sleeping = s.checkbox("sleeping", true).name(k + "sleeping");
         style = s.selection("style", "ring", STYLES).name(k + "style").section(k + "section.look");
         position = s.dropdown("position", "crosshair", POSITIONS).name(k + "position").visibleWhen(() -> !barStyle());
         size = s.slider("size", 100, 50, 200).step(5).unit("%").name(k + "size").visibleWhen(() -> !barStyle());
@@ -100,11 +105,6 @@ public final class AttackIndicatorModule implements LumoraAddon {
         showOnTarget = s.toggle("show_on_target", true).name(k + "show_on_target").requires(hideWhenReady);
         pulse = s.toggle("pulse", true).name(k + "pulse");
         text = s.toggle("text", false).name(k + "text");
-        cooldowns = s.checkbox("cooldowns", true).name(k + "cooldowns").section(k + "section.show");
-        charging = s.checkbox("charging", true).name(k + "charging");
-        using = s.checkbox("using", true).name(k + "using");
-        breaking = s.checkbox("breaking", true).name(k + "breaking");
-        sleeping = s.checkbox("sleeping", true).name(k + "sleeping");
         soundReady = s.toggle("sound_ready", false).name(k + "sound_ready").section(k + "section.sounds");
         soundCooldown = s.toggle("sound_cooldown", true).name(k + "sound_cooldown").requires(cooldowns);
         volume = s.slider("volume", 60, 0, 100).step(5).unit("%").name(k + "volume")

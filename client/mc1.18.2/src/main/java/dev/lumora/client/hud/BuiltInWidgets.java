@@ -76,12 +76,15 @@ public final class BuiltInWidgets {
 
         @Override
         public void configure(SettingsGroup s) {
+            // the widget's own settings first ("Anzeigen"), then the shared look under its own heading
+            int before = s.all().size();
+            extra(s);
+            String look = dev.lumora.core.hud.WidgetDesign.ownSettingsFirst(s, before);
             // hidden while "Widget-Design" sets the look of all widgets
-            background = (BooleanSetting) s.toggle("background", true).name("lumora.widget.setting.background").visibleWhen(OWN_LOOK);
+            background = (BooleanSetting) s.toggle("background", true).name("lumora.widget.setting.background").section(look).visibleWhen(OWN_LOOK);
             accent = (BooleanSetting) s.toggle("accent", true).name("lumora.widget.setting.accent").visibleWhen(OWN_LOOK);
             labelColor = (ColorSetting) s.color("label_color", LumoraUi.ACCENT_HOVER, false).name("lumora.widget.setting.label_color").advanced().visibleWhen(OWN_LOOK);
             valueColor = (ColorSetting) s.color("value_color", LumoraUi.TEXT, false).name("lumora.widget.setting.value_color").advanced().visibleWhen(OWN_LOOK);
-            extra(s);
         }
 
         void extra(SettingsGroup s) {

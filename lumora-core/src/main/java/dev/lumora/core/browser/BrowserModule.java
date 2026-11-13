@@ -28,7 +28,7 @@ public final class BrowserModule implements LumoraAddon {
     @Override
     public void onInitialize(AddonContext context) {
         SettingsGroup s = context.configuration().settings();
-        multiplayer = s.toggle("multiplayer", true).name("lumora.extras.browser.multiplayer");
+        multiplayer = s.toggle("multiplayer", true).name("lumora.extras.browser.multiplayer").section("lumora.extras.browser.section.menus");
         singleplayer = s.toggle("singleplayer", true).name("lumora.extras.browser.singleplayer");
     }
 

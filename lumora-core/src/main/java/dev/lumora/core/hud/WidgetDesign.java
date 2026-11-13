@@ -163,6 +163,31 @@ public final class WidgetDesign {
         return l;
     }
 
+    /** Heading of a widget's own settings ("Anzeigen"). */
+    public static final String SECTION_SHOW = "lumora.widget.section.show";
+    /** Heading of the shared look settings of a widget (background, accent stripe, colours). */
+    public static final String SECTION_LOOK = "lumora.widget.section.look";
+    /** Heading of the shared look settings when the widget has its own sections (Keystrokes: "Widget"). */
+    public static final String SECTION_PANEL = "lumora.widget.section.panel";
+
+    /**
+     * Sorts a widget's settings: its own settings (added since {@code before}) come first under "Anzeigen" unless they
+     * have their own sections; returns the heading for the shared look settings that follow.
+     */
+    public static String ownSettingsFirst(dev.lumora.api.config.SettingsGroup s, int before) {
+        java.util.List<dev.lumora.api.config.Setting<?>> all = s.all();
+        if (all.size() <= before) {
+            return SECTION_LOOK;
+        }
+        for (int i = before; i < all.size(); i++) {
+            if (all.get(i).sectionKey() != null) {
+                return SECTION_PANEL;
+            }
+        }
+        all.get(before).section(SECTION_SHOW);
+        return SECTION_LOOK;
+    }
+
     public static boolean active() {
         return source != null;
     }

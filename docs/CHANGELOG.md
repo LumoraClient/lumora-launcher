@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.40 (2026-11-13)
+
+### Für Addon-Entwickler
+- **Lumora-API 1.8.0:** Addons können zur Laufzeit Texturen aus Pixeln machen und zeichnen, etwa ein Album-Cover oder ein heruntergeladenes Bild: `AddonContext.textures()` → `DynamicTextures.upload(name, width, height, argb)` liefert eine `TextureRef` für `HudGraphics.texture`, `release(name)` gibt sie frei. Bis 512 × 512 Pixel, höchstens 32 Texturen je Addon; beim Abschalten des Addons werden alle freigegeben. In allen Versionen von 1.8.9 bis 26.3, ohne Berechtigung. Addons für 1.0 bis 1.7 laden unverändert.
+
+### Addons
+- **Spotify 1.1.0** (eigenes Addon) nutzt das für ein scharfes Album-Cover und bringt acht Layouts (Modern, Dynamic Island, Glas, Visualizer, Minimal, Vinyl, Micro, Klassisch), Album-Farben, Zufallswiedergabe und Wiederholen, einen Visualizer und Animationen – alles ohne Login.
+
 ## 0.3.39 (2026-11-13)
 
 ### Launcher

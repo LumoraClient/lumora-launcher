@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.40 (2026-11-13):**
+- **Build:** `gradlew clean build` erfolgreich, 542 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die Lumora-API 1.8 (Texturen unter dem eigenen Namen des Addons, ersetzen, freigeben, beim Abschalten alle frei; Namen, Größe, Pixelzahl und Obergrenze von 32 geprüft; `null` auf Versionen ohne Texturen). Alle 16 Client-Module kompiliert; keine Mixins geändert (die API nutzt das vorhandene `uploadTexture` aller Versionen). Enthält den bereits gepushten neuen Windows-Installer (Commit 38a1449, eigene Sitzung); `setupExe` wurde für dieses Release nicht gebaut, veröffentlicht werden wie bisher `LumoraClient.exe` und die Prüfsummen.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 mit Spotify 1.1.0 im Addons-Ordner bestanden; im Spiel zeigt das Widget das Cover als Textur (scharf), Akzentfarbe aus dem Cover. Spotify-Addon gegen eine Laufzeit mit API 1.5 geprüft: fällt ohne Fehler auf das Raster-Cover zurück.
+- **Smoke-Test mit dem fertigen 0.3.40-Build:** nur 26.3 – bestanden, Lumora API 1.8.0, Spotify 1.1.0 aktiv, scharfes Cover in der Aufnahme. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** Laufzeit-Texturen auf anderen Minecraft-Versionen als 26.3 im Spiel; der neue Installer (`setupExe`); ein echtes Selbst-Update von 0.3.39 auf 0.3.40.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.39 (2026-11-13):**
 - **Build:** `gradlew clean build` erfolgreich, 530 Unit-Tests ohne Fehler (1 übersprungen). Neu bzw. geändert: Discord-Test antwortet wie die echte Discord-App (`"evt": null`), Verbindung bleibt und wird wiederverwendet, abgelehnte Anwendungs-ID trennt; Statusdatei des Spiels (Menü, Server ohne Standard-Port, Einzelspieler, Startzeit bleibt auf demselben Server); Lesen der Datei im Launcher (Server-Zeile, „Mehrspieler“ bei ausgeblendetem Server, kaputte Dateien und seltsame Server-Namen werden ignoriert). Alle 16 Client-Module kompiliert; keine Mixins geändert. Gebaut aus einem eigenen Worktree auf dem Feature-Commit (ohne die nicht committeten Installer-Änderungen einer anderen Sitzung).
 - **Mit der echten Discord-App:** Verbindung mit der eingetragenen Anwendungs-ID, Aktivität gesetzt, Verbindung bleibt bestehen, danach gelöscht (Entwicklungsstand). Vorher brach die Verbindung mit „JsonNull“ ab.

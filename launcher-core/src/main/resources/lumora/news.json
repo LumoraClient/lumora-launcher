@@ -1,6 +1,29 @@
 {
   "news": [
     {
+      "id": "lumora-spotify-11",
+      "date": "2026-11-13",
+      "author": "Lumora",
+      "version": "0.3.40",
+      "title": "Spotify-Addon 1.1: acht Layouts und scharfe Cover",
+      "text": "Das Spotify-Widget bekommt acht Layouts, Farben aus dem Album-Cover, einen Visualizer und Zufallswiedergabe – ganz ohne Login.",
+      "image": "news-spotify-11.png",
+      "body": [
+        {"p": "Das Spotify-Addon für Lumora ist komplett neu gestaltet. Es liest weiterhin nur, was dein System über die Spotify-App weiß – kein Login, keine Spotify-Anmeldung."},
+        {"h": "Acht Layouts"},
+        {"list": [
+          "Modern (neu ab Werk), Glas und Visualizer: Cover, Titel, Künstler, Album, Steuerung und Fortschritt",
+          "Dynamic Island: kompakte Pille, das Cover dreht sich beim Songwechsel",
+          "Vinyl: eine Schallplatte neben dem Cover, die sich dreht, solange Musik läuft",
+          "Minimal, Micro und Klassisch (das bisherige Aussehen)"
+        ]},
+        {"h": "Alles einstellbar"},
+        {"p": "Jedes Element lässt sich einzeln ein- und ausschalten. Die Akzentfarbe kommt auf Wunsch aus dem Album-Cover und gleitet beim Songwechsel weich zur neuen Farbe. Dazu Glas-Hintergrund, Glow, Deckkraft, Ecken – und Zufallswiedergabe und Wiederholen per Klick oder Taste."},
+        {"h": "Mit Lumora 0.3.40"},
+        {"p": "Lumora 0.3.40 bringt die Lumora-API 1.8: Addons können damit Bilder zur Laufzeit zeichnen. Das Spotify-Addon zeigt das Cover so gestochen scharf. Auf älteren Lumora-Versionen läuft es auch, dann mit dem gewohnten Raster-Cover."}
+      ]
+    },
+    {
       "id": "lumora-discord-presence",
       "date": "2026-11-13",
       "author": "Lumora",

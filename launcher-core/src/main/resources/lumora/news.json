@@ -1,6 +1,27 @@
 {
   "news": [
     {
+      "id": "lumora-discord-presence",
+      "date": "2026-11-13",
+      "author": "Lumora",
+      "version": "0.3.39",
+      "title": "Discord zeigt, wo du spielst",
+      "text": "Discord Rich Presence funktioniert jetzt und zeigt Version, Server und wie lange du schon dort bist.",
+      "image": "news-discord-presence.png",
+      "body": [
+        {"p": "Bisher blieb die Anzeige in Discord leer, obwohl Rich Presence eingeschaltet war: Der Launcher hat die Verbindung gleich wieder getrennt. Das ist behoben."},
+        {"h": "Was Discord jetzt zeigt"},
+        {"list": [
+          "Im Launcher: „Im Launcher“ mit der Launcher-Version",
+          "Auf einem Server: z. B. „Lumora 26.3“ und „auf eineip.de“ mit der Zeit seit dem Beitritt",
+          "Sonst „Einzelspieler“ oder „Im Hauptmenü“"
+        ]},
+        {"p": "Das funktioniert in allen Lumora-Versionen von 1.8.9 bis 26.3. Möchtest du den Server nicht zeigen, schalte unter Einstellungen → Integrationen „Server in Discord zeigen“ aus – dann steht dort nur „Mehrspieler“."},
+        {"h": "So richtest du es ein"},
+        {"p": "Lege im Discord Developer Portal eine eigene Anwendung an, trage ihre Anwendungs-ID unter Einstellungen → Integrationen ein und schalte Rich Presence ein. Der Name der Anwendung erscheint in Discord als Spielname, ein Bild namens „lumora“ unter Rich Presence → Art Assets als Symbol."}
+      ]
+    },
+    {
       "id": "lumora-api-17",
       "date": "2026-11-13",
       "author": "Lumora",

@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.39 (2026-11-13)
+
+### Launcher
+- **Discord Rich Presence funktioniert:** Der Launcher hat die Verbindung zu Discord gleich nach dem Setzen der Anzeige wieder getrennt (Discord antwortet mit `"evt": null`, das wurde als Fehler gelesen), deshalb erschien nichts. Die Antwort wird jetzt richtig gelesen, die Anzeige bleibt.
+- **Discord zeigt, was du spielst:** Läuft Lumora, steht in Discord z. B. „Lumora 26.3“ und „auf eineip.de“ mit der Zeit seit dem Beitritt, sonst „Einzelspieler“ oder „Im Hauptmenü“. Das Spiel meldet seinen Zustand über eine lokale Datei in der Instanz (`.lumora/status.json`), in allen Versionen von 1.8.9 bis 26.3; Vanilla zeigt weiter die Version.
+- Neuer Schalter **„Server in Discord zeigen“** (Einstellungen → Integrationen, anfangs an); ausgeschaltet steht nur „Mehrspieler“ da.
+
 ## 0.3.38 (2026-11-13)
 
 ### Für Addon-Entwickler

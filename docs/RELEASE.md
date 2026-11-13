@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.39 (2026-11-13):**
+- **Build:** `gradlew clean build` erfolgreich, 530 Unit-Tests ohne Fehler (1 übersprungen). Neu bzw. geändert: Discord-Test antwortet wie die echte Discord-App (`"evt": null`), Verbindung bleibt und wird wiederverwendet, abgelehnte Anwendungs-ID trennt; Statusdatei des Spiels (Menü, Server ohne Standard-Port, Einzelspieler, Startzeit bleibt auf demselben Server); Lesen der Datei im Launcher (Server-Zeile, „Mehrspieler“ bei ausgeblendetem Server, kaputte Dateien und seltsame Server-Namen werden ignoriert). Alle 16 Client-Module kompiliert; keine Mixins geändert. Gebaut aus einem eigenen Worktree auf dem Feature-Commit (ohne die nicht committeten Installer-Änderungen einer anderen Sitzung).
+- **Mit der echten Discord-App:** Verbindung mit der eingetragenen Anwendungs-ID, Aktivität gesetzt, Verbindung bleibt bestehen, danach gelöscht (Entwicklungsstand). Vorher brach die Verbindung mit „JsonNull“ ab.
+- **Smoke-Test mit dem fertigen 0.3.39-Build:** nur 26.3 (Änderung im Kern) – bestanden; der Launcher übergibt `-Dlumora.statusFile`, das Spiel schrieb `singleplayer` mit Version 26.3. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** die Discord-Anzeige während des Spiels auf einem echten Server („auf <Server>“) und ob Discord daneben seine eigene Spielerkennung „Minecraft“ zeigt; ein echtes Selbst-Update von 0.3.38 auf 0.3.39.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.38 (2026-11-13):**
 - **Build:** `gradlew clean build` erfolgreich, alle Unit-Tests ohne Fehler. Neu: 2 für die Lumora-API 1.7 (Zeilen am Namensschild vom ersten Decorator mit Zeilen, leere Zeilen zählen nicht; Tooltip-Zeilen von Addons, ohne Listener keine Arbeit, Listener verschwindet mit dem Addon). Alle 16 Client-Module kompiliert; geändert: `NameTagBesideMixin` (bzw. `NameTagIconMixin` auf 1.8.9) in allen Versionen, neu `ItemTooltipMixin` in allen Versionen. `check-mixins.pl`: Ziele vorhanden (die gemeldeten Abweichungen betreffen Handler ohne Zielparameter, wie bei den bestehenden Mixins).
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3, 26.2, 26.1.2, 1.21.11, 1.21.8, 1.16.5, 1.12.2 und 1.8.9 bestanden, damit jede Mixin-Familie einmal im Spiel. Aufnahmen der Vorschau-Spieler angesehen auf 26.3, 26.1.2, 1.21.11, 1.21.8 und 1.8.9: Zeile über und unter dem Namen, die kleine Zeile eines Symbols rückt darunter. Auf 1.8.9 ohne Kasten und ohne die Zeichen 💵/💀.

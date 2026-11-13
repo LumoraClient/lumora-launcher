@@ -1,6 +1,26 @@
 {
   "news": [
     {
+      "id": "lumora-settings-sections",
+      "date": "2026-11-13",
+      "author": "Lumora",
+      "version": "0.3.41",
+      "title": "Aufgeräumte Modul-Einstellungen",
+      "text": "Alle Module und Widgets sortieren ihre Einstellungen jetzt gleich – du findest alles schneller.",
+      "image": "news-settings-sections.png",
+      "body": [
+        {"p": "Jedes eingebaute Modul und jedes Widget teilt seine Einstellungen jetzt in dieselben Abschnitte ein, immer in derselben Reihenfolge:"},
+        {"list": [
+          "Vorlagen",
+          "Allgemein bzw. Anzeigen – was das Modul macht und zeigt",
+          "Aussehen und Farben",
+          "Animation, Verhalten und Töne"
+        ]},
+        {"p": "Module wie Fadenkreuz, Zoom, Toggle Sprint, Fullbright oder Button-Design haben jetzt überhaupt Abschnitte. Bei Widgets wie FPS, Uhr oder Koordinaten stehen ihre eigenen Optionen oben, Hintergrund und Farben darunter."},
+        {"p": "Es wurde nur sortiert: Deine Einstellungen bleiben genau so, wie du sie eingestellt hast."}
+      ]
+    },
+    {
       "id": "lumora-spotify-11",
       "date": "2026-11-13",
       "author": "Lumora",

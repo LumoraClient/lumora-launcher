@@ -67,6 +67,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.41 (2026-11-13):**
+- **Build:** `gradlew clean build` erfolgreich, 542 Unit-Tests ohne Fehler (1 übersprungen). Alle 16 Client-Module kompiliert; keine Mixins geändert. Geändert sind nur Reihenfolge und Abschnitte der Einstellungen (Module, Zoom, Widgets in `Panels` und allen 16 `BuiltInWidgets`) sowie 14 neue Abschnittsnamen in allen 32 Sprachdateien (alle als JSON geprüft).
+- **Vor dem Release** (Entwicklungsstand): Reihenfolge aller eingebauten Module und Widgets per Test ausgegeben und durchgesehen; Smoke-Test 26.3 bestanden, Angriffsanzeige-Einstellungen in der Aufnahme mit „Anzeigen“, „Aussehen“, „Farben“.
+- **Smoke-Test mit dem fertigen 0.3.41-Build:** nur 26.3 – bestanden. Die anderen Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** die übrigen Einstellungsbildschirme im Spiel; andere Versionen im Spiel; ein echtes Selbst-Update von 0.3.40 auf 0.3.41.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.40 (2026-11-13):**
 - **Build:** `gradlew clean build` erfolgreich, 542 Unit-Tests ohne Fehler (1 übersprungen). Neu: 3 für die Lumora-API 1.8 (Texturen unter dem eigenen Namen des Addons, ersetzen, freigeben, beim Abschalten alle frei; Namen, Größe, Pixelzahl und Obergrenze von 32 geprüft; `null` auf Versionen ohne Texturen). Alle 16 Client-Module kompiliert; keine Mixins geändert (die API nutzt das vorhandene `uploadTexture` aller Versionen). Enthält den bereits gepushten neuen Windows-Installer (Commit 38a1449, eigene Sitzung); `setupExe` wurde für dieses Release nicht gebaut, veröffentlicht werden wie bisher `LumoraClient.exe` und die Prüfsummen.
 - **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 mit Spotify 1.1.0 im Addons-Ordner bestanden; im Spiel zeigt das Widget das Cover als Textur (scharf), Akzentfarbe aus dem Cover. Spotify-Addon gegen eine Laufzeit mit API 1.5 geprüft: fällt ohne Fehler auf das Raster-Cover zurück.

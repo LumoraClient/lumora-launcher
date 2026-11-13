@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.41 (2026-11-13)
+
+### Im Spiel
+- **Modul-Einstellungen aufgeräumt:** Alle eingebauten Module und Widgets haben jetzt dieselbe Einteilung: Vorlagen, Allgemein bzw. Anzeigen, Aussehen, Farben, Animation, Verhalten, Töne. Eine Farbe steht weiter direkt unter ihrem Schalter.
+- Neue Abschnitte, wo bisher keine waren: Fadenkreuz, Zoom, Toggle Sprint und Fullbright („Allgemein“), Button-Design („Aussehen“), Server- & Weltliste („Menüs“).
+- Umsortiert: Angriffsanzeige („Anzeigen“ zuerst), Block-Overlay (Farben und Verhalten getrennt), Widget-Design (Größe unter Aussehen, eigene Farben), Elytra-Streifen („Ab Tempo“ unter Verhalten), Chat (Erwähnungston unter „Töne“), Tastenanzeige (Vorlagen zuerst).
+- Widgets wie FPS, Uhr oder Koordinaten zeigen ihre eigenen Optionen zuerst („Anzeigen“), danach Hintergrund, Akzent und Farben („Aussehen“). Deine Einstellungen bleiben erhalten.
+
 ## 0.3.40 (2026-11-13)
 
 ### Für Addon-Entwickler

@@ -22,6 +22,7 @@
     "NameTagIconMixin",
     "NameTagBesideMixin",
     "TabListIconMixin",
+    "ItemTooltipMixin",
     "AvatarSubtitleMixin"
   ,
     "OptionInstanceAccessor",

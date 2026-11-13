@@ -1,10 +1,15 @@
-# Lumora-API – Referenz (Version 1.6.0)
+# Lumora-API – Referenz (Version 1.7.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.6.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.7.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
 
-**API 1.6.0** (`LumoraAPI.API_VERSION`) bringt das Widget-Design: `Theme.widgetStyle()` liefert das Aussehen, das der
+**API 1.7.0** (`LumoraAPI.API_VERSION`) bringt Textzeilen über und unter dem Namensschild
+(`NameTags.Decorator.lines` → `NameTags.Lines(above, below)`) und eigene Zeilen im Tooltip von Items
+(`event.client.ItemTooltipEvent`: `item()`, `count()`, `add(line)`), beides in allen Minecraft-Versionen. Addons für
+1.0 bis 1.6 laden unverändert weiter.
+
+**API 1.6.0** brachte das Widget-Design: `Theme.widgetStyle()` liefert das Aussehen, das der
 Spieler im Hub für alle Widgets gewählt hat (siehe [dev.lumora.api.ui](#devlumoraapiui-seit-15)). Addons für 1.0 bis
 1.5 laden unverändert weiter.
 
@@ -119,6 +124,7 @@ entfernt (Hinweis im Spiel). `Cancellable`-Events erreichen spätere Listener na
 | `client.ClientStoppingEvent` | beim Beenden, danach werden Addons ausgeschaltet (`CLIENT_STOPPING`) |
 | `client.ClientTickEvent(tick)` | Ende jedes Client-Ticks (`END_CLIENT_TICK`), nur wenn jemand zuhört |
 | `client.WorldJoinEvent(connection)` | Welt/Server betreten (Tick-Vergleich: Spieler und Level vorhanden) |
+| `client.ItemTooltipEvent` (seit 1.7) | Das Spiel baut den Tooltip eines Items: `item()` (Id wie `minecraft:diamond`), `count()` (Stapelgröße), `add(line)` hängt eine Zeile unter die Zeilen des Spiels (`""` = Leerzeile, `§`-Codes färben). Kommt auf dem Client-Thread, solange ein Tooltip sichtbar ist jedes Frame: nur vorbereitete Daten nachschlagen |
 | `client.WorldLeaveEvent` | Welt verlassen |
 | `client.PlayerChangedEvent(reason, dimension)` | Respawn (neue Spieler-Instanz) oder Dimensionswechsel |
 | `client.ScreenChangedEvent(previous, current)` | Menü geöffnet/geschlossen (Klassenname, `""` = keines) |
@@ -183,6 +189,8 @@ Symbole hinter Spielernamen: am Namensschild über dem Spieler und am Namen in d
 | `NameTags.Decorator` | `icon(UUID player, Place place)` → `Optional<Icon>`; leer = kein Symbol. Wird **jedes Frame** auf dem Render-Thread gefragt, also billig halten. Haben mehrere Addons einen Decorator, gewinnt der erste mit Symbol; ein Decorator, der eine Ausnahme wirft, wird einmal protokolliert und danach übersprungen. |
 | `NameTags.Place` | `WORLD` (Namensschild), `TAB_LIST` |
 | `NameTags.Icon` | record `(font, glyph, color, fallback, subtitle)`, siehe unten |
+| `NameTags.Decorator.lines(UUID player)` (seit 1.7) | → `Optional<Lines>`; Standard: leer. Wird wie `icon` jedes Frame gefragt; der erste Decorator mit Zeilen gewinnt |
+| `NameTags.Lines` (seit 1.7) | record `(above, below)`: eine Textzeile direkt über und eine direkt unter dem Namen, gezeichnet wie der Name selbst (Größe, Kasten, Durchsicht). Reiner Text, Minecrafts Formatierungscodes (`§e` …) färben. Zeigt der Server eine Punktezeile unter dem Namen, liegt sie an derselben Stelle wie `below`. Auf 1.8.9 und 1.12.2 ohne Kasten |
 
 `Icon`-Felder:
 

@@ -82,6 +82,8 @@ abbildet:
 | Plugin-Kanäle (`network`) | Payload-Typen (ein Rohbyte-`CustomPacketPayload` je Kanal) | Payload-Typen | Rohpuffer über einen eigenen Hook am Custom-Payload-Paket | String-Kanäle mit Rohpuffern (`REGISTER`); **Kanalnamen höchstens 20 Zeichen** |
 | Namensschild-Symbol (`nametags`) | Zeichen der Addon-Schrift | Zeichen der Addon-Schrift | Zeichen der Addon-Schrift | keine eigenen Schriften: Text `fallback` in der nächstliegenden Chatfarbe |
 | Zeile unter dem Namen (`Icon.subtitle`) | ✅ | – | – | – |
+| Zeilen über und unter dem Namen (`NameTags.Lines`, API 1.7) | ✅ | ✅ | ✅ | ✅ ohne Kasten; nur Zeichen, die die Schrift der Version kennt |
+| Tooltip-Zeilen (`ItemTooltipEvent`, API 1.7) | ✅ | ✅ | ✅ | ✅ |
 | Menüs (`screens`) | generischer `AddonViewScreen` | `AddonViewScreen` | `AddonViewScreen` | `AddonViewScreen`; Tastencodes aus `Keys` auch mit LWJGL 2 |
 
 - **Plugin-Kanäle:** Payload-Typen gibt es ab 1.20.5; unter den Profilen sind das 1.20.6 und neuer. Auf 1.8.9 und

@@ -50,6 +50,21 @@ public abstract class NameTagBesideMixin {
                 submitNameTagPart(beside);
             }
         }
+        // lines above and below the name (Lumora API 1.7 NameTags.Lines): like the name itself, with its box
+        for (int i = 0; i < 2; i++) {
+            Component line = i == 0 ? NameTagIcons.above() : NameTagIcons.below();
+            if (line == null) {
+                continue;
+            }
+            var font = net.minecraft.client.Minecraft.getInstance().font;
+            var part = nameTag(pose, -font.width(line) / 2f, y + (i == 0 ? -NameTagIcons.LINE : NameTagIcons.LINE), line.getVisualOrderText(), light, color,
+                    background, mode);
+            if (mode == Font.DisplayMode.SEE_THROUGH) {
+                seeThrough.submit(part);
+            } else {
+                submitNameTagPart(part);
+            }
+        }
         return nameTag(pose, x, y, text, light, color, background, mode);
     }
 }

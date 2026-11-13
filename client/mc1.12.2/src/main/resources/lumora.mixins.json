@@ -18,7 +18,8 @@
     "RecipeJarFileSystemMixin",
     "NameTagIconMixin",
     "NameTagBesideMixin",
-    "TabListIconMixin"
+    "TabListIconMixin",
+    "ItemTooltipMixin"
   ,
     "CrosshairMixin",
     "StatusBarsMixin",

@@ -28,7 +28,7 @@ public abstract class AvatarSubtitleMixin {
         }
         String line = NameTagIcons.subtitle(id);
         if (!line.isEmpty()) {
-            collector.submitNameTag(pose, state.nameTagAttachment.add(0, -.24, 0), 0, Component.literal(line).withStyle(ChatFormatting.GRAY),
+            collector.submitNameTag(pose, state.nameTagAttachment.add(0, NameTagIcons.hasBelow(id) ? -.49 : -.24, 0), 0, Component.literal(line).withStyle(ChatFormatting.GRAY),
                     true, state.lightCoords, state.distanceToCameraSq, camera);
         }
     }

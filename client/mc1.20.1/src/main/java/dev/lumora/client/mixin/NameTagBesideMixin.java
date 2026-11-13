@@ -26,6 +26,15 @@ public abstract class NameTagBesideMixin {
             // the name starts at -width/2, so its end is at -x
             font.drawInBatch(icon, -x + NameTagIcons.GAP, y, color, shadow, pose, buffers, mode, 0, light);
         }
+        // lines above and below the name: like the name itself, with its box
+        Component above = NameTagIcons.above();
+        if (above != null) {
+            font.drawInBatch(above, -font.width(above) / 2f, y - NameTagIcons.LINE, color, shadow, pose, buffers, mode, background, light);
+        }
+        Component below = NameTagIcons.below();
+        if (below != null) {
+            font.drawInBatch(below, -font.width(below) / 2f, y + NameTagIcons.LINE, color, shadow, pose, buffers, mode, background, light);
+        }
         return result;
     }
 }

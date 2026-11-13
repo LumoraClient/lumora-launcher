@@ -26,6 +26,20 @@ public abstract class NameTagBesideMixin {
             list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -name.x() + NameTagIcons.GAP, name.y(), icon, name.lightCoords(),
                     name.color(), 0, name.distanceToCameraSq()));
         }
+        if (submit instanceof SubmitNodeStorage.NameTagSubmit name) {
+            // lines above and below the name: like the name itself, with its box
+            var font = net.minecraft.client.Minecraft.getInstance().font;
+            Component above = NameTagIcons.above();
+            if (above != null) {
+                list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -font.width(above) / 2f, name.y() - NameTagIcons.LINE, above,
+                        name.lightCoords(), name.color(), name.backgroundColor(), name.distanceToCameraSq()));
+            }
+            Component below = NameTagIcons.below();
+            if (below != null) {
+                list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -font.width(below) / 2f, name.y() + NameTagIcons.LINE, below,
+                        name.lightCoords(), name.color(), name.backgroundColor(), name.distanceToCameraSq()));
+            }
+        }
         return added;
     }
 }

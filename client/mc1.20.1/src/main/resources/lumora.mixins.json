@@ -19,7 +19,8 @@
     "MinecraftReloadMixin",
     "NameTagBesideMixin",
     "PlayerNameTagMixin",
-    "TabListIconMixin"
+    "TabListIconMixin",
+    "ItemTooltipMixin"
   ,
     "OptionInstanceAccessor",
     "CrosshairMixin",

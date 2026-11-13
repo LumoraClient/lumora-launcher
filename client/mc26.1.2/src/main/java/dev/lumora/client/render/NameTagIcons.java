@@ -64,11 +64,16 @@ public final class NameTagIcons {
     /** Right before a player's name tag is drawn: remembers the icon for {@link #current()}. */
     public static void begin(UUID player) {
         current = glyph(player, NameTags.Place.WORLD).orElse(null);
+        var lines = lines(player);
+        above = lines == null || lines.above().isEmpty() ? null : Component.literal(lines.above());
+        below = lines == null || lines.below().isEmpty() ? null : Component.literal(lines.below());
     }
 
     /** After the name tag: nothing pending any more. */
     public static void end() {
         current = null;
+        above = null;
+        below = null;
     }
 
     /** The icon to draw next to the name tag being drawn, or {@code null}. */
@@ -84,5 +89,35 @@ public final class NameTagIcons {
     /** Small line under the name tag, or empty. */
     public static String subtitle(UUID player) {
         return icon(player, NameTags.Place.WORLD).map(NameTags.Icon::subtitle).orElse("");
+    }
+    /** Distance of the lines above and below the name from the name, in text pixels. */
+    public static final float LINE = 10;
+
+    /** Lines above and below the name tag being drawn (Lumora API 1.7 NameTags.Lines), or {@code null}. */
+    private static Component above;
+    private static Component below;
+
+    private static NameTags.Lines lines(UUID player) {
+        var core = LumoraRuntime.core();
+        if (core == null || player == null || !core.nameTags().active()) {
+            return null;
+        }
+        return core.nameTags().lines(player).orElse(null);
+    }
+
+    /** Whether the player has a line below the name: the subtitle then moves one line further down. */
+    public static boolean hasBelow(UUID player) {
+        var lines = lines(player);
+        return lines != null && !lines.below().isEmpty();
+    }
+
+    /** The line to draw above the name tag being drawn, or {@code null}. */
+    public static Component above() {
+        return above;
+    }
+
+    /** The line to draw below the name tag being drawn, or {@code null}. */
+    public static Component below() {
+        return below;
     }
 }

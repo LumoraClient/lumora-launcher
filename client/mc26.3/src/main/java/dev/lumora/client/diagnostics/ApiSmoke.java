@@ -215,6 +215,20 @@ final class ApiSmoke {
             return java.util.Optional.of(new dev.lumora.api.render.NameTags.Icon("lumoravoice:nametags", glyph, color, "*",
                     place == dev.lumora.api.render.NameTags.Place.WORLD && state == 1 ? "[Bauteam]" : ""));
         });
+        // Lumora API 1.7: a line above and below the name of every preview player
+        core().nameTags().scoped("smoke", tracker, () -> { }).register(new dev.lumora.api.render.NameTags.Decorator() {
+            @Override
+            public java.util.Optional<dev.lumora.api.render.NameTags.Icon> icon(java.util.UUID id, dev.lumora.api.render.NameTags.Place place) {
+                return java.util.Optional.empty();
+            }
+
+            @Override
+            public java.util.Optional<dev.lumora.api.render.NameTags.Lines> lines(java.util.UUID id) {
+                return states.containsKey(id)
+                        ? java.util.Optional.of(new dev.lumora.api.render.NameTags.Lines("💵 1.234 €", "💀 250 €"))
+                        : java.util.Optional.empty();
+            }
+        });
         return tracker;
     }
 

@@ -101,6 +101,7 @@ public final class LumoraCore implements Lumora {
         this.interaction = new dev.lumora.core.interaction.PlayerInteraction(this, playerMenu);
         this.themes = new dev.lumora.core.theme.ThemeService(platform.translations().language().startsWith("de"));
         this.chat = new dev.lumora.core.chat.ChatApi(events, log);
+        new dev.lumora.core.render.ItemTooltips(events, log);
         chat.setOpener(text -> platform.extras().openChat(text));
         chat.setParser(text -> {
             java.util.List<String> online = new java.util.ArrayList<>();

@@ -52,6 +52,28 @@ public final class NameTagRegistry {
         return Optional.empty();
     }
 
+    /** Lines above and below the name tag of {@code player} (API 1.7); the first decorator with lines wins. */
+    public Optional<NameTags.Lines> lines(UUID player) {
+        if (player == null) {
+            return Optional.empty();
+        }
+        for (Entry e : entries) {
+            if (broken.contains(e.decorator)) {
+                continue;
+            }
+            try {
+                Optional<NameTags.Lines> lines = e.decorator.lines(player);
+                if (lines != null && lines.isPresent() && !lines.get().isEmpty()) {
+                    return lines;
+                }
+            } catch (RuntimeException | LinkageError error) {
+                broken.add(e.decorator);
+                log.warn("Name tag decorator of " + e.addon + " failed and is skipped", error);
+            }
+        }
+        return Optional.empty();
+    }
+
     public NameTags scoped(String addon, RegistrationTracker tracker, Runnable guard) {
         return decorator -> {
             guard.run();

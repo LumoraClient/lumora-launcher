@@ -21,7 +21,8 @@
     "NameTagIconMixin",
     "NameTagBesideMixin",
     "PlayerNameTagMixin",
-    "TabListIconMixin"
+    "TabListIconMixin",
+    "ItemTooltipMixin"
   ,
     "OptionInstanceAccessor",
     "CrosshairMixin",

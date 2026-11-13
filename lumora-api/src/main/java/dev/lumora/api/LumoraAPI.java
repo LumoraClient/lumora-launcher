@@ -6,7 +6,7 @@ package dev.lumora.api;
  */
 public final class LumoraAPI {
     /** Version of this API. Addons declare the minimum they need in {@code lumora-addon.json} ("api"). */
-    public static final String API_VERSION = "1.6.0";
+    public static final String API_VERSION = "1.7.0";
 
     private static volatile Lumora instance;
 

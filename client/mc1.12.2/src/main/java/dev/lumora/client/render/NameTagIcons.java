@@ -71,11 +71,16 @@ public final class NameTagIcons {
     /** Right before a player's name tag is drawn: remembers the icon for {@link #current()}. */
     public static void begin(UUID player) {
         current = glyph(player, NameTags.Place.WORLD).orElse(null);
+        var lines = lines(player);
+        above = lines == null || lines.above().isEmpty() ? null : lines.above();
+        below = lines == null || lines.below().isEmpty() ? null : lines.below();
     }
 
     /** After the name tag: nothing pending any more. */
     public static void end() {
         current = null;
+        above = null;
+        below = null;
     }
 
     /** The icon to draw next to the name tag being drawn, or {@code null}. */
@@ -86,5 +91,29 @@ public final class NameTagIcons {
     /** Whether an icon was drawn since start (smoke test). */
     public static boolean drawn() {
         return logged;
+    }
+    /** Distance of the lines above and below the name from the name, in text pixels. */
+    public static final float LINE = 10;
+
+    /** Lines above and below the name tag being drawn (Lumora API 1.7 NameTags.Lines), or {@code null}. */
+    private static String above;
+    private static String below;
+
+    private static NameTags.Lines lines(UUID player) {
+        var core = LumoraRuntime.core();
+        if (core == null || player == null || !core.nameTags().active()) {
+            return null;
+        }
+        return core.nameTags().lines(player).orElse(null);
+    }
+
+    /** The line to draw above the name tag being drawn, or {@code null}. */
+    public static String above() {
+        return above;
+    }
+
+    /** The line to draw below the name tag being drawn, or {@code null}. */
+    public static String below() {
+        return below;
     }
 }

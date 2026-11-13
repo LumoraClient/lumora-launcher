@@ -22,6 +22,15 @@ public abstract class NameTagBesideMixin {
             // the label starts at -width/2, so its end is at -x
             font.draw(icon, -x + (int) NameTagIcons.GAP, y, color);
         }
+        // lines above and below the name
+        String above = NameTagIcons.above();
+        if (above != null) {
+            font.draw(above, -font.getStringWidth(above) / 2, y - (int) NameTagIcons.LINE, color);
+        }
+        String below = NameTagIcons.below();
+        if (below != null) {
+            font.draw(below, -font.getStringWidth(below) / 2, y + (int) NameTagIcons.LINE, color);
+        }
         return result;
     }
 }

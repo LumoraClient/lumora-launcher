@@ -14,7 +14,8 @@
     "SliderWidgetSkinMixin",
     "OptionSliderWidgetSkinMixin",
     "NameTagIconMixin",
-    "TabListIconMixin"
+    "TabListIconMixin",
+    "ItemTooltipMixin"
   ,
     "CrosshairMixin",
     "StatusBarsMixin",

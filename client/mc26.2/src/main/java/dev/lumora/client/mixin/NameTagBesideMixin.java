@@ -27,6 +27,9 @@ public abstract class NameTagBesideMixin {
         if (icon != null) {
             phase.submit(icon);
         }
+        for (var line : lumora$lines(submit)) {
+            phase.submit(line);
+        }
     }
 
     @Redirect(method = "submitNameTag", at = @At(value = "INVOKE",
@@ -37,6 +40,29 @@ public abstract class NameTagBesideMixin {
         if (icon != null) {
             phase.submit(icon);
         }
+        for (var line : lumora$lines(submit)) {
+            phase.submit(line);
+        }
+    }
+
+    /** The lines above and below the name (Lumora API 1.7 NameTags.Lines): like the name itself, with its box. */
+    private static java.util.List<NameTagFeatureRenderer.Submit> lumora$lines(Object submit) {
+        Component above = NameTagIcons.above();
+        Component below = NameTagIcons.below();
+        if ((above == null && below == null) || !(submit instanceof NameTagFeatureRenderer.Submit name)) {
+            return java.util.List.of();
+        }
+        var font = net.minecraft.client.Minecraft.getInstance().font;
+        var lines = new java.util.ArrayList<NameTagFeatureRenderer.Submit>(2);
+        if (above != null) {
+            lines.add(new NameTagFeatureRenderer.Submit(name.pose(), -font.width(above) / 2f, name.y() - NameTagIcons.LINE, above, name.lightCoords(),
+                    name.color(), name.backgroundColor(), name.displayMode()));
+        }
+        if (below != null) {
+            lines.add(new NameTagFeatureRenderer.Submit(name.pose(), -font.width(below) / 2f, name.y() + NameTagIcons.LINE, below, name.lightCoords(),
+                    name.color(), name.backgroundColor(), name.displayMode()));
+        }
+        return lines;
     }
 
     /** The icon right of the name's box, or {@code null} when no icon is pending. */

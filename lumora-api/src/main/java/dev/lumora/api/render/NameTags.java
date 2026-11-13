@@ -18,6 +18,37 @@ public interface NameTags {
     interface Decorator {
         /** Icon for {@code player} at {@code place}, or empty for none. Called on the render thread. */
         Optional<Icon> icon(UUID player, Place place);
+
+        /**
+         * Own text lines above and below the name tag of {@code player} in the world, or empty for none. Called on the
+         * render thread every frame, like {@link #icon}.
+         *
+         * @since 1.7.0
+         */
+        default Optional<Lines> lines(UUID player) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Text lines at a player's name tag, drawn like the name itself (same size, box and see-through behavior): one
+     * directly above the name, one directly below it. Plain text; Minecraft's formatting codes ({@code §e}, ...) set
+     * colors. A server's score line under the name ("below name" objective) is drawn at the same place as
+     * {@code below}.
+     *
+     * @param above line above the name, or empty
+     * @param below line below the name, or empty
+     * @since 1.7.0
+     */
+    record Lines(String above, String below) {
+        public Lines {
+            if (above == null) above = "";
+            if (below == null) below = "";
+        }
+
+        public boolean isEmpty() {
+            return above.isEmpty() && below.isEmpty();
+        }
     }
 
     /**

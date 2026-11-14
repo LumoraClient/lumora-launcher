@@ -472,6 +472,12 @@ public final class SmokeTest {
                 screenshot(mc, "chat-emoji");
             } else if (ticks == 21) {
                 ChatSmoke.reset(mc);
+                FreelookSmoke.start();
+            } else if (ticks == 28) {
+                FreelookSmoke.check(extraProblems);
+                screenshot(mc, "freelook");
+            } else if (ticks == 29) {
+                FreelookSmoke.stop();
                 worldStep++;
                 ticks = 0;
             }

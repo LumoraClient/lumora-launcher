@@ -28,6 +28,8 @@
     "ScoreboardMixin",
     "TabPingMixin",
     "ChatInputMixin",
+    "FreelookMouseMixin",
+    "FreelookCameraMixin",
     "ChatMixin",
     "ChatComponentAccessor",
     "ChatScreenAccessor",

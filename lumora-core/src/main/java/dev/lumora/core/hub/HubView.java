@@ -78,7 +78,8 @@ public final class HubView implements AddonView {
             Map.entry("lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"}),
             Map.entry("lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"}),
             Map.entry("lumora-armor", new String[]{WidgetCategory.COMBAT, "armor"}),
-            Map.entry("lumora-emojichat", new String[]{WidgetCategory.SERVER, "emojichat"}));
+            Map.entry("lumora-emojichat", new String[]{WidgetCategory.SERVER, "emojichat"}),
+            Map.entry("lumora-freelook", new String[]{WidgetCategory.PLAYER, "freelook"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     private static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",

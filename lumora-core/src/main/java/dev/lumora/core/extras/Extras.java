@@ -14,7 +14,8 @@ import java.util.List;
  */
 public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
-            "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign", "lumora-armor");
+            "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign", "lumora-armor",
+            dev.lumora.core.camera.FreelookModule.ID);
 
     private Extras() {
     }
@@ -55,6 +56,10 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-fullbright", "Fullbright",
                         "Full brightness in caves and at night (only visible to you)", FullbrightModule.class),
                         () -> new FullbrightModule(platform)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.camera.FreelookModule.ID, "Freelook",
+                        "Look all around the player in third person with a held key, without changing where you walk",
+                        dev.lumora.core.camera.FreelookModule.class),
+                        () -> new dev.lumora.core.camera.FreelookModule(platform::extras)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-statusbars", "Hotbar & Status Bars",
                         "Hotbar, hearts, armor, hunger, air and experience as separate widgets: move freely, vanilla, compact, bar or number",
                         StatusBarsModule.class),

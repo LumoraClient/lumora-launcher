@@ -272,6 +272,20 @@ public interface GameExtras {
         return false;
     }
 
+    /** Camera perspective of the game options: 0 first person, 1 third person behind, 2 third person in front, -1 unknown. */
+    default int perspective() {
+        return -1;
+    }
+
+    /** Sets the camera perspective of the game options (0, 1 or 2 as in {@link #perspective()}). */
+    default void setPerspective(int perspective) {
+    }
+
+    /** Yaw and pitch of the own player in degrees, or null outside a world. */
+    default float[] playerRotation() {
+        return null;
+    }
+
     /** Packs a block position into one long (26 bits x/z, 12 bits y), like Minecraft's BlockPos#asLong. */
     static long pack(int x, int y, int z) {
         return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);

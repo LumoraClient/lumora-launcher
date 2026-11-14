@@ -464,4 +464,23 @@ final class McExtras implements GameExtras {
         net.minecraft.client.network.PlayerListEntry e = c == null ? null : c.getPlayerListEntry(player);
         return e == null ? -1 : e.getLatency();
     }
+    // --- camera perspective and player rotation (module "Freelook")
+
+    @Override
+    public int perspective() {
+        return mc().options.perspective;
+    }
+
+    @Override
+    public void setPerspective(int perspective) {
+        if (perspective >= 0 && perspective <= 2) {
+            mc().options.perspective = perspective;
+        }
+    }
+
+    @Override
+    public float[] playerRotation() {
+        net.minecraft.entity.Entity p = mc().player;
+        return p == null ? null : new float[]{p.yaw, p.pitch};
+    }
 }

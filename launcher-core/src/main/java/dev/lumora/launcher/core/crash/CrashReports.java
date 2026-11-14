@@ -26,8 +26,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Crash reports of all profiles: Minecraft's own (instances/&lt;id&gt;/crash-reports/*.txt) and the launcher's
- * records for games that ended with an error code without writing one (instances/&lt;id&gt;/crash-reports/
+ * Crash reports of all profiles: Minecraft's own (&lt;game folder&gt;/crash-reports/*.txt) and the launcher's
+ * records for games that ended with an error code without writing one (&lt;game folder&gt;/crash-reports/
  * lumora-exit-*.txt, containing the redacted end of the game output). Also builds a shareable, redacted text
  * and a diagnostics zip for support requests.
  */
@@ -42,12 +42,19 @@ public final class CrashReports {
     private CrashReports() {
     }
 
-    /** All crashes of these profiles, newest first. Parsing (incl. culprit search) happens here - call off the UI thread. */
-    public static List<CrashReport> list(LauncherPaths paths, List<String> profileIds) {
+    /**
+     * All crashes of these profiles, newest first. Parsing (incl. culprit search) happens here - call off the UI thread.
+     * Profiles sharing a game folder (the standard folder) list its reports once, under the first of them.
+     *
+     * @param gameDirs game folder of a profile (InstanceLayout#gameDir)
+     */
+    public static List<CrashReport> list(java.util.function.Function<String, Path> gameDirs, List<String> profileIds) {
         List<CrashReport> out = new ArrayList<>();
+        java.util.Set<Path> seen = new java.util.HashSet<>();
         for (String id : profileIds) {
-            Path dir = paths.instance(id).resolve("crash-reports");
-            if (!Files.isDirectory(dir)) {
+            Path game = gameDirs.apply(id);
+            Path dir = game.resolve("crash-reports");
+            if (!seen.add(dir.toAbsolutePath().normalize()) || !Files.isDirectory(dir)) {
                 continue;
             }
             List<Path> files;
@@ -56,7 +63,7 @@ public final class CrashReports {
             } catch (IOException e) {
                 continue;
             }
-            Path mods = paths.instance(id).resolve("mods");
+            Path mods = game.resolve("mods");
             List<CulpritFinder.Mod> index = null;
             for (Path f : files) {
                 try {
@@ -74,8 +81,8 @@ public final class CrashReports {
     }
 
     /** One report, e.g. right after a crash (call off the UI thread: the culprit search reads the mod jars). */
-    public static CrashReport load(LauncherPaths paths, String profileId, Path file) throws IOException {
-        return read(profileId, file, CulpritFinder.index(paths.instance(profileId).resolve("mods")));
+    public static CrashReport load(Path gameDir, String profileId, Path file) throws IOException {
+        return read(profileId, file, CulpritFinder.index(gameDir.resolve("mods")));
     }
 
     static CrashReport read(String profileId, Path file, List<CulpritFinder.Mod> mods) throws IOException {
@@ -160,8 +167,9 @@ public final class CrashReports {
      * Zip for support: the crash report, the newest game log, the launcher log and a short summary (profile,
      * suspects, hints, mod list). Everything is anonymized; no account data, no config with IDs.
      */
-    public static void writeDiagnosticsZip(LauncherPaths paths, CrashReport r, Map<String, String> extra, Path target) throws IOException {
-        Path instance = paths.instance(r.profileId());
+    public static void writeDiagnosticsZip(LauncherPaths paths, Path gameDir, CrashReport r, Map<String, String> extra, Path target)
+            throws IOException {
+        Path instance = gameDir;
         try (OutputStream out = Files.newOutputStream(target); ZipOutputStream zip = new ZipOutputStream(out)) {
             entry(zip, "crash/" + r.file().getFileName(), anonymize(readHead(r.file())));
             for (String log : List.of("logs/latest.log", "logs/lumora-game-output.log")) {

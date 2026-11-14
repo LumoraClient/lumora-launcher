@@ -87,7 +87,7 @@ public final class Packs {
         if (!Files.isDirectory(src)) {
             return null;
         }
-        Path dst = LumoraLoader.gameDir().resolve(".lumora").resolve("packs").resolve(name);
+        Path dst = LumoraLoader.instanceDir().resolve(".lumora").resolve("packs").resolve(name);
         try {
             String stamp = jar.get().version() + " " + Files.size(jar.get().file()) + " " + Files.getLastModifiedTime(jar.get().file()).toMillis();
             Path marker = dst.resolve(".lumora-extracted");
@@ -128,8 +128,8 @@ public final class Packs {
                 meta = null;
             }
         }
-        java.nio.file.Path game = LumoraLoader.gameDir();
-        return dev.lumora.core.addon.AddonAssets.prepare(game.resolve("addons"), game.resolve(".lumora").resolve("addon-assets"),
+        return dev.lumora.core.addon.AddonAssets.prepare(LumoraLoader.lumoraDir().resolve("addons"),
+                LumoraLoader.instanceDir().resolve(".lumora").resolve("addon-assets"),
                 meta, w -> dev.lumora.client.LumoraClient.LOG.warn(w));
     }
 

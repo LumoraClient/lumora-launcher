@@ -25,7 +25,7 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
  └─ Lumora Loader (dev.lumora.loader.Main, kein Mod-Loader)
      ├─ Minecraft <version> (Vanilla-JAR; 1.8.9 … 1.21.11 beim Nutzer auf lesbare Namen umbenannt)
      ├─ lumora-client-mc<version>   (16 Builds, 1.8.9 bis 26.3)
-     └─ Lumora-Addons aus instances/<version>/addons
+     └─ Lumora-Addons aus <Lumora-Ordner>/addons (data/shared oder die Instanz, siehe „Spielordner und Instanzen“)
      (26.1 und 26.1.1 nutzen lumora-client-mc26.1.2; Details: COMPATIBILITY.md)
 ```
 
@@ -60,7 +60,7 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
    1. Mojang-Manifest → Versions-JSON (SHA-1 aus dem Manifest, Cache für Offline-Start); OS-Regeln werden angewandt (`ResolvedVersion.merge`)
    2. Client-JAR, Bibliotheken, Asset-Index und -Objekte, Log4j-Konfiguration: alles mit SHA-1
    3. Java-Runtime von Mojang (`java-runtime-epsilon` = Java 25 für 26.x, sonst `java-runtime-delta` = Java 21), jede Datei mit SHA-1
-   4. Lumora-JAR (SHA-512 aus `bundled-mods.json`) → `instances/<profil>/.lumora/client`; Ressourcenpakete (SHA-512 aus dem Lockfile) → `resourcepacks`
+   4. Lumora-JAR (SHA-512 aus `bundled-mods.json`) → `<Versionsordner>/.lumora/client`; Ressourcenpakete (SHA-512 aus dem Lockfile) → `resourcepacks`, nur in einer eigenen Instanz
    5. 1.16.5 bis 1.21.11: Mojangs `client_mappings` (SHA-1 aus dem Versions-JSON) → `versions/<v>/<v>-client-mappings.txt`
    6. Marker `.lumora-verified`: Folgestarts prüfen nur noch Größe (QUICK). „Installation reparieren“ prüft alles erneut per Hash (FULL)
 2. **LOGGING_IN**: gespeicherte Sitzung gültig? → verwenden. Sonst Refresh-Token. Sonst interaktive Anmeldung:
@@ -71,9 +71,41 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 
 ## Startarten
 
-Der Launcher startet ein Profil als **Lumora** (Minecraft mit dem Lumora Client über den Lumora Loader) oder als **Vanilla** (reines Minecraft, eigener Spielordner `instances/<version>-vanilla`). Mod-Loader (Fabric, Quilt, Forge, NeoForge) gibt es nicht mehr, ebenso keine Seite „Mods“; „Entdecken“ zeigt nur Ressourcenpakete. Eine gespeicherte Auswahl eines Loaders startet Lumora. Alte Spielordner `instances/<version>-<loader>` bleiben unangetastet liegen.
+Der Launcher startet ein Profil als **Lumora** (Minecraft mit dem Lumora Client über den Lumora Loader) oder als **Vanilla** (reines Minecraft; Instanz-ID `<version>-vanilla`, im Standard-Ordner wie Minecraft selbst). Mod-Loader (Fabric, Quilt, Forge, NeoForge) gibt es nicht mehr, ebenso keine Seite „Mods“; „Entdecken“ zeigt nur Ressourcenpakete. Eine gespeicherte Auswahl eines Loaders startet Lumora. Alte Spielordner `instances/<version>-<loader>` bleiben unangetastet liegen.
 
-Lumora-Addons lädt der Client selbst aus dem Ordner `addons` der Instanz (siehe Abschnitt Client-Framework).
+Lumora-Addons lädt der Client selbst aus dem Ordner `addons` neben seinen Einstellungen (siehe Abschnitt Client-Framework).
+
+## Spielordner und Instanzen (`InstanceLayout`, seit 0.3.42)
+
+Wie bei anderen Clients spielen alle Versionen standardmäßig im **Standard-Ordner** (`.minecraft`, unter
+Einstellungen › Allgemein änderbar): Welten, Ressourcenpakete, Screenshots, `servers.dat` und `options.txt` teilen sie
+sich mit Vanilla-Minecraft. Pro Version (und Startart) kann man im Versionsmenü eine **eigene Instanz** wählen. Davon
+unabhängig gelten die **Lumora-Einstellungen** (HUD, Module, Addons) für alle Versionen gemeinsam oder nur für diese
+Instanz.
+
+```
+%APPDATA%\.minecraft\                 Standard-Ordner (--gameDir aller Versionen ohne eigene Instanz)
+%APPDATA%\.minecraft\LumoraClient\    Datenordner einer Neuinstallation (Installer-Vorgabe, wählbar)
+ ├─ libraries/ assets/ versions/ runtime/ cache/   wie bisher
+ ├─ data/shared/{config,addons}       Lumora-Einstellungen und Addons aller Versionen
+ ├─ data/<id>/                        Versionsordner im Standard-Ordner: .lumora/client (JARs), .natives,
+ │                                    .lumora/status.json, eigene Einstellungen (config/, addons/)
+ └─ instances/<id>/                   eigene Instanz: Spielordner und Versionsordner in einem (wie vor 0.3.42)
+```
+
+- Der Launcher übergibt `-Dlumora.dir` (Eltern von `config/` und `addons/`) und `-Dlumora.instanceDir`
+  (Versionsordner: aus den JARs entpackte Ressourcen `.lumora/packs`, `.lumora/addon-assets`). Ohne die Eigenschaften
+  nimmt der Loader den Spielordner (`LumoraLoader.lumoraDir()`, `instanceDir()`).
+- Bestehende Installationen: Beim ersten Start mit 0.3.42 wird jeder vorhandene Ordner in `instances/` einmalig zu einer
+  eigenen Instanz mit eigenen Einstellungen (`config.instances`, `instanceLayout = 1`). Für diese Spieler ändert sich
+  nichts, ihr Datenordner bleibt, wo er war. Versionen ohne Ordner nutzen ab dann den Standard-Ordner.
+- Beim Umschalten kommen die Lumora-Einstellungen in einen neuen, leeren Einstellungsordner mit (`carrySettings`,
+  nur kopieren, nie überschreiben). Welten und `options.txt` bleiben, wo sie sind.
+- Im Standard-Ordner installiert der Launcher keine Ressourcenpakete und ändert `options.txt` nicht von sich aus (nur ein
+  Grafik-Preset auf der Seite „Performance“ auf Wunsch). Er schreibt dort nur die Sperrdatei `.lumora-running.lock`
+  (nie zwei Versionen gleichzeitig im selben Ordner), die geschwärzte Spielausgabe `logs/lumora-game-output.log` und nach
+  einem Absturz ohne Bericht `crash-reports/lumora-exit-*.txt`. Mit
+  `LUMORA_HOME` (Tests) ist der Standard-Ordner `$LUMORA_HOME/minecraft`, nie das echte `.minecraft`.
 
 ## Lumora Loader (`lumora-loader`, ersetzt Fabric)
 
@@ -109,7 +141,7 @@ Was vorher die Fabric-API lieferte, bringt jeder Client selbst mit (`client/mc<v
 | Plugin-Kanäle (`PayloadTypeRegistry`, `ClientPlayNetworking`) | `Channels` + `DiscardedPayloadMixin` (Bytes registrierter Kanäle bleiben erhalten), `ClientCustomPayloadMixin`. Beim Betreten einer Welt meldet `minecraft:register` die Kanäle an. |
 | `FabricLoader` (Ordner, Versionen, `isModLoaded`) | `LoaderEnv` über `dev.lumora.loader.api.LumoraLoader`. Andere Mods gibt es nicht, Sodium und ViaFabricPlus gelten als „nicht geladen“. |
 
-Der Launcher legt die Lumora-JAR in `instances/<version>/.lumora/client` ab und lässt einen alten `mods`-Ordner unangetastet liegen. Fabric-Mods (Sodium, Lithium, ViaFabricPlus, Simple Voice Chat …) und Ressourcenpakete, die eine Mod brauchten, sind aus dem Katalog entfernt.
+Der Launcher legt die Lumora-JAR in `<Versionsordner>/.lumora/client` ab und lässt einen alten `mods`-Ordner unangetastet liegen. Fabric-Mods (Sodium, Lithium, ViaFabricPlus, Simple Voice Chat …) und Ressourcenpakete, die eine Mod brauchten, sind aus dem Katalog entfernt.
 
 ## Verbindungssystem im Client (`lumora-core/.../connection`)
 
@@ -209,7 +241,7 @@ client/mc<version>/…/api   (je Minecraft-Version)   McPlatform, McGameContext,
 
 - `lumora-api` und `lumora-core` werden als Klassen in jede `lumora-client-mc<version>.jar` kopiert (Konfiguration
   `bundled`), nicht verschachtelt. Addons finden `dev.lumora.api.*` zur Laufzeit über den Klassenlader des Lumora Loaders (`GameClassLoader`).
-- **Addon-Loader** (`lumora-core/.../addon/JarAddonLoader`): Lumora lädt Addon-JARs aus `.minecraft/addons` selbst,
+- **Addon-Loader** (`lumora-core/.../addon/JarAddonLoader`): Lumora lädt Addon-JARs aus `<Lumora-Ordner>/addons` selbst,
   ohne Mod-Loader.
   - **Beim Start** wird nur die `lumora-addon.json` gelesen (höchstens 64 KB, JAR höchstens 128 MB). Die Einstiegsklasse lädt erst `AddonManager.initialize`, nachdem API-Version, Minecraft-Version und Abhängigkeiten geprüft sind.
   - **Class-Loader:** Jede JAR hat einen eigenen `AddonClassLoader`. Die Reihenfolge ist Spiel (`GameClassLoader`) → eigene JAR → JARs der Addons aus `depends`/`optional`.

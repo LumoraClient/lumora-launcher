@@ -268,7 +268,7 @@ public final class BrowserPage extends JPanel {
 
     private void render() {
         list.removeAll();
-        Path instance = host.ctx().paths.instance(profile().id);
+        Path instance = host.ctx().gameDir(profile().id);
         Map<String, String> installed = ModrinthBrowser.installed(instance, kind);
         Set<String> managed = ModrinthBrowser.managedProjects(host.ctx().catalog, profile());
         summary.setText(String.format(Locale.GERMANY, "%,d Treffer für Minecraft %s", total, profile().minecraftVersion)
@@ -384,7 +384,7 @@ public final class BrowserPage extends JPanel {
             return;
         }
         ProfileCatalog.Profile p = profile();
-        Path instance = host.ctx().paths.instance(p.id);
+        Path instance = host.ctx().gameDir(p.id);
         ModrinthBrowser.Kind k = kind;
         Set<String> managed = ModrinthBrowser.managedProjects(host.ctx().catalog, p);
         button.setEnabled(false);

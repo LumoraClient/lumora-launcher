@@ -6,8 +6,8 @@ import java.nio.file.Path;
 
 /**
  * Directory layout below the install directory. Shared, content-addressed data (libraries, assets,
- * Java runtimes, vanilla versions) lives once; every runtime profile has its own game directory
- * because the mod sets differ.
+ * Java runtimes, vanilla versions) lives once; the game directories of the instances are described by
+ * {@link InstanceLayout}.
  */
 public record LauncherPaths(Path root) {
     public static final String APP_DIR_NAME = "LumoraClient";
@@ -81,8 +81,12 @@ public record LauncherPaths(Path root) {
         return root.resolve("instances").resolve(profileId);
     }
 
-    public Path natives(String profileId) {
-        return instance(profileId).resolve(".natives");
+    /**
+     * What only Lumora needs of an instance that plays in the standard folder (client jars, natives), and with
+     * {@link InstanceLayout#SHARED} the Lumora settings shared by all versions. See {@link InstanceLayout}.
+     */
+    public Path versionData(String id) {
+        return root.resolve("data").resolve(id);
     }
 
     public Path diagnostics() {

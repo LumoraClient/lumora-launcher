@@ -35,8 +35,15 @@ import java.util.function.Supplier;
  */
 public final class ClientInstaller {
     public record Prepared(ProfileCatalog.Profile profile, ResolvedVersion version, Path javaExecutable,
-                           Path clientJar, Path gameDir, Path nativesDir, Path loggingConfig,
+                           Path clientJar, dev.lumora.launcher.core.InstanceLayout layout, Path loggingConfig,
                            dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader loader) {
+        public Path gameDir() {
+            return layout.gameDir();
+        }
+
+        public Path nativesDir() {
+            return layout.nativesDir();
+        }
     }
 
     /** The Lumora Loader in the launcher's bundled folder (started instead of a mod loader, profile loader "lumora"). */
@@ -63,7 +70,7 @@ public final class ClientInstaller {
 
     /**
      * @param flavor {@link Flavor#LUMORA}: Minecraft with the Lumora client, started by the Lumora Loader;
-     *               {@link Flavor#VANILLA}: plain Minecraft in its own instance folder with Mojang's Java.
+     *               {@link Flavor#VANILLA}: plain Minecraft with Mojang's Java (game folder: {@link dev.lumora.launcher.core.InstanceLayout}).
      */
     public Prepared prepare(ProfileCatalog.Profile profile, Flavor flavor, LauncherConfig config, boolean repair,
                             ProgressListener progress) throws IOException {
@@ -123,8 +130,9 @@ public final class ClientInstaller {
         // Java
         Path java = resolveJava(version, flavor == Flavor.LUMORA ? profile.javaComponent : null, config, verify, progress);
 
-        Path gameDir = paths.instance(instanceId);
-        Path natives = paths.natives(instanceId);
+        dev.lumora.launcher.core.InstanceLayout layout = dev.lumora.launcher.core.InstanceLayout.of(paths, config, instanceId);
+        Path gameDir = layout.gameDir();
+        Path natives = layout.nativesDir();
         if (vanillaOnly) {
             // plain Minecraft ignores the mods folder; nothing of Lumora is installed
             Files.createDirectories(gameDir);
@@ -132,7 +140,7 @@ public final class ClientInstaller {
             Files.createDirectories(natives);
             NativeExtractor.extract(version.natives(), paths.libraries(), natives);
             progress.progress(1, "");
-            return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig, null);
+            return new Prepared(profile, version, java, clientJar, layout, loggingConfig, null);
         }
         // the addon library next to the instances: addon jars there are offered in the hub (Addons) for installing
         Files.createDirectories(paths.addonLibrary());
@@ -141,16 +149,19 @@ public final class ClientInstaller {
         progress.stage("Installiere Client-Komponenten (" + profile.displayName + ")");
         List<ProfileCatalog.Artifact> mods = catalog.resolveMods(profile, List.of(), null);
         ModInstaller modInstaller = new ModInstaller(downloader, paths.modCache(), bundled.get());
-        ModInstaller.Result modResult = modInstaller.install(mods, gameDir.resolve(".lumora").resolve("client"),
+        ModInstaller.Result modResult = modInstaller.install(mods, layout.clientDir(),
                 progressAdapter(progress, "Lumora"));
 
         // resource packs: same verified download into resourcepacks/, then switched on in options.txt; packs that
-        // would need a mod (none without a mod loader) are skipped
-        List<ProfileCatalog.Artifact> packs = catalog.resolvePacks(profile, config.disabledResourcePacks).stream()
-                .filter(a -> a.requires == null || a.requires.isEmpty()).toList();
-        progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
-        modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
-        ResourcePackOptions.apply(gameDir, packs);
+        // would need a mod (none without a mod loader) are skipped. Only in an own instance: the standard folder is
+        // shared with Vanilla and the other versions, its resourcepacks/ and options.txt stay the player's own
+        if (layout.own()) {
+            List<ProfileCatalog.Artifact> packs = catalog.resolvePacks(profile, config.disabledResourcePacks).stream()
+                    .filter(a -> a.requires == null || a.requires.isEmpty()).toList();
+            progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
+            modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
+            ResourcePackOptions.apply(gameDir, packs);
+        }
 
         // the Lumora Loader starts exactly these jars
         Path loaderJar = bundled.get().verified(LOADER_JAR);
@@ -166,7 +177,7 @@ public final class ClientInstaller {
         Files.createDirectories(natives);
         NativeExtractor.extract(version.natives(), paths.libraries(), natives);
         progress.progress(1, "");
-        return new Prepared(profile, version, java, clientJar, gameDir, natives, loggingConfig,
+        return new Prepared(profile, version, java, clientJar, layout, loggingConfig,
                 new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles(), mappings));
     }
 

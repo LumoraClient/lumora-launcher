@@ -440,12 +440,33 @@ public final class SettingsPage extends JPanel {
                 cfg.installDir = p.equals(host.ctx().defaultRoot) ? null : p.toString();
                 dir.setText(p.toString());
                 save();
-                JOptionPane.showMessageDialog(host.frame(), "Der neue Spielordner wird nach einem Neustart des Launchers verwendet.\n"
-                        + "Vorhandene Daten werden nicht verschoben.", "Spielverzeichnis", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(host.frame(), "Der neue Datenordner wird nach einem Neustart des Launchers verwendet.\n"
+                        + "Vorhandene Daten werden nicht verschoben.", "Datenordner", JOptionPane.INFORMATION_MESSAGE);
             }
         });
-        add("Allgemein", Icons.Kind.FOLDER, "Spielverzeichnis", "Spieldaten, Bibliotheken, Mods und Logs. Eine Änderung wirkt nach einem Neustart.",
+        add("Allgemein", Icons.Kind.FOLDER, "Datenordner", "Lumora-Daten: Bibliotheken, Java, Lumora-Einstellungen, eigene Instanzen und Logs. "
+                        + "Eine Änderung wirkt nach einem Neustart.",
                 false, row(dir, open, change));
+        java.util.function.Supplier<Path> standardDir = () -> dev.lumora.launcher.core.InstanceLayout.standardGameDir(cfg);
+        JTextField std = field(standardDir.get().toString(), "", 22);
+        std.setEditable(false);
+        JButton stdOpen = button("Öffnen");
+        stdOpen.addActionListener(e -> host.openFolder(standardDir.get()));
+        JButton stdChange = button("Ändern");
+        stdChange.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser(std.getText());
+            fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            if (fc.showOpenDialog(host.frame()) == JFileChooser.APPROVE_OPTION) {
+                Path p = fc.getSelectedFile().toPath().toAbsolutePath();
+                cfg.standardGameDir = p.equals(dev.lumora.launcher.core.InstanceLayout.minecraftDir(host.ctx().os)) ? null : p.toString();
+                std.setText(standardDir.get().toString());
+                save();
+            }
+        });
+        add("Allgemein", Icons.Kind.FOLDER, "Standard-Spielordner", "Hier spielen alle Versionen ohne eigene Instanz, wie Minecraft selbst "
+                        + "(.minecraft): Welten, Ressourcenpakete, Screenshots und Optionen teilen sie sich mit Vanilla. Eine eigene "
+                        + "Instanz wählst du im Versionsmenü neben „Spiel starten“.",
+                false, row(std, stdOpen, stdChange));
         JButton launcherUpdate = button("Nach Update suchen");
         launcherUpdate.addActionListener(e -> hooks.checkLauncherUpdate());
         add("Allgemein", Icons.Kind.ROCKET, "Launcher-Version " + BuildInfo.VERSION, "Neue Versionen kommen von github.com/"

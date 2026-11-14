@@ -107,7 +107,7 @@ class CrashReportsTest {
         Path rec = CrashReports.recordExit(inst, "1.21.11", 1, log, Instant.parse("2027-01-01T10:00:00Z"));
         assertFalse(Files.readString(rec).contains("super-secret-token-value"), "launcher record is redacted");
 
-        List<CrashReport> all = CrashReports.list(paths, List.of("26.1.2", "1.21.11"));
+        List<CrashReport> all = CrashReports.list(paths::instance, List.of("26.1.2", "1.21.11"));
         assertEquals(2, all.size());
         assertEquals(CrashReport.Source.LAUNCHER, all.getFirst().source());
         assertEquals(1, all.getFirst().exitCode());
@@ -131,9 +131,9 @@ class CrashReportsTest {
         Files.createDirectories(inst.resolve("logs"));
         Files.writeString(inst.resolve("crash-reports/crash-1.txt"), MC_REPORT);
         Files.writeString(inst.resolve("logs/latest.log"), "game log");
-        CrashReport r = CrashReports.list(paths, List.of("26.1.2")).getFirst();
+        CrashReport r = CrashReports.list(paths::instance, List.of("26.1.2")).getFirst();
         Path zip = tmp.resolve("diag.zip");
-        CrashReports.writeDiagnosticsZip(paths, r, Map.of("Mods", "Sodium 0.9.2"), zip);
+        CrashReports.writeDiagnosticsZip(paths, paths.instance("26.1.2"), r, Map.of("Mods", "Sodium 0.9.2"), zip);
         try (ZipFile z = new ZipFile(zip.toFile())) {
             assertNotNull(z.getEntry("crash/crash-1.txt"));
             assertNotNull(z.getEntry("game/latest.log"));

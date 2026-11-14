@@ -16,8 +16,17 @@ public interface Platform {
 
     String clientVersion();
 
-    /** {@code .minecraft/config}; the core writes below {@code config/lumora/}. */
+    /**
+     * Lumora's settings folder ({@code config/} below the Lumora folder: shared by all versions or only this
+     * instance's, not necessarily inside the game folder); the core writes below {@code config/lumora/}.
+     */
     Path configDir();
+
+    /** Minecraft's game folder (worlds, servers.dat, screenshots); default: the parent of {@link #configDir()}. */
+    default Path gameDir() {
+        Path config = configDir();
+        return config == null ? null : config.toAbsolutePath().getParent();
+    }
 
     /**
      * Folder of addon jars that Lumora loads itself (see {@link dev.lumora.core.addon.JarAddonLoader}), normally

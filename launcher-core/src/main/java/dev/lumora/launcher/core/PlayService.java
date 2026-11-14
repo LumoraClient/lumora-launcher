@@ -134,7 +134,7 @@ public final class PlayService {
             setState(listener, State.INSTALLING, "Prüfe Installation…");
             ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
             if (flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA) {
-                dev.lumora.launcher.core.install.GameThemeSeeder.seed(prepared.gameDir(), config);
+                dev.lumora.launcher.core.install.GameThemeSeeder.seed(prepared.layout().lumoraDir(), config);
             }
             LaunchCommandBuilder.Identity identity;
             if (mode == Mode.SMOKE_TEST_DEMO) {
@@ -153,9 +153,12 @@ public final class PlayService {
             List<String> sysProps = new ArrayList<>();
             sysProps.add("-Dlumora.launcher.version=" + BuildInfo.VERSION);
             sysProps.add("-Dlumora.profile=" + instanceId);
+            // Lumora settings and addons: shared by all versions or the instance's own (InstanceLayout)
+            sysProps.add("-Dlumora.dir=" + prepared.layout().lumoraDir().toAbsolutePath());
+            sysProps.add("-Dlumora.instanceDir=" + prepared.layout().versionDir().toAbsolutePath());
             sysProps.add("-Dlumora.diagnosticsDir=" + paths.diagnostics().toAbsolutePath());
             // the game reports menu / singleplayer / server there (Discord Rich Presence); a stale file of the last run goes first
-            Path statusFile = dev.lumora.launcher.core.integrations.GameStatus.file(prepared.gameDir());
+            Path statusFile = dev.lumora.launcher.core.integrations.GameStatus.file(prepared.layout().versionDir());
             java.nio.file.Files.deleteIfExists(statusFile);
             sysProps.add("-Dlumora.statusFile=" + statusFile.toAbsolutePath());
             if (mode == Mode.SMOKE_TEST_DEMO && smokeReport != null) {
@@ -187,6 +190,7 @@ public final class PlayService {
                         }
                     });
             java.time.Instant started = java.time.Instant.now();
+            game.statusFile(statusFile);
             running.set(game);
             setState(listener, State.PLAYING, "Spiel läuft (PID " + game.pid() + ")");
             game.onExit().thenAccept(original -> {

@@ -98,7 +98,7 @@ public final class LibraryPage extends JPanel {
         versionBar.revalidate();
         int gen = ++generation;
         ProfileCatalog.Profile p = profile();
-        Path instance = host.ctx().paths.instance(p.id);
+        Path instance = host.ctx().gameDir(p.id);
         io.submit(() -> {
             Data d = new Data(BenchmarkHistory.load(host.ctx().paths.diagnostics(), p.id), host.ctx().play.stats().get(p.id), InstanceLibrary.worlds(instance), InstanceLibrary.servers(instance),
                     InstanceLibrary.screenshots(instance), InstanceLibrary.resourcePacks(instance));
@@ -379,7 +379,7 @@ public final class LibraryPage extends JPanel {
         }
         button.setEnabled(false);
         button.setText("Sichere…");
-        Path backups = WorldBackup.backupsDir(host.ctx().paths.instance(profile().id));
+        Path backups = WorldBackup.backupsDir(host.ctx().gameDir(profile().id));
         io.submit(() -> {
             try {
                 Path zip = WorldBackup.backup(w.dir(), backups, Instant.now());

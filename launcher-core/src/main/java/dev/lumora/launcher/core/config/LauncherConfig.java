@@ -79,6 +79,15 @@ public final class LauncherConfig {
     public String selectedFlavor = "lumora";
     /** After the game started: keep (launcher stays open), hide (minimise) or close (launcher ends, game keeps running). */
     public String afterLaunch = "keep";
+    /**
+     * Game folder per instance (key: instance id, e.g. "26.3" or "26.3-vanilla", see Flavor#instanceId). Missing =
+     * the standard folder ({@link #standardGameDir}) with the Lumora settings shared by all versions. See InstanceLayout.
+     */
+    public java.util.Map<String, InstanceChoice> instances = new java.util.LinkedHashMap<>();
+    /** Standard game folder of all versions; null = Minecraft's own folder (.minecraft). */
+    public String standardGameDir;
+    /** 1 = the instance folders that existed before the standard folder were taken over as own instances. */
+    public int instanceLayout;
     /** Several Minecraft instances at the same time (each instance folder still runs only once). */
     public boolean multipleInstances = false;
     /** Extra environment variables for the game process, "KEY=VALUE". */
@@ -261,6 +270,13 @@ public final class LauncherConfig {
         if (installDir != null && installDir.isBlank()) {
             installDir = null;
         }
+        if (standardGameDir != null && standardGameDir.isBlank()) {
+            standardGameDir = null;
+        }
+        if (instances == null) {
+            instances = new java.util.LinkedHashMap<>();
+        }
+        instances.entrySet().removeIf(e -> e.getKey() == null || !e.getKey().matches("[A-Za-z0-9][A-Za-z0-9_.-]{0,63}") || e.getValue() == null);
         if (parallelDownloads < 1 || parallelDownloads > 16) {
             int fixed = Math.clamp(parallelDownloads, 1, 16);
             notes.add("parallelDownloads " + parallelDownloads + " -> " + fixed);
@@ -329,5 +345,21 @@ public final class LauncherConfig {
 
     public static boolean isValidClientId(String id) {
         return id != null && GUID.matcher(id.strip()).matches();
+    }
+
+    /** How one instance runs: in the standard folder or its own, Lumora settings shared or only its own. */
+    public static final class InstanceChoice {
+        /** Own game folder (instances/&lt;id&gt;) instead of the standard folder. */
+        public boolean own;
+        /** Lumora settings, HUD and addons shared by all versions (data/shared) instead of only this instance. */
+        public boolean sharedSettings = true;
+
+        public InstanceChoice() {
+        }
+
+        public InstanceChoice(boolean own, boolean sharedSettings) {
+            this.own = own;
+            this.sharedSettings = sharedSettings;
+        }
     }
 }

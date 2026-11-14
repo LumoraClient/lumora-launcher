@@ -128,7 +128,7 @@ public final class ScreenshotView implements AddonView {
     /** The screenshots of the game with favourites, albums and places (shared with {@link ScreenshotWatcher}). */
     static ScreenshotLibrary library(LumoraCore core) {
         Path config = core.platform().configDir();
-        return ScreenshotLibrary.shared(config.getParent().resolve("screenshots"), config.resolve("lumora").resolve("screenshots.json"));
+        return ScreenshotLibrary.shared(core.platform().gameDir().resolve("screenshots"), config.resolve("lumora").resolve("screenshots.json"));
     }
 
     /** Opens the screenshot manager on top of the current screen (main menu, pause menu, hub). */

@@ -69,7 +69,7 @@ class StorageUsageTest {
         Path oldLog = file(paths.logs().resolve("launcher-old.log"), 10);
         Files.setLastModifiedTime(oldLog, FileTime.from(Instant.now().minus(30, ChronoUnit.DAYS)));
         Path newLog = file(paths.logs().resolve("launcher.log"), 10);
-        Path natives = file(paths.natives("p").resolve("lwjgl.dll"), 10);
+        Path natives = file(paths.instance("p").resolve(".natives").resolve("lwjgl.dll"), 10);
         StorageUsage s = new StorageUsage(paths);
         assertEquals(20, s.clearUnused());
         assertFalse(Files.exists(oldLog));

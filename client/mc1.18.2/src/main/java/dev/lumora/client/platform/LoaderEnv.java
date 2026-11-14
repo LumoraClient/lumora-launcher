@@ -22,6 +22,16 @@ public final class LoaderEnv {
         return LumoraLoader.gameDir();
     }
 
+    /** Parent of Lumora's settings and addons (shared by all versions or only this instance). */
+    public static Path lumoraDir() {
+        return LumoraLoader.lumoraDir();
+    }
+
+    /** This instance's own folder (resources unpacked from its jars). */
+    public static Path instanceDir() {
+        return LumoraLoader.instanceDir();
+    }
+
     public static Path configDir() {
         return LumoraLoader.configDir();
     }

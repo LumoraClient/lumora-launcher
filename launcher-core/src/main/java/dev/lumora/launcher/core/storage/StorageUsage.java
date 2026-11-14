@@ -179,20 +179,27 @@ public final class StorageUsage {
         return freed;
     }
 
+    /**
+     * The own instances and the version folders of the standard folder (data/: Lumora settings, natives). The
+     * standard game folder itself (.minecraft) belongs to the player and Vanilla Minecraft: it is neither counted nor
+     * cleared here.
+     */
     private List<Path> instances() {
-        Path dir = paths.root().resolve("instances");
         List<Path> out = new ArrayList<>();
-        if (!Files.isDirectory(dir)) {
-            return out;
-        }
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir)) {
-            for (Path p : ds) {
-                if (Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)) {
-                    out.add(p);
-                }
+        for (String name : List.of("instances", "data")) {
+            Path dir = paths.root().resolve(name);
+            if (!Files.isDirectory(dir)) {
+                continue;
             }
-        } catch (IOException e) {
-            Log.warn("Could not list instances: " + e.getMessage());
+            try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir)) {
+                for (Path p : ds) {
+                    if (Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)) {
+                        out.add(p);
+                    }
+                }
+            } catch (IOException e) {
+                Log.warn("Could not list " + name + ": " + e.getMessage());
+            }
         }
         return out;
     }

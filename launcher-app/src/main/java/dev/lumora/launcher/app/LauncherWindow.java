@@ -531,7 +531,7 @@ final class LauncherWindow implements PageHost {
         split.add(heroArrow, BorderLayout.EAST);
         controls.add(split);
         controls.add(heroButton(Icons.Kind.FOLDER, "Spielordner öffnen",
-                () -> open(ctx.paths.instance(currentFlavor().instanceId(ctx.selectedProfile().id)))));
+                () -> open(ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id)))));
         controls.add(heroButton(Icons.Kind.GEAR, "Einstellungen", () -> showPage("settings")));
         JButton[] more = new JButton[1];
         more[0] = heroButton(Icons.Kind.MORE, "Mehr", () -> moreMenu().show(more[0], 0, more[0].getHeight()));
@@ -586,7 +586,7 @@ final class LauncherWindow implements PageHost {
         int shown = ctx.visibleProfiles().size();
         return shown < all
                 ? shown + " von " + all + " Versionen · weitere unter Einstellungen › Spiel"
-                : all + " Versionen · jede mit eigenem Spielordner";
+                : all + " Versionen · Standard-Ordner oder eigene Instanz";
     }
 
     /** Content of the version menu; {@code close} hides the menu. */
@@ -607,6 +607,7 @@ final class LauncherWindow implements PageHost {
         flavors.setOpaque(false);
         flavors.setAlignmentX(Component.LEFT_ALIGNMENT);
         javax.swing.ButtonGroup fg = new javax.swing.ButtonGroup();
+        Runnable[] syncInstance = {() -> { }};
         for (dev.lumora.launcher.core.profile.Flavor fl : dev.lumora.launcher.core.profile.Flavor.values()) {
             Icons.Kind kind = switch (fl) {
                 case LUMORA -> Icons.Kind.R_STAR;
@@ -620,12 +621,17 @@ final class LauncherWindow implements PageHost {
                 case LUMORA -> "Lumora-Oberfläche, Performance-Mods und Addons";
                 case VANILLA -> "Reines Minecraft ohne Mods, eigener Spielordner";
             });
-            b.addActionListener(e -> setFlavor(fl));
+            b.addActionListener(e -> {
+                setFlavor(fl);
+                syncInstance[0].run();
+            });
             fg.add(b);
             flavors.add(b);
         }
         flavors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         body.add(flavors);
+        body.add(Box.createVerticalStrut(10));
+        body.add(instanceChooser(syncInstance));
         body.add(Box.createVerticalStrut(12));
 
         // versions by major version: the same cards as the old version grid (pixel art or newest screenshot)
@@ -637,7 +643,7 @@ final class LauncherWindow implements PageHost {
                     + (recommended ? "  ·  Empfohlene Version" : "") + "<br>Lumora Loader"
                     + (played == null ? "" : "<br>" + played) + "</html>"));
         }
-        VersionGrid grid = new VersionGrid(list, id -> ctx.paths.instance(id).resolve("screenshots"), id -> {
+        VersionGrid grid = new VersionGrid(list, id -> ctx.gameDir(id).resolve("screenshots"), id -> {
             selectProfile(id);
             close.run();
         }, 104, 8);
@@ -656,6 +662,94 @@ final class LauncherWindow implements PageHost {
         });
         body.add(repair);
         return body;
+    }
+
+    /**
+     * Game folder of the selected version: the standard folder (.minecraft, shared with Vanilla and the other versions)
+     * or an own instance, and whether its Lumora settings are shared by all versions. {@code sync[0]} is set to refresh
+     * the controls (after a change of the start type).
+     */
+    private JPanel instanceChooser(Runnable[] sync) {
+        JPanel box = column();
+        box.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel modes = new JPanel(new GridLayout(1, 2, 6, 0));
+        modes.setOpaque(false);
+        modes.setAlignmentX(Component.LEFT_ALIGNMENT);
+        javax.swing.JToggleButton standard = new javax.swing.JToggleButton("Standard-Ordner", Icons.of(Icons.Kind.FOLDER, 14, Theme.TEXT));
+        javax.swing.JToggleButton own = new javax.swing.JToggleButton("Eigene Instanz", Icons.of(Icons.Kind.ARCHIVE, 14, Theme.TEXT));
+        standard.setToolTipText("Wie Minecraft selbst: Welten, Ressourcenpakete, Screenshots und Optionen teilen sich alle Versionen und Vanilla");
+        own.setToolTipText("Eigener Ordner nur für diese Version (instances/<Version>)");
+        javax.swing.ButtonGroup g = new javax.swing.ButtonGroup();
+        for (javax.swing.JToggleButton b : List.of(standard, own)) {
+            b.setFont(Theme.font(Font.BOLD, 12.5f));
+            b.setFocusable(false);
+            b.setIconTextGap(7);
+            g.add(b);
+            modes.add(b);
+        }
+        modes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        box.add(modes);
+        box.add(Box.createVerticalStrut(6));
+        javax.swing.JCheckBox shared = new javax.swing.JCheckBox("Lumora-Einstellungen, HUD und Addons mit allen Versionen teilen");
+        shared.setOpaque(false);
+        shared.setFocusable(false);
+        shared.setFont(Theme.font(Font.PLAIN, 12.5f));
+        shared.setForeground(Theme.TEXT);
+        shared.setAlignmentX(Component.LEFT_ALIGNMENT);
+        box.add(shared);
+        box.add(Box.createVerticalStrut(2));
+        JLabel where = label("", 11.5f, Font.PLAIN, Theme.MUTED);
+        where.setAlignmentX(Component.LEFT_ALIGNMENT);
+        box.add(where);
+        sync[0] = () -> {
+            dev.lumora.launcher.core.InstanceLayout l = ctx.layout(currentFlavor().instanceId(ctx.selectedProfile().id));
+            standard.setSelected(!l.own());
+            own.setSelected(l.own());
+            shared.setSelected(l.sharedSettings());
+            shared.setVisible(currentFlavor() == dev.lumora.launcher.core.profile.Flavor.LUMORA);
+            where.setText("Spielordner: " + l.gameDir());
+            where.setToolTipText("Lumora-Einstellungen: " + l.configDir());
+        };
+        standard.addActionListener(e -> {
+            setInstanceChoice(false, shared.isSelected());
+            sync[0].run();
+        });
+        own.addActionListener(e -> {
+            setInstanceChoice(true, shared.isSelected());
+            sync[0].run();
+        });
+        shared.addActionListener(e -> {
+            setInstanceChoice(own.isSelected(), shared.isSelected());
+            sync[0].run();
+        });
+        sync[0].run();
+        return box;
+    }
+
+    /** Stores the selected version's game folder choice; its Lumora settings come along into a new, empty settings folder. */
+    private void setInstanceChoice(boolean own, boolean shared) {
+        String id = currentFlavor().instanceId(ctx.selectedProfile().id);
+        dev.lumora.launcher.core.InstanceLayout before = ctx.layout(id);
+        if (before.own() == own && before.sharedSettings() == shared) {
+            return;
+        }
+        if (ctx.play.runningGame().isPresent()) {
+            error("Spielordner", "Minecraft läuft gerade. Beende das Spiel, dann wähle den Spielordner.");
+            return;
+        }
+        ctx.config.instances.put(id, new dev.lumora.launcher.core.config.LauncherConfig.InstanceChoice(own, shared));
+        saveConfigQuietly();
+        dev.lumora.launcher.core.InstanceLayout after = ctx.layout(id);
+        worker.submit(() -> {
+            try {
+                List<String> copied = dev.lumora.launcher.core.InstanceLayout.carrySettings(before, after);
+                Log.info("Instance " + id + ": " + (own ? "own" : "standard") + (shared ? ", shared settings" : ", own settings")
+                        + (copied.isEmpty() ? "" : ", copied " + copied));
+            } catch (IOException e) {
+                Log.warn("Could not carry the Lumora settings of " + id + ": " + e.getMessage());
+            }
+        });
+        refreshVersionInfo(ctx.selectedProfile());
     }
 
     private javax.swing.JPopupMenu moreMenu() {
@@ -752,8 +846,8 @@ final class LauncherWindow implements PageHost {
     }
 
     private static dev.lumora.launcher.core.integrations.GameStatus gameStatus(dev.lumora.launcher.core.launch.GameProcess game) {
-        return dev.lumora.launcher.core.integrations.GameStatus.read(dev.lumora.launcher.core.integrations.GameStatus.file(game.gameDir()))
-                .orElse(null);
+        java.nio.file.Path file = game.statusFile();
+        return file == null ? null : dev.lumora.launcher.core.integrations.GameStatus.read(file).orElse(null);
     }
 
     /** Timer: updates Discord when the running game moved between menu, world and server. */
@@ -1233,9 +1327,13 @@ final class LauncherWindow implements PageHost {
             CrashReport report = null;
             if (exit.crashReport().isPresent()) {
                 Path file = exit.crashReport().get();
-                String profileId = file.getParent().getParent().getFileName().toString();
+                Path game = file.getParent().getParent();
+                // own instance: its folder name; the standard folder is shared, there it is the selected version
+                String folder = game.getFileName().toString();
+                String profileId = ctx.catalog.profile(folder).isPresent() || folder.endsWith("-vanilla") ? folder
+                        : currentFlavor().instanceId(ctx.selectedProfile().id);
                 try {
-                    report = CrashReports.load(ctx.paths, profileId, file);
+                    report = CrashReports.load(game, profileId, file);
                 } catch (IOException | RuntimeException e) {
                     Log.warn("Could not read crash report " + file + ": " + e.getMessage());
                 }
@@ -1463,7 +1561,7 @@ final class LauncherWindow implements PageHost {
         buttons.add(Box.createHorizontalStrut(8));
         buttons.add(actionButton("Log-Ordner", Icons.Kind.FOLDER, () -> open(ctx.defaultRoot.resolve("logs"))));
         buttons.add(Box.createHorizontalStrut(8));
-        buttons.add(actionButton("Spielordner", Icons.Kind.FOLDER, () -> open(ctx.paths.instance(ctx.selectedProfile().id))));
+        buttons.add(actionButton("Spielordner", Icons.Kind.FOLDER, () -> open(ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id)))));
         buttons.add(Box.createHorizontalStrut(8));
         buttons.add(actionButton("Spiel-Diagnose", Icons.Kind.FOLDER, () -> open(ctx.paths.diagnostics())));
         page.add(buttons);

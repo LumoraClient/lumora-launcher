@@ -32,12 +32,15 @@ public final class GameThemeSeeder {
     private GameThemeSeeder() {
     }
 
-    /** Applies the configured design to {@code gameDir} if this choice was not applied there yet. Never throws. */
-    public static void seed(Path gameDir, LauncherConfig config) {
+    /**
+     * Applies the configured design to the Lumora settings below {@code lumoraDir} ({@code config/}, see
+     * InstanceLayout#lumoraDir) if this choice was not applied there yet. Never throws.
+     */
+    public static void seed(Path lumoraDir, LauncherConfig config) {
         if (config.gameThemeSeed == null || config.gameTheme == null) {
             return;
         }
-        Path configDir = gameDir.resolve("config");
+        Path configDir = lumoraDir.resolve("config");
         Path marker = configDir.resolve(MARKER);
         try {
             if (Files.isRegularFile(marker) && config.gameThemeSeed.equals(Files.readString(marker, StandardCharsets.UTF_8).strip())) {
@@ -46,9 +49,9 @@ public final class GameThemeSeeder {
             apply(configDir, VANILLA.equals(config.gameTheme));
             Files.createDirectories(configDir);
             FileUtil.writeAtomically(marker, config.gameThemeSeed.getBytes(StandardCharsets.UTF_8));
-            Log.info("Design '" + config.gameTheme + "' from the installer applied to " + gameDir.getFileName());
+            Log.info("Design '" + config.gameTheme + "' from the installer applied to " + lumoraDir.getFileName());
         } catch (IOException | RuntimeException e) {
-            Log.warn("Could not apply the design from the installer to " + gameDir, e);
+            Log.warn("Could not apply the design from the installer to " + lumoraDir, e);
         }
     }
 

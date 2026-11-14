@@ -42,9 +42,41 @@ public final class LumoraLoader {
         return gameDir;
     }
 
-    /** {@code .minecraft/config}. */
+    /**
+     * Parent of Lumora's own files ({@code config/}, {@code addons/}, {@code .lumora/}): the launcher passes it as
+     * {@code -Dlumora.dir} (Lumora settings shared by all versions, or only this instance's), else the game folder.
+     */
+    public static Path lumoraDir() {
+        String dir = System.getProperty("lumora.dir");
+        if (dir != null && !dir.isBlank()) {
+            try {
+                return Path.of(dir).toAbsolutePath().normalize();
+            } catch (RuntimeException e) {
+                // invalid path: the game folder as before
+            }
+        }
+        return gameDir;
+    }
+
+    /**
+     * This instance's own folder ({@code -Dlumora.instanceDir}, else the game folder): what belongs to this Minecraft
+     * version only, e.g. resources unpacked from its jars ({@code .lumora/packs}, {@code .lumora/addon-assets}).
+     */
+    public static Path instanceDir() {
+        String dir = System.getProperty("lumora.instanceDir");
+        if (dir != null && !dir.isBlank()) {
+            try {
+                return Path.of(dir).toAbsolutePath().normalize();
+            } catch (RuntimeException e) {
+                // invalid path: the game folder as before
+            }
+        }
+        return gameDir;
+    }
+
+    /** Lumora's settings: {@code config/} below {@link #lumoraDir()}. */
     public static Path configDir() {
-        return gameDir.resolve("config");
+        return lumoraDir().resolve("config");
     }
 
     /** The Minecraft version the launcher started (empty when unknown). */

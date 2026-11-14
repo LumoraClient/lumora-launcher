@@ -34,7 +34,7 @@ public final class ServerBrowserView extends BrowserView {
 
     public ServerBrowserView(Platform platform, BrowserPlatform game) {
         super(platform, game);
-        Path file = platform.configDir().toAbsolutePath().getParent().resolve("servers.dat");
+        Path file = platform.gameDir().resolve("servers.dat");
         this.servers = new Servers(file).load();
         for (Servers.Entry e : servers.entries()) {
             ping(e.address);

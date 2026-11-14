@@ -19,9 +19,9 @@ import java.util.Optional;
 public record GameStatus(State state, String server, long since, String version) {
     public enum State { MENU, SINGLEPLAYER, MULTIPLAYER }
 
-    /** The status file of a game directory. */
-    public static Path file(Path gameDir) {
-        return gameDir.resolve(".lumora").resolve("status.json");
+    /** The status file of an instance (its own folder, InstanceLayout#versionDir). */
+    public static Path file(Path versionDir) {
+        return versionDir.resolve(".lumora").resolve("status.json");
     }
 
     /** The last status the game wrote, empty if there is none (yet) or it cannot be read. */

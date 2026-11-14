@@ -88,8 +88,8 @@ public final class Packs {
                 meta = null;
             }
         }
-        java.nio.file.Path game = LumoraLoader.gameDir();
-        return dev.lumora.core.addon.AddonAssets.prepare(game.resolve("addons"), game.resolve(".lumora").resolve("addon-assets"),
+        return dev.lumora.core.addon.AddonAssets.prepare(LumoraLoader.lumoraDir().resolve("addons"),
+                LumoraLoader.instanceDir().resolve(".lumora").resolve("addon-assets"),
                 meta, w -> dev.lumora.client.LumoraClient.LOG.warn(w));
     }
 

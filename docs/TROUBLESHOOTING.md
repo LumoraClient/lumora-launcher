@@ -80,7 +80,7 @@ Datei nur durch Dateirechte (0600) geschützt, nicht durch den System-Schlüssel
 
 ## Oberfläche im Spiel (Lumora-Design)
 
-Einstellungen in `instances/<profil>/config/lumora-client.json`:
+Einstellungen in `<Lumora-Ordner>/config/lumora-client.json` (`data/shared`, `data/<version>` oder die eigene Instanz):
 
 | Option | Standard | Wirkung |
 |---|---|---|
@@ -122,14 +122,14 @@ Kompiliert ein Shader nicht (z. B. Treiberproblem), steht im Spiel-Log
 - **Zoom** (Taste **C**): Der Tab „Zoom“ im Hub stellt Stärke, Halten/Umschalten, weiche Animation, Mausrad,
   langsamere Maus, filmische Kamera und dunklen Rand ein. Geändert wird nur das eigene Sichtfeld (wie bei OptiFine).
   C ist in Vanilla auch „Schnellleiste speichern“ (Kreativmodus, C + Zahlentaste); bei Bedarf umbelegen.
-- Gespeichert wird in `instances/<version>/config/lumora/` (`hud-layout.json`, `keybinds.json`, `addons.json`,
+- Gespeichert wird in `<Lumora-Ordner>/config/lumora/` (gemeinsam: `data/shared`, sonst `data/<version>` bzw. die eigene Instanz) (`hud-layout.json`, `keybinds.json`, `addons.json`,
   `addons/<id>.json`). Löschen setzt den jeweiligen Teil zurück; eine kaputte Datei wird als `*.corrupt-<zeit>`
   gesichert und durch Standardwerte ersetzt. Eine alte `config/lumora-hud.json` wird beim ersten Start übernommen.
 - Die Anzeigen nutzen nur Daten, die der Client ohnehin hat. Es wird nichts an den Server gesendet oder verändert.
 
 ## Ressourcenpakete
 
-- Die eingebauten Pakete lädt der Launcher je Version von Modrinth (SHA-512) nach `instances/<version>/resourcepacks`
+- Die eingebauten Pakete lädt der Launcher je Version von Modrinth (SHA-512) nach `instances/<version>/resourcepacks` (nur eigene Instanzen; den Standard-Ordner `.minecraft` lässt er unverändert)
   und aktiviert sie einmalig in `options.txt`. Schaltest du eines im Spiel aus, bleibt es aus. Auf der Mods-Seite
   des Launchers kannst du jedes ganz abwählen (Datei wird dann entfernt).
 - Fresh Animations braucht EMF + ETF, Dramatic Skys braucht Nuit – diese Mods kommen automatisch mit.

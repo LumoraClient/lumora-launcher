@@ -33,7 +33,7 @@ public final class WorldBrowserView extends BrowserView {
 
     public WorldBrowserView(Platform platform, BrowserPlatform game) {
         super(platform, game);
-        this.saves = platform.configDir().toAbsolutePath().getParent().resolve("saves");
+        this.saves = platform.gameDir().resolve("saves");
         reload();
     }
 

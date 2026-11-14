@@ -6,7 +6,8 @@ davon ist geschätzt. Die vollständige Liste steht in `launcher-core/src/main/r
 
 ## 1. Profile: eine Minecraft-Version pro Profil
 
-Jedes Profil hat einen eigenen Spielordner (`instances/<version>`) und startet über den **Lumora Loader**, ohne
+Jedes Profil spielt im Standard-Ordner (`.minecraft`) oder in einer eigenen Instanz (`instances/<version>`, siehe
+ARCHITECTURE.md › Spielordner und Instanzen) und startet über den **Lumora Loader**, ohne
 Mod-Loader: Minecraft, der Lumora Client und die Lumora-Addons. Alle 18 Profile bringen die Lumora-Oberfläche mit
 (Hauptmenü, Lumora-Hub, HUD-Editor, Widgets, Zoom, Schlaganimationen, Addon-API).
 

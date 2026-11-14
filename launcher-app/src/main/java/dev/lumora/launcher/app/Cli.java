@@ -264,7 +264,7 @@ final class Cli {
             System.out.println("CRASH TEST FAILED: the game did not crash (exit code 0)");
             return 1;
         }
-        var reports = dev.lumora.launcher.core.crash.CrashReports.list(ctx.paths, List.of(profile.id)).stream()
+        var reports = dev.lumora.launcher.core.crash.CrashReports.list(ctx::gameDir, List.of(profile.id)).stream()
                 .filter(r -> !r.time().isBefore(started.minusSeconds(5))).toList();
         if (reports.isEmpty()) {
             System.out.println("CRASH TEST FAILED: no crash report found");

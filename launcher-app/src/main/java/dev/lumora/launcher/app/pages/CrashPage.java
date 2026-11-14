@@ -96,7 +96,7 @@ public final class CrashPage extends JPanel {
         List<String> ids = host.ctx().catalog.profiles().stream().map(p -> p.id).filter(id -> filter.equals(ALL) || id.equals(filter)).toList();
         summary.setText("Suche Crash-Reports…");
         io.submit(() -> {
-            List<CrashReport> found = CrashReports.list(host.ctx().paths, ids);
+            List<CrashReport> found = CrashReports.list(host.ctx()::gameDir, ids);
             SwingUtilities.invokeLater(() -> {
                 if (gen == generation) {
                     render(found);
@@ -365,14 +365,14 @@ public final class CrashPage extends JPanel {
                 host.ctx().catalog.profile(r.profileId()).ifPresent(p -> {
                     StringBuilder mods = new StringBuilder();
                     for (ModInventory.Entry e : ModInventory.scan(host.ctx().catalog, p, host.ctx().config.enabledExtensions,
-                            host.ctx().paths.instance(p.id).resolve("mods"), null)) {
+                            host.ctx().gameDir(p.id).resolve("mods"), null)) {
                         mods.append(e.enabled() ? "[x] " : "[ ] ").append(e.displayName()).append(' ').append(e.version())
                                 .append("  (").append(e.kind()).append(")\n");
                     }
                     extra.put("Mods", mods.toString());
                 });
                 extra.put("Systemprüfung", SystemCheck.run(host.ctx().os, host.ctx().paths).render());
-                CrashReports.writeDiagnosticsZip(host.ctx().paths, r, extra, target);
+                CrashReports.writeDiagnosticsZip(host.ctx().paths, host.ctx().gameDir(r.profileId()), r, extra, target);
                 SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(host.frame(), "Gespeichert: " + target
                                 + "\n\nEnthält Crash-Report, Spiel- und Launcher-Log, Modliste und Systemprüfung – anonymisiert.",
                         "Diagnosepaket", JOptionPane.INFORMATION_MESSAGE));

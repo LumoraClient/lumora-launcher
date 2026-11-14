@@ -132,9 +132,14 @@ final class McPlatform implements Platform {
     }
 
     @Override
+    public Path gameDir() {
+        return dev.lumora.client.platform.LoaderEnv.gameDir();
+    }
+
+    @Override
     public Path addonsDir() {
         // Lumora addons as plain jars, loaded by Lumora itself
-        return dev.lumora.client.platform.LoaderEnv.gameDir().resolve("addons");
+        return dev.lumora.client.platform.LoaderEnv.lumoraDir().resolve("addons");
     }
 
     @Override

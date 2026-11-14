@@ -59,7 +59,7 @@ public final class PerformancePage extends JPanel {
         content.removeAll();
         ProfileCatalog.Profile p = host.ctx().selectedProfile();
         Flavor flavor = Flavor.of(host.ctx().config.selectedFlavor);
-        Path gameDir = host.ctx().paths.instance(flavor.instanceId(p.id));
+        Path gameDir = host.ctx().gameDir(flavor.instanceId(p.id));
 
         content.add(Ui.pageTitle("Performance", "Mehr FPS für Minecraft " + p.minecraftVersion + " (" + flavor.label()
                 + "): Grafik-Profile, Performance-Mods und Java-Einstellungen."));

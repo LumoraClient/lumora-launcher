@@ -49,6 +49,17 @@ public final class GameProcess {
         return gameDir;
     }
 
+    private volatile Path statusFile;
+
+    /** File in which the game reports menu / singleplayer / server (see GameStatus); null = none. */
+    public Path statusFile() {
+        return statusFile;
+    }
+
+    public void statusFile(Path file) {
+        this.statusFile = file;
+    }
+
     public static final class AlreadyRunningException extends IOException {
         private static final long serialVersionUID = 1L;
 

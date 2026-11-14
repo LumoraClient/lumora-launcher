@@ -62,7 +62,7 @@ public final class JsonLang {
     }
 
     private static List<Path> addonJars() {
-        Path dir = LoaderEnv.gameDir().resolve("addons");
+        Path dir = LoaderEnv.lumoraDir().resolve("addons");
         if (!Files.isDirectory(dir)) {
             return List.of();
         }

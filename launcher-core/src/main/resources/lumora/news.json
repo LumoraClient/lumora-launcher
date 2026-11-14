@@ -1,6 +1,20 @@
 {
   "news": [
     {
+      "id": "lumora-builtin-ids",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.44",
+      "title": "Anmelden und Discord ohne Einrichtung",
+      "text": "Microsoft-Anmeldung und Discord Rich Presence laufen jetzt mit Lumoras eigener Anwendung – nichts mehr einzutragen.",
+      "image": "news-discord-builtin.png",
+      "body": [
+        {"p": "Lumora bringt jetzt seine eigene Microsoft-Anwendung mit. Du meldest dich direkt im Browser an, ohne vorher eine Anwendungs-ID einzutragen."},
+        {"p": "Auch Discord Rich Presence ist eingebaut und immer an: Läuft Discord auf deinem PC, sehen deine Freunde, ob du im Launcher bist oder was du spielst, z. B. „Lumora 26.3 auf eineip.de“."},
+        {"p": "Die Serveradresse kannst du weiter ausblenden: Einstellungen › Integrationen › „Server in Discord zeigen“. Dann steht dort nur „Mehrspieler“."}
+      ]
+    },
+    {
       "id": "lumora-pixel-blue",
       "date": "2026-11-14",
       "author": "Lumora",

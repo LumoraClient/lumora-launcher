@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.44 (2026-11-14)
+
+### Launcher
+- **Microsoft-Anmeldung ohne Einrichtung:** Lumoras eigene Anwendungs-ID ist fest eingebaut. Das Feld in den Einstellungen, der Einrichtungsdialog beim ersten Anmelden und die Umgebungsvariable `LUMORA_MS_CLIENT_ID` entfallen.
+- **Discord Rich Presence immer an:** mit Lumoras eigener Discord-Anwendung; Schalter und ID-Feld entfallen. „Server in Discord zeigen“ bleibt abschaltbar (dann nur „Mehrspieler“).
+- Alte Werte dieser Einstellungen in `launcher.json` werden ignoriert.
+
 ## 0.3.43 (2026-11-14)
 
 ### Launcher

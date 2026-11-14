@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.44 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 550 Unit-Tests ohne Fehler (1 übersprungen). Neu: Format der eingebauten IDs (`AppIdsTest`), Discord bekommt Lumoras eigene Anwendungs-ID; der Test für eine gespeicherte Client-ID entfällt. Nur Launcher geändert, keine Client-Module.
+- **Vor dem Release:** Einstellungen › Integrationen offscreen gerendert: nur noch „Server in Discord zeigen“ und die übrigen Punkte, keine Felder für Anwendungs-IDs.
+- **Smoke-Test mit dem fertigen 0.3.44-Build:** 26.3 – bestanden (Demo-Modus, ohne Anmeldung).
+- **Nicht geprüft:** eine echte Microsoft-Anmeldung mit der eingebauten Anwendungs-ID (braucht ein Konto und die Freischaltung der App durch Mojang); die Anzeige in einer laufenden Discord-App (nur per Test mit nachgebautem Discord-Protokoll); ein echtes Selbst-Update von 0.3.43 auf 0.3.44.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.43 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 549 Unit-Tests ohne Fehler (1 übersprungen); ein Test erwartet nach dem Abschalten eines Addon-Akzents jetzt den neuen Standard Blau. Alle 16 Client-Module kompiliert; keine Mixin-Ziele geändert (in den Mixins nur Farbwerte).
 - **Umfärben im Spiel:** Farbwerte im Code per Werkzeug ersetzt (Design-Farben exakt auf die Launcher-Farben, übrige Violett-Töne per Farbton-Drehung von 258° auf 217°); bewusst nicht: die Farbpalette der Einstellungen, die Akzentliste (Lila bleibt), Rollenfarben (Social), das Lumora-Logo. 926 Texturen (Theme-Pakete, Hub-Icons) gleich umgefärbt, Menü-Hintergründe mit `.t/BgGen.java` aus der Launcher-Szene neu erzeugt, Menü-Shader-Farben ersetzt.

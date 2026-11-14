@@ -78,9 +78,11 @@ Weitere CLI-Befehle: `--system-check`, `--install-only [--repair]`, `--launch-te
 
 Mit `LUMORA_HOME=<Ordner>` lässt sich ein separates Datenverzeichnis nutzen, z. B. für CI.
 
-## Microsoft-Anmeldung einrichten (einmalig, für Verteiler)
+## Microsoft-Anmeldung (Azure-App)
 
-Der Launcher enthält bewusst **keine** Client-ID. So geht's:
+Seit 0.3.44 ist Lumoras eigene Anwendungs-ID fest eingebaut (`launcher-core/.../AppIds.java`, keine Einstellung mehr):
+`54473e32-df8f-42e9-a649-9419b0dab9d3`. Sie ist eine öffentliche Client-ID ohne Secret (Browser-Anmeldung mit PKCE).
+So wurde bzw. wird eine solche App eingerichtet, etwa für einen eigenen Build:
 
 1. Im [Azure-Portal](https://portal.azure.com) unter **App-Registrierungen → Neue Registrierung** eine App anlegen.
    - Unterstützte Kontotypen: **Persönliche Microsoft-Konten** (Minecraft-Konten sind Consumer-Konten; der Launcher nutzt den `consumers`-Tenant).
@@ -93,13 +95,15 @@ Der Launcher enthält bewusst **keine** Client-ID. So geht's:
    den Fehler *403 „Invalid app registration, see https://aka.ms/AppRegInfo“*, bis Mojang/Microsoft die App
    freigegeben hat. Den Antrag stellt man über den unter **https://aka.ms/AppRegInfo** beschriebenen Weg.
    Bearbeitungsdauer und Kriterien liegen bei Microsoft.
-4. Client-ID hinterlegen, auf eine der folgenden Arten:
-   - im Launcher: Beim ersten Klick auf *Anmelden* oder *Spielen* öffnet sich der Einrichtungsdialog (oder später unter
-     *Einstellungen → Microsoft-Anmeldung: Azure-Client-ID*), oder
-   - systemweit über die Umgebungsvariable `LUMORA_MS_CLIENT_ID`.
+4. Für einen eigenen Build die Client-ID in `AppIds.MICROSOFT_CLIENT_ID` eintragen.
 
-Ohne freigegebene Client-ID funktionieren Installation, Smoke-Test und alle Diagnosefunktionen. Nur der
+Ist eine Client-ID (noch) nicht freigegeben, funktionieren Installation, Smoke-Test und alle Diagnosefunktionen. Nur der
 Start mit einem Konto ist dann nicht möglich, und der Launcher meldet das verständlich.
+
+## Discord Rich Presence
+
+Auch die Discord-Anwendungs-ID ist fest eingebaut (`AppIds.DISCORD_APP_ID` = `1568277782901948486`), Rich Presence ist immer
+an. Ein Bild namens „lumora“ unter *Rich Presence → Art Assets* der Discord-Anwendung wird als Symbol angezeigt.
 
 ## Fehlermeldungen beim Build
 

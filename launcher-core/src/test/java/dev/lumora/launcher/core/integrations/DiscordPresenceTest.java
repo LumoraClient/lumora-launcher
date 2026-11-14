@@ -2,7 +2,7 @@ package dev.lumora.launcher.core.integrations;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import dev.lumora.launcher.core.config.LauncherConfig;
+import dev.lumora.launcher.core.AppIds;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -69,11 +69,8 @@ class DiscordPresenceTest {
     @Test
     void handshakeThenActivity() throws Exception {
         FakeDiscord fake = new FakeDiscord();
-        DiscordPresence p = new DiscordPresence(() -> fake);
-        LauncherConfig c = new LauncherConfig();
-        c.discordRichPresence = true;
-        c.discordAppId = "123456789012345678";
-        p.update(c, new DiscordPresence.Activity("Minecraft 26.1.2", "Im Launcher", 1_800_000_000L));
+        DiscordPresence p = new DiscordPresence(() -> fake, "123456789012345678");
+        p.update(new DiscordPresence.Activity("Minecraft 26.1.2", "Im Launcher", 1_800_000_000L));
         p.awaitIdle();
         assertEquals(2, fake.frames.size());
         assertEquals(0, fake.ops.get(0)[0], "handshake first");
@@ -86,15 +83,14 @@ class DiscordPresenceTest {
         assertFalse(fake.closed, "the answer with \"evt\": null keeps the connection");
 
         // the next update reuses the connection (no second handshake)
-        p.update(c, new DiscordPresence.Activity("Spielt Minecraft 26.3", "Lumora", 1_800_000_100L));
+        p.update(new DiscordPresence.Activity("Spielt Minecraft 26.3", "Lumora", 1_800_000_100L));
         p.awaitIdle();
         assertEquals(3, fake.frames.size());
         assertEquals(1, fake.ops.get(2)[0]);
         assertFalse(fake.closed);
 
-        // switched off: presence cleared, connection closed
-        c.discordRichPresence = false;
-        p.update(c, null);
+        // launcher closing: presence cleared, connection closed
+        p.update(null);
         p.awaitIdle();
         assertFalse(fake.frames.get(3).getAsJsonObject("args").has("activity"));
         assertTrue(fake.closed);
@@ -109,11 +105,8 @@ class DiscordPresenceTest {
                 return DiscordPresence.encode(DiscordPresence.OP_CLOSE, "{\"code\":4000,\"message\":\"Invalid Client ID\"}");
             }
         };
-        DiscordPresence p = new DiscordPresence(() -> fake);
-        LauncherConfig c = new LauncherConfig();
-        c.discordRichPresence = true;
-        c.discordAppId = "123456789012345678";
-        p.update(c, new DiscordPresence.Activity("x", "y", 0));
+        DiscordPresence p = new DiscordPresence(() -> fake, "123456789012345678");
+        p.update(new DiscordPresence.Activity("x", "y", 0));
         p.awaitIdle();
         assertEquals(1, fake.frames.size(), "no activity after the refused handshake");
         assertTrue(fake.closed);
@@ -130,19 +123,20 @@ class DiscordPresenceTest {
     }
 
     @Test
-    void nothingWithoutAppIdOrDiscord() throws Exception {
-        FakeDiscord fake = new FakeDiscord();
-        DiscordPresence p = new DiscordPresence(() -> fake);
-        LauncherConfig c = new LauncherConfig();
-        c.discordRichPresence = true; // but no application ID
-        p.update(c, new DiscordPresence.Activity("x", "y", 0));
-        p.awaitIdle();
-        assertTrue(fake.frames.isEmpty());
-        DiscordPresence none = new DiscordPresence(() -> null); // Discord not running
-        c.discordAppId = "123456789012345678";
-        none.update(c, new DiscordPresence.Activity("x", "y", 0));
+    void nothingWithoutDiscord() throws Exception {
+        DiscordPresence none = new DiscordPresence(() -> null, "123456789012345678"); // Discord not running
+        none.update(new DiscordPresence.Activity("x", "y", 0));
         none.awaitIdle();
         none.close();
+    }
+
+    @Test
+    void lumorasOwnApplicationIdIsUsed() throws Exception {
+        FakeDiscord fake = new FakeDiscord();
+        DiscordPresence p = new DiscordPresence(() -> fake, AppIds.DISCORD_APP_ID);
+        p.update(new DiscordPresence.Activity("Im Launcher", "Lumora", 0));
+        p.awaitIdle();
+        assertEquals(AppIds.DISCORD_APP_ID, fake.frames.get(0).get("client_id").getAsString());
         p.close();
     }
 

@@ -14,8 +14,6 @@ public final class LauncherConfig {
     public static final int MIN_MEMORY_MB = 1024;
     public static final int MAX_MEMORY_MB = 65536;
 
-    /** Azure application (client) IDs are GUIDs. */
-    private static final Pattern GUID = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     public int schemaVersion = CURRENT_SCHEMA;
     /** Data directory; null means the platform default (%APPDATA%\LumoraClient on Windows). */
@@ -38,11 +36,6 @@ public final class LauncherConfig {
     public List<String> enabledExtensions = new ArrayList<>();
     /** Keys of built-in resource packs the player switched off (packs are on by default). */
     public List<String> disabledResourcePacks = new ArrayList<>();
-    /**
-     * Azure AD application (client) ID used for Microsoft sign-in. Must belong to an app registration
-     * that Mojang approved for the Minecraft Services API. Can also be supplied via LUMORA_MS_CLIENT_ID.
-     */
-    public String microsoftClientId;
     public Integer windowWidth;
     public Integer windowHeight;
     public boolean closeLauncherOnGameStart = false;
@@ -119,10 +112,7 @@ public final class LauncherConfig {
     public String notificationLevel = "all";
 
     // --- Integrationen
-    /** Discord Rich Presence (local Discord app over IPC); needs the user's own Discord application ID. */
-    public boolean discordRichPresence = false;
-    /** Discord application ID (a numeric "snowflake") from the Discord Developer Portal. */
-    public String discordAppId;
+    // (Microsoft application ID and Discord Rich Presence are built in, see AppIds; old values in launcher.json are ignored)
     /** Discord shows the server you play on ("auf eineip.de"); off: only "Mehrspieler". */
     public boolean discordShowServer = true;
     /**
@@ -146,7 +136,6 @@ public final class LauncherConfig {
 
     private static final Pattern HEX_COLOR = Pattern.compile("^#[0-9a-fA-F]{6}$");
     private static final Pattern ENV_VAR = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]{0,127}=[^\\r\\n\\x00]{0,4096}$");
-    private static final Pattern SNOWFLAKE = Pattern.compile("^[0-9]{15,21}$");
     private static final Pattern DEBUG_ADDRESS = Pattern.compile("^(localhost|127\\.0\\.0\\.1|\\[::1]):([0-9]{1,5})$");
 
     /** True for a loopback "host:port" with a valid port (debugging never opens a port to the network). */
@@ -160,10 +149,6 @@ public final class LauncherConfig {
         }
         int port = Integer.parseInt(m.group(2));
         return port >= 1 && port <= 65535;
-    }
-
-    public static boolean isValidDiscordAppId(String id) {
-        return id != null && SNOWFLAKE.matcher(id.strip()).matches();
     }
 
     public static boolean isValidEnvironmentVariable(String entry) {
@@ -255,15 +240,6 @@ public final class LauncherConfig {
         }
         disabledResourcePacks = new ArrayList<>(new LinkedHashSet<>(disabledResourcePacks.stream()
                 .filter(k -> k != null && k.matches("[a-z0-9][a-z0-9_.-]{0,63}")).toList()));
-        if (microsoftClientId != null) {
-            microsoftClientId = microsoftClientId.strip();
-            if (microsoftClientId.isEmpty()) {
-                microsoftClientId = null;
-            } else if (!GUID.matcher(microsoftClientId).matches()) {
-                notes.add("microsoftClientId is not a GUID and was cleared");
-                microsoftClientId = null;
-            }
-        }
         if (windowWidth != null && (windowWidth < 640 || windowWidth > 16384)) {
             notes.add("windowWidth out of range, cleared");
             windowWidth = null;
@@ -321,15 +297,6 @@ public final class LauncherConfig {
         if (!List.of("all", "messages", "none").contains(notificationLevel)) {
             notificationLevel = "all";
         }
-        if (discordAppId != null) {
-            discordAppId = discordAppId.strip();
-            if (discordAppId.isEmpty() || !isValidDiscordAppId(discordAppId)) {
-                if (!discordAppId.isEmpty()) {
-                    notes.add("discordAppId is not a Discord ID and was cleared");
-                }
-                discordAppId = null;
-            }
-        }
         if (!List.of("off", "listen", "attach").contains(debugMode)) {
             debugMode = "off";
         }
@@ -349,10 +316,6 @@ public final class LauncherConfig {
             }
         }
         return notes;
-    }
-
-    public static boolean isValidClientId(String id) {
-        return id != null && GUID.matcher(id.strip()).matches();
     }
 
     /** How one instance runs: in the standard folder or its own, Lumora settings shared or only its own. */

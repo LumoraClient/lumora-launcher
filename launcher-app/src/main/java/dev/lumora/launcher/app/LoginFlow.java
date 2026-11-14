@@ -61,22 +61,6 @@ final class LoginFlow {
         userCancelled.set(true);
     }
 
-    /**
-     * Ensures a client ID exists when an interactive login or a token refresh may be needed. EDT only.
-     *
-     * @return false if the user closed the setup dialog
-     */
-    boolean ensureClientId() {
-        if (PlayService.effectiveClientId(ctx.config) != null) {
-            return true;
-        }
-        MinecraftSession stored = ctx.play.storedSession();
-        if (stored != null && stored.accessTokenValid(Instant.now())) {
-            return true;
-        }
-        return showClientIdSetup(owner, ctx);
-    }
-
     /** The interactive part used by {@link PlayService}; runs on the worker thread. */
     PlayService.InteractiveLogin interactive() {
         return (auth, cancelled) -> {
@@ -172,70 +156,5 @@ final class LoginFlow {
         } catch (IOException e) {
             Log.warn("Could not open browser: " + e.getMessage());
         }
-    }
-
-    /** One-time setup of the Azure application (client) ID. Returns true when a valid ID was saved. EDT only. */
-    static boolean showClientIdSetup(JFrame owner, AppContext ctx) {
-        JDialog d = new JDialog(owner, "Microsoft-Anmeldung einrichten", true);
-        JPanel p = new JPanel(new BorderLayout(0, 12));
-        p.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
-        JLabel intro = new JLabel("<html><body style='width:520px'>"
-                + "<b>Einmalige Einrichtung.</b> Microsoft erlaubt die Minecraft-Anmeldung nur über eine "
-                + "registrierte App. Jeder Launcher braucht dafür eine eigene <b>Anwendungs-ID (Client-ID)</b>, "
-                + "die Mojang für Minecraft freigeschaltet hat.<br><br>"
-                + "<b>So bekommst du eine:</b><ol>"
-                + "<li>Im Azure-Portal mit deinem Microsoft-Konto anmelden → <i>App-Registrierungen</i> → <i>Neue Registrierung</i>.</li>"
-                + "<li>Kontotyp: <i>Nur persönliche Microsoft-Konten</i>.</li>"
-                + "<li>Umleitungs-URI: Plattform <i>Öffentlicher Client/nativ (mobil &amp; Desktop)</i>, Wert <code>http://localhost</code>.</li>"
-                + "<li>Unter <i>Authentifizierung</i>: <i>Öffentliche Clientflows zulassen</i> = Ja.</li>"
-                + "<li>Freischaltung für die Minecraft-API beantragen (Infos: aka.ms/AppRegInfo). Bis zur Freigabe "
-                + "lehnt Minecraft die Anmeldung mit „HTTP 403“ ab.</li>"
-                + "<li>Die <i>Anwendungs-ID</i> (Format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) hier eintragen.</li>"
-                + "</ol>Die ID ist kein Passwort. Einmal eingetragen, meldest du dich danach ganz normal im Browser an."
-                + "</body></html>");
-        p.add(intro, BorderLayout.NORTH);
-        JTextField field = new JTextField(ctx.config.microsoftClientId != null ? ctx.config.microsoftClientId : "");
-        field.putClientProperty("JTextField.placeholderText", "Anwendungs-ID (Client-ID)");
-        JPanel mid = new JPanel(new GridLayout(2, 1, 0, 6));
-        mid.add(new JLabel("Anwendungs-ID (Client-ID):"));
-        mid.add(field);
-        p.add(mid, BorderLayout.CENTER);
-        boolean[] saved = {false};
-        JButton portal = new JButton("Azure-Portal öffnen");
-        portal.addActionListener(e -> openBrowser(URI.create(
-                "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade")));
-        JButton info = new JButton("Infos zur Freischaltung");
-        info.addActionListener(e -> openBrowser(URI.create("https://aka.ms/AppRegInfo")));
-        JButton save = new JButton("Speichern & anmelden");
-        save.addActionListener(e -> {
-            String id = field.getText().strip();
-            if (!LauncherConfig.isValidClientId(id)) {
-                JOptionPane.showMessageDialog(d, "Das ist keine gültige Anwendungs-ID.\nFormat: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-                        BuildInfo.NAME, JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            ctx.config.microsoftClientId = id;
-            try {
-                ctx.saveConfig();
-            } catch (IOException ex) {
-                Log.warn("Could not save client id", ex);
-            }
-            saved[0] = true;
-            d.dispose();
-        });
-        JButton cancel = new JButton("Abbrechen");
-        cancel.addActionListener(e -> d.dispose());
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttons.add(portal);
-        buttons.add(info);
-        buttons.add(save);
-        buttons.add(cancel);
-        p.add(buttons, BorderLayout.SOUTH);
-        d.setContentPane(p);
-        d.getRootPane().setDefaultButton(save);
-        d.pack();
-        d.setLocationRelativeTo(owner);
-        d.setVisible(true);
-        return saved[0];
     }
 }

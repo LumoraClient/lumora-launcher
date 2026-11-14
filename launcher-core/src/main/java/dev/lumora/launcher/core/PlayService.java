@@ -94,12 +94,9 @@ public final class PlayService {
         return Optional.ofNullable(running.get()).filter(GameProcess::isAlive);
     }
 
+    /** Lumora's built-in Azure application ID (see AppIds). */
     public static String effectiveClientId(LauncherConfig config) {
-        String env = System.getenv("LUMORA_MS_CLIENT_ID");
-        if (config.microsoftClientId != null) {
-            return config.microsoftClientId;
-        }
-        return LauncherConfig.isValidClientId(env) ? env.strip() : null;
+        return AppIds.MICROSOFT_CLIENT_ID;
     }
 
     /**

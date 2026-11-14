@@ -327,10 +327,6 @@ final class LauncherWindow implements PageHost {
                 nav.setIconsOnly(ctx.config.navIconsOnly);
             }
 
-            @Override
-            public boolean clientIdHelp() {
-                return LoginFlow.showClientIdSetup(frame, ctx);
-            }
         });
         pageHost.add(settingsPage, "settings");
         // reachable from Einstellungen → Fehlersuche (no own navigation item)
@@ -839,7 +835,7 @@ final class LauncherWindow implements PageHost {
 
     /**
      * Discord shows "Im Launcher" or what the game does: "Lumora 26.3" / "auf eineip.de" (from the status file the Lumora
-     * game writes; older clients and Vanilla: only the version). Only with Rich Presence on and an application ID.
+     * game writes; older clients and Vanilla: only the version). Always on with Lumora's own application ID (AppIds).
      */
     private void updateDiscord() {
         dev.lumora.launcher.core.integrations.DiscordPresence.Activity a;
@@ -855,7 +851,7 @@ final class LauncherWindow implements PageHost {
             lastGameStatus = null;
             a = new dev.lumora.launcher.core.integrations.DiscordPresence.Activity("Im Launcher", "Lumora " + BuildInfo.VERSION, launcherStarted);
         }
-        discord.update(ctx.config, a);
+        discord.update(a);
     }
 
     private static dev.lumora.launcher.core.integrations.GameStatus gameStatus(dev.lumora.launcher.core.launch.GameProcess game) {
@@ -865,9 +861,6 @@ final class LauncherWindow implements PageHost {
 
     /** Timer: updates Discord when the running game moved between menu, world and server. */
     private void pollGameStatus() {
-        if (!ctx.config.discordRichPresence) {
-            return;
-        }
         dev.lumora.launcher.core.integrations.GameStatus now = ctx.play.runningGame().map(LauncherWindow::gameStatus).orElse(null);
         if (!java.util.Objects.equals(now, lastGameStatus)) {
             updateDiscord();
@@ -1087,10 +1080,6 @@ final class LauncherWindow implements PageHost {
             return;
         }
         LoginFlow flow = new LoginFlow(frame, ctx);
-        if (PlayService.effectiveClientId(ctx.config) == null && !LoginFlow.showClientIdSetup(frame, ctx)) {
-            busy.set(false);
-            return;
-        }
         currentLogin = flow;
         statusLabel.setText("Anmeldung im Browser …");
         worker.submit(() -> {
@@ -1155,11 +1144,6 @@ final class LauncherWindow implements PageHost {
         ProfileCatalog.Profile profile = ctx.selectedProfile();
         dev.lumora.launcher.core.profile.Flavor flavor = currentFlavor();
         LoginFlow flow = new LoginFlow(frame, ctx);
-        // Ask for the client ID now (before the long install), but only if a sign-in may actually be needed.
-        if (!flow.ensureClientId()) {
-            busy.set(false);
-            return;
-        }
         currentLogin = flow;
         setPlay("Vorbereiten …", false);
         progress.setVisible(true);

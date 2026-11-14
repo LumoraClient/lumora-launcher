@@ -2,7 +2,6 @@ package dev.lumora.launcher.core.integrations;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import dev.lumora.launcher.core.config.LauncherConfig;
 import dev.lumora.launcher.core.util.Log;
 
 import java.io.Closeable;
@@ -25,7 +24,7 @@ import java.util.concurrent.Executors;
  * Discord Rich Presence over the local Discord app's IPC socket (named pipe {@code \\.\pipe\discord-ipc-N} on Windows,
  * Unix socket {@code discord-ipc-N} elsewhere), the protocol Discord documents for its Game SDK / RPC:
  * frames of {@code [opcode int32 LE][length int32 LE][JSON]}, opcode 0 = handshake, 1 = command.
- * Needs the user's own Discord application ID; nothing leaves the computer except to the local Discord app. Errors
+ * Uses Lumora's own Discord application ID (AppIds, always on); nothing leaves the computer except to the local Discord app. Errors
  * (Discord not running) are logged once and never reach the UI.
  */
 public final class DiscordPresence implements Closeable {
@@ -51,23 +50,23 @@ public final class DiscordPresence implements Closeable {
         return t;
     });
     private final java.util.function.Supplier<Transport> connector;
+    private final String appId;
     private Transport transport;
     private String connectedId;
     private boolean warned;
 
     public DiscordPresence() {
-        this(DiscordPresence::openLocal);
+        this(DiscordPresence::openLocal, dev.lumora.launcher.core.AppIds.DISCORD_APP_ID);
     }
 
-    DiscordPresence(java.util.function.Supplier<Transport> connector) {
+    DiscordPresence(java.util.function.Supplier<Transport> connector, String appId) {
         this.connector = connector;
+        this.appId = appId;
     }
 
-    /** Shows the activity if Rich Presence is on and configured, else clears it. Asynchronous. */
-    public void update(LauncherConfig config, Activity activity) {
-        boolean on = config.discordRichPresence && LauncherConfig.isValidDiscordAppId(config.discordAppId);
-        String appId = on ? config.discordAppId.strip() : null;
-        io.submit(() -> apply(appId, on ? activity : null));
+    /** Shows the activity, or clears it with {@code null}. Asynchronous. */
+    public void update(Activity activity) {
+        io.submit(() -> apply(activity == null ? null : appId, activity));
     }
 
     private void apply(String appId, Activity activity) {

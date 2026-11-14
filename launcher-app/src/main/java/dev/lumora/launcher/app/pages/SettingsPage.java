@@ -60,10 +60,7 @@ public final class SettingsPage extends JPanel {
 
         void memoryChanged();
 
-        /** Microsoft app-id setup dialog; true when an id was entered. */
-        boolean clientIdHelp();
-
-        /** Discord Rich Presence switched or its application ID changed. */
+        /** A Discord Rich Presence setting changed (what it shows). */
         void discordChanged();
 
         /** Looks for a new launcher version on GitHub Releases (shows the result). */
@@ -692,59 +689,15 @@ public final class SettingsPage extends JPanel {
         add("Chat", Icons.Kind.CHAT, "Benachrichtigungen", "Worüber dich der Launcher benachrichtigt, während sein Fenster im Hintergrund ist: "
                 + "Nachrichten, Anfragen und Hinweise oder nur Nachrichten.", false, level);
 
-        // --- Integrationen
-        JTextField discordId = field(cfg.discordAppId, "Discord-Anwendungs-ID", 16);
-        ToggleSwitch discord = new ToggleSwitch(cfg.discordRichPresence);
-        onCommit(discordId, s -> {
-            if (s.isEmpty() || LauncherConfig.isValidDiscordAppId(s)) {
-                String before = cfg.discordAppId;
-                cfg.discordAppId = s.isEmpty() ? null : s;
-                if (!java.util.Objects.equals(before, cfg.discordAppId)) {
-                    save();
-                    hooks.discordChanged();
-                }
-            } else {
-                host.error("Discord-Anwendungs-ID", "Die Anwendungs-ID ist eine Zahl mit 17 bis 20 Ziffern "
-                        + "(Discord Developer Portal → Applications → General Information).");
-            }
-        });
-        discord.onChange(on -> {
-            cfg.discordRichPresence = on;
-            save();
-            hooks.discordChanged();
-            if (on && !LauncherConfig.isValidDiscordAppId(cfg.discordAppId)) {
-                JOptionPane.showMessageDialog(host.frame(), "Trage noch die Anwendungs-ID deiner Discord-Anwendung ein\n"
-                        + "(kostenlos im Discord Developer Portal anlegen). Ein Bild namens „lumora“ unter Rich Presence → Art Assets\n"
-                        + "wird als Symbol angezeigt.", "Discord Rich Presence", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-        add("Integrationen", Icons.Kind.DISCORD, "Discord Rich Presence", "Zeigt in Discord, ob du im Launcher bist oder was du spielst, "
-                + "z. B. „Lumora 26.3 auf eineip.de“ mit der Zeit seit dem Beitritt. Läuft nur über die Discord-App auf diesem PC, "
-                + "mit deiner eigenen Anwendungs-ID.", false, row(discordId, discord));
+        // --- Integrationen (Discord Rich Presence is always on with Lumora's own application ID, see AppIds)
         ToggleSwitch discordServer = toggle(cfg.discordShowServer, on -> cfg.discordShowServer = on);
         discordServer.onChange(on -> hooks.discordChanged());
-        add("Integrationen", Icons.Kind.SERVER, "Server in Discord zeigen", "Zeigt in Discord die Adresse des Servers, auf dem du spielst. "
-                + "Ausgeschaltet steht dort nur „Mehrspieler“.", false, discordServer);
+        add("Integrationen", Icons.Kind.DISCORD, "Server in Discord zeigen", "Discord zeigt über die Discord-App auf diesem PC, ob du "
+                + "im Launcher bist oder was du spielst, z. B. „Lumora 26.3 auf eineip.de“. Ausgeschaltet steht dort statt der "
+                + "Serveradresse nur „Mehrspieler“.", false, discordServer);
         add("Integrationen", Icons.Kind.CHART, "Anonyme Launcherstatistiken", "Würde anonyme Angaben wie Betriebssystem und Version teilen. "
                 + "Es gibt noch keinen Lumora-Statistikserver: Auch eingeschaltet wird nichts gesendet.", false,
                 toggle(cfg.anonymousStats, on -> cfg.anonymousStats = on));
-        JTextField id = field(cfg.microsoftClientId, "Anwendungs-ID (GUID)", 17);
-        onCommit(id, s -> {
-            if (s.isEmpty() || LauncherConfig.isValidClientId(s)) {
-                cfg.microsoftClientId = s.isEmpty() ? null : s;
-                save();
-            } else {
-                host.error("Ungültige Anwendungs-ID", "Die Anwendungs-ID muss eine GUID sein (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).");
-            }
-        });
-        JButton help = button("Einrichtungshilfe");
-        help.addActionListener(e -> {
-            if (hooks.clientIdHelp()) {
-                id.setText(cfg.microsoftClientId);
-            }
-        });
-        add("Integrationen", Icons.Kind.LOCK, "Microsoft-Anmeldung: Anwendungs-ID",
-                "Eigene, von Mojang freigeschaltete Azure-App für die Anmeldung (siehe Einrichtungshilfe).", true, row(id, help));
         add("Integrationen", Icons.Kind.GLOBE, "Minecraft-Neuigkeiten", "News und Patch Notes kommen von Mojangs Launcher-Inhalten "
                 + "(launchercontent.mojang.com), Spielerzahlen der Server-Liste direkt von den Servern. Es werden keine Daten über dich gesendet.",
                 false, Ui.label("", 1, Font.PLAIN, Theme.MUTED));

@@ -402,8 +402,7 @@ public final class MicrosoftAuthenticator {
     private void requireClientId() throws AuthException {
         if (clientId == null || clientId.isBlank()) {
             throw new AuthException(AuthException.Reason.NOT_CONFIGURED,
-                    "Es ist keine Azure-App-ID (Client-ID) für die Microsoft-Anmeldung konfiguriert. "
-                            + "Trage sie in den Einstellungen ein oder setze LUMORA_MS_CLIENT_ID (siehe docs/BUILD.md).");
+                    "Es ist keine Azure-App-ID (Client-ID) für die Microsoft-Anmeldung vorhanden (eingebaut in AppIds).");
         }
     }
 

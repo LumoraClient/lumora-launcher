@@ -54,7 +54,7 @@ class ConfigStoreTest {
                 {"selectedProfile":"does-not-exist","maxMemoryMb":100,"minMemoryMb":99999,
                  "extraJvmArgs":["-Xmx64G","-XX:+UseZGC","","-cp foo"],
                  "enabledExtensions":["modmenu","modmenu","evil"],
-                 "microsoftClientId":"not-a-guid","windowWidth":5}
+                 "microsoftClientId":"not-a-guid","discordRichPresence":false,"windowWidth":5}
                 """);
         ConfigStore.LoadResult r = store().load();
         LauncherConfig c = r.config();
@@ -63,7 +63,6 @@ class ConfigStoreTest {
         assertTrue(c.minMemoryMb <= c.maxMemoryMb);
         assertEquals(List.of("-XX:+UseZGC"), c.extraJvmArgs);
         assertEquals(List.of("modmenu"), c.enabledExtensions);
-        assertNull(c.microsoftClientId);
         assertNull(c.windowWidth);
         assertFalse(r.repairs().isEmpty());
     }
@@ -77,14 +76,6 @@ class ConfigStoreTest {
             assertEquals("26.1.2", c.selectedProfile, old);
             assertTrue(notes.getFirst().contains("is now"), notes.toString());
         }
-    }
-
-    @Test
-    void validClientIdIsKept() {
-        LauncherConfig c = new LauncherConfig();
-        c.microsoftClientId = " 01234567-89ab-cdef-0123-456789ABCDEF ";
-        c.validateAndRepair(List.of("26.1.2"), List.of(), "26.1.2");
-        assertEquals("01234567-89ab-cdef-0123-456789ABCDEF", c.microsoftClientId);
     }
 
     @Test

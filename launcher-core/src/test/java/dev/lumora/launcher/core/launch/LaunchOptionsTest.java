@@ -76,19 +76,15 @@ class LaunchOptionsTest {
         c.selectedFlavor = "rift";
         c.accentColor = "lila";
         c.notificationLevel = "loud";
-        c.discordAppId = "not-a-snowflake";
         c.closeLauncherOnGameStart = true;
         c.debugMode = "remote";
         repaired(c);
         assertEquals("lumora", c.selectedFlavor);
         assertEquals(LauncherConfig.DEFAULT_ACCENT, c.accentColor);
         assertEquals("all", c.notificationLevel);
-        assertNull(c.discordAppId);
         assertEquals("hide", c.afterLaunch, "old minimise setting carries over");
         assertFalse(c.closeLauncherOnGameStart);
         assertEquals("off", c.debugMode);
-        c.discordAppId = " 123456789012345678 ";
-        assertEquals("123456789012345678", repaired(c).discordAppId);
     }
 
     @Test

@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.49 (2026-11-14)
+
+### Im Spiel
+- **Chat-Knöpfe in der Eingabezeile:** Der Emoji-Knopf (und die Knöpfe anderer Addons) sitzt jetzt rechts in der Chat-Eingabezeile statt darüber. Das Textfeld wird um die Knöpfe kürzer, damit langer Text nicht unter einem Knopf verschwindet. Die Emoji-Auswahl öffnet direkt über der Eingabezeile.
+
 ## 0.3.48 (2026-11-14)
 
 ### Im Spiel

@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.49 (2026-11-14):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 598 Unit-Tests ohne Fehler (1 übersprungen). Neu: Chat-Eingabe-Knöpfe liegen in der Eingabezeile (rechts, 12 px hoch), das Textfeld endet 3 px vor dem ersten Knopf und wird wieder breiter, wenn ein Knopf verschwindet. `check-mixins.pl` ohne neue Meldungen (neuer Accessor `TextFieldWidgetAccessor` in 1.8.9/1.12.2).
+- **Smoke-Test mit dem fertigen 0.3.49-Build:** 26.3, 1.16.5 und 1.8.9 bestanden. Neue Prüfung `LUMORA_CHAT_INPUT`: Textfeld 393 statt 423 px breit (zwei Knöpfe: Emoji und Session-Timer); Screenshots zeigen beide Knöpfe rechts in der Eingabezeile und die Emoji-Auswahl darüber. Der Elytra-Schritt setzt den Testspieler in 26.3 jetzt auf den Boden zurück; vorher stürzte er ab und starb vor den Chat-Schritten.
+- **Nicht geprüft:** echte Mausklicks auf die Knöpfe (der Test öffnet die Auswahl per Code), 1.12.2 und 1.17.1 bis 26.2 im Spiel (nur kompiliert), ein Selbst-Update von 0.3.48 auf 0.3.49.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.48 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 597 Unit-Tests ohne Fehler (1 übersprungen). Neu: Freelook (Mausbewegung dreht nur die freie Kamera, 0,15° pro Einheit wie `Entity#turn`, Pitch zwischen -90° und 90°; Halten und Umschalten; dritte Person beim Start, vorige Perspektive beim Ende; F5 und geänderte Ansicht während Freelook; außerhalb einer Welt nichts; Modul anfangs aus). Alle 16 Client-Module kompiliert, `check-mixins.pl` für alle Freelook-Mixins in allen 16 Versionen ohne fehlende Ziele.
 - **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3, 1.16.5, 1.12.2 und 1.8.9 bestanden mit dem neuen Schritt „freelook“ (freie Kamera 180° um den Spieler gedreht). 26.3 und 1.16.5: Spieler bleibt bei 90°/15°, Kamera steht auf 270° wie die freie Kamera; Screenshot 1.16.5 zeigt den Spieler von vorne. 1.8.9: Spieler bleibt bei 0°/70°. Ein erster Lauf fand einen Absturz in 1.8.9 (Umleitung in der statischen Methode `Camera#update` muss statisch sein), behoben und erneut geprüft.

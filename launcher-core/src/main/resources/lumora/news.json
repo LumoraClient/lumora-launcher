@@ -1,6 +1,18 @@
 {
   "news": [
     {
+      "id": "lumora-chat-buttons",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.49",
+      "title": "Chat-Knöpfe in der Eingabezeile",
+      "text": "Der Emoji-Knopf sitzt jetzt rechts in der Chat-Eingabezeile, wie bei LabyMod.",
+      "image": "news-chat-buttons.png",
+      "body": [
+        {"p": "Der Emoji-Knopf von „Emoji Chat“ und die Knöpfe anderer Addons stehen jetzt rechts in der Chat-Eingabezeile statt darüber. Das Textfeld wird um die Knöpfe kürzer, damit langer Text nicht unter einem Knopf verschwindet. Die Emoji-Auswahl öffnet direkt über der Eingabezeile."}
+      ]
+    },
+    {
       "id": "lumora-freelook",
       "date": "2026-11-14",
       "author": "Lumora",

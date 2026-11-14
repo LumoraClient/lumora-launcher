@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.3.45 (2026-11-14)
+
+### Launcher
+- **Quick Play:** Unter „Spiel starten“ stehen die ersten fünf Server aus der Serverliste der gewählten Version (mit ihren Icons); ein Klick startet das Spiel direkt auf dem Server. Abschaltbar unter Erscheinungsbild.
+- **Grafik-Backend** für Minecraft 26.2 und neuer: Standard (Minecraft entscheidet), Vulkan oder OpenGL; wird vor jedem Start gesetzt.
+- **Update-Kanal** Stabil oder Vorab (Vorabversionen des Launchers, ebenfalls nur mit gültiger Signatur).
+- **Ingame-Erlebnis anpassen:** Lumora-Design oder Minecraft-Stil für die Menüs im Spiel, gilt beim nächsten Start jeder Version.
+- **Ausgewählten Patch merken:** pro Hauptversion die zuletzt gewählte Unterversion, auch nach einem Neustart.
+- **Speicher:** Grenze des Download-Caches (Standard 8 GB) und „Spiel-Logs aufbewahren für“ (eigene Instanzen; `.minecraft` bleibt unverändert).
+- **Fehlersuche:** Thread-Dump bei Hänger (Bericht unter Abstürze), Lumora-Client-Einstellungen zurücksetzen (mit Sicherung) und Instanzen von Festplatte wiederherstellen.
+
 ## 0.3.44 (2026-11-14)
 
 ### Launcher

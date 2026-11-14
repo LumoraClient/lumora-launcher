@@ -1,6 +1,28 @@
 {
   "news": [
     {
+      "id": "lumora-quick-play",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.45",
+      "title": "Quick Play und neue Einstellungen",
+      "text": "Mit einem Klick auf deinen Lieblingsserver – und dazu Vulkan oder OpenGL, ein Update-Kanal und mehr.",
+      "image": "news-quick-play.png",
+      "body": [
+        {"p": "Unter „Spiel starten“ zeigt die Quick-Play-Leiste die ersten fünf Server aus der Serverliste deiner Version, mit ihren Icons. Ein Klick startet Minecraft und verbindet direkt."},
+        {"p": "Neu in den Einstellungen:"},
+        {"list": [
+          "Grafik-Backend für Minecraft 26.2 und neuer: Standard, Vulkan oder OpenGL",
+          "Update-Kanal Stabil oder Vorab",
+          "Ingame-Erlebnis anpassen: Lumora-Design oder Minecraft-Stil",
+          "Ausgewählten Patch merken, z. B. 1.21.8 bei 1.21",
+          "Grenze des Download-Caches und automatisches Löschen alter Spiel-Logs",
+          "Fehlersuche: Thread-Dump bei Hänger, Lumora-Client-Einstellungen zurücksetzen, Instanzen wiederherstellen"
+        ]},
+        {"p": "Quick Play lässt sich unter Einstellungen › Erscheinungsbild ausschalten."}
+      ]
+    },
+    {
       "id": "lumora-builtin-ids",
       "date": "2026-11-14",
       "author": "Lumora",

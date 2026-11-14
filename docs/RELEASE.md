@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.45 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 559 Unit-Tests ohne Fehler (1 übersprungen). Neu: Grafik-Backend (nur ab 26.2, Wert ersetzen/anlegen, „Standard“ lässt die Datei in Ruhe), Download-Cache-Grenze und Log-Aufbewahrung, Thread-Dump bei Hänger (einmal pro Hänger, neu scharf nach dem nächsten Tick), Lumora-Einstellungen zurücksetzen (als Sicherung) und Instanzen wiederherstellen, Update-Kanal „Vorab“ (Vorabversionen ja, Entwürfe nie) gegen einen lokalen Testserver. Alle 16 Client-Module kompiliert; im Spiel nur lumora-core (HangWatchdog, aus ohne `-Dlumora.hangDump`).
+- **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3 mit Grafik-Backend „Vulkan“ bestanden, `options.txt` vom Launcher auf `preferredGraphicsBackend:"vulkan"` gesetzt, Minecraft meldet „Using graphics backend Vulkan“; ebenso mit „OpenGL“ („Using graphics backend OpenGL“). Startseite offscreen gerendert: Quick-Play-Leiste mit den Servern und Favicons aus der Serverliste; Einstellungen › Spiel und Speicher mit den neuen Zeilen.
+- **Smoke-Test mit dem fertigen 0.3.45-Build:** 26.3 – bestanden.
+- **Nicht geprüft:** ein Klick auf einen Quick-Play-Server; die Rückfrage-Dialoge (Zurücksetzen, Ingame-Erlebnis); der Thread-Dump bei einem echten Hänger im Spiel; der Update-Kanal „Vorab“ gegen GitHub (es gibt noch keine Vorabversion); ein echtes Selbst-Update von 0.3.44 auf 0.3.45.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.44 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 550 Unit-Tests ohne Fehler (1 übersprungen). Neu: Format der eingebauten IDs (`AppIdsTest`), Discord bekommt Lumoras eigene Anwendungs-ID; der Test für eine gespeicherte Client-ID entfällt. Nur Launcher geändert, keine Client-Module.
 - **Vor dem Release:** Einstellungen › Integrationen offscreen gerendert: nur noch „Server in Discord zeigen“ und die übrigen Punkte, keine Felder für Anwendungs-IDs.

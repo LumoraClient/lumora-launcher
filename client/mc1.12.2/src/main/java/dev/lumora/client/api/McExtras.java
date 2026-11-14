@@ -457,6 +457,11 @@ final class McExtras implements GameExtras {
     }
 
     @Override
+    public dev.lumora.core.extras.light.LightProbe lightProbe() {
+        return dev.lumora.client.render.LightOverlayProbe.INSTANCE;
+    }
+
+    @Override
     public int[] guiSize() {
         var screen = mc().currentScreen;
         return screen == null ? null : new int[]{screen.width, screen.height};

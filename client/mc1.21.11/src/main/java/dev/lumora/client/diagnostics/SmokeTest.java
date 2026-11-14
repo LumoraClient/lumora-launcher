@@ -69,6 +69,8 @@ public final class SmokeTest {
     private Boolean labyVoiceBefore;
     private dev.lumora.core.RegistrationTracker nameTagPreview;
     private final List<String> extraProblems = new ArrayList<>();
+    /** Pitch of the player before the light overlay step looks at the ground. */
+    private float lightPitch;
 
     /**
      * Three client-side preview players in front of the camera (idle, speaking, muted) for the name tag icons;
@@ -503,7 +505,30 @@ public final class SmokeTest {
                 worldStep++;
                 ticks = 0;
             }
-        } else if (worldStep == modes.length + 12 && ticks >= 5) {
+        } else if (worldStep == modes.length + 12) {
+            // module "Light Block Overlay": spawn positions found within the time budget, crosses then numbers
+            if (ticks == 1) {
+                if (mc.player != null) {
+                    lightPitch = mc.player.getXRot();
+                    mc.player.setXRot(70f);
+                    mc.player.xRotO = 70f;
+                }
+                LightOverlaySmoke.start();
+            } else if (ticks == 32) {
+                LightOverlaySmoke.check(extraProblems);
+                screenshot(mc, "light-overlay");
+                LightOverlaySmoke.style("number");
+            } else if (ticks == 38) {
+                screenshot(mc, "light-overlay-number");
+                LightOverlaySmoke.stop();
+                if (mc.player != null) {
+                    mc.player.setXRot(lightPitch);
+                    mc.player.xRotO = lightPitch;
+                }
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 13 && ticks >= 5) {
             phase = Phase.DONE;
             finish(mc);
         }

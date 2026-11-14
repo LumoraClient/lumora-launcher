@@ -30,6 +30,7 @@
     "ChatScreenAccessor",
     "TextFieldWidgetAccessor",
     "BlockOutlineMixin",
+    "LightOverlayMixin",
     "BrowserScreenMixin",
     "ConnectionScreenMixin",
     "WorldLoadScreenMixin",

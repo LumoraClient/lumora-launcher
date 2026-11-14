@@ -290,6 +290,11 @@ public interface GameExtras {
         return null;
     }
 
+    /** World access of the module "Light Block Overlay" (spawnable blocks and their light), or null if not supported. */
+    default dev.lumora.core.extras.light.LightProbe lightProbe() {
+        return null;
+    }
+
     /** Packs a block position into one long (26 bits x/z, 12 bits y), like Minecraft's BlockPos#asLong. */
     static long pack(int x, int y, int z) {
         return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);

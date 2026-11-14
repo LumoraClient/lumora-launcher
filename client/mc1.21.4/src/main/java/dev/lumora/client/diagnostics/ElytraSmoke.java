@@ -34,12 +34,16 @@ final class ElytraSmoke {
         });
     }
 
+    /** Where the player stood before the launch (null: not launched). */
+    private static double[] ground;
+
     /** Lifts the player and looks slightly down; the camera goes in front of the player. */
     static void launch(Minecraft mc) {
         LocalPlayer p = mc.player;
         if (p == null) {
             return;
         }
+        ground = new double[]{p.getX(), p.getY(), p.getZ()};
         p.setPos(p.getX(), p.getY() + 40, p.getZ());
         p.setXRot(15f);
         p.xRotO = 15f;
@@ -87,5 +91,22 @@ final class ElytraSmoke {
             mc.player.stopFallFlying();
         }
         giveElytra(mc, false);
+        // back on the ground: stopping the glide 40 blocks up would kill the test player before the next steps
+        double[] g = ground;
+        ground = null;
+        var server = mc.getSingleplayerServer();
+        if (g != null && server != null && mc.player != null) {
+            var uuid = mc.player.getUUID();
+            mc.player.setDeltaMovement(0, 0, 0);
+            server.execute(() -> {
+                var sp = server.getPlayerList().getPlayer(uuid);
+                if (sp != null) {
+                    sp.stopFallFlying();
+                    sp.setDeltaMovement(0, 0, 0);
+                    sp.teleportTo(g[0], g[1], g[2]);
+                    sp.fallDistance = 0;
+                }
+            });
+        }
     }
 }

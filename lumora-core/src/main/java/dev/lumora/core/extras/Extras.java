@@ -15,7 +15,7 @@ import java.util.List;
 public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
             "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign", "lumora-armor",
-            dev.lumora.core.camera.FreelookModule.ID);
+            dev.lumora.core.camera.FreelookModule.ID, dev.lumora.core.extras.light.LightOverlayModule.ID);
 
     private Extras() {
     }
@@ -60,6 +60,11 @@ public final class Extras {
                         "Look all around the player in third person with a held key, without changing where you walk",
                         dev.lumora.core.camera.FreelookModule.class),
                         () -> new dev.lumora.core.camera.FreelookModule(platform::extras)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.extras.light.LightOverlayModule.ID, "Light Block Overlay",
+                        "Marks blocks where hostile mobs can spawn: red now, yellow at night; cross, number, tile or marker",
+                        dev.lumora.core.extras.light.LightOverlayModule.class),
+                        () -> new dev.lumora.core.extras.light.LightOverlayModule(() -> platform.extras().lightProbe(),
+                                platform.minecraftVersion())),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-statusbars", "Hotbar & Status Bars",
                         "Hotbar, hearts, armor, hunger, air and experience as separate widgets: move freely, vanilla, compact, bar or number",
                         StatusBarsModule.class),

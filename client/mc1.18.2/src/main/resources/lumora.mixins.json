@@ -33,6 +33,7 @@
     "ChatComponentAccessor",
     "ChatScreenAccessor",
     "BlockOutlineMixin",
+    "LightOverlayMixin",
     "ElytraTrailMixin",
     "BrowserScreenMixin",
     "ConnectionScreenMixin",

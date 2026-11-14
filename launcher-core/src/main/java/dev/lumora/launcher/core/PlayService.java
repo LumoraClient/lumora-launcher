@@ -130,6 +130,12 @@ public final class PlayService {
         try {
             setState(listener, State.INSTALLING, "Prüfe Installation…");
             ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
+            try {
+                // render backend of 26.2+ (Einstellungen › Spiel › Grafik-Backend; "default" leaves options.txt alone)
+                dev.lumora.launcher.core.launch.GraphicsBackend.apply(prepared.gameDir(), profile.minecraftVersion, config.graphicsBackend);
+            } catch (IOException e) {
+                Log.warn("Could not set the graphics backend: " + e.getMessage());
+            }
             if (flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA) {
                 dev.lumora.launcher.core.install.GameThemeSeeder.seed(prepared.layout().lumoraDir(), config);
             }
@@ -153,6 +159,10 @@ public final class PlayService {
             // Lumora settings and addons: shared by all versions or the instance's own (InstanceLayout)
             sysProps.add("-Dlumora.dir=" + prepared.layout().lumoraDir().toAbsolutePath());
             sysProps.add("-Dlumora.instanceDir=" + prepared.layout().versionDir().toAbsolutePath());
+            if (config.hangDump) {
+                // the game writes the stack traces of all threads when its client thread hangs (crash-reports/lumora-hang-*.txt)
+                sysProps.add("-Dlumora.hangDump=true");
+            }
             sysProps.add("-Dlumora.diagnosticsDir=" + paths.diagnostics().toAbsolutePath());
             // the game reports menu / singleplayer / server there (Discord Rich Presence); a stale file of the last run goes first
             Path statusFile = dev.lumora.launcher.core.integrations.GameStatus.file(prepared.layout().versionDir());

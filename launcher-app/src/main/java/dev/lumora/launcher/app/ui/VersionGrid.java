@@ -91,6 +91,19 @@ public final class VersionGrid extends JPanel {
         return p.length >= 2 ? p[0] + "." + p[1] : version;
     }
 
+    /**
+     * Patches chosen before (family -> profile id, Einstellungen › Spiel › "Ausgewählten Patch merken"): clicking such a
+     * family's card picks that patch again. Unknown ids are ignored; call before {@link #setSelected}.
+     */
+    public void remember(Map<String, String> lastPatch) {
+        lastPatch.forEach((family, id) -> {
+            List<Version> vs = families.get(family);
+            if (vs != null && vs.stream().anyMatch(v -> v.id().equals(id))) {
+                lastInFamily.put(family, id);
+            }
+        });
+    }
+
     public void setSelected(String id) {
         selected = id;
         for (Map.Entry<String, List<Version>> f : families.entrySet()) {

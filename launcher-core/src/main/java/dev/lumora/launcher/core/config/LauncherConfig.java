@@ -40,6 +40,8 @@ public final class LauncherConfig {
     public Integer windowHeight;
     public boolean closeLauncherOnGameStart = false;
     public boolean checkForUpdates = true;
+    /** Launcher updates also from pre-releases on GitHub (channel "Vorab"); off: only stable releases. */
+    public boolean prereleases = false;
     /**
      * Launcher started directly from its extracted folder (pinned taskbar icon, own shortcut) still updates itself,
      * and a pin of the launcher window starts LumoraClient.exe. Off: only a start through LumoraClient.exe updates.
@@ -60,10 +62,16 @@ public final class LauncherConfig {
     public boolean minimizeToTray = false;
     /** Files downloaded at the same time (1-16, applies after a restart). */
     public int parallelDownloads = 8;
+    /** Download cache (cache/mods) limit in GB; the oldest files go first when it is exceeded. 0 = no limit. */
+    public int downloadCacheGb = 8;
+    /** Game logs (logs/*.log.gz) of own instances older than this many days are deleted at launcher start; 0 = keep. */
+    public int logRetentionDays = 0;
     /** Page shown when the launcher opens: home, news, servers or social. */
     public String startPage = "home";
     /** Changelog also lists Minecraft snapshots (otherwise releases only). */
     public boolean showSnapshots = false;
+    /** Quick Play bar under the play button: the first servers of the selected version's server list. */
+    public boolean quickPlay = true;
     /** User's own servers in the server list (addresses). */
     public List<String> customServers = new ArrayList<>();
 
@@ -89,6 +97,12 @@ public final class LauncherConfig {
     public boolean forceFullscreen = false;
     /** Tuned garbage collector flags (G1, short pauses), unless own JVM arguments choose a collector. */
     public boolean performanceFlags = true;
+    /** Render backend of Minecraft 26.2+ ("default" = Minecraft decides, "vulkan", "opengl"), written to options.txt per start. */
+    public String graphicsBackend = "default";
+    /** Clicking a version family (e.g. 1.21) picks the patch chosen last time (remembered across starts). */
+    public boolean rememberPatch = false;
+    /** Last chosen patch per version family (family -> profile id), with {@link #rememberPatch}. */
+    public java.util.Map<String, String> lastPatch = new java.util.LinkedHashMap<>();
 
     // --- Erscheinungsbild
     /** Accent colour of the launcher, #RRGGBB. */
@@ -126,6 +140,8 @@ public final class LauncherConfig {
     // --- Fehlersuche
     /** Heap dump into the diagnostics folder when the game runs out of memory. */
     public boolean heapDumpOnOom = false;
+    /** Stack traces of all game threads when the game's client thread hangs (crash-reports/lumora-hang-*.txt). */
+    public boolean hangDump = false;
     /** JVM debugging: off, listen (game waits for a debugger) or attach (game connects to a running debugger). */
     public String debugMode = "off";
     /** Debug address host:port, loopback only. */
@@ -254,6 +270,15 @@ public final class LauncherConfig {
         if (installDir != null && installDir.isBlank()) {
             installDir = null;
         }
+        if (!List.of("default", "vulkan", "opengl").contains(graphicsBackend)) {
+            graphicsBackend = "default";
+        }
+        downloadCacheGb = Math.clamp(downloadCacheGb, 0, 256);
+        logRetentionDays = Math.clamp(logRetentionDays, 0, 365);
+        if (lastPatch == null) {
+            lastPatch = new java.util.LinkedHashMap<>();
+        }
+        lastPatch.entrySet().removeIf(e -> e.getKey() == null || e.getValue() == null || !knownProfiles.contains(e.getValue()));
         if (standardGameDir != null && standardGameDir.isBlank()) {
             standardGameDir = null;
         }

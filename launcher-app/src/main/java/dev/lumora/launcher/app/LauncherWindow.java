@@ -155,6 +155,9 @@ final class LauncherWindow implements PageHost {
     private JLabel statVersion;
     private JLabel heroOverline;
     private JPanel heroChips;
+    private JPanel quickPlayBar;
+    private HeroPanel heroPanel;
+    private int quickPlayGeneration;
     private JLabel statRam;
     private JLabel statExtensions;
     private JLabel statUpdates;
@@ -300,6 +303,11 @@ final class LauncherWindow implements PageHost {
                 social.apply();
                 socialPage.refresh();
                 updateSocialBadge();
+            }
+
+            @Override
+            public void homeChanged() {
+                refreshVersionInfo(ctx.selectedProfile());
             }
 
             @Override
@@ -560,8 +568,93 @@ final class LauncherWindow implements PageHost {
         info.setAlignmentX(Component.CENTER_ALIGNMENT);
         info.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         hero.add(info);
+        // Quick Play: the first servers of the selected version's server list, one click joins (filled by refreshQuickPlay)
+        quickPlayBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4)) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g0) {
+                java.awt.Graphics2D g = (java.awt.Graphics2D) g0.create();
+                g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(Theme.alpha(Theme.BG, 190));
+                Theme.fillRound(g, 0, 0, getWidth(), getHeight(), Theme.arc(10), Theme.arc(10));
+                g.setColor(Theme.alpha(Theme.BORDER, 220));
+                Theme.drawRound(g, 0, 0, getWidth() - 1, getHeight() - 1, Theme.arc(10), Theme.arc(10));
+                g.dispose();
+            }
+        };
+        quickPlayBar.setOpaque(false);
+        quickPlayBar.setVisible(false);
+        JPanel quickPlayRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        quickPlayRow.setOpaque(false);
+        quickPlayRow.add(quickPlayBar);
+        quickPlayRow.setAlignmentX(Component.CENTER_ALIGNMENT);
+        hero.add(Box.createVerticalStrut(12));
+        hero.add(quickPlayRow);
+        heroPanel = hero;
         hero.setMaximumSize(new Dimension(Integer.MAX_VALUE, hero.getPreferredSize().height));
         return hero;
+    }
+
+    /**
+     * Fills the Quick Play bar with the first five servers of the selected version's server list (its game folder's
+     * servers.dat, with the favicons Minecraft stored); hidden without servers or when switched off in the settings.
+     */
+    private void refreshQuickPlay() {
+        if (quickPlayBar == null) {
+            return;
+        }
+        int gen = ++quickPlayGeneration;
+        java.nio.file.Path game = ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id));
+        boolean on = ctx.config.quickPlay;
+        pageIo.submit(() -> {
+            List<dev.lumora.launcher.core.library.InstanceLibrary.Server> servers = on
+                    ? dev.lumora.launcher.core.library.InstanceLibrary.servers(game).stream().limit(5).toList() : List.of();
+            List<javax.swing.Icon> icons = new ArrayList<>();
+            for (var s : servers) {
+                javax.swing.Icon icon = Icons.of(Icons.Kind.SERVER, 18, Theme.MUTED);
+                byte[] png = s.iconPng();
+                if (png != null) {
+                    try {
+                        java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(png));
+                        if (img != null) {
+                            icon = new javax.swing.ImageIcon(img.getScaledInstance(20, 20, java.awt.Image.SCALE_SMOOTH));
+                        }
+                    } catch (IOException | RuntimeException ignored) {
+                        // keep the server symbol
+                    }
+                }
+                icons.add(icon);
+            }
+            SwingUtilities.invokeLater(() -> {
+                if (gen != quickPlayGeneration) {
+                    return;
+                }
+                quickPlayBar.removeAll();
+                if (!servers.isEmpty()) {
+                    JLabel title = label("QUICK PLAY", 11, Font.BOLD, Theme.ACCENT_HOVER);
+                    title.setFont(Theme.display(16f, Font.BOLD, 11f));
+                    title.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 8));
+                    quickPlayBar.add(title);
+                    for (int i = 0; i < servers.size(); i++) {
+                        var s = servers.get(i);
+                        String name = s.name().length() > 24 ? s.name().substring(0, 23) + "…" : s.name();
+                        JButton b = new JButton(name, icons.get(i));
+                        b.putClientProperty("JButton.buttonType", "borderless");
+                        b.setFont(Theme.font(Font.BOLD, 12.5f));
+                        b.setForeground(Theme.TEXT);
+                        b.setIconTextGap(7);
+                        b.setFocusable(false);
+                        b.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+                        b.setToolTipText("Direkt auf " + s.address() + " spielen");
+                        b.addActionListener(e -> launch(new LaunchCommandBuilder.QuickPlay(LaunchCommandBuilder.QuickPlay.Kind.MULTIPLAYER, s.address()), false));
+                        quickPlayBar.add(b);
+                    }
+                }
+                quickPlayBar.setVisible(!servers.isEmpty());
+                heroPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, heroPanel.getPreferredSize().height));
+                heroPanel.revalidate();
+                heroPanel.repaint();
+            });
+        });
     }
 
     private JButton heroButton(Icons.Kind icon, String tip, Runnable action) {
@@ -656,6 +749,9 @@ final class LauncherWindow implements PageHost {
             selectProfile(id);
             close.run();
         }, 104, 8);
+        if (ctx.config.rememberPatch) {
+            grid.remember(ctx.config.lastPatch);
+        }
         grid.setSelected(ctx.selectedProfile().id);
         grid.setPlayInfo(playInfo);
         grid.setPreferredSize(new Dimension(3 * 228 + 2 * 8, grid.getMaximumSize().height));
@@ -888,7 +984,7 @@ final class LauncherWindow implements PageHost {
                     heroChips.add(chip("Lumora-UI"));
                 }
             } else {
-                heroChips.add(chip("eigener Spielordner"));
+                heroChips.add(chip(ctx.layout(fl.instanceId(p.id)).own() ? "eigene Instanz" : "Standard-Ordner"));
             }
             heroChips.revalidate();
             heroChips.repaint();
@@ -896,6 +992,7 @@ final class LauncherWindow implements PageHost {
         if (statVersion != null) {
             statVersion.setText(p.minecraftVersion);
         }
+        refreshQuickPlay();
     }
 
     @Override
@@ -905,8 +1002,16 @@ final class LauncherWindow implements PageHost {
         }
         syncingProfile = true;
         try {
-            if (!id.equals(ctx.config.selectedProfile)) {
-                ctx.config.selectedProfile = id;
+            boolean changed = !id.equals(ctx.config.selectedProfile);
+            ctx.config.selectedProfile = id;
+            if (ctx.config.rememberPatch) {
+                // "Ausgewählten Patch merken": this patch is picked again next time its family is chosen
+                String family = ctx.catalog.profile(id).map(p -> VersionGrid.family(p.minecraftVersion)).orElse(null);
+                if (family != null && !id.equals(ctx.config.lastPatch.put(family, id))) {
+                    changed = true;
+                }
+            }
+            if (changed) {
                 saveConfigQuietly();
             }
             ctx.catalog.profile(id).ifPresent(this::refreshVersionInfo);
@@ -1214,6 +1319,8 @@ final class LauncherWindow implements PageHost {
             @Override
             public void gameExited(GameProcess.Exit exit, List<CrashAnalyzer.Hint> hints) {
                 SwingUtilities.invokeLater(LauncherWindow.this::refreshPlayTimes);
+                // servers added in the game appear in Quick Play
+                SwingUtilities.invokeLater(LauncherWindow.this::refreshQuickPlay);
                 if (!exit.crashed()) {
                     return;
                 }
@@ -1385,7 +1492,7 @@ final class LauncherWindow implements PageHost {
         pageIo.submit(() -> {
             try {
                 dev.lumora.launcher.core.update.LauncherUpdate u = new dev.lumora.launcher.core.update.LauncherUpdate();
-                var r = u.check(BuildInfo.VERSION);
+                var r = u.check(BuildInfo.VERSION, ctx.config.prereleases);
                 SwingUtilities.invokeLater(() -> {
                     if (r.isPresent()) {
                         offerLauncherUpdate(u, r.get());

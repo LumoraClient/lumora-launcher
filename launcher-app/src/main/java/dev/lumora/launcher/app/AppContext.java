@@ -75,6 +75,13 @@ public final class AppContext {
         accounts = new AccountStore(bootstrap.authFile().getParent(), os);
         play = new PlayService(paths, installer, accounts, os);
         play.history().setEnabled(config.connectionHistory);
+        // Einstellungen › Speicher: cache limit and old game logs, in the background
+        Thread housekeeping = new Thread(() -> {
+            dev.lumora.launcher.core.storage.Housekeeping.pruneCache(paths.modCache(), config.downloadCacheGb * 1024L * 1024L * 1024L);
+            dev.lumora.launcher.core.storage.Housekeeping.deleteOldLogs(paths, config.logRetentionDays, java.time.Instant.now());
+        }, "housekeeping");
+        housekeeping.setDaemon(true);
+        housekeeping.start();
         Log.info("Lumora launcher started; data=" + paths.root() + ", bundled=" + bundledDir + ", os=" + os);
     }
 

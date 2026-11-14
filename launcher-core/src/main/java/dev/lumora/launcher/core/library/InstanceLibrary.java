@@ -23,7 +23,23 @@ public final class InstanceLibrary {
     public record World(String folder, String name, Instant lastPlayed, GameMode mode, boolean hardcore, Path dir, Path icon) {
     }
 
-    public record Server(String name, String address) {
+    /** @param icon the server's favicon as stored by Minecraft (Base64 PNG, may be null) */
+    public record Server(String name, String address, String icon) {
+        public Server(String name, String address) {
+            this(name, address, null);
+        }
+
+        /** The favicon PNG bytes, or null if there is none or it is invalid. */
+        public byte[] iconPng() {
+            if (icon == null || icon.isBlank() || icon.length() > 200_000) {
+                return null;
+            }
+            try {
+                return java.util.Base64.getDecoder().decode(icon.replace("data:image/png;base64,", "").strip());
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
     }
 
     public record Screenshot(Path file, Instant taken, long size) {
@@ -86,7 +102,8 @@ public final class InstanceLibrary {
                 for (Object o : list) {
                     if (o instanceof Map<?, ?> m && m.get("ip") instanceof String ip && !ip.isBlank()) {
                         Object name = m.get("name");
-                        out.add(new Server(name instanceof String s && !s.isBlank() ? s : ip, ip.strip()));
+                        Object icon = m.get("icon");
+                        out.add(new Server(name instanceof String s && !s.isBlank() ? s : ip, ip.strip(), icon instanceof String i ? i : null));
                     }
                 }
             }

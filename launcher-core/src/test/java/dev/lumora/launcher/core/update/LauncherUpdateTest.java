@@ -85,6 +85,18 @@ class LauncherUpdateTest {
     }
 
     @Test
+    void preReleaseChannelOffersTheNewestIncludingPreReleases() throws Exception {
+        publish("v0.2.0", exe, exe, keys.getPrivate());
+        String stable = new String(files.get("/api/releases/latest"), StandardCharsets.UTF_8);
+        String pre = stable.replace("v0.2.0", "v0.3.0-beta.1").replace("\"prerelease\":false", "\"prerelease\":true");
+        String draft = stable.replace("v0.2.0", "v0.4.0").replace("\"draft\":false", "\"draft\":true");
+        files.put("/api/releases", ("[" + draft + "," + pre + "," + stable + "]").getBytes(StandardCharsets.UTF_8));
+        assertEquals("0.2.0", updater().check("0.1.0").orElseThrow().version(), "stable channel: no pre-release");
+        assertEquals("0.3.0-beta.1", updater().check("0.1.0", true).orElseThrow().version(), "drafts never count");
+        assertTrue(updater().check("0.3.0", true).isEmpty(), "0.3.0 is newer than its beta");
+    }
+
+    @Test
     void installsOnlyANewerSignedRelease() throws Exception {
         publish("v0.2.0", exe, exe, keys.getPrivate());
         Optional<LauncherUpdate.Release> r = updater().check("0.1.0");

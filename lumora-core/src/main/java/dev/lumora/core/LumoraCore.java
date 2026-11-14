@@ -71,6 +71,7 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.connection.ConnectionTracker connections;
     private final dev.lumora.core.hub.ScreenshotWatcher screenshots;
     private final LauncherStatus launcherStatus;
+    private final HangWatchdog hangWatchdog;
     private HudEditorModel editor;
     private dev.lumora.core.social.LumoraSocial social;
     private boolean started;
@@ -119,6 +120,7 @@ public final class LumoraCore implements Lumora {
         this.connections = new dev.lumora.core.connection.ConnectionTracker(events::post, clock);
         this.screenshots = new dev.lumora.core.hub.ScreenshotWatcher(this);
         this.launcherStatus = LauncherStatus.fromSystemProperty(platform::game, platform.minecraftVersion());
+        this.hangWatchdog = HangWatchdog.fromSystemProperty(platform::gameDir, log);
         this.addons = new AddonManager(this, dir.resolve("addons.json"), dir.resolve("addons"));
         this.jarAddons = new dev.lumora.core.addon.JarAddonLoader(platform.addonsDir(), platform.addonParentLoader(), log);
         this.hudEditor = new HudEditor() {
@@ -195,6 +197,9 @@ public final class LumoraCore implements Lumora {
     }
 
     public void tick() {
+        if (hangWatchdog != null) {
+            hangWatchdog.tick();
+        }
         tasks.tick();
         keybinds.tick();
         if (social != null) {

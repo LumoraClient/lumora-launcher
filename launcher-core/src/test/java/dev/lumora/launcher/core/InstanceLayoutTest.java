@@ -127,4 +127,30 @@ class InstanceLayoutTest {
         config.validateAndRepair(List.of("26.3", "1.8.9"), List.of(), "26.3");
         assertEquals(List.of("26.3"), List.copyOf(config.instances.keySet()));
     }
+
+    @Test
+    void resetKeepsTheLumoraSettingsAsBackup() throws Exception {
+        Files.createDirectories(paths.versionData("shared").resolve("config/lumora"));
+        Files.writeString(paths.versionData("shared").resolve("config/lumora-client.json"), "{}");
+        Files.createDirectories(paths.instance("26.3").resolve("config"));
+        Files.createDirectories(paths.instance("26.3").resolve("saves/Welt"));
+        List<Path> kept = InstanceLayout.resetLumoraSettings(paths, java.time.Instant.parse("2026-11-14T12:00:00Z"));
+        assertEquals(2, kept.size());
+        assertFalse(Files.exists(paths.versionData("shared").resolve("config")));
+        assertTrue(kept.stream().allMatch(p -> p.getFileName().toString().startsWith("config.backup-")));
+        assertTrue(Files.isRegularFile(kept.stream().filter(p -> p.startsWith(paths.versionData("shared"))).findFirst().orElseThrow()
+                .resolve("lumora-client.json")));
+        assertTrue(Files.isDirectory(paths.instance("26.3").resolve("saves/Welt")), "worlds stay");
+    }
+
+    @Test
+    void restoreAddsOnlyUnknownInstanceFolders() throws Exception {
+        Files.createDirectories(paths.instance("26.3"));
+        Files.createDirectories(paths.instance("1.8.9"));
+        config.instances.put("26.3", new LauncherConfig.InstanceChoice(false, true));
+        assertEquals(List.of("1.8.9"), InstanceLayout.restoreMissing(paths, config));
+        assertTrue(config.instances.get("1.8.9").own);
+        assertFalse(config.instances.get("26.3").own, "existing choices stay");
+        assertEquals(List.of(), InstanceLayout.restoreMissing(paths, config));
+    }
 }

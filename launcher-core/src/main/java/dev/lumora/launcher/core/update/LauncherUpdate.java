@@ -72,6 +72,30 @@ public final class LauncherUpdate {
 
     /** The latest release if it is newer than {@code currentVersion}; empty when up to date or no release exists. */
     public Optional<Release> check(String currentVersion) throws IOException {
+        return check(currentVersion, false);
+    }
+
+    /**
+     * Like {@link #check(String)}; with {@code prereleases} (channel "Vorab") the newest of the recent releases including
+     * pre-releases. Drafts never count, and every release needs the signed checksums as before.
+     */
+    public Optional<Release> check(String currentVersion, boolean prereleases) throws IOException {
+        if (prereleases) {
+            JsonArray all;
+            try {
+                all = JsonParser.parseString(downloader.fetchString(URI.create(api + "/releases?per_page=20"))).getAsJsonArray();
+            } catch (RuntimeException e) {
+                throw new IOException("Unerwartete Antwort von GitHub: " + e.getMessage());
+            }
+            Release best = null;
+            for (JsonElement e : all) {
+                Release r = e.isJsonObject() ? parse(e.getAsJsonObject(), true) : null;
+                if (r != null && (best == null || compare(r.version(), best.version()) > 0)) {
+                    best = r;
+                }
+            }
+            return best != null && compare(best.version(), currentVersion) > 0 ? Optional.of(best) : Optional.empty();
+        }
         String body;
         try {
             body = downloader.fetchString(URI.create(api + "/releases/latest"));
@@ -96,7 +120,13 @@ public final class LauncherUpdate {
         } catch (RuntimeException e) {
             throw new IOException("Unerwartete Antwort von GitHub: " + e.getMessage());
         }
-        if (o.has("draft") && o.get("draft").getAsBoolean() || o.has("prerelease") && o.get("prerelease").getAsBoolean()) {
+        return parse(o, false);
+    }
+
+    /** Like {@link #parse(String)}; {@code allowPrerelease}: pre-releases count too (drafts never). */
+    static Release parse(JsonObject o, boolean allowPrerelease) throws IOException {
+        if (o.has("draft") && o.get("draft").getAsBoolean()
+                || !allowPrerelease && o.has("prerelease") && o.get("prerelease").getAsBoolean()) {
             return null;
         }
         String tag = str(o, "tag_name");

@@ -63,6 +63,9 @@ public final class SettingsPage extends JPanel {
         /** A Discord Rich Presence setting changed (what it shows). */
         void discordChanged();
 
+        /** Something the home page shows changed (Quick Play, instances). */
+        void homeChanged();
+
         /** Looks for a new launcher version on GitHub Releases (shows the result). */
         void checkLauncherUpdate();
 
@@ -480,6 +483,12 @@ public final class SettingsPage extends JPanel {
         add("Allgemein", Icons.Kind.REFRESH, "Automatische Update-Prüfung",
                 "Sucht beim Start nach neuen Versionen des Launchers und der Ressourcenpakete und fragt vor jeder Änderung.", false,
                 toggle(cfg.checkForUpdates, on -> cfg.checkForUpdates = on));
+        add("Allgemein", Icons.Kind.BOLT, "Update-Kanal", "„Stabil“ ist für fast alle die richtige Wahl. „Vorab“ bietet auch Vorabversionen "
+                        + "des Launchers an, sobald es welche gibt (ebenfalls nur mit gültiger Signatur).", true,
+                Ui.segmented(List.of("stable", "pre"), List.of("Stabil", "Vorab"), cfg.prereleases ? "pre" : "stable", v -> {
+                    cfg.prereleases = v.equals("pre");
+                    save();
+                }));
         ToggleSwitch autostart = new ToggleSwitch(Autostart.enabled());
         autostart.setEnabled(Autostart.supported());
         autostart.onChange(on -> {
@@ -512,6 +521,10 @@ public final class SettingsPage extends JPanel {
         add("Allgemein", Icons.Kind.ARCHIVE, "Limit gleichzeitiger Downloads",
                 "Maximale Anzahl an Dateien, die gleichzeitig heruntergeladen werden. Höhere Werte können Downloads beschleunigen, "
                         + "brauchen aber mehr Bandbreite. Wirkt nach einem Neustart.", true, row(dl, dlSpin));
+        JButton ingame = button("Anpassen");
+        ingame.addActionListener(e -> ingameExperience());
+        add("Allgemein", Icons.Kind.PALETTE, "Ingame-Erlebnis anpassen", "Wählt das Design der Menüs im Spiel: Lumora oder klassisch "
+                + "im Minecraft-Stil (wie im Installer). Gilt beim nächsten Start jeder Version.", false, row(ingame));
 
         // --- Erscheinungsbild
         JComboBox<String> start = new JComboBox<>(new String[]{"Spielen", "Neuigkeiten", "Server", "Freunde"});
@@ -532,6 +545,10 @@ public final class SettingsPage extends JPanel {
         add("Erscheinungsbild", Icons.Kind.LIBRARY, "Minecraft-Snapshots im Changelog",
                 "Zeigt unter „Neuigkeiten → Changelog“ auch die wöchentlichen Snapshots, nicht nur Releases.", false,
                 toggle(cfg.showSnapshots, on -> cfg.showSnapshots = on));
+        ToggleSwitch quick = toggle(cfg.quickPlay, on -> cfg.quickPlay = on);
+        quick.onChange(on -> hooks.homeChanged());
+        add("Erscheinungsbild", Icons.Kind.SERVER, "Quick Play", "Zeigt unter „Spiel starten“ die ersten fünf Server aus der Serverliste "
+                + "der gewählten Version. Ein Klick startet das Spiel direkt auf dem Server.", false, quick);
         add("Erscheinungsbild", Icons.Kind.PALETTE, "Akzentfarbe", "Farbe für Knöpfe, Auswahl und Hervorhebungen in der gesamten "
                 + "Launcher-Oberfläche. Wirkt nach einem Neustart.", false, accentPicker(), true);
         ToggleSwitch pixel = toggle(cfg.pixelStyle, on -> cfg.pixelStyle = on);
@@ -609,6 +626,19 @@ public final class SettingsPage extends JPanel {
         add("Spiel", Icons.Kind.BOLT, "Performance-Verbesserungen", "Optimierter Garbage Collector (G1 mit kurzen Pausen) gegen Ruckler. "
                 + "Wird übersprungen, wenn eigene JVM-Argumente einen anderen Collector wählen.", false,
                 toggle(cfg.performanceFlags, on -> cfg.performanceFlags = on));
+        JComboBox<String> backend = new JComboBox<>(new String[]{"Standard", "Vulkan", "OpenGL"});
+        backend.setSelectedIndex(Math.max(0, dev.lumora.launcher.core.launch.GraphicsBackend.VALUES.indexOf(cfg.graphicsBackend)));
+        backend.setPreferredSize(new Dimension(150, 34));
+        backend.addActionListener(e -> {
+            cfg.graphicsBackend = dev.lumora.launcher.core.launch.GraphicsBackend.VALUES.get(backend.getSelectedIndex());
+            save();
+        });
+        add("Spiel", Icons.Kind.MONITOR, "Grafik-Backend", "Womit Minecraft 26.2 und neuer zeichnet. „Standard“ lässt Minecraft entscheiden "
+                + "(und deine Ingame-Auswahl in Ruhe), Vulkan oder OpenGL wird bei jedem Start gesetzt. Ältere Versionen nutzen immer "
+                + "ihren Standard.", false, backend);
+        add("Spiel", Icons.Kind.CUBE, "Ausgewählten Patch merken", "Merkt sich pro Hauptversion die zuletzt gewählte Unterversion "
+                + "(z. B. 1.21.8 bei 1.21), auch nach einem Neustart. Ein Klick auf die Karte wählt sie dann wieder.", false,
+                toggle(cfg.rememberPatch, on -> cfg.rememberPatch = on));
         JTextField jvm = field(String.join(" ", cfg.extraJvmArgs), "z. B. -XX:+UseZGC", 13);
         onCommit(jvm, s -> {
             cfg.extraJvmArgs = s.isBlank() ? new ArrayList<>() : new ArrayList<>(List.of(s.split("\\s+")));
@@ -652,6 +682,39 @@ public final class SettingsPage extends JPanel {
         }));
         settings.add(new Setting("Speicher", Icons.Kind.HARDDRIVE, "Speicherbelegung",
                 "Java, Download-Cache, Bibliotheken, Welten, Mods, Logs", false, storage, true));
+        JSlider cache = new JSlider(0, 32, Math.min(32, cfg.downloadCacheGb));
+        cache.setOpaque(false);
+        cache.setPreferredSize(new Dimension(150, 24));
+        JSpinner cacheSpin = new JSpinner(new SpinnerNumberModel(cfg.downloadCacheGb, 0, 256, 1));
+        cacheSpin.setPreferredSize(new Dimension(64, 32));
+        cache.addChangeListener(e -> {
+            cacheSpin.setValue(cache.getValue());
+            if (!cache.getValueIsAdjusting()) {
+                cfg.downloadCacheGb = cache.getValue();
+                save();
+            }
+        });
+        cacheSpin.addChangeListener(e -> {
+            int v = (Integer) cacheSpin.getValue();
+            if (v <= 32) {
+                cache.setValue(v);
+            }
+            cfg.downloadCacheGb = v;
+            save();
+        });
+        add("Speicher", Icons.Kind.HARDDRIVE, "Grenze des Download-Caches (GB)", "Heruntergeladene Lumora-Dateien werden einmal "
+                + "zwischengespeichert. Wird die Grenze überschritten, löscht der Launcher beim Start die ältesten (sie werden bei Bedarf "
+                + "neu geladen). 0 = keine Grenze.", false, row(cache, cacheSpin));
+        JComboBox<String> logKeep = new JComboBox<>(new String[]{"Immer behalten", "3 Tage", "7 Tage", "14 Tage", "30 Tage"});
+        List<Integer> logDays = List.of(0, 3, 7, 14, 30);
+        logKeep.setSelectedIndex(Math.max(0, logDays.indexOf(cfg.logRetentionDays)));
+        logKeep.setPreferredSize(new Dimension(170, 34));
+        logKeep.addActionListener(e -> {
+            cfg.logRetentionDays = logDays.get(logKeep.getSelectedIndex());
+            save();
+        });
+        add("Speicher", Icons.Kind.TERMINAL, "Spiel-Logs aufbewahren für", "Ältere Spiel-Logs eigener Instanzen löscht der Launcher beim Start "
+                + "von selbst (latest.log bleibt). Den Standard-Ordner .minecraft lässt er unverändert.", false, logKeep);
 
         // --- Chat (Lumora Social)
         JTextField social = field(cfg.socialServer == null ? "" : Endpoint.display(java.net.URI.create(cfg.socialServer)),
@@ -717,6 +780,9 @@ public final class SettingsPage extends JPanel {
         add("Fehlersuche", Icons.Kind.MEMORY, "Heap-Dump bei Speichermangel", "Schreibt einen Abzug des Spielspeichers in den Diagnose-Ordner, "
                 + "wenn der Speicher ausgeht. Nützlich für Speicherlecks, die Dateien können aber mehrere Gigabyte groß sein.", true,
                 toggle(cfg.heapDumpOnOom, on -> cfg.heapDumpOnOom = on));
+        add("Fehlersuche", Icons.Kind.CHIP, "Thread-Dump bei Hänger", "Reagiert das Spiel 30 Sekunden lang nicht, schreibt Lumora die "
+                + "Stacktraces aller Spiel-Threads als Bericht (Abstürze). Kostet nur wenige Kilobyte Text. Gilt ab dem nächsten Start.", true,
+                toggle(cfg.hangDump, on -> cfg.hangDump = on));
         add("Fehlersuche", Icons.Kind.BUG, "Debug-Modus", "JVM-Debugging für den Minecraft-Prozess. „Lauschen“ wartet beim Start auf einen "
                 + "Debugger, „Anhängen“ verbindet sich mit einem bereits laufenden Debugger.", true,
                 Ui.segmented(List.of("off", "listen", "attach"), List.of("Aus", "Lauschen", "Anhängen"), cfg.debugMode, v -> {
@@ -741,6 +807,17 @@ public final class SettingsPage extends JPanel {
         });
         add("Fehlersuche", Icons.Kind.BUG, "Debug-Adresse", "Host und Port für das JVM-Debugging, nur auf diesem PC (z. B. localhost:5005).", true,
                 row(debugAddr, debugReset));
+        JButton clientReset = button("Zurücksetzen");
+        clientReset.setForeground(Theme.FAIL);
+        clientReset.addActionListener(e -> resetClientSettings());
+        add("Fehlersuche", Icons.Kind.REFRESH, "Lumora-Client-Einstellungen zurücksetzen", "Setzt alle Einstellungen des Lumora Clients im "
+                + "Spiel (Module, HUD, Addons, Design) auf Standard. Die bisherigen bleiben als Sicherung (config.backup-…) liegen.", true,
+                row(clientReset));
+        JButton restore = button("Wiederherstellen");
+        restore.addActionListener(e -> restoreInstances());
+        add("Fehlersuche", Icons.Kind.ARCHIVE, "Instanzen von Festplatte wiederherstellen", "Trägt Instanz-Ordner unter instances, die "
+                + "der Launcher nicht mehr kennt, wieder als eigene Instanzen ein. Bestehende bleiben, es wird nichts gelöscht.", true,
+                row(restore));
         JButton reset = button("Zurücksetzen");
         reset.setForeground(Theme.FAIL);
         reset.addActionListener(e -> {
@@ -776,12 +853,72 @@ public final class SettingsPage extends JPanel {
                 cfg.showSnapshots = d.showSnapshots;
                 cfg.socialShareServer = d.socialShareServer;
                 cfg.socialNotifications = d.socialNotifications;
+                cfg.quickPlay = d.quickPlay;
+                cfg.graphicsBackend = d.graphicsBackend;
+                cfg.rememberPatch = d.rememberPatch;
+                cfg.prereleases = d.prereleases;
+                cfg.downloadCacheGb = d.downloadCacheGb;
+                cfg.logRetentionDays = d.logRetentionDays;
+                cfg.hangDump = d.hangDump;
                 save();
                 JOptionPane.showMessageDialog(host.frame(), "Zurückgesetzt. Die Anzeige aktualisiert sich nach einem Neustart des Launchers.");
             }
         });
         add("Fehlersuche", Icons.Kind.REFRESH, "Einstellungen zurücksetzen", "Setzt Speicher, Java, Fenster, Downloads und Anzeige auf Standard.",
                 true, row(reset));
+    }
+
+    /** "Ingame-Erlebnis anpassen": the menu design in the game, applied once per version at its next start (GameThemeSeeder). */
+    private void ingameExperience() {
+        Object[] options = {"Lumora-Design", "Minecraft-Stil", "Abbrechen"};
+        int pick = JOptionPane.showOptionDialog(host.frame(), "Wie sollen die Menüs im Spiel aussehen?\n\n"
+                        + "Lumora-Design: Lumoras eigene Menüs, Knöpfe und Farben.\n"
+                        + "Minecraft-Stil: Minecrafts eigene Menüs und Knöpfe, der Lumora-Hub bleibt.\n\n"
+                        + "Gilt beim nächsten Start jeder Version; im Spiel unter Hub › Themes jederzeit änderbar.",
+                "Ingame-Erlebnis anpassen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if (pick != 0 && pick != 1) {
+            return;
+        }
+        cfg.gameTheme = pick == 0 ? dev.lumora.launcher.core.install.GameThemeSeeder.LUMORA : dev.lumora.launcher.core.install.GameThemeSeeder.VANILLA;
+        // a new seed: every version takes the choice over once at its next start
+        cfg.gameThemeSeed = "launcher-" + System.currentTimeMillis();
+        save();
+    }
+
+    /** "Lumora-Client-Einstellungen zurücksetzen": renames the Lumora settings folders (kept as a backup). */
+    private void resetClientSettings() {
+        if (host.ctx().play.runningGame().isPresent()) {
+            host.error("Lumora-Client-Einstellungen", "Minecraft läuft gerade. Beende das Spiel, dann setze die Einstellungen zurück.");
+            return;
+        }
+        if (JOptionPane.showConfirmDialog(host.frame(), "Alle Einstellungen des Lumora Clients im Spiel (Module, HUD, Addons, Design) "
+                        + "auf Standard setzen?\n\nDie bisherigen bleiben als Sicherung „config.backup-…“ in den Instanz-Ordnern liegen.\n"
+                        + "Welten, Optionen und Addon-Dateien bleiben unverändert.", "Lumora-Client-Einstellungen zurücksetzen",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.OK_OPTION) {
+            return;
+        }
+        try {
+            List<Path> kept = dev.lumora.launcher.core.InstanceLayout.resetLumoraSettings(host.ctx().paths, java.time.Instant.now());
+            JOptionPane.showMessageDialog(host.frame(), kept.isEmpty() ? "Es gab noch keine Lumora-Einstellungen." : "Zurückgesetzt ("
+                    + kept.size() + (kept.size() == 1 ? " Ordner" : " Ordner") + " gesichert). Beim nächsten Spielstart gelten die Standards.");
+        } catch (java.io.IOException ex) {
+            host.error("Lumora-Client-Einstellungen", "Zurücksetzen fehlgeschlagen: " + ex.getMessage());
+        }
+    }
+
+    /** "Instanzen von Festplatte wiederherstellen": instance folders without a choice become own instances again. */
+    private void restoreInstances() {
+        try {
+            List<String> added = dev.lumora.launcher.core.InstanceLayout.restoreMissing(host.ctx().paths, cfg);
+            if (!added.isEmpty()) {
+                save();
+                hooks.homeChanged();
+            }
+            JOptionPane.showMessageDialog(host.frame(), added.isEmpty() ? "Alle Instanz-Ordner sind bereits bekannt."
+                    : "Wiederhergestellt: " + String.join(", ", added));
+        } catch (java.io.IOException ex) {
+            host.error("Instanzen wiederherstellen", ex.getMessage());
+        }
     }
 
     private static Integer parse(String s, int min, int max) {

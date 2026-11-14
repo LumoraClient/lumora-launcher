@@ -150,6 +150,59 @@ public record InstanceLayout(String instanceId, boolean own, boolean sharedSetti
     }
 
     /**
+     * Einstellungen › Fehlersuche › "Lumora-Client-Einstellungen zurücksetzen": the Lumora settings folders
+     * ({@code config/} of {@code data/*} and {@code instances/*}, which hold only Lumora's own files since there is no mod
+     * loader) are renamed to {@code config.backup-<time>}, so the game starts with defaults. Addon jars, worlds and
+     * options stay; nothing is deleted. Returns the renamed folders.
+     */
+    public static java.util.List<Path> resetLumoraSettings(LauncherPaths paths, java.time.Instant now) throws IOException {
+        String stamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+                .withZone(java.time.ZoneId.systemDefault()).format(now);
+        java.util.List<Path> renamed = new java.util.ArrayList<>();
+        for (String parent : java.util.List.of("data", "instances")) {
+            Path dir = paths.root().resolve(parent);
+            if (!Files.isDirectory(dir)) {
+                continue;
+            }
+            try (Stream<Path> s = Files.list(dir)) {
+                for (Path inst : s.filter(Files::isDirectory).sorted().toList()) {
+                    Path config = inst.resolve("config");
+                    if (Files.isDirectory(config, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+                        Path backup = inst.resolve("config.backup-" + stamp);
+                        Files.move(config, backup);
+                        renamed.add(backup);
+                    }
+                }
+            }
+        }
+        Log.info("Lumora settings reset: " + renamed.size() + " folders kept as config.backup-" + stamp);
+        return renamed;
+    }
+
+    /**
+     * Einstellungen › Fehlersuche › "Instanzen wiederherstellen": every folder in {@code instances/} without a choice in
+     * the settings becomes an own instance with its own settings again (e.g. after the settings were reset). Existing
+     * choices stay; nothing is deleted. Returns the ids added.
+     */
+    public static java.util.List<String> restoreMissing(LauncherPaths paths, LauncherConfig config) throws IOException {
+        java.util.List<String> added = new java.util.ArrayList<>();
+        Path dir = paths.root().resolve("instances");
+        if (!Files.isDirectory(dir)) {
+            return added;
+        }
+        try (Stream<Path> s = Files.list(dir)) {
+            for (Path p : s.filter(Files::isDirectory).sorted().toList()) {
+                String id = p.getFileName().toString();
+                if (id.matches("[A-Za-z0-9][A-Za-z0-9_.-]{0,63}") && !config.instances.containsKey(id)) {
+                    config.instances.put(id, new LauncherConfig.InstanceChoice(true, false));
+                    added.add(id);
+                }
+            }
+        }
+        return added;
+    }
+
+    /**
      * Once (0.3.42): every instance folder that already exists becomes an own instance with its own settings, so
      * nothing changes for existing players; versions without a folder use the standard folder from now on. Returns
      * true if the configuration changed (the caller saves it).

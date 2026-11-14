@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.48 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 597 Unit-Tests ohne Fehler (1 übersprungen). Neu: Freelook (Mausbewegung dreht nur die freie Kamera, 0,15° pro Einheit wie `Entity#turn`, Pitch zwischen -90° und 90°; Halten und Umschalten; dritte Person beim Start, vorige Perspektive beim Ende; F5 und geänderte Ansicht während Freelook; außerhalb einer Welt nichts; Modul anfangs aus). Alle 16 Client-Module kompiliert, `check-mixins.pl` für alle Freelook-Mixins in allen 16 Versionen ohne fehlende Ziele.
+- **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3, 1.16.5, 1.12.2 und 1.8.9 bestanden mit dem neuen Schritt „freelook“ (freie Kamera 180° um den Spieler gedreht). 26.3 und 1.16.5: Spieler bleibt bei 90°/15°, Kamera steht auf 270° wie die freie Kamera; Screenshot 1.16.5 zeigt den Spieler von vorne. 1.8.9: Spieler bleibt bei 0°/70°. Ein erster Lauf fand einen Absturz in 1.8.9 (Umleitung in der statischen Methode `Camera#update` muss statisch sein), behoben und erneut geprüft.
+- **Smoke-Test mit dem fertigen 0.3.48-Build:** 1.8.9 und 26.3 – bestanden, gleiche Werte wie oben.
+- **Nicht geprüft:** echte Maus- und Tasteneingabe im Spiel (der Smoke-Test dreht die Kamera direkt), Freelook in 1.17.1 bis 26.2 im Spiel (nur kompiliert und Mixin-Ziele geprüft), sichtbare Chunks beim Drehen in 1.8.9/1.12.2 über längere Zeit, der 26.3-Screenshot (Testspieler im Demo-Level gestorben), ein Selbst-Update von 0.3.47 auf 0.3.48.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.47 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 590 Unit-Tests ohne Fehler (1 übersprungen). Neu: Lumora API 1.9 (Knöpfe und Fenster an der Chat-Eingabe, Icons im Chat, doppelte Ids abgelehnt, Entfernen beim Abschalten), `:name:`-Erkennung im Chattext und Rückwandlung beim Kopieren, Emoji-Liste und Suche (1870 Twemoji), Emoji-Auswahl (Tabs, Zeilen-Scrollen, Größenänderung), Vorschläge beim Tippen, Scissor-Stapel für alte Versionen (verschoben und verschachtelt). Alle 16 Client-Module kompiliert, `check-mixins.pl` für ChatInputMixin und ChatMixin ohne fehlende Ziele.
 - **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3, 1.16.5 und 1.8.9 bestanden mit dem neuen Schritt „chat-emoji“. In 26.3 und 1.16.5 zeigt der Chat „Emoji-Test 😄👍❤️😂 um 12:30“, in 1.8.9 bleibt der Text. Auswahl mit Raster und Vorschläge zu `:jo` im Bild, ebenso der Knopf des Beispiel-Addons.

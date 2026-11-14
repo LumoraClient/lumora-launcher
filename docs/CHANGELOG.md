@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.48 (2026-11-14)
+
+### Im Spiel
+- **Neues Modul „Freelook“** (Spieler, anfangs aus): Solange die Taste gehalten wird (Standard: linke Alt-Taste), schaltet die Kamera in die dritte Person und die Maus dreht nur die Kamera, ganz um den Spieler herum. Laufrichtung und Blick des Spielers bleiben, wie sie waren; beim Loslassen kommt die vorige Ansicht zurück. Einstellbar: Halten oder Umschalten, Start von hinten oder von vorne. F5 wechselt währenddessen nicht weg. In allen Versionen von 1.8.9 bis 26.3; in 1.8.9 und 1.12.2 folgen auch die sichtbaren Chunks und die Partikel der Kamera.
+
 ## 0.3.47 (2026-11-14)
 
 ### Im Spiel

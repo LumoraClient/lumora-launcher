@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-freelook",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.48",
+      "title": "Freelook",
+      "text": "Rundum schauen in der dritten Person, ohne die Laufrichtung zu ändern.",
+      "image": "news-freelook.png",
+      "body": [
+        {"p": "Mit dem neuen Modul „Freelook“ hältst du eine Taste gedrückt (Standard: linke Alt-Taste), und die Kamera schaltet in die dritte Person. Die Maus dreht dann nur die Kamera, ganz um deinen Spieler herum. Er läuft und schaut weiter in dieselbe Richtung. Lässt du los, ist die vorige Ansicht wieder da."},
+        {"list": [
+          "Halten oder Umschalten",
+          "Start von hinten oder von vorne",
+          "F5 wechselt währenddessen nicht weg",
+          "In allen Versionen von 1.8.9 bis 26.3"
+        ]},
+        {"p": "Das Modul ist anfangs aus: im Hub unter Spieler einschalten. Die Taste stellst du in den Einstellungen des Moduls um."}
+      ]
+    },
+    {
       "id": "lumora-emoji-chat",
       "date": "2026-11-14",
       "author": "Lumora",

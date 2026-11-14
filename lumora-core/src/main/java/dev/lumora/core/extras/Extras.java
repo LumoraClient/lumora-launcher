@@ -15,7 +15,8 @@ import java.util.List;
 public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
             "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign", "lumora-armor",
-            dev.lumora.core.camera.FreelookModule.ID, dev.lumora.core.extras.light.LightOverlayModule.ID);
+            dev.lumora.core.camera.FreelookModule.ID, dev.lumora.core.extras.light.LightOverlayModule.ID,
+            OffHandModule.ID);
 
     private Extras() {
     }
@@ -79,6 +80,12 @@ public final class Extras {
                         ElytraTrailsModule.class, dev.lumora.core.addon.VersionSupport.atLeast(ElytraTrailsModule.MIN_MINECRAFT,
                                 platform.minecraftVersion())),
                         ElytraTrailsModule::new),
+                // the off hand exists since 1.9: on older versions the hub shows the module locked with the reason
+                AddonCandidate.of(LumoraCore.builtInDescriptor(OffHandModule.ID, "Off Hand",
+                        "Hide the off hand or the main hand in first person, or only a shield or a totem in it",
+                        OffHandModule.class, dev.lumora.core.addon.VersionSupport.atLeast(OffHandModule.MIN_MINECRAFT,
+                                platform.minecraftVersion())),
+                        OffHandModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-chat", "Chat",
                         "Timestamps, copy messages, drag size, background, longer history, sound on mention", ChatModule.class),
                         () -> new ChatModule(platform)),

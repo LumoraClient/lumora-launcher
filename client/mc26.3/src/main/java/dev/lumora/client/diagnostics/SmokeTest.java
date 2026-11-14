@@ -624,7 +624,23 @@ public final class SmokeTest {
                 worldStep++;
                 ticks = 0;
             }
-        } else if (worldStep == modes.length + 14 && ticks >= 5) {
+        } else if (worldStep == modes.length + 14) {
+            // module "Off Hand": both hands, then without the shield in the off hand, then without the main hand
+            if (ticks == 1) {
+                OffHandSmoke.start(mc);
+            } else if (ticks == 12) {
+                screenshot(mc, "offhand-both");
+                OffHandSmoke.hideShield(extraProblems);
+            } else if (ticks == 18) {
+                screenshot(mc, "offhand-no-shield");
+                OffHandSmoke.hideMainHand(extraProblems);
+            } else if (ticks == 24) {
+                screenshot(mc, "offhand-no-mainhand");
+                OffHandSmoke.stop(extraProblems);
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 15 && ticks >= 5) {
             phase = Phase.DONE;
             finish(mc);
         }

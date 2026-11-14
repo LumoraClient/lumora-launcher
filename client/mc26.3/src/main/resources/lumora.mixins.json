@@ -40,6 +40,7 @@
     "ChatFadeMixin",
     "ChatTextShadowMixin",
     "BlockOutlineMixin",
+    "OffHandMixin",
     "LightOverlayMixin",
     "EntityRenderStateTrailMixin",
     "ElytraTrailMixin",

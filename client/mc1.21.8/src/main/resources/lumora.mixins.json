@@ -38,6 +38,7 @@
     "ChatComponentAccessor",
     "ChatScreenAccessor",
     "BlockOutlineMixin",
+    "OffHandMixin",
     "LightOverlayMixin",
     "EntityRenderStateTrailMixin",
     "ElytraTrailMixin",

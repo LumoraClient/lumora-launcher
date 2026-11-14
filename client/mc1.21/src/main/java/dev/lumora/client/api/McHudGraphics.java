@@ -2,6 +2,7 @@ package dev.lumora.client.api;
 
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.api.render.TextureRef;
+import dev.lumora.core.render.ScissorStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -86,7 +87,9 @@ public final class McHudGraphics implements HudGraphics {
 
     @Override
     public void enableScissor(int x1, int y1, int x2, int y2) {
-        g.enableScissor(x1, y1, x2, y2);
+        // vanilla 1.21 keeps the stack (intersection, restore) but ignores the pose; HudGraphics promises it (1.21.4+ does)
+        ScissorStack.Rect r = ScissorStack.transform(x1, y1, x2, y2, g.pose().last().pose().get(new float[16]));
+        g.enableScissor(Math.round(r.x1()), Math.round(r.y1()), Math.round(r.x2()), Math.round(r.y2()));
     }
 
     @Override

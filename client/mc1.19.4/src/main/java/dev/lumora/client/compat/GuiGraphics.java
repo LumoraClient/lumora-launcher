@@ -2,6 +2,7 @@ package dev.lumora.client.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.lumora.core.render.ScissorStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
@@ -110,7 +111,9 @@ public final class GuiGraphics {
     }
 
     public void enableScissor(int x1, int y1, int x2, int y2) {
-        GuiComponent.enableScissor(x1, y1, x2, y2);
+        // GuiComponent keeps the stack (intersection, restore) but ignores the pose; HudGraphics promises it
+        ScissorStack.Rect r = ScissorStack.transform(x1, y1, x2, y2, pose.last().pose().get(new float[16]));
+        GuiComponent.enableScissor(Math.round(r.x1()), Math.round(r.y1()), Math.round(r.x2()), Math.round(r.y2()));
     }
 
     public void disableScissor() {

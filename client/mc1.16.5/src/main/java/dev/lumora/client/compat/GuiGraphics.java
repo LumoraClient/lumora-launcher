@@ -2,6 +2,8 @@ package dev.lumora.client.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import dev.lumora.core.render.ScissorStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
@@ -10,6 +12,9 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
+import org.lwjgl.opengl.GL11;
+
+import java.nio.FloatBuffer;
 
 /**
  * The part of Minecraft 1.20's {@code GuiGraphics} that the Lumora screens use, for Minecraft 1.19.4 and older: there
@@ -110,16 +115,41 @@ public final class GuiGraphics {
         RenderSystem.color4f(r, g, b, a);
     }
 
-    /** GUI coordinates; 1.16.5 has no GuiComponent#enableScissor, so they are converted to window pixels here. */
+    // --- scissor: 1.16.5 has no GuiComponent#enableScissor. HudGraphics promises the current transformation and
+    // nesting, so the rectangle goes through the pose and the fixed-function model-view matrix onto the shared
+    // ScissorStack (intersection with the enclosing rectangle; disableScissor restores that one).
+
     public void enableScissor(int x1, int y1, int x2, int y2) {
-        var window = mc.getWindow();
-        double scale = window.getGuiScale();
-        RenderSystem.enableScissor((int) (x1 * scale), (int) (window.getHeight() - y2 * scale),
-                Math.max(0, (int) ((x2 - x1) * scale)), Math.max(0, (int) ((y2 - y1) * scale)));
+        apply(ScissorStack.GUI.push(ScissorStack.transform(x1, y1, x2, y2, values(pose.last().pose()), modelView())));
     }
 
     public void disableScissor() {
-        RenderSystem.disableScissor();
+        ScissorStack.Rect outer = ScissorStack.GUI.pop();
+        if (outer == null) {
+            RenderSystem.disableScissor();
+        } else {
+            apply(outer);
+        }
+    }
+
+    private void apply(ScissorStack.Rect rect) {
+        var window = mc.getWindow();
+        int[] px = rect.toWindow(window.getGuiScale(), window.getHeight());
+        RenderSystem.enableScissor(px[0], px[1], px[2], px[3]);
+    }
+
+    /** The 16 values of a matrix in column-major order (the layout {@link ScissorStack#transform} expects). */
+    static float[] values(Matrix4f matrix) {
+        FloatBuffer buffer = FloatBuffer.allocate(16);
+        matrix.store(buffer);
+        return buffer.array();
+    }
+
+    /** The fixed-function model-view matrix: 1.16.5 still applies it to every GUI vertex (vanilla chat moves it). */
+    private static float[] modelView() {
+        float[] m = new float[16];
+        GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, m);
+        return m;
     }
 
     /** 1.16.5 GUI drawing is immediate - nothing is batched. */

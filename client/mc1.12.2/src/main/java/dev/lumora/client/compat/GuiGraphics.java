@@ -1,16 +1,17 @@
 package dev.lumora.client.compat;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import dev.lumora.core.render.ScissorStack;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.util.Window;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.nio.FloatBuffer;
 
 /**
  * The part of Minecraft 1.20's {@code GuiGraphics} that the Lumora screens use, for Minecraft 1.12.2: there the GUI draws
@@ -20,7 +21,8 @@ import java.util.Deque;
 public final class GuiGraphics {
     private static final Pose POSE = new Pose();
     private final MinecraftClient mc = MinecraftClient.getInstance();
-    private final Deque<int[]> scissors = new ArrayDeque<>();
+    /** Read buffer of the GL model-view matrix (LWJGL 2 needs a direct buffer). Render thread only. */
+    private static final FloatBuffer MATRIX = BufferUtils.createFloatBuffer(16);
 
     private GuiGraphics() {
     }
@@ -107,17 +109,21 @@ public final class GuiGraphics {
         GlStateManager.color(r, g, b, a);
     }
 
-    // --- scissor in GUI coordinates (1.12.2 has no helper: converted to window pixels, nested regions restore the outer one)
+    // --- scissor in GUI coordinates (1.12.2 has no helper). HudGraphics promises the current transformation and nesting,
+    // so the rectangle goes through the GL model-view matrix (the Pose below is that stack) onto the shared
+    // ScissorStack (intersection with the enclosing rectangle; disableScissor restores that one). Shared because a
+    // wrapper is created per frame / call site while the GL scissor state is global.
 
     public void enableScissor(int x1, int y1, int x2, int y2) {
-        int[] r = {x1, y1, x2, y2};
-        scissors.push(r);
-        apply(r);
+        MATRIX.clear();
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, MATRIX);
+        float[] modelView = new float[16];
+        MATRIX.get(modelView);
+        apply(ScissorStack.GUI.push(ScissorStack.transform(x1, y1, x2, y2, modelView)));
     }
 
     public void disableScissor() {
-        scissors.poll();
-        int[] outer = scissors.peek();
+        ScissorStack.Rect outer = ScissorStack.GUI.pop();
         if (outer == null) {
             GL11.glDisable(GL11.GL_SCISSOR_TEST);
         } else {
@@ -125,11 +131,10 @@ public final class GuiGraphics {
         }
     }
 
-    private void apply(int[] r) {
-        Window window = new Window(mc);
-        int scale = window.getScaleFactor();
+    private void apply(ScissorStack.Rect rect) {
+        int[] px = rect.toWindow(new Window(mc).getScaleFactor(), mc.height);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor(r[0] * scale, mc.height - r[3] * scale, Math.max(0, (r[2] - r[0]) * scale), Math.max(0, (r[3] - r[1]) * scale));
+        GL11.glScissor(px[0], px[1], px[2], px[3]);
     }
 
     /** All drawing is immediate in 1.12.2 - nothing is batched. */

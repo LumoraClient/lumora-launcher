@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-standard-folder",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.42",
+      "title": "Ein Spielordner für alle Versionen",
+      "text": "Wie bei anderen Clients spielen alle Versionen jetzt in .minecraft – eigene Instanzen gibt es weiter auf Wunsch.",
+      "image": "news-instances.png",
+      "body": [
+        {"p": "Neue Versionen starten im Standard-Ordner .minecraft. Welten, Ressourcenpakete, Screenshots und Optionen teilen sie sich mit allen anderen Versionen und mit Vanilla-Minecraft."},
+        {"p": "Im Versionsmenü (Pfeil neben „Spiel starten“) wählst du pro Version:"},
+        {"list": [
+          "Standard-Ordner oder eigene Instanz (eigener Ordner nur für diese Version)",
+          "Lumora-Einstellungen, HUD und Addons für alle Versionen gemeinsam oder nur für diese"
+        ]},
+        {"p": "Deine bisherigen Versionen bleiben eigene Instanzen mit ihren Welten und Einstellungen – es ändert sich nichts, bis du selbst umschaltest. Beim Umschalten kommen deine Lumora-Einstellungen mit."},
+        {"p": "Neue Installationen legen die Lumora-Daten in .minecraft\\LumoraClient ab. Den Standard-Ordner kannst du unter Einstellungen › Allgemein ändern."}
+      ]
+    },
+    {
       "id": "lumora-settings-sections",
       "date": "2026-11-13",
       "author": "Lumora",

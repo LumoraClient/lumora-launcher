@@ -66,6 +66,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.42 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 549 Unit-Tests ohne Fehler (1 übersprungen). Neu: 7 für `InstanceLayout` (Standard-Ordner mit gemeinsamen Einstellungen, eigene Instanz, beide Einstellungsarten unabhängig vom Spielordner, einmalige Übernahme vorhandener Instanzen, Neuinstallation, Mitnehmen der Einstellungen ohne Überschreiben, ungültige Instanz-IDs). Alle 16 Client-Module kompiliert; keine Mixins geändert (nur `LoaderEnv`, `McPlatform`, `Packs`, bei 1.8.9/1.12.2 `JsonLang`).
+- **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3 als übernommene eigene Instanz bestanden (Spiel weiter in `instances/26.3`); Smoke-Test 26.3 im Standard-Ordner mit gemeinsamen Einstellungen bestanden (Session-Timer aus `data/shared/addons` geladen, Client-JARs, Natives und Statusdatei in `data/26.3`, im Spielordner nur Minecraft-Dateien und die Sperrdatei). Versionsmenü offscreen gerendert.
+- **Smoke-Test mit dem fertigen 0.3.42-Build:** nur 26.3 (übernommene eigene Instanz) – bestanden. Andere Versionen wurden nicht im Spiel getestet.
+- **Installer** (lumora-installer, eigener Commit): mit eingebauter Versionsliste gebaut, stille Neuinstallation dieses Builds im Sandbox-Modus: Übergabe `dataDir = <LUMORA_HOME>\minecraft\LumoraClient`, der installierte Launcher übernimmt den Ordner (`installDir`, keine alten Instanzen); stilles Deinstallieren ohne Fehler.
+- **Nicht geprüft:** andere Versionen im Standard-Ordner (vor allem 1.8.9 mit einer `options.txt` von 26.3); das Umschalten per Klick im echten Launcher-Fenster; macOS und Linux; ein echtes Selbst-Update von 0.3.41 auf 0.3.42.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.41 (2026-11-13):**
 - **Build:** `gradlew clean build` erfolgreich, 542 Unit-Tests ohne Fehler (1 übersprungen). Alle 16 Client-Module kompiliert; keine Mixins geändert. Geändert sind nur Reihenfolge und Abschnitte der Einstellungen (Module, Zoom, Widgets in `Panels` und allen 16 `BuiltInWidgets`) sowie 14 neue Abschnittsnamen in allen 32 Sprachdateien (alle als JSON geprüft).
 - **Vor dem Release** (Entwicklungsstand): Reihenfolge aller eingebauten Module und Widgets per Test ausgegeben und durchgesehen; Smoke-Test 26.3 bestanden, Angriffsanzeige-Einstellungen in der Aufnahme mit „Anzeigen“, „Aussehen“, „Farben“.

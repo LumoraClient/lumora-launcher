@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.42 (2026-11-14)
+
+### Launcher
+- **Standard-Spielordner wie bei anderen Clients:** Alle Versionen spielen standardmäßig in `.minecraft` und teilen sich Welten, Ressourcenpakete, Screenshots und Optionen mit Vanilla-Minecraft.
+- **Eigene Instanzen auf Wunsch:** Im Versionsmenü wählst du pro Version „Standard-Ordner“ oder „Eigene Instanz“ (`instances/<Version>`), dazu, ob Lumora-Einstellungen, HUD und Addons für alle Versionen gelten oder nur für diese. Beim Umschalten kommen die Einstellungen mit (nur kopiert, nie überschrieben).
+- **Bestehende Installationen ändern sich nicht:** Vorhandene Versionsordner bleiben eigene Instanzen mit eigenen Einstellungen, der Datenordner bleibt, wo er war.
+- Neue Installationen legen die Lumora-Daten in `.minecraft\LumoraClient` ab. Einstellungen › Allgemein: „Datenordner“ und neu „Standard-Spielordner“.
+- Im Standard-Ordner installiert der Launcher keine Ressourcenpakete und ändert `options.txt` nicht von sich aus.
+
 ## 0.3.41 (2026-11-13)
 
 ### Im Spiel

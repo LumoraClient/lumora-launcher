@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.51 (2026-11-14)
+
+### Im Spiel
+- **Neues Modul „Light Block Overlay“** (Welt, anfangs aus): markiert Blöcke, auf denen feindliche Mobs spawnen können, rot wo sie sofort spawnen, gelb wo nur nachts. Darstellung als Kreuz, Zahl (Lichtstufe, auf Wunsch auch auf sicheren Blöcken), Fläche oder Markierung, Farbverlauf nach Himmelslicht, eigene Farben, horizontale und vertikale Reichweite, Lichtstufe (seit 1.18 Blocklicht 0, davor 7). Eine Taste blendet es ein und aus. Auf Leistung gebaut: Die Welt wird in ganzen Chunks gelesen, die nächsten zuerst, höchstens 1,5 ms pro Tick, und nur alle paar Ticks erneut (in der Nähe zweimal pro Sekunde); die Linien eines Chunks werden nur nach einem Scan oder einer Einstellungsänderung neu gebaut, ein Bild kopiert nur fertige Punkte. Ausgeblendet kostet es nichts. In allen Versionen von 1.8.9 bis 26.3.
+
 ## 0.3.50 (2026-11-14)
 
 ### Im Spiel

@@ -1,6 +1,26 @@
 {
   "news": [
     {
+      "id": "lumora-light-overlay",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.51",
+      "title": "Light Block Overlay",
+      "text": "Sieh auf einen Blick, wo feindliche Mobs spawnen können: rot sofort, gelb nur nachts.",
+      "image": "news-light-overlay.png",
+      "body": [
+        {"p": "Das neue Modul „Light Block Overlay“ markiert alle Blöcke um dich, auf denen feindliche Mobs spawnen können. Rot heißt: hier spawnen sie jederzeit. Gelb heißt: nur nachts, tagsüber ist genug Licht vom Himmel da."},
+        {"list": [
+          "Kreuz, Zahl (Lichtstufe), Fläche oder Markierung",
+          "Farbverlauf nach Himmelslicht und eigene Farben",
+          "Horizontale und vertikale Reichweite, Lichtstufe für alte und neue Versionen",
+          "Mit einer Taste ein- und ausblenden",
+          "Auf Leistung gebaut: höchstens 1,5 ms pro Tick, ausgeblendet kostet es nichts"
+        ]},
+        {"p": "Das Modul ist anfangs aus: im Hub unter Welt einschalten. In allen Versionen von 1.8.9 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-hud-trash",
       "date": "2026-11-14",
       "author": "Lumora",

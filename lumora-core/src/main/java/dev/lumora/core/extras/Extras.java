@@ -72,6 +72,10 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-chat", "Chat",
                         "Timestamps, copy messages, drag size, background, longer history, sound on mention", ChatModule.class),
                         () -> new ChatModule(platform)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.chat.emoji.EmojiChatModule.ID, "Emoji Chat",
+                        "Emojis in chat messages for :name:, an emoji picker at the chat input and suggestions while typing",
+                        dev.lumora.core.chat.emoji.EmojiChatModule.class),
+                        dev.lumora.core.chat.emoji.EmojiChatModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-tab", "Tab List & Scoreboard",
                         "Ping as a number, move, scale, hide the numbers of or hide the scoreboard", TabModule.class),
                         TabModule::new));

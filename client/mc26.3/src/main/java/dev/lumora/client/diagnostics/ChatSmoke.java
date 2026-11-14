@@ -70,6 +70,42 @@ final class ChatSmoke {
         setting("text_shadow", "false");
     }
 
+    /** Emoji Chat (Lumora API 1.9): a message with codes, ":jo" typed (suggestions) and the emoji picker open. */
+    static void emoji(Minecraft mc) {
+        setting("custom_size", "false");
+        setting("background", "true");
+        setting("text_shadow", "true");
+        mc.gui.hud.getChat().addClientSystemMessage(net.minecraft.network.chat.Component.literal("Emoji-Test :smile: :+1: :heart: :joy: um 12:30"));
+        ApiSmoke.core().platform().extras().setChatInput("gg :jo", 6);
+        dev.lumora.core.chat.ChatApi.press("lumora-emojichat", "emojis");
+    }
+
+    /** The codes became emoji glyphs (versions with custom fonts) or stayed text (1.8.9, 1.12.2); the picker is open. */
+    static void emojiCheck(List<String> problems) {
+        GameExtras x = ApiSmoke.core().platform().extras();
+        GameExtras.ChatView v = x.chatView();
+        String text = null;
+        for (int i = 0; v != null && i < Math.min(v.lines(), 20) && text == null; i++) {
+            GameExtras.ChatMessage c = x.chatMessage(i);
+            if (c != null && c.text().contains("Emoji-Test")) {
+                text = c.text();
+            }
+        }
+        boolean glyph = text != null && text.indexOf(0xE002) >= 0;
+        dev.lumora.client.LumoraClient.LOG.info("LUMORA_EMOJI glyphs={} panel={} message={}", glyph,
+                dev.lumora.core.chat.ChatApi.panelOpen(), text == null ? null : dev.lumora.core.chat.ChatApi.restore(text));
+        if (text == null) {
+            problems.add("emoji: test message missing");
+        } else if (true && !glyph) {
+            problems.add("emoji: :smile: was not replaced: " + text);
+        } else if (!true && !text.contains(":smile:")) {
+            problems.add("emoji: the text should stay without custom fonts: " + text);
+        }
+        if (!dev.lumora.core.chat.ChatApi.panelOpen()) {
+            problems.add("emoji: the picker did not open");
+        }
+    }
+
     static void reset(Minecraft mc) {
         setting("custom_size", "false");
         setting("background", "true");

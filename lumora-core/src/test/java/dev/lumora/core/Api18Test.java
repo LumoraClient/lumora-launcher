@@ -84,6 +84,6 @@ class Api18Test {
         AddonContext ctx = start("pics");
         platform.textureSupport = false;
         assertNull(ctx.textures().upload("cover", 1, 1, new int[1]));
-        assertEquals("1.8.0", core.apiVersion());
+        assertEquals("1.9.0", core.apiVersion());
     }
 }

@@ -423,6 +423,33 @@ final class McExtras implements GameExtras {
         }
     }
 
+    // --- chat input for Lumora API 1.9 (buttons and panels at the chat input, emoji suggestions)
+
+    @Override
+    public ChatInput chatInput() {
+        if (mc().currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen s) {
+            var in = ((dev.lumora.client.mixin.ChatScreenAccessor) s).lumora$input();
+            String t = in.getText();
+            return new ChatInput(t, Math.max(0, Math.min(t.length(), in.getCursor())));
+        }
+        return null;
+    }
+
+    @Override
+    public void setChatInput(String text, int cursor) {
+        if (mc().currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen s) {
+            var in = ((dev.lumora.client.mixin.ChatScreenAccessor) s).lumora$input();
+            in.setText(text);
+            in.setCursor(Math.max(0, Math.min(in.getText().length(), cursor)));
+        }
+    }
+
+    @Override
+    public int[] guiSize() {
+        var screen = mc().currentScreen;
+        return screen == null ? null : new int[]{screen.width, screen.height};
+    }
+
     @Override
     public boolean mouseLeftDown() {
         return org.lwjgl.input.Mouse.isButtonDown(0);

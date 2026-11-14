@@ -58,6 +58,11 @@ public final class SessionTimerWidget extends HudWidget {
         color = settings.chroma("color", Colors.ACCENT_HOVER, false).visibleWhen(() -> !style.active());
     }
 
+    /** The time as shown right now, e.g. {@code "00:12:34"} (the chat panel writes it into the chat). */
+    public String text() {
+        return text;
+    }
+
     void start() {
         startedAt = System.currentTimeMillis();
     }

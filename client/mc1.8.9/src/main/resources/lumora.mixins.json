@@ -21,6 +21,7 @@
     "StatusBarsMixin",
     "ScoreboardMixin",
     "TabPingMixin",
+    "ChatInputMixin",
     "ChatMixin",
     "ChatHudAccessor",
     "ChatScreenAccessor",

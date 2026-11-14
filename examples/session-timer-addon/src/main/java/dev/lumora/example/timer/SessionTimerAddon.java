@@ -2,6 +2,7 @@ package dev.lumora.example.timer;
 
 import dev.lumora.api.addon.AddonContext;
 import dev.lumora.api.addon.LumoraAddon;
+import dev.lumora.api.chat.ChatInputButton;
 import dev.lumora.api.config.BooleanSetting;
 import dev.lumora.api.config.ChoiceSetting;
 import dev.lumora.api.config.SettingsGroup;
@@ -12,8 +13,8 @@ import dev.lumora.api.input.Keys;
 /**
  * Example addon: registers the session timer widget, listens for world join/leave, offers a keybind to restart the
  * timer and addon settings (Lumora API 1.3: sections, a setting shown only while its switch is on, a row of buttons
- * and a button that runs an action). Everything is removed by Lumora when the addon is switched off - no cleanup
- * code needed.
+ * and a button that runs an action) and, since Lumora API 1.9, a button at the chat input whose window writes the
+ * session time into the chat. Everything is removed by Lumora when the addon is switched off - no cleanup code needed.
  */
 public final class SessionTimerAddon implements LumoraAddon {
     private BooleanSetting notifyOnJoin;
@@ -58,6 +59,11 @@ public final class SessionTimerAddon implements LumoraAddon {
             context.notifications().success(context.translations().translate("session-timer.title"),
                     context.translations().translate("session-timer.reset"));
         });
+        // Lumora API 1.9: a button right above the chat input; its window writes the session time into the chat
+        context.chat().addInputButton(ChatInputButton.builder("time", context.translations().translate("session-timer.chat.button"))
+                .label("T") // plain text: every Minecraft font has it
+                .panel(() -> new SessionChatPanel(context.chat(), context.translations(), context.theme(), w))
+                .build());
         if (context.game().inWorld()) {
             w.start();
         }

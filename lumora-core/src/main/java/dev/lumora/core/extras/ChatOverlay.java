@@ -369,6 +369,11 @@ final class ChatOverlay {
         if (line != cachedLine || v.lines() != cachedLines || count != cachedMessages) {
             try {
                 cached = x.chatMessage(line);
+                if (cached != null) {
+                    // emoji glyphs back to their :name: (copying, reply, sender)
+                    cached = new ChatMessage(dev.lumora.core.chat.ChatApi.restore(cached.text()), cached.insertions(),
+                            cached.commands(), cached.links(), cached.firstLine(), cached.lastLine());
+                }
             } catch (RuntimeException e) {
                 cached = null;
             }

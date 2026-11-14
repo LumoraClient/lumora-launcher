@@ -1,0 +1,27 @@
+package dev.lumora.client.mixin;
+
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+/**
+ * Lumora API 1.9: the mouse wheel and keys of the open chat go to Lumora first (panels of chat input buttons, emoji
+ * suggestions: Tab, arrow keys); Minecraft only sees them when Lumora did not use them.
+ */
+@Mixin(net.minecraft.client.gui.screens.ChatScreen.class)
+public abstract class ChatInputMixin {
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void lumora$key(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        if (dev.lumora.core.chat.ChatApi.screenKey(keyCode)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
+    private void lumora$scroll(double mouseX, double mouseY, double horizontal, double amount, CallbackInfoReturnable<Boolean> cir) {
+        if (dev.lumora.core.chat.ChatApi.screenScroll(mouseX, mouseY, amount)) {
+            cir.setReturnValue(true);
+        }
+    }
+}

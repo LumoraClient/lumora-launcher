@@ -1,10 +1,15 @@
-# Lumora-API – Referenz (Version 1.8.0)
+# Lumora-API – Referenz (Version 1.9.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.8.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.9.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
 
-**API 1.8.0** (`LumoraAPI.API_VERSION`) bringt Texturen, die ein Addon zur Laufzeit aus Pixeln macht
+**API 1.9.0** (`LumoraAPI.API_VERSION`) bringt Knöpfe und Fenster an der Chat-Eingabe (`Chat.addInputButton` mit
+`ChatInputButton` und `ChatPanel`), Icons in Chatnachrichten für `:name:` (`Chat.addIcons` → `ChatIcons`) und Text in die
+Chat-Eingabe (`Chat.insertText`, `input()`, `closePanel()`) – Lumoras Gegenstück zu LabyMods Chat-Eingabe-Knöpfen und
+`IconComponent`. Das eingebaute Modul *Emoji Chat* nutzt genau diese API. Addons für 1.0 bis 1.8 laden unverändert weiter.
+
+**API 1.8.0** brachte Texturen, die ein Addon zur Laufzeit aus Pixeln macht
 (`AddonContext.textures()` → `DynamicTextures.upload(name, w, h, argb)`), etwa ein Album-Cover, in allen
 Minecraft-Versionen. Addons für 1.0 bis 1.7 laden unverändert weiter.
 
@@ -72,7 +77,7 @@ Grundregeln:
 | Typ | Zweck |
 |---|---|
 | `LumoraAddon` | Einstieg. `onInitialize(ctx)` einmal (Einstellungen definieren), `onEnable(ctx)` (registrieren), `onDisable(ctx)` (eigene Ressourcen freigeben). Öffentlicher Konstruktor ohne Parameter. |
-| `AddonContext` | `descriptor()`, `state()`, `logger()`, `lumora()`, `events()`, `widgets()` (HUD), `keybinds()` (KEYBINDS), `tasks()` (TASKS), `notifications()` (NOTIFICATIONS), `game()` (GAME), `translations()`, `resources()`, `configuration()`, `hasPermission(p)`. Seit 1.1: `world()` (PLAYERS), `session()` (SESSION), `channels()` (NETWORK), `screens()` (SCREENS), `nameTags()` (NAMETAGS), `configDirectory()` (`config`-Ordner des Spiels für eigene Dateien, ohne Berechtigung), `modLoaded(modId)` (ob eine Mod mit dieser ID installiert ist, ohne Berechtigung). Seit 1.4: `playerMenu()` (PLAYER_MENU). Seit 1.5: `theme()` (ohne Berechtigung; `addAccent` braucht DESIGN), `chat()` (CHAT), `social()` (SOCIAL). Seit 1.8: `textures()` (Laufzeit-Texturen, ohne Berechtigung). Ohne Berechtigung: `AddonPermissionException`. Registrieren außerhalb von `onEnable`/aktiv: `IllegalStateException`. |
+| `AddonContext` | `descriptor()`, `state()`, `logger()`, `lumora()`, `events()`, `widgets()` (HUD), `keybinds()` (KEYBINDS), `tasks()` (TASKS), `notifications()` (NOTIFICATIONS), `game()` (GAME), `translations()`, `resources()`, `configuration()`, `hasPermission(p)`. Seit 1.1: `world()` (PLAYERS), `session()` (SESSION), `channels()` (NETWORK), `screens()` (SCREENS), `nameTags()` (NAMETAGS), `configDirectory()` (`config`-Ordner des Spiels für eigene Dateien, ohne Berechtigung), `modLoaded(modId)` (ob eine Mod mit dieser ID installiert ist, ohne Berechtigung). Seit 1.4: `playerMenu()` (PLAYER_MENU). Seit 1.5: `theme()` (ohne Berechtigung; `addAccent` braucht DESIGN), `chat()` (CHAT), `social()` (SOCIAL). Seit 1.8: `textures()` (Laufzeit-Texturen, ohne Berechtigung). Seit 1.9: an `chat()` die Chat-Eingabe-Knöpfe, Panels und Icons. Ohne Berechtigung: `AddonPermissionException`. Registrieren außerhalb von `onEnable`/aktiv: `IllegalStateException`. |
 | `AddonDescriptor` | Geprüfte Metadaten (record): `id`, `name`, `version`, `description`, `authors`, `apiVersion`, `minecraftVersions`, `entrypoint`, `dependencies`, `permissions`, `builtIn`, `source`; `supportsMinecraft(v)`. |
 | `AddonDependency` | `id`, `versions` (`VersionRange`), `optional`. Die ID `lumora` steht für die API selbst. |
 | `AddonPermission` | `HUD("hud")`, `KEYBINDS("keybinds")`, `NOTIFICATIONS("notifications")`, `TASKS("tasks")`, `GAME("game")`; seit 1.1 `SCREENS("screens")`, `PLAYERS("players")`, `SESSION("session")`, `NETWORK("network")`, `NAMETAGS("nametags")`; seit 1.4 `PLAYER_MENU("playermenu")`; seit 1.5 `DESIGN("design")`, `CHAT("chat")`, `SOCIAL("social")`. `byId(id)` → Berechtigung oder `null`. |
@@ -460,6 +465,48 @@ if (style.active()) {
 | `ChatMenuEntry.builder(id, label)` | `label(Function<ChatLine,String>)`, `visibleWhen(...)`, `onSelect(Consumer<ChatLine>)` – erscheint im Menü einer Chat-Nachricht (Rechtsklick oder ⋯) nach Lumoras Einträgen, solange das Chat-Modul an ist |
 | `ChatLine` | `text()` (ohne Farben und Lumoras Zeitstempel), `sender()` (oder null), `links()` |
 | `event.chat.ChatMessageEvent` | `line()` – jede neue Chat-Nachricht, auch bei ausgeschaltetem Chat-Modul; nur eine Kopie, nicht veränderbar |
+| `Chat` (seit 1.9) | `addInputButton(ChatInputButton)` → `Registration`, `addIcons(ChatIcons)` → `Registration`, `insertText(text)` (an der Cursorposition der offenen Chat-Eingabe), `input()` (getippter Text, `""` ohne offenen Chat), `closePanel()` |
+| `ChatInputButton.builder(id, tooltip)` (seit 1.9) | `icon(texture, u, v, regionW, regionH, texW, texH)` (10 × 10 px) **oder** `label(text)`; `panel(Supplier<ChatPanel>)` **oder** `onPress(Runnable)`; `visibleWhen(BooleanSupplier)`, z. B. an eine Einstellung gebunden. Die Knöpfe stehen in einer Reihe direkt über der Eingabezeile rechts, der Tooltip darüber; ein Klick öffnet das Panel (ein zweiter schließt es) oder führt die Aktion aus |
+| `ChatPanel` (seit 1.9) | `width()`, `height()` (Lumora kürzt auf den Platz über der Eingabe und meldet die echte Größe mit `resized(w, h)` vor jedem Bild), `render(g, mx, my)`, `mouseClicked(mx, my, button)`, `mouseScrolled(mx, my, amount)`, `opened()`, `closed()`. Koordinaten relativ zur linken oberen Ecke, Hintergrund und Rand zeichnet Lumora, Inhalt wird auf die Fläche beschnitten. Es ist immer nur ein Panel offen; es schließt beim zweiten Klick auf seinen Knopf, mit `closePanel()`, wenn der Chat zugeht oder das Addon aus ist. Klicks und Mausrad über dem Panel erreichen den Chat dahinter nicht |
+| `ChatIcons` (seit 1.9) | `Icon icon(String name)` – für jedes `:name:` (Kleinbuchstaben, Ziffern, `_ + -`, höchstens 40 Zeichen) in neuen Nachrichten, `null` = kein Icon; der erste Anbieter, der den Namen kennt, gewinnt. `ChatIcons.Icon(font, glyph)`: Zeichen einer Schrift des Addons (`assets/<namespace>/font/<pfad>.json`, z. B. ein `bitmap`-Provider), weiß gezeichnet (eine farbige Textur bleibt farbig); Klicks, Hover-Texte und Einfügetext der Nachricht bleiben. Kopieren gibt `:name:` zurück. Nur die eigene Anzeige ändert sich. **1.8.9 und 1.12.2** haben keine eigenen Schriften: dort bleibt der Text stehen |
+
+Beispiel (ein Knopf mit Panel, das Text in die Eingabe schreibt; das Session-Timer-Beispiel im Template macht das so):
+
+```java
+context.chat().addInputButton(ChatInputButton.builder("timer", "Sitzungszeit")
+        .label("T")
+        .panel(() -> new ChatPanel() {
+            public int width() { return 120; }
+            public int height() { return 26; }
+            public void render(HudGraphics g, int mx, int my) {
+                g.text("Zeit: " + widget.text(), 4, 4, 0xFFFFFFFF, true);
+                g.text("Klick: in den Chat", 4, 15, 0xFF8D9BB8, false);
+            }
+            public boolean mouseClicked(int mx, int my, int button) {
+                context.chat().insertText("Session: " + widget.text());
+                return true;
+            }
+        })
+        .build());
+
+// :lumora: in Nachrichten wird zum Zeichen U+E000 der eigenen Schrift myaddon:icons
+context.chat().addIcons(name -> name.equals("lumora") ? new ChatIcons.Icon("myaddon:icons", "") : null);
+```
+
+Zur Schrift gehört `assets/myaddon/font/icons.json` mit
+`{"providers":[{"type":"bitmap","file":"myaddon:font/icons.png","ascent":7,"height":8,"chars":[""]}]}` und die Textur
+`assets/myaddon/textures/font/icons.png`.
+
+**Vergleich mit LabyMod (Chat-Eingabe und Icons im Chat):**
+
+| LabyMod 4 | Lumora 1.9 |
+|---|---|
+| `labyAPI().chatProvider().chatInputService().register(ChatButtonWidget)` | `context.chat().addInputButton(ChatInputButton)` (Registrierung wird beim Ausschalten des Addons entfernt) |
+| `ChatButtonWidget.icon(id, Icon, supplier)` / `.component(id, Component, supplier)` | `ChatInputButton.builder(id, tooltip).icon(...)` / `.label(text)`, `.panel(...)` oder `.onPress(...)` |
+| `ChatButtonWidget.property(ConfigProperty<Boolean>)` | `.visibleWhen(setting::get)` |
+| `ChatInputTabActivity` mit LSS-Datei | `ChatPanel`: eigenes Zeichnen mit `HudGraphics`, Größe aus `width()`/`height()` |
+| `chatExecutor().insertText(text)` | `context.chat().insertText(text)` |
+| `ChatReceiveEvent.setMessage(...)` mit `Component.icon(icon, style, w, h, placeholder)` | `context.chat().addIcons(...)`: Lumora ersetzt `:name:` selbst, das Icon ist ein Zeichen einer Addon-Schrift; der Platzhalter ist der `:name:`-Text |
 
 ## dev.lumora.api.social (seit 1.5)
 

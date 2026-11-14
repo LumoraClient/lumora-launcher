@@ -284,10 +284,15 @@ public final class ChatModule implements LumoraAddon {
         if (m != null && m.platform != null) {
             m.overlay.render(g, m.platform.extras(), mouseX, mouseY, System.currentTimeMillis());
         }
+        // buttons and panels at the chat input (Lumora API 1.9), also while the chat module is off
+        dev.lumora.core.chat.ChatApi.renderScreen(g, mouseX, mouseY);
     }
 
     /** A click in the open chat; true if Lumora used it (Minecraft must not see it). */
     public static boolean chatClick(double x, double y, int button) {
+        if (dev.lumora.core.chat.ChatApi.screenClick(x, y, button)) {
+            return true;
+        }
         ChatModule m = active;
         return m != null && m.platform != null && m.overlay.click(m.platform.extras(), x, y, button);
     }

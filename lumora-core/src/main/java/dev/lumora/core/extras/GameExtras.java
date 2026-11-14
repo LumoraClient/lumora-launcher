@@ -217,6 +217,25 @@ public interface GameExtras {
     default void refreshChat() {
     }
 
+    /** The open chat's input field: its text and the cursor position (0 .. text length). */
+    record ChatInput(String text, int cursor) {
+    }
+
+    /** Text and cursor of the open chat's input (Lumora API 1.9, emoji chat), or null without an open chat. */
+    default ChatInput chatInput() {
+        return null;
+    }
+
+    /** Sets text and cursor of the open chat's input (no-op without an open chat). */
+    default void setChatInput(String text, int cursor) {
+        setChatInput(text);
+    }
+
+    /** Size of the GUI in GUI pixels (width, height) after the GUI scale, or null if unknown. */
+    default int[] guiSize() {
+        return null;
+    }
+
     /** Replaces the text in the open chat's input field. */
     default void setChatInput(String text) {
     }

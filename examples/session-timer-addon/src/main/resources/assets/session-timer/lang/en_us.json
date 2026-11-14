@@ -1,5 +1,9 @@
 {
   "session-timer.title": "Session Timer",
+  "session-timer.chat.button": "Session time into the chat",
+  "session-timer.chat.time": "Session: %s",
+  "session-timer.chat.insert": "Write into the chat",
+  "session-timer.chat.message": "My session has been running for %s",
   "session-timer.started": "Your session is running.",
   "session-timer.reset": "Timer restarted.",
   "session-timer.key.reset": "Restart session timer",

@@ -437,6 +437,11 @@ public final class SmokeTest {
                 ChatSmoke.look();
             } else if (ticks == 13) {
                 screenshot(mc, "chat-look");
+                ChatSmoke.emoji(mc);
+            } else if (ticks == 20) {
+                ChatSmoke.emojiCheck(extraProblems);
+                screenshot(mc, "chat-emoji");
+            } else if (ticks == 21) {
                 ChatSmoke.reset(mc);
                 worldStep++;
                 ticks = 0;

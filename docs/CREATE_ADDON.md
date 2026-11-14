@@ -425,3 +425,30 @@ context.events().subscribe(ItemTooltipEvent.class, e -> {
 
 Das Ereignis kommt jedes Frame, solange ein Tooltip sichtbar ist. Der Listener darf deshalb nur vorbereitete Daten
 nachschlagen und nichts laden.
+
+## 11. Knöpfe an der Chat-Eingabe und Icons im Chat (API 1.9)
+
+Wie bei LabyMods Chat-Eingabe-Knöpfen kann ein Addon eigene Knöpfe direkt über der Chat-Eingabezeile (rechts) anlegen.
+Ein Knopf zeigt ein Icon oder einen kurzen Text, darüber seinen Tooltip, und öffnet ein eigenes Fenster (`ChatPanel`)
+oder führt eine Aktion aus. Das Beispiel-Addon zeigt so die Sitzungszeit und schreibt sie per Klick in den Chat
+(`SessionChatPanel`). Braucht die Berechtigung `chat`, `"api": "1.9.0"` und `"depends": { "lumora": ">=1.9.0" }`.
+
+```java
+context.chat().addInputButton(ChatInputButton.builder("time", "Sitzungszeit in den Chat")
+        .label("T")                                     // oder .icon(texture, u, v, w, h, texW, texH)
+        .panel(() -> new SessionChatPanel(context.chat(), context.translations(), context.theme(), widget))
+        .visibleWhen(showButton::get)                  // z. B. an eine Einstellung gebunden
+        .build());
+```
+
+Ein `ChatPanel` gibt seine Größe an (`width()`, `height()`), zeichnet in `render(g, mx, my)` mit Koordinaten relativ zur
+eigenen linken oberen Ecke und bekommt Klicks und das Mausrad über sich. Lumora zeichnet Hintergrund und Rahmen, hält
+immer nur ein Fenster offen und schließt es beim zweiten Klick auf den Knopf, beim Schließen des Chats oder wenn das
+Addon ausgeht. Text landet mit `context.chat().insertText(...)` an der Cursorposition, `context.chat().input()` liest
+die Eingabe, `context.chat().closePanel()` schließt das Fenster.
+
+**Icons in Nachrichten:** `context.chat().addIcons(name -> …)` ersetzt jedes `:name:` in neuen Nachrichten durch ein
+Zeichen einer eigenen Schrift (`ChatIcons.Icon(font, glyph)`), wie die Namensschild-Symbole aus Abschnitt 7. Klicks und
+Hover-Texte der Nachricht bleiben, Kopieren gibt `:name:` zurück, nur die eigene Anzeige ändert sich. Auf 1.8.9 und
+1.12.2 (keine eigenen Schriften) bleibt der Text stehen. Lumoras eingebautes Modul *Emoji Chat* (Twemoji, Picker,
+Vorschläge beim Tippen von `:jo`) ist genau mit dieser API gebaut.

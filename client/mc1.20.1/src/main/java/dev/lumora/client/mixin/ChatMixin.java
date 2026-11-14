@@ -39,7 +39,7 @@ public abstract class ChatMixin {
         dev.lumora.core.chat.ChatApi.received(message == null ? null : message.getString());
         ChatModule c = ChatModule.active();
         if (c == null || message == null) {
-            return message;
+            return dev.lumora.client.render.ChatEmojis.decorate(message);
         }
         ChatModule.Line line = c.onMessage(message.getString());
         Component out = message;
@@ -53,7 +53,7 @@ public abstract class ChatMixin {
             MutableComponent stamp = Component.literal(line.timestamp() + " ").withStyle(s -> s.withColor(TextColor.fromRgb(rgb)));
             out = Component.empty().append(stamp).append(out);
         }
-        return out;
+        return dev.lumora.client.render.ChatEmojis.decorate(out);
     }
 
     // --- Lumora chat module: size, background, text shadow, fade time, history

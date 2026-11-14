@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.52 (2026-11-15)
+
+### Im Spiel
+- **Neues Modul „Off Hand“** (Spieler, anfangs aus, ab Minecraft 1.9): blendet in der Ego-Ansicht die Zweithand oder die Haupthand aus, oder nur ein Schild oder ein Totem darin, für jede Hand einzeln. Die Schalter für Schild und Totem erscheinen nur, solange die Hand selbst angezeigt wird. Andere Spieler sehen deine Hände weiter wie immer. In allen Versionen von 1.12.2 bis 26.3; in 1.8.9 gibt es keine Zweithand, dort ist das Modul gesperrt.
+
 ## 0.3.51 (2026-11-14)
 
 ### Im Spiel

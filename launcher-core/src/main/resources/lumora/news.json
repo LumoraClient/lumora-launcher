@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-offhand",
+      "date": "2026-11-15",
+      "author": "Lumora",
+      "version": "0.3.52",
+      "title": "Off Hand",
+      "text": "Blende in der Ego-Ansicht die Zweithand, die Haupthand oder nur Schild und Totem aus.",
+      "image": "news-offhand.png",
+      "body": [
+        {"p": "Das neue Modul „Off Hand“ bestimmt, was du von deinen Händen in der Ego-Ansicht siehst. Andere Spieler sehen deine Hände weiter wie immer."},
+        {"list": [
+          "Zweithand und Haupthand einzeln ein- und ausblenden",
+          "Nur den Schild ausblenden, auch beim Blocken",
+          "Nur das Totem der Unsterblichkeit ausblenden",
+          "Für jede Hand eigene Schalter; Schild und Totem erscheinen nur, solange die Hand angezeigt wird"
+        ]},
+        {"p": "Das Modul ist anfangs aus: im Hub unter Spieler einschalten. In allen Versionen von 1.12.2 bis 26.3; 1.8.9 hat noch keine Zweithand."}
+      ]
+    },
+    {
       "id": "lumora-light-overlay",
       "date": "2026-11-14",
       "author": "Lumora",

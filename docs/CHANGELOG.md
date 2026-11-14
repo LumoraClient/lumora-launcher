@@ -1,5 +1,19 @@
 # Änderungen
 
+## 0.3.47 (2026-11-14)
+
+### Im Spiel
+- **Neues Modul „Emoji Chat“** (Server, anfangs an): `:smile:`, `:+1:`, `:heart:` … in Chatnachrichten werden zu Emojis (1870 Twemoji-Emojis mit den Namen von gemoji, ab Minecraft 1.16.5; auf 1.8.9 und 1.12.2 bleibt der Text). Ein Emoji-Knopf rechts über der Chat-Eingabe öffnet die Auswahl mit Kategorien, zuletzt benutzten Emojis und Mausrad; ein Klick fügt den Code ein. Beim Tippen von `:jo` schlägt der Chat passende Emojis vor, Tab übernimmt, die Pfeiltasten wählen. Andere Spieler sehen den gesendeten Text. Kopieren einer Nachricht gibt die Codes zurück.
+
+### Lumora API 1.9.0
+- **Knöpfe und Fenster an der Chat-Eingabe:** `Chat.addInputButton(ChatInputButton)` mit Icon oder Text, Tooltip und `ChatPanel` (eigenes Fenster über der Eingabe) oder Aktion – Lumoras Gegenstück zu LabyMods Chat-Eingabe-Knöpfen.
+- **Icons in Chatnachrichten:** `Chat.addIcons(ChatIcons)` ersetzt `:name:` durch ein Zeichen einer Addon-Schrift (wie LabyMods `IconComponent`).
+- `Chat.insertText(text)`, `Chat.input()`, `Chat.closePanel()`.
+- Addon-Vorlage und Beispiel (Session Timer) zeigen einen Knopf an der Chat-Eingabe, der die Sitzungszeit in den Chat schreibt.
+
+### Behoben
+- Zugeschnittene Bereiche (Scissor) in Minecraft 1.8.9 bis 1.18.2 beachten jetzt Verschiebungen und lassen sich verschachteln, wie es die API zusagt; vorher konnten Addon-Fenster dort leer bleiben.
+
 ## 0.3.46 (2026-11-14)
 
 ### Im Spiel

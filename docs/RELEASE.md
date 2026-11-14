@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.47 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 590 Unit-Tests ohne Fehler (1 übersprungen). Neu: Lumora API 1.9 (Knöpfe und Fenster an der Chat-Eingabe, Icons im Chat, doppelte Ids abgelehnt, Entfernen beim Abschalten), `:name:`-Erkennung im Chattext und Rückwandlung beim Kopieren, Emoji-Liste und Suche (1870 Twemoji), Emoji-Auswahl (Tabs, Zeilen-Scrollen, Größenänderung), Vorschläge beim Tippen, Scissor-Stapel für alte Versionen (verschoben und verschachtelt). Alle 16 Client-Module kompiliert, `check-mixins.pl` für ChatInputMixin und ChatMixin ohne fehlende Ziele.
+- **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3, 1.16.5 und 1.8.9 bestanden mit dem neuen Schritt „chat-emoji“. In 26.3 und 1.16.5 zeigt der Chat „Emoji-Test 😄👍❤️😂 um 12:30“, in 1.8.9 bleibt der Text. Auswahl mit Raster und Vorschläge zu `:jo` im Bild, ebenso der Knopf des Beispiel-Addons.
+- **Smoke-Test mit dem fertigen 0.3.47-Build:** 1.16.5 und 1.8.9 – bestanden (mit der Scissor-Korrektur): `LUMORA_EMOJI glyphs=true panel=true` bzw. `glyphs=false panel=true`, Auswahl in 1.8.9 vollständig mit Tabs, Raster und Fußzeile.
+- **Nicht geprüft:** die Auswahl in 26.3 im Bild (der Testspieler stirbt im Demo-Level in diesem Schritt, laut Log ist sie offen), Emojis in 1.12.2 und 1.17.1 bis 26.2 im Spiel (nur kompiliert), Emojis bei echter Bildschirmgröße, ein Selbst-Update von 0.3.46 auf 0.3.47.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.46 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 566 Unit-Tests ohne Fehler (1 übersprungen). Neu: Armor HUD (fünf Widgets mit eigenen Plätzen, Haltbarkeit als Rest, Rest/Maximum und Prozent, Anzahl bei Items ohne Haltbarkeit, Diamant-Vorschau außerhalb der Welt, leere Plätze ausgeblendet außer im HUD-Editor, Modul anfangs aus), eine Karte „Armor HUD“ mit fünf Abschnitten im Hub, Modulnamen und -beschreibungen in allen 32 Sprachdateien der 16 Versionen (Namen in Deutsch und Englisch gleich). Alle 16 Client-Module kompiliert (Ausrüstung lesen in vier Varianten: 1.8.9, 1.12.2, 1.16.5–1.21.11, 26.x).
 - **Vor dem Release** (Entwicklungsstand, Testordner, Armor HUD dort eingeschaltet): Smoke-Test 26.3 und 1.8.9 bestanden, Prüfung im Smoke-Test: 8 eingebaute Widgets und 5 Armor-HUD-Widgets. Im Spiel zeigt das Held-Item-Widget das Diamantschwert mit „1561“ in Grün, in 26.3 und in 1.8.9. Der Hub zeigt die Karte „Armor HUD“ und die englischen Namen.

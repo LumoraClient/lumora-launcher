@@ -1,6 +1,26 @@
 {
   "news": [
     {
+      "id": "lumora-emoji-chat",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.47",
+      "title": "Emoji Chat",
+      "text": "Emojis im Chat: per Code wie :smile:, aus der Auswahl an der Chat-Eingabe oder als Vorschlag beim Tippen.",
+      "image": "news-emoji-chat.png",
+      "body": [
+        {"p": "Das neue Modul „Emoji Chat“ macht aus :smile:, :+1: oder :heart: in Chatnachrichten echte Emojis. Dabei sind 1870 Twemoji-Emojis, ab Minecraft 1.16.5; auf 1.8.9 und 1.12.2 bleibt der Text stehen."},
+        {"list": [
+          "Emoji-Knopf rechts über der Chat-Eingabe: Auswahl mit Kategorien, zuletzt benutzten Emojis und Mausrad",
+          "Vorschläge beim Tippen von :jo – Tab übernimmt, die Pfeiltasten wählen",
+          "Kopieren einer Nachricht gibt die Codes zurück",
+          "Alle drei Teile einzeln abschaltbar, Emojis pro Reihe einstellbar"
+        ]},
+        {"p": "Andere Spieler sehen den Text, den du schickst. Das Modul ist anfangs an und steht im Hub unter Server."},
+        {"p": "Für Addon-Entwickler: Mit Lumora API 1.9 können Addons eigene Knöpfe und Fenster an der Chat-Eingabe und eigene Icons im Chat anlegen. Die Addon-Vorlage zeigt ein Beispiel."}
+      ]
+    },
+    {
       "id": "lumora-armor-hud",
       "date": "2026-11-14",
       "author": "Lumora",

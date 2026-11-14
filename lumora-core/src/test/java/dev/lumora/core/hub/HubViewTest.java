@@ -119,7 +119,7 @@ class HubViewTest {
         HubView.Card card = cards.stream().filter(c -> c.id().equals("addon:lumora-blockoverlay")).findFirst().orElseThrow();
         assertTrue(card.settings() != null);
         card.settings().run();
-        assertEquals("Block-Overlay", host.openedTitle);
+        assertEquals("Block Overlay", host.openedTitle, "English name (lumora.module.lumora-blockoverlay)");
         assertTrue(host.openedWithEditor);
         assertEquals(1, host.openedSections.size());
         SettingsView.Section s = host.openedSections.get(0);
@@ -134,6 +134,58 @@ class HubViewTest {
         assertTrue(HubView.filter(cards, HubView.ALL, widgetName).contains(card), widgetName);
         // widgets of Lumora's collections stay cards of their own
         assertTrue(cards.stream().anyMatch(c -> c.id().startsWith("widget:lumora-info") || c.id().startsWith("widget:lumora:")));
+    }
+
+    @Test
+    void armorHudIsOneCardWithEveryPieceAsItsOwnWidget() {
+        LumoraCore core = core();
+        assertTrue(core.addonManager().setWanted("lumora-armor", true).isEmpty());
+        FakeHost host = new FakeHost();
+        List<HubView.Card> cards = new HubView(core, host).cards();
+        assertFalse(cards.stream().anyMatch(c -> c.id().startsWith("widget:lumora-armor")), "no card per piece");
+        HubView.Card card = cards.stream().filter(c -> c.id().equals("addon:lumora-armor")).findFirst().orElseThrow();
+        assertEquals("Armor HUD", card.name());
+        assertEquals(dev.lumora.api.hud.WidgetCategory.COMBAT, card.category());
+        card.settings().run();
+        assertEquals(5, host.openedSections.size(), "helmet, chestplate, leggings, boots, held item");
+        assertTrue(host.openedSections.stream().allMatch(s -> s.title().startsWith("HUD · ")));
+    }
+
+    /** Every module card name and description is in every language file of every version, the names in English. */
+    @Test
+    void moduleNamesComeFromTheLanguageFiles() throws Exception {
+        LumoraCore core = core();
+        List<String> ids = new java.util.ArrayList<>(List.of("zoom", "lumora"));
+        core.addons().forEach(a -> ids.add(a.id()));
+        Path clients = Path.of("..", "client");
+        List<Path> files;
+        try (var walk = Files.walk(clients)) {
+            files = walk.filter(p -> p.toString().replace('\\', '/').endsWith("assets/lumora/lang/de_de.json")
+                    && p.toString().replace('\\', '/').contains("/src/main/")).toList();
+        }
+        assertTrue(files.size() >= 16, "one per Minecraft version: " + files);
+        com.google.gson.reflect.TypeToken<Map<String, String>> type = new com.google.gson.reflect.TypeToken<>() { };
+        for (Path de : files) {
+            Map<String, String> german = new com.google.gson.Gson().fromJson(Files.readString(de), type.getType());
+            Map<String, String> english = new com.google.gson.Gson().fromJson(Files.readString(de.resolveSibling("en_us.json")),
+                    type.getType());
+            for (String id : ids) {
+                String key = "lumora.module." + id;
+                assertTrue(german.containsKey(key) && english.containsKey(key), de + " misses " + key);
+                assertEquals(english.get(key), german.get(key), "English name in German too: " + key);
+                assertTrue(german.containsKey(key + ".description") && english.containsKey(key + ".description"),
+                        de + " misses " + key + ".description");
+            }
+            // widget names: English in both languages
+            for (Map.Entry<String, String> e : english.entrySet()) {
+                String k = e.getKey();
+                if (k.matches("lumora\\.hud\\.(fps|cps|coords|keystrokes|ping|clock|speed|server|potions|items|compass|memory|day|packs|combo|togglesprint|blockinfo)")
+                        || k.matches("lumora-(statusbars|armor)\\.widget\\.[a-z_]+")) {
+                    assertEquals(e.getValue(), german.get(k), de + ": " + k);
+                }
+            }
+            assertFalse(german.containsKey("lumora.hud.armor"), "old armor widget is gone: " + de);
+        }
     }
 
     @Test
@@ -213,7 +265,7 @@ class HubViewTest {
             view.render(new FakeGraphics(), 854, 480, 600, y);
             view.mouseClicked(600, y, 0);
         }
-        assertEquals("Widget-Design", host.openedTitle);
+        assertEquals("Widget Design", host.openedTitle);
         core.stopping();
     }
 

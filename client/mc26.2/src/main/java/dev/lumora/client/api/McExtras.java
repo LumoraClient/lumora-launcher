@@ -269,6 +269,60 @@ final class McExtras implements GameExtras {
         }
     }
 
+    // --- armor HUD (module "Armor HUD")
+
+    private static final net.minecraft.world.entity.EquipmentSlot[] SLOTS = {
+            net.minecraft.world.entity.EquipmentSlot.HEAD,
+            net.minecraft.world.entity.EquipmentSlot.CHEST,
+            net.minecraft.world.entity.EquipmentSlot.LEGS,
+            net.minecraft.world.entity.EquipmentSlot.FEET,
+            net.minecraft.world.entity.EquipmentSlot.MAINHAND};
+
+    /** 0 helmet, 1 chestplate, 2 leggings, 3 boots, 4 main hand. */
+    private static ItemStack equipmentStack(LocalPlayer p, int piece) {
+        return p.getItemBySlot(SLOTS[piece]);
+    }
+
+    private static ItemStack sampleStack(int piece) {
+        switch (piece) {
+            case 0: return new ItemStack(net.minecraft.world.item.Items.DIAMOND_HELMET);
+            case 1: return new ItemStack(net.minecraft.world.item.Items.DIAMOND_CHESTPLATE);
+            case 2: return new ItemStack(net.minecraft.world.item.Items.DIAMOND_LEGGINGS);
+            case 3: return new ItemStack(net.minecraft.world.item.Items.DIAMOND_BOOTS);
+            default: return new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+        }
+    }
+
+    @Override
+    public Equipment equipment(int piece) {
+        LocalPlayer p = mc().player;
+        if (p == null || piece < 0 || piece > 4) {
+            return Equipment.NONE;
+        }
+        ItemStack s = equipmentStack(p, piece);
+        if (!(s != null && !s.isEmpty())) {
+            return Equipment.NONE;
+        }
+        boolean damageable = s.isDamageableItem() && s.getMaxDamage() > 0;
+        return new Equipment(true, damageable ? s.getMaxDamage() - s.getDamageValue() : 0, damageable ? s.getMaxDamage() : 0, s.getCount());
+    }
+
+    @Override
+    public void drawEquipment(dev.lumora.api.render.HudGraphics g, int piece, boolean sample, int x, int y) {
+        if (piece < 0 || piece > 4) {
+            return;
+        }
+        LocalPlayer p = mc().player;
+        ItemStack s = sample || p == null ? sampleStack(piece) : equipmentStack(p, piece);
+        if (!(s != null && !s.isEmpty())) {
+            return;
+        }
+        net.minecraft.client.gui.GuiGraphicsExtractor n = g.unwrap(net.minecraft.client.gui.GuiGraphicsExtractor.class).orElse(null);
+        if (n != null) {
+            n.item(s, x, y);
+        }
+    }
+
     // --- chat (module "Chat")
 
     private static net.minecraft.client.gui.components.ChatComponent chat() {

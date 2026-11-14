@@ -14,12 +14,9 @@ import dev.lumora.api.render.HudGraphics;
 import dev.lumora.client.gui.LumoraUi;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 import java.time.LocalTime;
@@ -29,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The built-in Lumora HUD widgets (FPS, CPS, coordinates, keystrokes, ping, clock, speed, armor, server) on the
+ * The built-in Lumora HUD widgets (FPS, CPS, coordinates, keystrokes, ping, clock, speed, server) on the
  * Lumora widget API. Text widgets collect their lines in {@link HudWidget#tick()} (20x per second) and only draw
  * the cached lines per frame. Purely client-side displays of information the player already has.
  */
@@ -41,7 +38,7 @@ public final class BuiltInWidgets {
     }
 
     public static List<HudWidget> create() {
-        return List.of(new Fps(), new Cps(), new Coords(), new Keystrokes(), new Ping(), new Clock(), new Speed(), new Armor(), new Server());
+        return List.of(new Fps(), new Cps(), new Coords(), new Keystrokes(), new Ping(), new Clock(), new Speed(), new Server());
     }
 
     /** Shows a widget's own look settings only while "Widget-Design" is off. */
@@ -463,85 +460,4 @@ public final class BuiltInWidgets {
 
     }
 
-    /** Helmet, chest, legs, boots and held item with remaining durability (items need the 26.1 renderer). */
-    static final class Armor extends Panel {
-        static final EquipmentSlot[] ARMOR = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-        BooleanSetting held;
-        ChoiceSetting durability;
-        private final List<ItemStack> items = new ArrayList<>();
-
-        Armor() {
-            super("armor");
-        }
-
-        @Override
-        public WidgetPlacement defaultPlacement() {
-            return WidgetPlacement.at(0.995f, 0.6f);
-        }
-
-        @Override
-        public String category() {
-            return WidgetCategory.COMBAT;
-        }
-
-        @Override
-        void extra(SettingsGroup s) {
-            held = s.toggle("held", true);
-            durability = s.choice("durability", "value", "value", "percent");
-        }
-
-        @Override
-        public void tick() {
-            items.clear();
-            LocalPlayer p = Minecraft.getInstance().player;
-            if (p == null) {
-                return;
-            }
-            for (EquipmentSlot s : ARMOR) {
-                ItemStack st = p.getItemBySlot(s);
-                if (!st.isEmpty()) {
-                    items.add(st);
-                }
-            }
-            if (held.get() && !p.getMainHandItem().isEmpty()) {
-                items.add(p.getMainHandItem());
-            }
-        }
-
-        @Override
-        public int width(RenderContext ctx) {
-            return 18 + PAD * 2 + 40;
-        }
-
-        @Override
-        public int height(RenderContext ctx) {
-            int n = Minecraft.getInstance().player == null ? 4 : Math.max(1, items.size());
-            return n * 17 + PAD * 2;
-        }
-
-        @Override
-        public void render(HudGraphics g, RenderContext ctx) {
-            panel(g, width(ctx), height(ctx));
-            if (items.isEmpty()) {
-                g.text(Minecraft.getInstance().player == null ? t("lumora.hud.armor.preview") : "—", PAD + 4, PAD + 4, LumoraUi.MUTED, true);
-                return;
-            }
-            GuiGraphicsExtractor native2d = g.unwrap(GuiGraphicsExtractor.class).orElse(null);
-            int y = PAD;
-            for (ItemStack st : items) {
-                if (native2d != null) {
-                    native2d.item(st, PAD + 2, y);
-                }
-                if (st.isDamageableItem()) {
-                    int left = st.getMaxDamage() - st.getDamageValue();
-                    float f = (float) left / st.getMaxDamage();
-                    String text = "percent".equals(durability.get()) ? Math.round(f * 100) + "%" : Integer.toString(left);
-                    g.text(text, PAD + 22, y + 5, f > 0.5f ? LumoraUi.OK : f > 0.2f ? LumoraUi.WARN : 0xFFF2555A, true);
-                } else if (st.getCount() > 1) {
-                    g.text("×" + st.getCount(), PAD + 22, y + 5, WidgetDesign.valueColor(valueColor.argb()), true);
-                }
-                y += 17;
-            }
-        }
-    }
 }

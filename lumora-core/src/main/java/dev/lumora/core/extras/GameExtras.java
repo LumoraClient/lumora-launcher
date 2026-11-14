@@ -136,6 +136,39 @@ public interface GameExtras {
     }
 
     /**
+     * One piece of the player's equipment (module "Armor HUD").
+     *
+     * @param present       something is in the slot
+     * @param durability    durability left, 0 if the item has none
+     * @param maxDurability maximum durability, 0 if the item has none (blocks, food …)
+     * @param count         stack size
+     */
+    record Equipment(boolean present, int durability, int maxDurability, int count) {
+        public static final Equipment NONE = new Equipment(false, 0, 0, 0);
+
+        public boolean damageable() {
+            return maxDurability > 0;
+        }
+    }
+
+    /**
+     * What the player wears or holds ({@link Equipment#NONE} if empty or without a player).
+     *
+     * @param piece 0 helmet, 1 chestplate, 2 leggings, 3 boots, 4 item in the main hand
+     */
+    default Equipment equipment(int piece) {
+        return Equipment.NONE;
+    }
+
+    /**
+     * Draws the item of a piece (16 x 16, no count or durability bar) at (x, y).
+     *
+     * @param sample draw the diamond piece (diamond sword for the main hand) instead of the player's own, for previews
+     */
+    default void drawEquipment(dev.lumora.api.render.HudGraphics g, int piece, boolean sample, int x, int y) {
+    }
+
+    /**
      * Where Minecraft's chat window is (module "Chat"), in GUI pixels.
      *
      * @param left      left edge of the chat background

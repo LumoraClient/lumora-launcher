@@ -76,7 +76,8 @@ public final class HubView implements AddonView {
             Map.entry("lumora-chat", new String[]{WidgetCategory.SERVER, "chat"}),
             Map.entry("lumora-tab", new String[]{WidgetCategory.SERVER, "tab"}),
             Map.entry("lumora-elytratrails", new String[]{WidgetCategory.PLAYER, "elytratrails"}),
-            Map.entry("lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"}));
+            Map.entry("lumora-statusbars", new String[]{WidgetCategory.PLAYER, "hotbar"}),
+            Map.entry("lumora-armor", new String[]{WidgetCategory.COMBAT, "armor"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     private static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",
@@ -214,6 +215,32 @@ public final class HubView implements AddonView {
         return v instanceof Number n ? n.doubleValue() : fallback;
     }
 
+    /** A text from the language files with %s arguments, the fallback (English) without translations. */
+    private String lang(String key, String fallback, Object... args) {
+        Translations tr = core.translations();
+        if (tr != null && tr.has(key)) {
+            return tr.translate(key, args);
+        }
+        return args.length == 0 ? fallback : String.format(Locale.ROOT, fallback, args);
+    }
+
+    /**
+     * Name of a module card: built-in modules from the language files ({@code lumora.module.<id>}), addons by their own
+     * name (descriptor name as fallback).
+     */
+    private String moduleName(AddonInfo a) {
+        Translations tr = core.translations();
+        String name = a.descriptor().name();
+        return tr == null || !a.descriptor().builtIn() ? name : tr.translateOr("lumora.module." + a.id(), name);
+    }
+
+    /** Description of a module card, from the language files for built-in modules ({@code lumora.module.<id>.description}). */
+    private String moduleDescription(AddonInfo a) {
+        Translations tr = core.translations();
+        String desc = a.descriptor().description() == null ? "" : a.descriptor().description();
+        return tr == null || !a.descriptor().builtIn() ? desc : tr.translateOr("lumora.module." + a.id() + ".description", desc);
+    }
+
     private static String widgetName(Translations tr, WidgetInfo w) {
         return tr == null ? w.widget().id() : tr.translateOr(w.widget().nameKey(), w.widget().id());
     }
@@ -225,9 +252,10 @@ public final class HubView implements AddonView {
     List<Card> cards() {
         List<Card> out = new ArrayList<>();
         if (host.has("zoomEnabled")) {
-            out.add(new Card("zoom", "Zoom", t("Heranzoomen mit Taste ", "Zoom in with key ") + host.zoomKey()
-                    + t(", Faktor, Modus, Kinokamera", ", factor, mode, cinematic camera"), WidgetCategory.PLAYER, "zoom",
-                    bool("zoomEnabled"), null, () -> host.set("zoomEnabled", !bool("zoomEnabled")), () -> host.openSettings("Zoom",
+            String zoom = lang("lumora.module.zoom", "Zoom");
+            out.add(new Card("zoom", zoom, lang("lumora.module.zoom.description", "Zoom in with key %s, factor, mode, cinematic camera",
+                    host.zoomKey()), WidgetCategory.PLAYER, "zoom",
+                    bool("zoomEnabled"), null, () -> host.set("zoomEnabled", !bool("zoomEnabled")), () -> host.openSettings(zoom,
                     t("Taste: ", "Key: ") + host.zoomKey() + t(" · änderbar unter Optionen › Steuerung", " · change it in Options › Controls"),
                     zoomSettings(), List.of(), null, false),
                     null, null));
@@ -254,7 +282,7 @@ public final class HubView implements AddonView {
             boolean hasSettings = ownSettings || !sections.isEmpty();
             SettingsGroup group = ownSettings ? r.configuration().settings() : null;
             Runnable save = ownSettings ? r.configuration()::save : null;
-            Runnable settings = hasSettings ? () -> host.openSettings(a.descriptor().name(), a.descriptor().description(),
+            Runnable settings = hasSettings ? () -> host.openSettings(moduleName(a), moduleDescription(a),
                     group, core.keybindManager().of(a.id()), sections, save, !sections.isEmpty()) : null;
             Runnable menu = core.views().hasMenu(a.id()) ? () -> core.views().openMenu(a.id()) : null;
             boolean failed = a.state() == AddonState.FAILED;
@@ -267,14 +295,13 @@ public final class HubView implements AddonView {
                 String why = unavailable.get(0);
                 toggle = () -> toast(why);
             }
-            String desc = a.descriptor().description();
-            out.add(new Card("addon:" + a.id(), a.descriptor().name(), desc == null ? "" : desc,
+            out.add(new Card("addon:" + a.id(), moduleName(a), moduleDescription(a),
                     builtIn != null ? builtIn[0] : ADDONS, builtIn != null ? builtIn[1] : "addon",
                     a.wanted() && !failed, failed ? a.error().orElse(t("Fehler beim Laden", "Failed to load")) : null,
                     toggle, unavailable != null ? null : settings, menu,
                     builtIn == null && !a.descriptor().builtIn() ? a.descriptor().source() : null,
                     String.join(" ", own.stream().map(w -> widgetName(tr, w)).toList()), unavailable));
-            addonNames.add(a.descriptor().name().toLowerCase(Locale.ROOT));
+            addonNames.add(moduleName(a).toLowerCase(Locale.ROOT));
         }
         for (WidgetInfo w : core.widgets()) {
             if (merged.contains(w.id())) {
@@ -287,7 +314,7 @@ public final class HubView implements AddonView {
             String desc = tr != null && tr.has(w.widget().descriptionKey()) ? tr.translate(w.widget().descriptionKey()) : "";
             String from = null;
             if (!WIDGET_CONTAINERS.contains(w.addonId())) {
-                from = core.addon(w.addonId()).map(a -> a.descriptor().name()).orElse(w.addonId());
+                from = core.addon(w.addonId()).map(this::moduleName).orElse(w.addonId());
             }
             boolean hasSettings = !w.widget().settings().isEmpty();
             String widgetName = name;
@@ -313,7 +340,8 @@ public final class HubView implements AddonView {
         if (p == null) {
             return null;
         }
-        List<String> out = new ArrayList<>(p.describe(de, d.name()));
+        String name = d.builtIn() ? lang("lumora.module." + d.id(), d.name()) : d.name();
+        List<String> out = new ArrayList<>(p.describe(de, name));
         if (dev.lumora.core.addon.VersionSupport.thirdParty(d)) {
             out.add("§7" + dev.lumora.core.addon.VersionSupport.thirdPartyNote(de, d));
         }
@@ -1205,8 +1233,8 @@ public final class HubView implements AddonView {
                 (rx, ry) -> switchControl(g, rx, ry, on),
                 () -> core.addonManager().setWanted(WIDGET_DESIGN, !on).ifPresent(this::toast));
         y = row(g, x, y, w, t("Einstellungen", "Settings"), mx, my, (rx, ry) -> pill(g, rx, ry, t("Öffnen", "Open")),
-                () -> host.openSettings("Widget-Design", t("Aussehen, Farben, RGB, Format und Größe aller Widgets",
-                        "Look, colours, RGB, format and size of all widgets"), r.configuration().settings(), List.of(),
+                () -> host.openSettings(lang("lumora.module.lumora-widgetdesign", "Widget Design"),
+                        lang("lumora.module.lumora-widgetdesign.settings", "Look, colours, RGB, format and size of all widgets"), r.configuration().settings(), List.of(),
                         r.configuration()::save, true));
         g.text(on ? t("Gilt für alle Widgets; ihre eigenen Stil-Einstellungen sind ausgeblendet",
                         "Applies to every widget; their own look settings are hidden")

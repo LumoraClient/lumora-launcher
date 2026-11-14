@@ -71,7 +71,7 @@ public final class LumoraRuntime {
     private static void start(Minecraft mc) {
         List<AddonCandidate> candidates = new ArrayList<>();
         candidates.add(AddonCandidate.of(LumoraCore.builtInDescriptor("lumora", "Lumora HUD",
-                "FPS, CPS, Koordinaten, Tasten, Ping, Uhr, Tempo, Rüstung, Server", BuiltInHudAddon.class), BuiltInHudAddon::new));
+                "FPS, CPS, coordinates, keystrokes, ping, clock, speed, server", BuiltInHudAddon.class), BuiltInHudAddon::new));
         platform.game().update(mc, 0);
         core.loadAddons(candidates);
         LumoraClient.LOG.info("Lumora API {}: {} addon(s), {} widget(s)", core.apiVersion(), core.addons().size(), core.widgets().size());

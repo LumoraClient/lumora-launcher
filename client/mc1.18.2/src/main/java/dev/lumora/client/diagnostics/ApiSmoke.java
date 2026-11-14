@@ -102,8 +102,13 @@ final class ApiSmoke {
             }
         }
         long builtIn = core.widgets().stream().filter(w -> w.addonId().equals("lumora")).count();
-        if (builtIn != 9) {
-            problems.add("expected 9 built-in widgets, found " + builtIn);
+        // the armor pieces are widgets of their own module "Armor HUD" (lumora-armor)
+        if (builtIn != 8) {
+            problems.add("expected 8 built-in widgets, found " + builtIn);
+        }
+        if (core.addon("lumora-armor").map(AddonInfo::state).orElse(null) == AddonState.ENABLED
+                && core.widgets().stream().filter(w -> w.addonId().equals("lumora-armor")).count() != 5) {
+            problems.add("Armor HUD: expected 5 widgets (helmet, chestplate, leggings, boots, held item)");
         }
         return problems;
     }

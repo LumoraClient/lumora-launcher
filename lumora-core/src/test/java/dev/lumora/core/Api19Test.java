@@ -31,6 +31,8 @@ class Api19Test {
     private FakePlatform platform;
     /** The fake chat input: text and cursor; null = chat closed. */
     final AtomicReference<GameExtras.ChatInput> input = new AtomicReference<>();
+    /** The width Lumora gave the chat text field (-1: never set). */
+    final java.util.concurrent.atomic.AtomicInteger inputWidth = new java.util.concurrent.atomic.AtomicInteger(-1);
 
     @AfterEach
     void stop() {
@@ -49,6 +51,10 @@ class Api19Test {
                         yield null;
                     }
                     case "guiSize" -> new int[]{427, 240};
+                    case "setChatInputWidth" -> {
+                        inputWidth.set((Integer) args[0]);
+                        yield null;
+                    }
                     default -> method.isDefault() ? java.lang.reflect.InvocationHandler.invokeDefault(proxy, method, args) : null;
                 });
         core = new LumoraCore(platform);
@@ -109,13 +115,13 @@ class Api19Test {
         FakeGraphics g = new FakeGraphics();
         ChatApi.renderScreen(g, 0, 0);
         assertTrue(g.texts.contains("T"), "button drawn: " + g.texts);
-        // the newest button is the rightmost one, above the input line
-        int bx = 427 - 2 - 14;
-        int by = 240 - 14 - 14 - 1;
-        int buttons = (int) g.texts.stream().filter(t -> t.equals("T")).count();
-        assertEquals(1, buttons);
-        int x = 427 - 2 - buttons * 15 + 1;
-        assertTrue(ChatApi.screenClick(x + 5, by + 5, 0) || ChatApi.screenClick(bx + 5, by + 5, 0));
+        // the newest button is the rightmost one, inside the input line; the text field ends before it
+        int bx = 427 - 2 - 12;
+        int by = 240 - 14;
+        assertEquals(1, (int) g.texts.stream().filter(t -> t.equals("T")).count());
+        assertTrue(inputWidth.get() > 0 && 4 + inputWidth.get() <= bx - 3, "text field ends before the buttons: " + inputWidth.get());
+        int withButton = inputWidth.get();
+        assertTrue(ChatApi.screenClick(bx + 5, by + 5, 0));
         assertEquals("opened", panel.events.get(0));
 
         g = new FakeGraphics();
@@ -136,6 +142,7 @@ class Api19Test {
         g = new FakeGraphics();
         ChatApi.renderScreen(g, 0, 0);
         assertFalse(g.texts.contains("T"), "button gone with the addon");
+        assertEquals(withButton + 13, inputWidth.get(), "text field wider again by one button");
     }
 
     @Test

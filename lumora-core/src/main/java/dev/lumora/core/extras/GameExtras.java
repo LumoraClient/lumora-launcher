@@ -231,6 +231,10 @@ public interface GameExtras {
         setChatInput(text);
     }
 
+    /** Width of the open chat's text field in GUI pixels (room for the chat input buttons at its right end). */
+    default void setChatInputWidth(int width) {
+    }
+
     /** Size of the GUI in GUI pixels (width, height) after the GUI scale, or null if unknown. */
     default int[] guiSize() {
         return null;

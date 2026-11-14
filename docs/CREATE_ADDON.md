@@ -428,7 +428,7 @@ nachschlagen und nichts laden.
 
 ## 11. Knöpfe an der Chat-Eingabe und Icons im Chat (API 1.9)
 
-Wie bei LabyMods Chat-Eingabe-Knöpfen kann ein Addon eigene Knöpfe direkt über der Chat-Eingabezeile (rechts) anlegen.
+Wie bei LabyMods Chat-Eingabe-Knöpfen kann ein Addon eigene Knöpfe in der Chat-Eingabezeile (ganz rechts) anlegen; das Textfeld wird um die Knöpfe kürzer.
 Ein Knopf zeigt ein Icon oder einen kurzen Text, darüber seinen Tooltip, und öffnet ein eigenes Fenster (`ChatPanel`)
 oder führt eine Aktion aus. Das Beispiel-Addon zeigt so die Sitzungszeit und schreibt sie per Klick in den Chat
 (`SessionChatPanel`). Braucht die Berechtigung `chat`, `"api": "1.9.0"` und `"depends": { "lumora": ">=1.9.0" }`.

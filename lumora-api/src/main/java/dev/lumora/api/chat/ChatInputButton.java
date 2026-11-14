@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 /**
  * A button at the chat input (Lumora's counterpart of LabyMod's {@code ChatButtonWidget}): a row of small buttons
- * right above the input line, on the right. A button shows an icon (part of a texture) or a short text, its tooltip
+ * inside the input line at its right end (the text field gets shorter by the row). A button shows an icon (part of a texture) or a short text, its tooltip
  * on hover, and either opens a {@link ChatPanel} or runs an action. Build with {@link #builder}, add with
  * {@link Chat#addInputButton}.
  *

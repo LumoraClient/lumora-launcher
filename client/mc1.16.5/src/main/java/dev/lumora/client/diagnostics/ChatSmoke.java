@@ -103,6 +103,14 @@ final class ChatSmoke {
         if (!dev.lumora.core.chat.ChatApi.panelOpen()) {
             problems.add("emoji: the picker did not open");
         }
+        // the emoji button sits inside the input line: the text field ends before it (like LabyMod)
+        int[] gui = x.guiSize();
+        int width = Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.ChatScreen s
+                ? ((dev.lumora.client.mixin.ChatScreenAccessor) s).lumora$input().getWidth() : -1;
+        dev.lumora.client.LumoraClient.LOG.info("LUMORA_CHAT_INPUT width={} gui={}", width, gui == null ? -1 : gui[0]);
+        if (gui == null || width <= 0 || width > gui[0] - 4 - 12) {
+            problems.add("chat input: the text field is not shorter by the buttons: " + width);
+        }
     }
 
     static void reset(Minecraft mc) {

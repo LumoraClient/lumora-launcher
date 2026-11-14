@@ -9,17 +9,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The buttons of addons at the chat input (Lumora API 1.9, like LabyMod's chat input buttons): a row right above
- * Minecraft's input line on the right, a tooltip above the button under the mouse, and the open {@link ChatPanel}
- * above the row, right-aligned. One panel at a time; a second click on its button closes it.
+ * The buttons of addons at the chat input (Lumora API 1.9, like LabyMod's chat input buttons): a row inside Minecraft's
+ * input line at its right end (the text field gets shorter by the row, so long text never runs under a button), a
+ * tooltip above the button under the mouse, and the open {@link ChatPanel} right above the input line, right-aligned.
+ * One panel at a time; a second click on its button closes it.
  */
 final class ChatInputBar {
-    static final int BUTTON = 14;
+    /** Buttons fill the height of the input line. */
+    static final int BUTTON = 12;
+    static final int ICON = 10;
     static final int GAP = 1;
     /** Minecraft's chat input line: 12 px high, 2 px above the bottom edge. */
     static final int INPUT_TOP = 14;
     static final int BORDER = 2;
-    static final int BUTTON_BG = 0xC0101018;
+    static final int BUTTON_BG = 0x28FFFFFF;
+    /** Space between the text field and the first button. */
+    static final int TEXT_GAP = 3;
     static final int PANEL_BG = 0xE8101418;
     static final int TOOLTIP_BG = 0xF0121A20;
 
@@ -60,10 +65,10 @@ final class ChatInputBar {
         return out;
     }
 
-    /** Where the buttons go: right-aligned, right above the input line. */
+    /** Where the buttons go: inside the input line, right-aligned. */
     static List<int[]> layout(int count, int screenWidth, int screenHeight) {
         List<int[]> out = new ArrayList<>();
-        int y = screenHeight - INPUT_TOP - BUTTON - 1;
+        int y = screenHeight - INPUT_TOP;
         for (int i = 0; i < count; i++) {
             int x = screenWidth - 2 - (count - i) * (BUTTON + GAP) + GAP;
             out.add(new int[]{x, y});
@@ -73,6 +78,11 @@ final class ChatInputBar {
 
     void render(HudGraphics g, int screenWidth, int screenHeight, int mouseX, int mouseY, long now) {
         List<ChatApi.OwnedButton> shown = visible();
+        try {
+            api.extras().setChatInputWidth(inputWidth(shown.size(), screenWidth));
+        } catch (RuntimeException | LinkageError e) {
+            // old game hooks: the text field keeps its width
+        }
         if (open != null && !shown.contains(open)) {
             closePanel();
         }
@@ -97,14 +107,21 @@ final class ChatInputBar {
         }
     }
 
+    /** Width of Minecraft's text field (it starts at x = 4) with {@code count} buttons at its right end. */
+    static int inputWidth(int count, int screenWidth) {
+        // the first button starts at screenWidth - 2 - count * (BUTTON + GAP) + GAP (see layout)
+        int reserve = count == 0 ? 0 : 2 + count * (BUTTON + GAP) - GAP + TEXT_GAP;
+        return Math.max(20, screenWidth - 4 - reserve);
+    }
+
     private static void drawButton(HudGraphics g, Placed p, boolean over, boolean active) {
         int accent = LumoraTheme.accent();
-        int bg = active ? LumoraTheme.alpha(accent, 0xE0) : over ? LumoraTheme.alpha(accent, 0x90) : BUTTON_BG;
+        int bg = active ? LumoraTheme.alpha(accent, 0xE0) : over ? LumoraTheme.alpha(accent, 0xA0) : BUTTON_BG;
         g.roundedRect(p.x(), p.y(), BUTTON, BUTTON, 2, bg);
         ChatInputButton b = p.owned().button();
         if (b.icon() != null) {
             ChatInputButton.Icon i = b.icon();
-            g.texture(i.texture(), p.x() + 2, p.y() + 2, BUTTON - 4, BUTTON - 4, i.u(), i.v(), i.regionWidth(), i.regionHeight(),
+            g.texture(i.texture(), p.x() + (BUTTON - ICON) / 2, p.y() + (BUTTON - ICON) / 2, ICON, ICON, i.u(), i.v(), i.regionWidth(), i.regionHeight(),
                     i.textureWidth(), i.textureHeight());
         } else {
             String label = b.label();
@@ -115,7 +132,7 @@ final class ChatInputBar {
     private static void drawTooltip(HudGraphics g, Placed p, int screenWidth) {
         String text = p.owned().button().tooltip();
         int w = g.textWidth(text) + 8;
-        int x = Math.max(2, Math.min(screenWidth - 2 - w, p.x() + BUTTON - w));
+        int x = Math.max(2, Math.min(screenWidth - 2 - w, p.x() + BUTTON / 2 - w / 2)); // centred above, like LabyMod
         int y = p.y() - 14;
         g.roundedRect(x, y, w, 12, 2, TOOLTIP_BG);
         g.text(text, x + 4, y + 2, 0xFFFFFFFF, false);

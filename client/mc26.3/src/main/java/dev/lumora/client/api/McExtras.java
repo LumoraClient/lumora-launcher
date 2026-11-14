@@ -431,6 +431,17 @@ final class McExtras implements GameExtras {
     }
 
     @Override
+    public void setChatInputWidth(int width) {
+        if (mc().gui.screen() instanceof net.minecraft.client.gui.screens.ChatScreen s) {
+            var in = ((dev.lumora.client.mixin.ChatScreenAccessor) s).lumora$input();
+            if (in.getWidth() != width) {
+                in.setWidth(width);
+                in.setCursorPosition(in.getCursorPosition());
+            }
+        }
+    }
+
+    @Override
     public int[] guiSize() {
         var screen = mc().gui.screen();
         return screen == null ? null : new int[]{screen.width, screen.height};

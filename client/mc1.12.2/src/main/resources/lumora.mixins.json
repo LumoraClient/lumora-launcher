@@ -32,6 +32,7 @@
     "ChatMixin",
     "ChatHudAccessor",
     "ChatScreenAccessor",
+    "TextFieldWidgetAccessor",
     "BlockOutlineMixin",
     "ElytraTrailMixin",
     "BrowserScreenMixin",

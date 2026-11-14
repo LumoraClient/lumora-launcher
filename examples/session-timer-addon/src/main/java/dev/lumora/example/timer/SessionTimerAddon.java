@@ -59,7 +59,7 @@ public final class SessionTimerAddon implements LumoraAddon {
             context.notifications().success(context.translations().translate("session-timer.title"),
                     context.translations().translate("session-timer.reset"));
         });
-        // Lumora API 1.9: a button right above the chat input; its window writes the session time into the chat
+        // Lumora API 1.9: a button inside the chat input line (right end); its window writes the session time into the chat
         context.chat().addInputButton(ChatInputButton.builder("time", context.translations().translate("session-timer.chat.button"))
                 .label("T") // plain text: every Minecraft font has it
                 .panel(() -> new SessionChatPanel(context.chat(), context.translations(), context.theme(), w))

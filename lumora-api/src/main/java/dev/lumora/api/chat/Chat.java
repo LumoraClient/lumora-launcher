@@ -17,7 +17,7 @@ public interface Chat {
     void openChat(String text);
 
     /**
-     * Adds a button at the chat input (right, above the input line); removed with the registration or when the addon
+     * Adds a button at the chat input (inside the input line, at its right end); removed with the registration or when the addon
      * is disabled.
      *
      * @since 1.9.0

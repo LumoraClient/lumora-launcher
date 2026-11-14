@@ -61,12 +61,21 @@ class ChatSplitTest {
     }
 
     @Test
-    void buttonsSitRightAboveTheInputOnTheRight() {
+    void buttonsSitInsideTheInputLineOnTheRight() {
         List<int[]> spots = ChatInputBar.layout(3, 427, 240);
         assertEquals(3, spots.size());
         int[] last = spots.get(2);
         assertEquals(427 - 2 - ChatInputBar.BUTTON, last[0], "the last one at the right edge");
-        assertEquals(240 - 14 - ChatInputBar.BUTTON - 1, last[1], "right above the input line");
+        assertEquals(240 - 14, last[1], "inside the input line");
+        assertEquals(240 - 2, last[1] + ChatInputBar.BUTTON, "as high as the input line");
         assertEquals(ChatInputBar.BUTTON + ChatInputBar.GAP, spots.get(1)[0] - spots.get(0)[0]);
+    }
+
+    @Test
+    void textFieldEndsBeforeTheButtons() {
+        assertEquals(427 - 4, ChatInputBar.inputWidth(0, 427), "no buttons: Minecraft's width");
+        int first = ChatInputBar.layout(2, 427, 240).get(0)[0];
+        int end = 4 + ChatInputBar.inputWidth(2, 427);
+        assertEquals(ChatInputBar.TEXT_GAP, first - end, "a small gap between the text and the first button");
     }
 }

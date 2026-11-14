@@ -28,6 +28,7 @@
     "ChatMixin",
     "ChatHudAccessor",
     "ChatScreenAccessor",
+    "TextFieldWidgetAccessor",
     "BlockOutlineMixin",
     "BrowserScreenMixin",
     "ConnectionScreenMixin",

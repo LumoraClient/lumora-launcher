@@ -1,5 +1,18 @@
 # Änderungen
 
+## 0.3.43 (2026-11-14)
+
+### Launcher
+- **Lumora-Pixel-Design:** Der Launcher sieht aus wie die Lumora-Menüs im Spiel: Pixelschrift (Silkscreen) für Titel, Navigation, Überschriften und den Start-Knopf, Karten und Knöpfe mit abgestuften Pixelecken, der gewählte Menüpunkt mit Akzentbalken wie im Hub, der Start-Knopf mit dunkler Unterkante wie ein Minecraft-Knopf. Fließtexte bleiben gut lesbar in Inter.
+- Das Pixel-Design ist für alle eingeschaltet; Einstellungen › Erscheinungsbild › „Lumora-Pixel-Design“ schaltet zurück zum modernen Design mit runden Ecken.
+
+### Im Spiel
+- **Blau wie der Launcher:** Hub, Hauptmenü, Knöpfe, Schieberegler, Tabs, Modul-Icons, Menü-Effekte und der Burg-Hintergrund sind blau statt lila, in allen 16 Versionen.
+- Standard-Akzentfarbe ist Blau. Lila bleibt unter Hub › Themes wählbar; wer bisher die alte Vorgabe Lila hatte, bekommt einmalig Blau.
+
+### Für Addon-Entwickler
+- Die Lumora-Farben `Colors.ACCENT`, `SURFACE`, `TEXT` … sind jetzt blau. Java setzt diese Konstanten beim Kompilieren ein: Addons zeigen die neuen Farben nach einem Neubau; für die Akzentfarbe des Spielers `context.theme().accent()` verwenden.
+
 ## 0.3.42 (2026-11-14)
 
 ### Launcher

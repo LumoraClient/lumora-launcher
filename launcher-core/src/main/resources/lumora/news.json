@@ -1,6 +1,23 @@
 {
   "news": [
     {
+      "id": "lumora-pixel-blue",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.43",
+      "title": "Pixel-Design im Launcher, Blau im Spiel",
+      "text": "Der Launcher sieht jetzt aus wie die Lumora-Menüs im Spiel – und das Spiel ist blau wie der Launcher.",
+      "image": "news-pixel-design.png",
+      "body": [
+        {"p": "Launcher und Spiel passen jetzt zusammen:"},
+        {"list": [
+          "Launcher: Pixelschrift für Titel, Navigation und Knöpfe, Pixelkanten an Karten und Knöpfen, der gewählte Menüpunkt mit Akzentbalken wie im Hub",
+          "Spiel: Hub, Hauptmenü, Knöpfe, Icons und der Burg-Hintergrund in Blau statt Lila"
+        ]},
+        {"p": "Lila gibt es weiter: im Spiel unter Hub › Themes › Akzentfarbe. Das moderne Launcher-Design mit runden Ecken bekommst du unter Einstellungen › Erscheinungsbild › „Lumora-Pixel-Design“ zurück."}
+      ]
+    },
+    {
       "id": "lumora-standard-folder",
       "date": "2026-11-14",
       "author": "Lumora",

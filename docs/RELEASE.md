@@ -66,6 +66,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.43 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 549 Unit-Tests ohne Fehler (1 übersprungen); ein Test erwartet nach dem Abschalten eines Addon-Akzents jetzt den neuen Standard Blau. Alle 16 Client-Module kompiliert; keine Mixin-Ziele geändert (in den Mixins nur Farbwerte).
+- **Umfärben im Spiel:** Farbwerte im Code per Werkzeug ersetzt (Design-Farben exakt auf die Launcher-Farben, übrige Violett-Töne per Farbton-Drehung von 258° auf 217°); bewusst nicht: die Farbpalette der Einstellungen, die Akzentliste (Lila bleibt), Rollenfarben (Social), das Lumora-Logo. 926 Texturen (Theme-Pakete, Hub-Icons) gleich umgefärbt, Menü-Hintergründe mit `.t/BgGen.java` aus der Launcher-Szene neu erzeugt, Menü-Shader-Farben ersetzt.
+- **Vor dem Release** (Entwicklungsstand): Smoke-Test 26.3 bestanden, Hauptmenü, Hub und Themes in Blau gesichtet (gespeichertes „purple“ wurde einmalig zu „blue“, Lila in der Auswahl). Launcher offscreen gerendert: Startseite, Einstellungen, Konto, Freunde im Pixel-Design; Startseite mit ausgeschaltetem Pixel-Design wie bisher.
+- **Smoke-Test mit dem fertigen 0.3.43-Build:** nur 26.3 – bestanden. Andere Versionen wurden nicht im Spiel getestet.
+- **Nicht geprüft:** andere Versionen im Spiel (vor allem die Theme-Texturen von 1.8.9 bis 1.20); nicht gerenderte Launcher-Seiten (Server, Performance, Bibliothek, News, Dialoge); der Splash beim ersten Start nach dem Update; ein echtes Selbst-Update von 0.3.42 auf 0.3.43.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.42 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 549 Unit-Tests ohne Fehler (1 übersprungen). Neu: 7 für `InstanceLayout` (Standard-Ordner mit gemeinsamen Einstellungen, eigene Instanz, beide Einstellungsarten unabhängig vom Spielordner, einmalige Übernahme vorhandener Instanzen, Neuinstallation, Mitnehmen der Einstellungen ohne Überschreiben, ungültige Instanz-IDs). Alle 16 Client-Module kompiliert; keine Mixins geändert (nur `LoaderEnv`, `McPlatform`, `Packs`, bei 1.8.9/1.12.2 `JsonLang`).
 - **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3 als übernommene eigene Instanz bestanden (Spiel weiter in `instances/26.3`); Smoke-Test 26.3 im Standard-Ordner mit gemeinsamen Einstellungen bestanden (Session-Timer aus `data/shared/addons` geladen, Client-JARs, Natives und Statusdatei in `data/26.3`, im Spielordner nur Minecraft-Dateien und die Sperrdatei). Versionsmenü offscreen gerendert.

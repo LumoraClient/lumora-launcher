@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.50 (2026-11-14)
+
+### Im Spiel
+- **HUD-Editor wie bei LabyMod:** Beim Ziehen eines Widgets erscheint in der Bildschirmmitte ein Papierkorb; dort loslassen nimmt das Widget aus dem HUD. Auf dem Editor-Bildschirm liegen nur noch Widgets, die im HUD sind; alle anderen stehen in der Seitenleiste (mit +): ein Klick holt ein Widget an seine letzte Stelle zurück, aus der Liste ziehen legt es unter die Maus. Die Knöpfe „Verbergen“ und „An/Aus“ in der Widget-Karte sind durch „Entfernen“ ersetzt, Rechtsklick schaltet nichts mehr um, Entf nimmt das ausgewählte Widget heraus.
+- In den Modul-Einstellungen im Hub gibt es den Schalter „Im HUD anzeigen“ nicht mehr: Ob ein Widget im HUD ist, entscheidet nur der HUD-Editor.
+
 ## 0.3.49 (2026-11-14)
 
 ### Im Spiel

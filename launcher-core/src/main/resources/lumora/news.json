@@ -1,6 +1,24 @@
 {
   "news": [
     {
+      "id": "lumora-hud-trash",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.50",
+      "title": "HUD-Editor mit Papierkorb",
+      "text": "Widgets in die Bildschirmmitte ziehen, um sie aus dem HUD zu nehmen, wie bei LabyMod.",
+      "image": "news-hud-trash.png",
+      "body": [
+        {"p": "Ziehst du im HUD-Editor ein Widget, erscheint in der Bildschirmmitte ein Papierkorb. Lässt du es dort los, ist es aus dem HUD. Auf dem Editor-Bildschirm liegen nur noch Widgets, die im HUD sind."},
+        {"list": [
+          "Widgets, die nicht im HUD sind, stehen mit + in der Seitenleiste",
+          "Ein Klick holt ein Widget an seine letzte Stelle zurück, aus der Liste ziehen legt es unter die Maus",
+          "„Entfernen“ in der Widget-Karte und die Entf-Taste nehmen das ausgewählte Widget heraus",
+          "Kein Schalter „Im HUD anzeigen“ mehr in den Modul-Einstellungen"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-chat-buttons",
       "date": "2026-11-14",
       "author": "Lumora",

@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.50 (2026-11-14):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 601 Unit-Tests ohne Fehler (1 übersprungen). Neu: HUD-Editor wie bei LabyMod – Papierkorb in der Bildschirmmitte (Widget dort loslassen = aus dem HUD, alte Position bleibt, ein Rückgängig-Schritt), Hinzufügen aus der Seitenleiste per Klick (an die letzte Stelle) oder Ziehen (unter die Maus, über dem Papierkorb losgelassen = nicht hinzugefügt), Schließen während des Ziehens entfernt nichts; der Schalter „Im HUD anzeigen“ in den Hub-Einstellungen ist entfernt.
+- **Smoke-Test mit dem fertigen 0.3.50-Build:** 26.3 und 1.8.9 bestanden. Neuer Schritt in 26.3 `hud-editor-trash`: `LUMORA_SMOKE_TRASH over=true removed=true backAtOldPlace=true`; der Screenshot zeigt den roten Papierkorb mit „Drop here to remove“.
+- **Nicht geprüft:** echte Mausbedienung im Editor (der Test steuert das Modell direkt, deshalb ist im Screenshot die Seitenleiste noch zu sehen), der Editor in 1.12.2 und 1.16.5 bis 26.2 im Spiel (nur kompiliert), ein Selbst-Update von 0.3.49 auf 0.3.50.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.49 (2026-11-14):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 598 Unit-Tests ohne Fehler (1 übersprungen). Neu: Chat-Eingabe-Knöpfe liegen in der Eingabezeile (rechts, 12 px hoch), das Textfeld endet 3 px vor dem ersten Knopf und wird wieder breiter, wenn ein Knopf verschwindet. `check-mixins.pl` ohne neue Meldungen (neuer Accessor `TextFieldWidgetAccessor` in 1.8.9/1.12.2).
 - **Smoke-Test mit dem fertigen 0.3.49-Build:** 26.3, 1.16.5 und 1.8.9 bestanden. Neue Prüfung `LUMORA_CHAT_INPUT`: Textfeld 393 statt 423 px breit (zwei Knöpfe: Emoji und Session-Timer); Screenshots zeigen beide Knöpfe rechts in der Eingabezeile und die Emoji-Auswahl darüber. Der Elytra-Schritt setzt den Testspieler in 26.3 jetzt auf den Boden zurück; vorher stürzte er ab und starb vor den Chat-Schritten.

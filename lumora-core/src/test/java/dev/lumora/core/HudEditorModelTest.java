@@ -122,10 +122,12 @@ class HudEditorModelTest {
         assertEquals(List.of(740, 545), List.of(e.bounds().x, e.bounds().y), "the same distance on a bigger screen");
         layout();
 
-        // into the middle: hangs on the center
+        // into the middle zone (beside the bin in the very middle): hangs on the center
         editor.press(345, 250, 0, false);
-        editor.drag(205, 155, false);
+        editor.drag(160, 120, false);
+        assertFalse(editor.overTrash());
         editor.release();
+        assertTrue(e.isEnabled());
         assertEquals("center", e.state().anchor);
         int x = e.bounds().x;
         editor.layout(TestContexts.ctx(platform, 600, 300, true));
@@ -200,7 +202,7 @@ class HudEditorModelTest {
     }
 
     @Test
-    void scrollScalesRightClickTogglesAltCycles() {
+    void scrollScalesAltCycles() {
         WidgetEntry eb = entry("b");
         int cx = eb.bounds().x + 20;
         int cy = eb.bounds().y + 5;
@@ -210,9 +212,7 @@ class HudEditorModelTest {
         editor.undo();
         assertEquals(1f, eb.scale(), 1e-6, "a scroll series is one undo step");
 
-        editor.press(cx, cy, 1, false);
-        assertFalse(eb.isEnabled());
-        editor.press(cx, cy, 1, false);
+        assertFalse(editor.press(cx, cy, 1, false), "right click does nothing (no on/off switch, like LabyMod)");
         assertTrue(eb.isEnabled());
 
         // put a below b at the same place: Alt-click cycles through both
@@ -227,6 +227,69 @@ class HudEditorModelTest {
         assertSame(entry("a"), editor.selected());
         editor.moveLayer(entry("a"), 2);
         assertSame(entry("a"), editor.hit(cx, cy), "brought to front");
+    }
+
+    @Test
+    void droppedOnTheBinTheWidgetLeavesTheHudAndComesBackWhereItWas() {
+        WidgetEntry e = entry("a");
+        float x = e.x();
+        float y = e.y();
+        int[] t = HudEditorModel.trash(400, 300);
+        assertEquals(200 - HudEditorModel.TRASH / 2, t[0], "in the middle of the screen");
+        editor.press(10, 5, 0, false);
+        editor.drag(30, 20, false);
+        assertFalse(editor.overTrash());
+        editor.drag(200, 150, false);
+        assertTrue(editor.overTrash(), "cursor over the bin");
+        assertTrue(editor.release());
+        assertFalse(e.isEnabled(), "out of the HUD");
+        assertNull(editor.selected());
+        assertNull(editor.hit(10, 5), "not on the editor screen any more");
+        assertEquals(x, e.x(), "its old place is kept for the next time");
+        assertEquals(y, e.y());
+
+        editor.undo();
+        assertTrue(entry("a").isEnabled(), "one undo step");
+        editor.redo();
+        assertFalse(entry("a").isEnabled());
+
+        assertTrue(editor.add(entry("a")), "a click in the side list puts it in again");
+        assertTrue(entry("a").isEnabled());
+        assertEquals(x, entry("a").x());
+        assertSame(entry("a"), editor.selected());
+        assertFalse(editor.add(entry("a")), "already in the HUD");
+    }
+
+    @Test
+    void draggedOutOfTheListTheWidgetLandsUnderTheCursor() {
+        WidgetEntry e = entry("a");
+        editor.remove(e);
+        assertFalse(e.isEnabled());
+        assertTrue(editor.beginAdd(e, 100, 60));
+        assertTrue(e.isEnabled(), "in the HUD while it is dragged");
+        assertEquals(HudEditorModel.Mode.MOVING, editor.mode());
+        editor.drag(120, 80, true);
+        editor.release();
+        assertTrue(e.isEnabled());
+        assertEquals(120, e.bounds().x + e.bounds().width / 2, 1, "centred under the cursor");
+        editor.undo();
+        assertFalse(entry("a").isEnabled(), "adding by drag is one undo step");
+
+        // dragged out of the list but dropped on the bin: not added
+        assertTrue(editor.beginAdd(entry("a"), 50, 50));
+        editor.drag(200, 150, true);
+        editor.release();
+        assertFalse(entry("a").isEnabled());
+    }
+
+    @Test
+    void closingDuringADragOverTheBinKeepsTheWidget() {
+        editor.press(10, 5, 0, false);
+        editor.drag(30, 20, false);
+        editor.drag(200, 150, false);
+        assertTrue(editor.overTrash());
+        editor.close(true);
+        assertTrue(entry("a").isEnabled(), "only a real drop removes it");
     }
 
     @Test

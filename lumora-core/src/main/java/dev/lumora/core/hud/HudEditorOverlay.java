@@ -5,14 +5,18 @@ import dev.lumora.core.theme.LumoraTheme;
 
 /**
  * What the HUD editor draws while a widget is moved or resized: a fine grid, the 3x3 anchor zones with the active
- * anchor point, glowing snap lines, the widgets it snapped to, and its position ("x × y") or size next to it. The
- * editor screens of every Minecraft version call {@link #draw} after the widgets.
+ * anchor point, glowing snap lines, the widgets it snapped to, its position ("x × y") or size next to it, and while
+ * moving the bin in the middle of the screen that removes it from the HUD. The editor screens of every Minecraft version
+ * call {@link #draw} after the widgets.
  */
 public final class HudEditorOverlay {
     private static final int GRID = 0x10FFFFFF;
     private static final int ZONE_LINE = 0x22FFFFFF;
     private static final int DOT = 0x70FFFFFF;
     private static final int LABEL_BG = 0xF0121A20;
+    private static final int TRASH_BG = 0xE0121A24;
+    private static final int TRASH_HOT_BG = 0xF0C8383E;
+    private static final int TRASH_HOT_BORDER = 0xFFFF6B70;
 
     private HudEditorOverlay() {
     }
@@ -48,10 +52,47 @@ public final class HudEditorOverlay {
             g.fill(0, gy - 1, width, gy + 2, LumoraTheme.alpha(accent, 0x40));
         }
         WidgetEntry sel = m.selected();
-        if (sel != null && sel.bounds().valid) {
+        boolean trash = m.overTrash();
+        if (sel != null && sel.bounds().valid && !trash) {
             Bounds b = sel.bounds();
             String text = moving ? b.x + " × " + b.y : b.width + " × " + b.height + "  " + Math.round(sel.scale() * 100) + " %";
             label(g, text, b, width, height, accent);
+        }
+        if (moving) {
+            trash(g, m.trashLabel(), trash, width, height, accent);
+        }
+    }
+
+    /**
+     * The bin in the middle of the screen while a widget is moved (like LabyMod's HUD editor): a round card with a bin
+     * icon and a hint below; red and a bit larger while the cursor is over it (dropping removes the widget from the HUD).
+     */
+    static void trash(HudGraphics g, String label, boolean hot, int width, int height, int accent) {
+        int[] t = HudEditorModel.trash(width, height);
+        int grow = hot ? 3 : 0;
+        int x = t[0] - grow;
+        int y = t[1] - grow;
+        int s = t[2] + grow * 2;
+        g.card(x, y, s, s, s / 2, hot ? TRASH_HOT_BG : TRASH_BG, hot ? TRASH_HOT_BORDER : LumoraTheme.alpha(accent, 0xA0));
+        int c = hot ? 0xFFFFFFFF : 0xFFD8DEEA;
+        int cx = x + s / 2;
+        int top = y + s / 2 - 7;
+        // lid with handle, then the body with three stripes
+        g.fill(cx - 2, top, cx + 2, top + 1, c);
+        g.fill(cx - 6, top + 1, cx + 6, top + 3, c);
+        g.fill(cx - 5, top + 4, cx + 5, top + 14, c);
+        int body = hot ? TRASH_HOT_BG | 0xFF000000 : 0xFF1A2230;
+        g.fill(cx - 4, top + 4, cx + 4, top + 13, body);
+        for (int i = -2; i <= 2; i += 2) {
+            g.fill(cx + i, top + 6, cx + i + 1, top + 12, c);
+        }
+        if (label != null && !label.isEmpty()) {
+            int w = g.textWidth(label) + 8;
+            int h = g.lineHeight() + 4;
+            int lx = Math.max(2, Math.min(width - w - 2, width / 2 - w / 2));
+            int ly = y + s + 4;
+            g.card(lx, ly, w, h, 3, LABEL_BG, hot ? TRASH_HOT_BORDER : LumoraTheme.alpha(accent, 0x70));
+            g.text(label, lx + 4, ly + 2, hot ? 0xFFFFFFFF : 0xFFD8DEEA, false);
         }
     }
 

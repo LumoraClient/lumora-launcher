@@ -274,9 +274,10 @@ public final class HubView implements AddonView {
             List<WidgetInfo> own = core.widgets().stream().filter(w -> a.id().equals(w.addonId())).toList();
             List<SettingsView.Section> sections = new ArrayList<>();
             for (WidgetInfo w : own) {
-                sections.add(new SettingsView.Section("HUD · " + widgetName(tr, w),
-                        w.widget().settings().isEmpty() ? null : w.widget().settings(), t("Im HUD anzeigen", "Show in HUD"),
-                        w::isEnabled, () -> w.setEnabled(!w.isEnabled())));
+                // whether the widget is in the HUD is decided in the HUD editor (like LabyMod): no switch here
+                if (!w.widget().settings().isEmpty()) {
+                    sections.add(new SettingsView.Section("HUD · " + widgetName(tr, w), w.widget().settings(), null, null, null));
+                }
                 merged.add(w.id());
             }
             boolean ownSettings = r != null && r.configuration() != null && (!r.configuration().settings().isEmpty()

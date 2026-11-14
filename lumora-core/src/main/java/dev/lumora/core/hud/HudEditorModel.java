@@ -19,12 +19,19 @@ import java.util.Map;
  * Logic of the HUD editor, independent of Minecraft: selection, drag-and-drop with snapping (screen edges,
  * center lines, other widgets, optional grid), resizing with corner handles, layers, undo/redo, reset, revert
  * and profiles. The editor screen only draws and forwards input. Coordinates are GUI pixels.
+ *
+ * <p>Like LabyMod's HUD editor, a widget is in the HUD while it lies on the editor screen: widgets that are not in the
+ * HUD only appear in the side list, from where a click or a drag puts them in ({@link #add}, {@link #beginAdd}); while
+ * a widget is dragged, a bin in the middle of the screen takes it out again ({@link #overTrash}). There is no separate
+ * on/off switch.
  */
 public final class HudEditorModel {
     public static final int SNAP = 4;
     public static final int DRAG_THRESHOLD = 2;
     /** Half size of the corner handles. */
     public static final int HANDLE = 3;
+    /** Size of the bin in the middle of the screen while a widget is dragged (dropping it there removes it). */
+    public static final int TRASH = 30;
     static final int MAX_UNDO = 50;
     static final float SCALE_STEP = 0.05f;
 
@@ -61,6 +68,12 @@ public final class HudEditorModel {
     private final List<WidgetEntry> magnets = new ArrayList<>();
     /** Anchor zone under the cursor while moving. */
     private String dragZone;
+    /** Cursor while a widget is pressed or moved (for the bin). */
+    private double cursorX = -1;
+    private double cursorY = -1;
+    /** State of the dragged widget before the drag: its placement comes back when it goes into the bin. */
+    private WidgetState startState;
+    private String trashLabel = "";
     private boolean closed;
 
     public HudEditorModel(WidgetRegistryImpl registry, HudRenderer renderer, SimpleEventBus events) {
@@ -81,7 +94,7 @@ public final class HudEditorModel {
 
     // --- layout pass
 
-    /** Computes all widget rectangles (also of disabled widgets, which the editor shows as placeholders). */
+    /** Computes all widget rectangles (also of widgets not in the HUD: adding one from the list needs its size). */
     public void layout(RenderContext ctx) {
         screenW = Math.max(1, ctx.screenWidth());
         screenH = Math.max(1, ctx.screenHeight());
@@ -137,11 +150,11 @@ public final class HudEditorModel {
         }
     }
 
-    /** Topmost widget under the point. */
+    /** Topmost widget in the HUD under the point (widgets not in the HUD are not on the editor screen). */
     public WidgetEntry hit(double mx, double my) {
         List<WidgetEntry> list = registry.entries();
         for (int i = list.size() - 1; i >= 0; i--) {
-            if (list.get(i).bounds.contains(mx, my)) {
+            if (list.get(i).state.enabled && list.get(i).bounds.contains(mx, my)) {
                 return list.get(i);
             }
         }
@@ -155,7 +168,7 @@ public final class HudEditorModel {
         for (int round = 0; round < 2; round++) {
             for (int i = list.size() - 1; i >= 0; i--) {
                 WidgetEntry e = list.get(i);
-                if (!e.bounds.contains(mx, my)) {
+                if (!e.state.enabled || !e.bounds.contains(mx, my)) {
                     continue;
                 }
                 if (passed) {
@@ -188,21 +201,10 @@ public final class HudEditorModel {
     // --- mouse
 
     /**
-     * Mouse button pressed. Left: handle = resize, widget = select (+ drag after a few pixels), empty = deselect.
-     * Right: switch the widget on/off. {@code cycle} (Alt) selects the next widget below the selected one.
+     * Mouse button pressed. Left: handle = resize, widget = select (+ drag after a few pixels; dropped on the bin in the
+     * middle it leaves the HUD), empty = deselect. {@code cycle} (Alt) selects the next widget below the selected one.
      */
     public boolean press(double mx, double my, int button, boolean cycle) {
-        if (button == 1) {
-            WidgetEntry e = hit(mx, my);
-            if (e == null) {
-                return false;
-            }
-            select(e);
-            HudProfile b = snapshot();
-            e.setEnabled(!e.state.enabled);
-            commit(b);
-            return true;
-        }
         if (button != 0) {
             return false;
         }
@@ -249,6 +251,103 @@ public final class HudEditorModel {
         startY = b.y;
         startW = b.width;
         startH = b.height;
+        startState = selected.state.copy();
+        cursorX = mx;
+        cursorY = my;
+    }
+
+    /**
+     * Puts a widget that is not in the HUD into it, where it was last (click on it in the side list); one undo step.
+     * False if it is in the HUD already.
+     */
+    public boolean add(WidgetEntry e) {
+        if (e == null || e.state.enabled || mode != Mode.NONE) {
+            return false;
+        }
+        HudProfile b = snapshot();
+        e.setEnabled(true);
+        if (e.state.enabled) {
+            raise(e);
+        }
+        commit(b);
+        select(e);
+        return e.state.enabled;
+    }
+
+    /**
+     * Starts dragging a widget out of the side list: it goes into the HUD under the cursor and moves with it; dropped on
+     * the bin it leaves again. Together with the release one undo step.
+     */
+    public boolean beginAdd(WidgetEntry e, double mx, double my) {
+        if (e == null || e.state.enabled || mode != Mode.NONE) {
+            return false;
+        }
+        HudProfile b = snapshot();
+        WidgetState old = e.state.copy();
+        e.setEnabled(true);
+        if (!e.state.enabled) {
+            return false;
+        }
+        select(e);
+        raise(e);
+        begin(Mode.MOVING, mx, my);
+        before = b;
+        startState = old;
+        Bounds bo = e.bounds;
+        grabX = Math.max(1, bo.width) / 2.0;
+        grabY = Math.max(1, bo.height) / 2.0;
+        move(mx - grabX, my - grabY, false, mx, my);
+        return true;
+    }
+
+    /** Takes a widget out of the HUD (Del, "Remove" in the selection card); it stays in the side list. */
+    public void remove(WidgetEntry e) {
+        if (e == null || !e.state.enabled) {
+            return;
+        }
+        HudProfile b = snapshot();
+        e.setEnabled(false);
+        commit(b);
+        if (selected == e) {
+            select(null);
+        }
+    }
+
+    /** Text under the bin (translated by the core). */
+    public String trashLabel() {
+        return trashLabel;
+    }
+
+    public void setTrashLabel(String label) {
+        trashLabel = label == null ? "" : label;
+    }
+
+    /** The bin in the middle of the screen: x, y, width, height (GUI pixels). */
+    public static int[] trash(int width, int height) {
+        return new int[]{width / 2 - TRASH / 2, height / 2 - TRASH / 2, TRASH, TRASH};
+    }
+
+    /** Whether the moved widget would go into the bin when dropped now (the cursor is over it). */
+    public boolean overTrash() {
+        if (mode != Mode.MOVING || selected == null) {
+            return false;
+        }
+        int[] t = trash(screenW, screenH);
+        int grow = 4;
+        return cursorX >= t[0] - grow && cursorX < t[0] + t[2] + grow && cursorY >= t[1] - grow && cursorY < t[1] + t[3] + grow;
+    }
+
+    /** Position, anchor and size of {@code from} (not the on/off state, which goes through setEnabled). */
+    private static void restorePlacement(WidgetState to, WidgetState from) {
+        if (from == null) {
+            return;
+        }
+        to.x = from.x;
+        to.y = from.y;
+        to.anchor = from.anchor;
+        to.offsetX = from.offsetX;
+        to.offsetY = from.offsetY;
+        to.scale = from.scale;
     }
 
     /** Mouse moved with the button held. {@code free} (Shift) disables snapping. */
@@ -262,6 +361,8 @@ public final class HudEditorModel {
             }
             mode = Mode.MOVING;
         }
+        cursorX = mx;
+        cursorY = my;
         if (mode == Mode.MOVING) {
             move(mx - grabX, my - grabY, free, mx, my);
         } else if (mode == Mode.RESIZING) {
@@ -406,6 +507,7 @@ public final class HudEditorModel {
 
     /** Mouse button released: ends a move/resize as one undo step. */
     public boolean release() {
+        boolean trash = overTrash();
         Mode m = mode;
         mode = Mode.NONE;
         corner = -1;
@@ -419,6 +521,23 @@ public final class HudEditorModel {
         if (m == Mode.PRESSED) {
             commit(before); // brought to the front by the click
         }
+        if (m == Mode.MOVING && trash) {
+            // dropped on the bin: back to where it was (for the next time it is added) and out of the HUD
+            WidgetEntry e = selected;
+            restorePlacement(e.state, startState);
+            if (startState != null) {
+                e.state.layer = startState.layer;
+                registry.rebuildOrder();
+            }
+            e.setEnabled(false);
+            registry.changed();
+            commit(before);
+            select(null);
+            before = null;
+            startState = null;
+            return true;
+        }
+        startState = null;
         if (m == Mode.MOVING || m == Mode.RESIZING) {
             commit(before);
             if (m == Mode.MOVING) {
@@ -657,6 +776,8 @@ public final class HudEditorModel {
             return;
         }
         closed = true;
+        cursorX = -1; // a drag cut short by closing never ends in the bin
+        cursorY = -1;
         release();
         if (!keep) {
             revert();

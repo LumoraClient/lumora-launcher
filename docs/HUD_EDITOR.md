@@ -4,8 +4,10 @@
 `LumoraAPI.get().hudEditor().open()` (LabyVoice: Einstellungen → Anzeige → „Position und Größe“).
 
 Der Editor zeigt alle registrierten Widgets – eingebaute und aus Addons – genau so, wie sie im Spiel aussehen.
-Ohne Welt (Hauptmenü) zeigen sie Beispieldaten. Ausgeschaltete, verborgene, fehlerhafte oder gerade nicht
-sichtbare Widgets erscheinen als beschrifteter Platzhalter.
+Ohne Welt (Hauptmenü) zeigen sie Beispieldaten. Wie bei LabyMod liegen nur die Widgets auf dem Bildschirm, die im HUD
+sind; alle anderen stehen nur in der Seitenleiste. Verborgene, fehlerhafte oder gerade nicht sichtbare Widgets im HUD
+erscheinen als beschrifteter Platzhalter. Ob ein Widget im HUD ist, entscheidet nur der Editor; in den Einstellungen
+gibt es dafür keinen Schalter.
 
 ## Bedienung
 
@@ -13,25 +15,26 @@ sichtbare Widgets erscheinen als beschrifteter Platzhalter.
 |---|---|
 | Klick | Widget auswählen (Rahmen und vier Eckgriffe). Ein Klick allein verschiebt nichts (erst ab 2 px Bewegung). |
 | Ziehen | verschieben; rastet an Bildschirmrändern, der Mitte und an Kanten/Mitten anderer Widgets ein (Hilfslinie leuchtet) |
+| Ziehen auf den Papierkorb | in der Bildschirmmitte erscheint beim Ziehen ein Papierkorb; dort loslassen nimmt das Widget aus dem HUD (es bleibt in der Seitenleiste, seine Position merkt sich Lumora) |
 | **Shift** + Ziehen | frei, ohne Einrasten und Raster |
 | Eckgriff ziehen | Größe ändern; die gegenüberliegende Ecke bleibt stehen (Schritte von 5 %) |
 | Mausrad | Größe in 10-%-Schritten um die Mitte |
-| Rechtsklick | Widget an/aus |
 | **Alt** + Klick | nächstes Widget darunter (bei überlappenden Widgets) |
 | Doppelklick | Optionen des Widgets |
 | Pfeiltasten | 1 px verschieben (**Shift**: 10 px) |
-| Entf / H | an/aus / verbergen-zeigen des ausgewählten Widgets |
+| Entf | ausgewähltes Widget aus dem HUD nehmen |
 | G | Raster an/aus |
 | Strg+Z / Strg+Y (Strg+Shift+Z) | rückgängig / wiederholen (50 Schritte; eine Mausrad- oder Pfeiltasten-Folge zählt als ein Schritt) |
 | Esc / Fertig | übernehmen und schließen |
 
 Seitenleiste (☰ blendet sie ein/aus): Profil wechseln (Klick) bzw. neues Profil (**+**), Raster, Einrasten,
-Rückgängig/Wiederholen, Widget-Liste nach Kategorie (Klick wählt aus, zweiter Klick schaltet an/aus; ● an, ○ aus,
-◌ verborgen, ⚠ Fehler), **Alle zurück** (Standardpositionen), **Verwerfen** (alle Änderungen seit dem Öffnen
+Rückgängig/Wiederholen, Widget-Liste nach Kategorie (● im HUD: Klick wählt aus; + nicht im HUD: Klick holt es an seine
+letzte Stelle, aus der Liste ziehen legt es unter die Maus; ◌ verborgen, ⚠ Fehler), **Alle zurück** (Standardpositionen), **Verwerfen** (alle Änderungen seit dem Öffnen
 zurücknehmen, auch neue Profile) und **Fertig**.
 
-Karte des ausgewählten Widgets (unten links): Name, Größe in %, Ebene, **Optionen**, **Verbergen/Zeigen**, **An/Aus**,
-**Nach vorn/Nach hinten** (Zeichenreihenfolge), **Standard** (Position, Größe, Ebene und Einstellungen zurücksetzen).
+Karte des ausgewählten Widgets (neben dem Widget): Name, Größe in %, Ebene, **Optionen**, **Nach vorn/Nach hinten**
+(Zeichenreihenfolge), **Standard** (Position, Größe, Ebene und Einstellungen zurücksetzen) und **Entfernen** (aus dem
+HUD nehmen). Nur bei einem verborgenen Widget (aus älteren Versionen oder von einem Addon) steht dort zusätzlich **Zeigen**.
 
 ## Einstellungen eines Widgets
 

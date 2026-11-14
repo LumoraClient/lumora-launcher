@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HubViewTest {
@@ -124,11 +125,9 @@ class HubViewTest {
         assertEquals(1, host.openedSections.size());
         SettingsView.Section s = host.openedSections.get(0);
         assertTrue(s.title().startsWith("HUD · "), s.title());
-        // the section switch shows and hides the widget
-        boolean before = s.on().getAsBoolean();
-        s.flip().run();
-        assertEquals(!before, s.on().getAsBoolean());
-        s.flip().run();
+        // no "Show in HUD" switch: whether a widget is in the HUD is decided in the HUD editor (like LabyMod)
+        assertNull(s.switchLabel());
+        assertNull(s.flip());
         // the search still finds the card by the widget's name
         String widgetName = s.title().substring("HUD · ".length());
         assertTrue(HubView.filter(cards, HubView.ALL, widgetName).contains(card), widgetName);

@@ -100,6 +100,53 @@ final class ApiSmoke {
         LOG.info("LUMORA_SMOKE_DRAG zone={} magnets={} guides={}/{}", model.dragZone(), model.magnets().size(), model.guidesX(), model.guidesY());
     }
 
+    /** Position of the test widget before {@link #trashInEditor} (x, y fractions), or null. */
+    private static float[] beforeTrash;
+
+    /** Picks up the test widget and holds it over the bin in the middle (the screenshot shows the red bin). */
+    static void trashInEditor(HudEditorModel model, int width, int height) {
+        Optional<WidgetEntry> found = core().widgetRegistry().entry(testWidget());
+        if (found.isEmpty() || !found.get().bounds().valid || !found.get().isEnabled()) {
+            LOG.warn("LUMORA_SMOKE_TRASH: test widget not in the HUD, skipped");
+            return;
+        }
+        WidgetEntry e = found.get();
+        beforeTrash = new float[]{e.x(), e.y()};
+        Bounds b = e.bounds();
+        double cx = b.x + b.width / 2.0;
+        double cy = b.y + b.height / 2.0;
+        model.press(cx, cy, 0, false);
+        model.drag(cx + 5, cy + 5, false);
+        model.drag(width / 2.0, height / 2.0, false);
+        LOG.info("LUMORA_SMOKE_TRASH over={}", model.overTrash());
+    }
+
+    /**
+     * Drops the held widget on the bin: it must leave the HUD; then a click in the side list ({@code add}) puts it back
+     * where it was.
+     */
+    static void trashCheck(HudEditorModel model, List<String> problems) {
+        Optional<WidgetEntry> found = core().widgetRegistry().entry(testWidget());
+        if (found.isEmpty() || beforeTrash == null) {
+            return;
+        }
+        WidgetEntry e = found.get();
+        boolean over = model.overTrash();
+        model.release();
+        boolean removed = !e.isEnabled();
+        model.add(e);
+        boolean back = e.isEnabled() && Math.abs(e.x() - beforeTrash[0]) < 1e-4 && Math.abs(e.y() - beforeTrash[1]) < 1e-4;
+        model.save();
+        LOG.info("LUMORA_SMOKE_TRASH over={} removed={} backAtOldPlace={} x={} y={}", over, removed, back, fmt(e.x()), fmt(e.y()));
+        if (!over || !removed) {
+            problems.add("hud editor: the widget dropped on the bin is still in the HUD (over=" + over + ")");
+        }
+        if (!back) {
+            problems.add("hud editor: adding the widget again did not put it back where it was");
+        }
+        beforeTrash = null;
+    }
+
     /** Problems found, empty = OK. */
     static List<String> check() {
         List<String> problems = new ArrayList<>();

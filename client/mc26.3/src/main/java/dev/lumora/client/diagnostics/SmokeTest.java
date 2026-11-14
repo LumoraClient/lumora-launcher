@@ -180,6 +180,8 @@ public final class SmokeTest {
                     pending.add(new Shot("hud-editor-move", HudEditorScreen::new, 30));
                     // HUD editor while dragging: anchor zones, grid, snap lines, position
                     pending.add(new Shot("hud-editor-drag", HudEditorScreen::new, 30));
+                    // HUD editor like LabyMod's: a widget held over the bin in the middle, dropped (out of the HUD), added again
+                    pending.add(new Shot("hud-editor-trash", HudEditorScreen::new, 30));
                     pending.add(new Shot("widget-settings", parent -> ApiSmoke.core().widgetRegistry().entry(ApiSmoke.testWidget())
                             .map(e -> (Screen) SettingsScreen.create(parent, Component.translatable(e.widget().nameKey()), e.widget().settings(), List.of(), null))
                             .orElse(null)));
@@ -282,6 +284,9 @@ public final class SmokeTest {
                 } else if (ticks == current.delay() - 10 && current.name().equals("hud-editor-drag")
                         && mc.gui.screen() instanceof HudEditorScreen editor) {
                     ApiSmoke.dragInEditor(editor.model(), mc.gui.screen().width, mc.gui.screen().height);
+                } else if (ticks == current.delay() - 10 && current.name().equals("hud-editor-trash")
+                        && mc.gui.screen() instanceof HudEditorScreen editor) {
+                    ApiSmoke.trashInEditor(editor.model(), mc.gui.screen().width, mc.gui.screen().height);
                 } else if (ticks >= current.delay()) {
                     if ((current.name().equals("multiplayer") || current.name().equals("worlds"))
                             && dev.lumora.core.browser.BrowserModule.enabled() && !dev.lumora.client.gui.AddonViewScreen.isShowing()) {
@@ -297,6 +302,9 @@ public final class SmokeTest {
                         extraProblems.add(current.name() + ": LumoraVoice menu did not open");
                     }
                     screenshot(mc, current.name());
+                    if (current.name().equals("hud-editor-trash") && mc.gui.screen() instanceof HudEditorScreen editor) {
+                        ApiSmoke.trashCheck(editor.model(), extraProblems);
+                    }
                     current = null;
                     mc.gui.setScreen(mainMenu);
                     ticks = 0;

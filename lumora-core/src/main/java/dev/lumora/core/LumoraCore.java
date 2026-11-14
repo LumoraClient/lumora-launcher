@@ -305,6 +305,7 @@ public final class LumoraCore implements Lumora {
             editor.close(true);
         }
         editor = new HudEditorModel(widgets, renderer, events);
+        editor.setTrashLabel(platform.translations().translateOr("lumora.hud.trash", "Drop here to remove"));
         return editor;
     }
 

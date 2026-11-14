@@ -23,9 +23,11 @@ import java.util.List;
 /**
  * HUD editor. Every registered widget (built-in and from addons) is listed automatically and drawn exactly as in
  * game. Click = select, drag = move (snaps to edges, center, other widgets and optionally a grid; Shift = free),
- * corner handles = resize, wheel = size, right click = on/off, Alt+click = next widget below, double click =
+ * corner handles = resize, wheel = size, Alt+click = next widget below, double click =
  * settings. While dragging, the screen shows 3x3 anchor zones (the widget hangs on the corner, edge or center
- * of the zone it is dropped in), a grid, the widgets it snaps to and its position. Keys: arrows nudge (Shift = 10 px), Del = off, H = hide, G = grid, Ctrl+Z / Ctrl+Y = undo / redo.
+ * of the zone it is dropped in), a grid, the widgets it snaps to and its position. Keys: arrows nudge (Shift = 10 px), Del = remove, G = grid, Ctrl+Z / Ctrl+Y = undo / redo.
+ * Like LabyMod's editor, only widgets in the HUD lie on the screen: the others are in the side list (click = in at
+ * the last place, drag = in under the cursor), and while a widget is dragged a bin in the middle takes it out.
  * The logic lives in {@link HudEditorModel}; this screen draws and forwards input.
  */
 public final class HudEditorScreen extends Screen {
@@ -40,6 +42,8 @@ public final class HudEditorScreen extends Screen {
     private final List<int[]> headers = new ArrayList<>();
     private final List<String> headerNames = new ArrayList<>();
     private WidgetEntry lastSelected;
+    /** A widget not in the HUD pressed in the side list: a drag out of the list puts it in under the cursor, a click where it was. */
+    private WidgetEntry pendingAdd;
     private long lastClick;
     /** Search text of the widget list (kept while the game runs). */
     private static String query = "";
@@ -205,14 +209,14 @@ public final class HudEditorScreen extends Screen {
                 headerNames.add(categoryName(cat));
             } else {
                 WidgetEntry e = (WidgetEntry) row;
-                String label = (e.isEnabled() ? "● " : "○ ") + name(e) + (e.failure().isPresent() ? " ⚠" : !e.isShown() ? " ◌" : "");
+                String label = (e.isEnabled() ? "● " : "+ ") + name(e) + (e.failure().isPresent() ? " ⚠" : !e.isShown() ? " ◌" : "");
                 LumoraButton b = new LumoraButton(x, y, LIST_W, ROW - 1, Component.literal(label),
                         e == model.selected() ? LumoraButton.Style.PRIMARY : e.isEnabled() ? LumoraButton.Style.SECONDARY : LumoraButton.Style.NAV,
                         null, () -> {
-                            if (model.selected() == e) {
-                                model.toggleEnabled(e);
-                            } else {
+                            if (e.isEnabled()) {
                                 model.select(e);
+                            } else {
+                                pendingAdd = e; // click = in where it was, drag = in under the cursor
                             }
                             rebuildWidgets();
                         });
@@ -274,12 +278,15 @@ public final class HudEditorScreen extends Screen {
         LumoraButton settings = new LumoraButton(x, y, bw, 16, tr("lumora.hud.sel.settings"), LumoraButton.Style.PRIMARY, null, () -> openSettings(e));
         settings.active = !e.widget().settings().isEmpty();
         addRenderableWidget(settings);
-        button(x + bw + 3, y, bw, tr(e.isShown() ? "lumora.hud.sel.hide" : "lumora.hud.sel.show"), null, () -> model.toggleShown(e));
-        button(x + 2 * (bw + 3), y, bw, tr(e.isEnabled() ? "lumora.hud.sel.off" : "lumora.hud.sel.on"), null, () -> model.toggleEnabled(e));
+        button(x + bw + 3, y, bw, tr("lumora.hud.sel.front"), null, () -> model.moveLayer(e, 1));
+        button(x + 2 * (bw + 3), y, bw, tr("lumora.hud.sel.back"), null, () -> model.moveLayer(e, -1));
         y += 19;
-        button(x, y, bw, tr("lumora.hud.sel.front"), null, () -> model.moveLayer(e, 1));
-        button(x + bw + 3, y, bw, tr("lumora.hud.sel.back"), null, () -> model.moveLayer(e, -1));
-        button(x + 2 * (bw + 3), y, bw, tr("lumora.hud.sel.reset"), null, () -> model.resetWidget(e));
+        button(x, y, bw, tr("lumora.hud.sel.reset"), null, () -> model.resetWidget(e));
+        if (!e.isShown()) {
+            // hidden in an older version or by an addon: a way to show it again
+            button(x + bw + 3, y, bw, tr("lumora.hud.sel.show"), null, () -> model.toggleShown(e));
+        }
+        button(x + 2 * (bw + 3), y, bw, tr("lumora.hud.sel.remove"), null, () -> model.remove(e));
     }
 
     /** The selection card next to its widget: below it in the upper half of the screen, above it in the lower half. */
@@ -345,8 +352,8 @@ public final class HudEditorScreen extends Screen {
         WidgetEntry hover = inList(mouseX) ? null : model.hit(mouseX, mouseY);
         for (WidgetEntry e : model.entries()) {
             Bounds b = e.bounds();
-            if (!b.valid) {
-                continue;
+            if (!b.valid || !e.isEnabled()) {
+                continue; // not in the HUD: only in the side list
             }
             boolean live = e.isEnabled() && e.isShown() && e.failure().isEmpty() && visible(e, ctx);
             if (live) {
@@ -449,6 +456,17 @@ public final class HudEditorScreen extends Screen {
     }
 
     boolean drag(double mx, double my) {
+        if (pendingAdd != null) {
+            if (inList(mx)) {
+                return true; // still over the list
+            }
+            WidgetEntry e = pendingAdd;
+            pendingAdd = null;
+            if (model.beginAdd(e, mx, my)) {
+                rebuildWidgets(); // the list goes away while the widget moves
+            }
+            return true;
+        }
         boolean r = model.drag(mx, my, LumoraRuntime.keyDown(Keys.LEFT_SHIFT) || LumoraRuntime.keyDown(Keys.RIGHT_SHIFT));
         if (!builtWhileDragging && (model.mode() == HudEditorModel.Mode.MOVING || model.mode() == HudEditorModel.Mode.RESIZING)) {
             rebuildWidgets(); // hides the side list and the selection card while the widget moves
@@ -457,6 +475,13 @@ public final class HudEditorScreen extends Screen {
     }
 
     boolean release() {
+        if (pendingAdd != null) {
+            WidgetEntry e = pendingAdd;
+            pendingAdd = null;
+            model.add(e);
+            rebuildWidgets();
+            return true;
+        }
         boolean r = model.release();
         if (r) {
             rebuildWidgets();
@@ -483,9 +508,7 @@ public final class HudEditorScreen extends Screen {
             model.nudge(key == Keys.LEFT ? -step : key == Keys.RIGHT ? step : 0, key == Keys.UP ? -step : key == Keys.DOWN ? step : 0);
             return true;
         } else if (model.selected() != null && key == Keys.DELETE) {
-            model.toggleEnabled(model.selected());
-        } else if (model.selected() != null && key == Keys.H) {
-            model.toggleShown(model.selected());
+            model.remove(model.selected());
         } else {
             return false;
         }

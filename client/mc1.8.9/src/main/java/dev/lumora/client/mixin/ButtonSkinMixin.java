@@ -40,7 +40,7 @@ public abstract class ButtonSkinMixin {
         }
         GuiGraphics g = GuiGraphics.create();
         if ((Object) this instanceof SliderWidget || (Object) this instanceof OptionSliderWidget) {
-            LumoraUi.card(g, x, y, width, height, hovered ? 0xE8241D31 : 0xDC13101A, LumoraUi.BORDER);
+            LumoraUi.card(g, x, y, width, height, hovered ? 0xE81D2431 : 0xDC10141A, LumoraUi.BORDER);
         } else {
             LumoraUi.vanillaButton(g, x, y, width, height, active, active && hovered);
         }

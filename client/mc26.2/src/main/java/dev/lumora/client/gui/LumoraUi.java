@@ -12,16 +12,16 @@ import net.minecraft.resources.Identifier;
  * drawing helpers on top of the 26.1 GuiGraphicsExtractor API.
  */
 public final class LumoraUi {
-    public static final int BG = 0xFF0F0C17;
-    public static final int SURFACE = 0xFF17131F;
-    public static final int SURFACE_2 = 0xFF221C2D;
-    public static final int BORDER = 0xFF2F2741;
-    public static final int TEXT = 0xFFECE8F4;
-    public static final int MUTED = 0xFF9D95AE;
+    public static final int BG = 0xFF070B14;
+    public static final int SURFACE = 0xFF0D1424;
+    public static final int SURFACE_2 = 0xFF16213A;
+    public static final int BORDER = 0xFF22314F;
+    public static final int TEXT = 0xFFE8EEFA;
+    public static final int MUTED = 0xFF8D9BB8;
     /** Accent colours; follow the theme's accent colour ({@link #applyAccent}). */
-    public static int ACCENT = 0xFF8B5CF6;
-    public static int ACCENT_HOVER = 0xFFA27BFA;
-    public static int ACCENT_DARK = 0xFF7243E0;
+    public static int ACCENT = 0xFF3B82F6;
+    public static int ACCENT_HOVER = 0xFF5E9BF8;
+    public static int ACCENT_DARK = 0xFF306ACA;
     public static final int OK = 0xFF3DD68C;
     public static final int WARN = 0xFFF5B342;
 
@@ -114,7 +114,7 @@ public final class LumoraUi {
         Font font = Minecraft.getInstance().font;
         int w = font.width(text) + 10;
         panel(g, x, y, w, 13, alpha(ACCENT, 0x55));
-        g.text(font, text, x + 5, y + 3, 0xFFDCCCFD, false);
+        g.text(font, text, x + 5, y + 3, 0xFFCFE0FD, false);
         return w;
     }
 

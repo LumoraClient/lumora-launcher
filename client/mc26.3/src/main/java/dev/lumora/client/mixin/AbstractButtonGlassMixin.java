@@ -42,7 +42,7 @@ public abstract class AbstractButtonGlassMixin {
         if (hover) {
             LumoraShaders.glow(g, x, y, w, h, LumoraUi.ACCENT, 5);
         }
-        LumoraShaders.glass(g, x, y, w, h, !active ? 0xB015111D : hover ? 0xF02E2645 : 0xDC1C1726);
+        LumoraShaders.glass(g, x, y, w, h, !active ? 0xB011151D : hover ? 0xF0263345 : 0xDC171C26);
         if (hover) {
             g.fill(x + 3, y + h - 2, x + w - 3, y + h - 1, LumoraUi.alpha(LumoraUi.ACCENT, 0xC0));
         }

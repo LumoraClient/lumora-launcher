@@ -14,6 +14,7 @@ Lumora Client (Launcher und Begleit-Mod) © Lumora Client contributors, lizenzie
 | Error Prone Annotations (transitiv über Gson) | 2.48.0 | Apache-2.0 | Google LLC | `licenses/Apache-2.0.txt` |
 | FlatLaf | 3.7.2 | Apache-2.0 | FormDev Software GmbH | im JAR (`META-INF/LICENSE`), `licenses/Apache-2.0.txt` |
 | FlatLaf Fonts Inter (Schriftart Inter) | 4.1 | SIL Open Font License 1.1 (Schrift), Apache-2.0 (Paket) | Rasmus Andersson (Inter), FormDev Software GmbH | im JAR |
+| Schrift **Silkscreen Regular** im Launcher (Lumora-Pixel-Design: Titel, Navigation, Knöpfe) | Google Fonts | **SIL Open Font License 1.1** | The Silkscreen Project Authors (Jason Kottke) | `launcher-app` JAR: `lumora/fonts/silkscreen-regular.ttf` und `lumora/fonts/OFL-Silkscreen.txt`; dieselbe Datei wie im Client-Paket „Lumora Schrift: Silkscreen“ (SHA-256 `b08f197a…9227`) |
 | JNA, JNA Platform | 5.19.1 | Apache-2.0 **oder** LGPL-2.1+ (hier gewählt: Apache-2.0) | Timothy Wall u. a. | im JAR (`META-INF/LICENSE`) |
 | OpenJDK-Laufzeit (jlink-Auszug von Amazon Corretto 25.0.3) | 25.0.3 | GPL-2.0 mit Classpath Exception | Oracle und Mitwirkende, Amazon | `runtime/legal/**` (vollständig mitgeliefert) |
 | Lumora-Begleit-Mod `lumora-client-mc<version>.jar` (16 Builds, 1.8.9 bis 26.3; mit lumora-api, lumora-core und lumora-social) | 0.1.0 | GPL-3.0-or-later | Lumora Client contributors | im JAR (`LICENSE_lumora`) |

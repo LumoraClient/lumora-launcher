@@ -110,7 +110,7 @@ final class WorldLoadingView extends ConnectionView {
                 px, py, MUTED, false);
         py += 14;
         int bw = cw - 24;
-        g.roundedRect(px, py, bw, 6, 3, 0xFF2A2338);
+        g.roundedRect(px, py, bw, 6, 3, 0xFF232A38);
         int fill = Math.round(bw * shownProgress);
         if (fill >= 6) {
             g.roundedRect(px, py, fill, 6, 3, LumoraTheme.accent());
@@ -132,7 +132,7 @@ final class WorldLoadingView extends ConnectionView {
             } else if (done) {
                 g.text("✔", iconX - 2, py, OK, false);
             } else {
-                g.roundedRect(iconX - 1, py + 1, 6, 6, 3, 0xFF3A3150);
+                g.roundedRect(iconX - 1, py + 1, 6, 6, 3, 0xFF313D50);
             }
             int color = current ? TEXT : done && !skipped ? MUTED : DIM;
             String label = label(s) + (current && progress >= 0 && (s == Stage.SPAWN || s == Stage.TERRAIN) ? "  " + progress + " %" : "");

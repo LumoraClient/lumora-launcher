@@ -112,6 +112,7 @@ public final class SettingsPage extends JPanel {
         head.setOpaque(false);
         head.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
         JLabel title = Ui.label("Einstellungen", 22, Font.BOLD, Theme.TEXT);
+        title.setFont(Theme.display(32f, Font.BOLD, 22f));
         head.add(title, BorderLayout.WEST);
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         right.setOpaque(false);
@@ -234,11 +235,11 @@ public final class SettingsPage extends JPanel {
                     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     boolean sel = preset.hex().equalsIgnoreCase(cfg.accentColor);
                     g.setColor(c);
-                    g.fillRoundRect(3, 3, getWidth() - 6, getHeight() - 6, Theme.arc(8), Theme.arc(8));
+                    Theme.fillRound(g, 3, 3, getWidth() - 6, getHeight() - 6, Theme.arc(8), Theme.arc(8));
                     if (sel) {
                         g.setColor(Theme.TEXT);
                         g.setStroke(new java.awt.BasicStroke(2f));
-                        g.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, Theme.arc(10), Theme.arc(10));
+                        Theme.drawRound(g, 1, 1, getWidth() - 3, getHeight() - 3, Theme.arc(10), Theme.arc(10));
                     }
                     g.dispose();
                 }
@@ -265,10 +266,10 @@ public final class SettingsPage extends JPanel {
                 boolean custom = Theme.PRESETS.stream().noneMatch(x -> x.hex().equalsIgnoreCase(cfg.accentColor));
                 g.setColor(custom ? Theme.TEXT : Theme.BORDER);
                 g.setStroke(new java.awt.BasicStroke(1f, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER, 10f, new float[]{4f, 4f}, 0f));
-                g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, Theme.arc(10), Theme.arc(10));
+                Theme.drawRound(g, 0, 0, getWidth() - 1, getHeight() - 1, Theme.arc(10), Theme.arc(10));
                 Color c = Theme.parse(cfg.accentColor);
                 g.setColor(c == null ? Theme.ACCENT : c);
-                g.fillRoundRect(10, (getHeight() - 26) / 2, 26, 26, Theme.arc(6), Theme.arc(6));
+                Theme.fillRound(g, 10, (getHeight() - 26) / 2, 26, 26, Theme.arc(6), Theme.arc(6));
                 g.setFont(Theme.font(Font.BOLD, 13f));
                 g.setColor(Theme.TEXT);
                 g.drawString("Eigene", 46, getHeight() / 2 - 2);
@@ -412,7 +413,9 @@ public final class SettingsPage extends JPanel {
     private static JButton button(String text) {
         JButton b = new JButton(text);
         b.setFocusable(false);
-        b.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            b.putClientProperty("JButton.buttonType", "roundRect");
+        }
         return b;
     }
 
@@ -536,8 +539,9 @@ public final class SettingsPage extends JPanel {
                 + "Launcher-Oberfläche. Wirkt nach einem Neustart.", false, accentPicker(), true);
         ToggleSwitch pixel = toggle(cfg.pixelStyle, on -> cfg.pixelStyle = on);
         pixel.onChange(on -> restartHint());
-        add("Erscheinungsbild", Icons.Kind.CUBE, "Pixel-Stil", "Zeichnet Karten, Knöpfe und Felder mit harten Pixelkanten im "
-                + "Minecraft-Stil statt mit runden. Wirkt nach einem Neustart.", false, pixel);
+        add("Erscheinungsbild", Icons.Kind.CUBE, "Lumora-Pixel-Design", "Wie die Lumora-Menüs im Spiel: Pixelschrift für Titel, "
+                + "Navigation und Knöpfe, Karten und Knöpfe mit Pixelkanten. Aus: modernes Design mit runden Ecken. Wirkt nach einem Neustart.",
+                false, pixel);
         add("Erscheinungsbild", Icons.Kind.PULSE, "Reduziere Bewegungen", "Keine automatischen Animationen (drehende Skin-Vorschau, "
                 + "Lade-Kreisel). Wechsel zwischen Seiten bleiben sofort.", false, toggle(cfg.reduceMotion, on -> {
                     cfg.reduceMotion = on;
@@ -943,7 +947,8 @@ public final class SettingsPage extends JPanel {
     /** Upper-case title with a little letter spacing, like the reference launcher. */
     private static JLabel caps(String text, float size, Color color) {
         JLabel l = new JLabel(text.toUpperCase(Locale.GERMANY));
-        l.setFont(Theme.font(Font.BOLD, size).deriveFont(java.util.Map.of(java.awt.font.TextAttribute.TRACKING, 0.08f)));
+        l.setFont(Theme.pixelStyle ? Theme.display(16f, Font.BOLD, size)
+                : Theme.font(Font.BOLD, size).deriveFont(java.util.Map.of(java.awt.font.TextAttribute.TRACKING, 0.08f)));
         l.setForeground(color);
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
         return l;
@@ -999,9 +1004,9 @@ public final class SettingsPage extends JPanel {
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int arc = Theme.arc(10);
                 g.setColor(Theme.SURFACE);
-                g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+                Theme.fillRound(g, 0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
                 g.setColor(Theme.BORDER);
-                g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+                Theme.drawRound(g, 0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
                 g.dispose();
             }
         };
@@ -1082,10 +1087,10 @@ public final class SettingsPage extends JPanel {
             int h = getHeight();
             int arc = Theme.arc(8);
             g.setColor(sel ? Theme.alpha(Theme.ACCENT, 40) : hover ? Theme.alpha(Theme.TEXT, 12) : Theme.SURFACE);
-            g.fillRoundRect(0, 0, w - 1, h - 1, arc, arc);
+            Theme.fillRound(g, 0, 0, w - 1, h - 1, arc, arc);
             g.setColor(sel ? Theme.ACCENT_HOVER : Theme.BORDER);
             g.setStroke(new java.awt.BasicStroke(sel ? 1.5f : 1f));
-            g.drawRoundRect(0, 0, w - 1, h - 1, arc, arc);
+            Theme.drawRound(g, 0, 0, w - 1, h - 1, arc, arc);
             g.setFont(getFont());
             java.awt.FontMetrics fm = g.getFontMetrics();
             String t = label();

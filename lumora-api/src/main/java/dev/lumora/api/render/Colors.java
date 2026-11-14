@@ -2,14 +2,14 @@ package dev.lumora.api.render;
 
 /** ARGB color helpers and the Lumora design colors (same tokens as the launcher). */
 public final class Colors {
-    public static final int BACKGROUND = 0xFF0F0C17;
-    public static final int SURFACE = 0xFF17131F;
-    public static final int SURFACE_2 = 0xFF221C2D;
-    public static final int BORDER = 0xFF2F2741;
-    public static final int TEXT = 0xFFECE8F4;
-    public static final int MUTED = 0xFF9D95AE;
-    public static final int ACCENT = 0xFF8B5CF6;
-    public static final int ACCENT_HOVER = 0xFFA27BFA;
+    public static final int BACKGROUND = 0xFF070B14;
+    public static final int SURFACE = 0xFF0D1424;
+    public static final int SURFACE_2 = 0xFF16213A;
+    public static final int BORDER = 0xFF22314F;
+    public static final int TEXT = 0xFFE8EEFA;
+    public static final int MUTED = 0xFF8D9BB8;
+    public static final int ACCENT = 0xFF3B82F6;
+    public static final int ACCENT_HOVER = 0xFF5E9BF8;
     public static final int OK = 0xFF3DD68C;
     public static final int WARNING = 0xFFF5B342;
     public static final int ERROR = 0xFFF2555A;

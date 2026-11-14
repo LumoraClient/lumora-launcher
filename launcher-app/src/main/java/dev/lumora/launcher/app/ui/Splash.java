@@ -88,7 +88,7 @@ public final class Splash {
             if (logo != null) {
                 g.drawImage(logo, w / 2 - 92, y - 4, 40, 40, null);
             }
-            g.setFont(Theme.font(Font.BOLD, 26f));
+            g.setFont(Theme.display(24f, Font.BOLD, 26f));
             FontMetrics fm = g.getFontMetrics();
             g.setColor(Theme.TEXT);
             g.drawString("Lumora", w / 2 - 44, y + 26);
@@ -103,9 +103,9 @@ public final class Splash {
             int bw = w - 120;
             double done = total == 0 ? 0 : Math.min(1, (idx + 0.5) / total);
             g.setColor(Theme.SURFACE_2);
-            g.fillRoundRect(bx, by, bw, 5, Theme.arc(5), Theme.arc(5));
+            Theme.fillRound(g, bx, by, bw, 5, Theme.arc(5), Theme.arc(5));
             g.setColor(Theme.ACCENT);
-            g.fillRoundRect(bx, by, (int) (bw * done), 5, Theme.arc(5), Theme.arc(5));
+            Theme.fillRound(g, bx, by, (int) (bw * done), 5, Theme.arc(5), Theme.arc(5));
 
             // current step and estimate
             String now = idx < total ? steps.get(idx) : "";

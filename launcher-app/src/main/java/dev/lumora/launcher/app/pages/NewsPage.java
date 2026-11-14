@@ -257,7 +257,7 @@ public final class NewsPage extends JPanel {
         FontMetrics fm = g.getFontMetrics();
         int w = fm.stringWidth(text) + 20;
         g.setColor(text.equals("Lumora") ? Theme.ACCENT_PRESSED : new Color(0x3F7A3A));
-        g.fillRoundRect(x, y, w, 24, 24, 24);
+        Theme.fillRound(g, x, y, w, 24, 24, 24);
         g.setColor(Color.WHITE);
         g.drawString(text, x + 10, y + 16);
         return w;
@@ -378,7 +378,7 @@ public final class NewsPage extends JPanel {
             int w = getWidth();
             int h = getHeight();
             java.awt.Shape clip0 = g.getClip();
-            g.clip(new RoundRectangle2D.Double(0, 0, w, h, 18, 18));
+            g.clip(Theme.roundShape(0, 0, w, h, 18, 18));
             cover(g, image(it.image(), this::repaint), 0, 0, w, h, it.source());
             g.setPaint(new GradientPaint(0, h * 0.25f, new Color(10, 12, 16, 0), 0, h, new Color(10, 12, 16, 235)));
             g.fillRect(0, 0, w, h);
@@ -406,7 +406,7 @@ public final class NewsPage extends JPanel {
             }
             g.setClip(clip0);
             g.setColor(Theme.BORDER);
-            g.drawRoundRect(0, 0, w - 1, h - 1, 18, 18);
+            Theme.drawRound(g, 0, 0, w - 1, h - 1, 18, 18);
             g.dispose();
         }
     }
@@ -446,7 +446,7 @@ public final class NewsPage extends JPanel {
             int w = getWidth();
             int h = getHeight();
             java.awt.Shape clip0 = g.getClip();
-            g.clip(new RoundRectangle2D.Double(0, 0, w, h, 16, 16));
+            g.clip(Theme.roundShape(0, 0, w, h, 16, 16));
             g.setColor(hover ? Theme.SURFACE_2 : Theme.SURFACE);
             g.fillRect(0, 0, w, h);
             int ih = (int) (w * 0.5);
@@ -470,7 +470,7 @@ public final class NewsPage extends JPanel {
             }
             g.setClip(clip0);
             g.setColor(hover ? Theme.ACCENT : Theme.BORDER);
-            g.drawRoundRect(0, 0, w - 1, h - 1, 16, 16);
+            Theme.drawRound(g, 0, 0, w - 1, h - 1, 16, 16);
             g.dispose();
         }
     }
@@ -485,7 +485,7 @@ public final class NewsPage extends JPanel {
             protected void paintComponent(Graphics g0) {
                 Graphics2D g = (Graphics2D) g0.create();
                 quality(g);
-                g.clip(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 12, 12));
+                g.clip(Theme.roundShape(0, 0, getWidth(), getHeight(), 12, 12));
                 Image img = image(c.image(), this::repaint);
                 if (img == null && c.source() == NewsFeed.Source.LUMORA) {
                     g.setPaint(new GradientPaint(0, 0, new Color(0x0E4F5C), getWidth(), getHeight(), Theme.SURFACE_2));

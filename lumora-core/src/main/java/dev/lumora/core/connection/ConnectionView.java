@@ -15,12 +15,12 @@ import java.util.Locale;
  * click areas of the frame just drawn.
  */
 abstract class ConnectionView implements AddonView {
-    static final int TEXT = 0xFFECE8F4;
-    static final int MUTED = 0xFF9D95AE;
+    static final int TEXT = 0xFFE8EEFA;
+    static final int MUTED = 0xFF8D9BB8;
     static final int DIM = 0xFF6B7280;
-    static final int SURFACE = 0xE017131F;
-    static final int SURFACE_2 = 0xFF221C2D;
-    static final int BORDER = 0xFF2F2741;
+    static final int SURFACE = 0xE00D1424;
+    static final int SURFACE_2 = 0xFF16213A;
+    static final int BORDER = 0xFF22314F;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int FAIL = 0xFFF2555A;
@@ -65,7 +65,7 @@ abstract class ConnectionView implements AddonView {
         int rw = Math.min(1920, Math.round(w / s));
         int rh = Math.min(1080, Math.round(h / s));
         g.texture(BACKGROUND, 0, 0, w, h, (1920 - rw) / 2f, (1080 - rh) / 2f, rw, rh, 1920, 1080);
-        g.fill(0, 0, w, h, 0x900F0C17);
+        g.fill(0, 0, w, h, 0x90070B14);
     }
 
     /** Logo and "LUMORA" with a subtitle, centred above {@code y}. */
@@ -88,7 +88,7 @@ abstract class ConnectionView implements AddonView {
                 && dev.lumora.core.extras.ButtonStyleModule.drawViewButton(g, this, label, x, y, w, h, hover);
         if (!styled) switch (style) {
             case PRIMARY -> g.roundedRect(x, y, w, h, 4, hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
-            case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, hover ? LumoraTheme.accent() : BORDER);
+            case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF0232F40 : 0xE016213A, hover ? LumoraTheme.accent() : BORDER);
             case GHOST -> {
                 if (hover) {
                     g.roundedRect(x, y, w, h, 3, 0x40FFFFFF);
@@ -107,7 +107,7 @@ abstract class ConnectionView implements AddonView {
         int lw = g.textWidth(label);
         int x = right - sw;
         boolean hover = mx >= x - lw - 6 && mx < right && my >= y && my < y + 10;
-        g.roundedRect(x, y, sw, 10, 5, on ? LumoraTheme.accent() : 0xFF3A3150);
+        g.roundedRect(x, y, sw, 10, 5, on ? LumoraTheme.accent() : 0xFF313D50);
         g.roundedRect(on ? x + sw - 9 : x + 1, y + 1, 8, 8, 4, 0xFFFFFFFF);
         g.text(label, x - lw - 6, y + 1, hover ? TEXT : MUTED, false);
         hits.add(new Hit(x - lw - 6, y - 2, right, y + 12, action));

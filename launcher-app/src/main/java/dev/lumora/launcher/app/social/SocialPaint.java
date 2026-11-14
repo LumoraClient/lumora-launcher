@@ -56,7 +56,7 @@ final class SocialPaint {
     static void face(Graphics2D g, String uuid, String name, int x, int y, int size) {
         int[] px = SkinFaces.face(uuid);
         java.awt.Shape old = g.getClip();
-        RoundRectangle2D clip = new RoundRectangle2D.Double(x, y, size, size, size / 3.0, size / 3.0);
+        java.awt.Shape clip = Theme.roundShape(x, y, size, size, size / 3.0, size / 3.0);
         g.clip(clip);
         if (px == null) {
             facesPending = true;
@@ -125,7 +125,7 @@ final class SocialPaint {
     static void groupTile(Graphics2D g, String icon, int color, int x, int y, int size) {
         Color c = rgb(color);
         g.setColor(Theme.alpha(c, 70));
-        g.fill(new RoundRectangle2D.Double(x, y, size, size, size / 3.0, size / 3.0));
+        g.fill(Theme.roundShape(x, y, size, size, size / 3.0, size / 3.0));
         int is = Math.round(size * 0.56f);
         Icons.of(Icons.symbol(icon), is, c.brighter()).paintIcon(null, g, x + (size - is) / 2, y + (size - is) / 2);
     }

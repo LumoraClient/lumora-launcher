@@ -13,16 +13,16 @@ import java.nio.file.Path;
  */
 public final class ThemeGen {
     // launcher design tokens (dev.lumora.launcher.app.ui.Theme)
-    static final int BG = 0xFF0F0C17;
-    static final int SURFACE = 0xFF17131F;
-    static final int SURFACE_2 = 0xFF221C2D;
-    static final int SURFACE_3 = 0xFF2B2438;
-    static final int BORDER = 0xFF2F2741;
-    static final int BORDER_DIM = 0xFF231D2E;
-    static final int ACCENT = 0xFF8B5CF6;
-    static final int ACCENT_HOVER = 0xFFA27BFA;
-    static final int ACCENT_DARK = 0xFF7243E0;
-    static final int SHADOW = 0xFF0A0810;
+    static final int BG = 0xFF070B14;
+    static final int SURFACE = 0xFF0D1424;
+    static final int SURFACE_2 = 0xFF16213A;
+    static final int SURFACE_3 = 0xFF1C2A47;
+    static final int BORDER = 0xFF22314F;
+    static final int BORDER_DIM = 0xFF182540;
+    static final int ACCENT = 0xFF3B82F6;
+    static final int ACCENT_HOVER = 0xFF5E9BF8;
+    static final int ACCENT_DARK = 0xFF306ACA;
+    static final int SHADOW = 0xFF04070E;
     static final int WHITE = 0xFFFFFFFF;
     static final int CLEAR = 0x00000000;
 
@@ -56,7 +56,7 @@ public final class ThemeGen {
         sprite(w + "text_field", card(200, 20, BG, BORDER, BG), nine(200, 20, "1"));
         sprite(w + "text_field_highlighted", card(200, 20, BG, ACCENT, BG), nine(200, 20, "1"));
         // scrollbar
-        sprite(w + "scroller", card(6, 32, 0xFF3D3352, 0xFF3D3352, 0xFF3D3352), nine(6, 32, "1"));
+        sprite(w + "scroller", card(6, 32, 0xFF333E52, 0xFF333E52, 0xFF333E52), nine(6, 32, "1"));
         sprite(w + "scroller_background", card(6, 32, SURFACE, SURFACE, SURFACE), nine(6, 32, "1"));
         // tabs 130x24 (open at the bottom)
         sprite(w + "tab", tab(SURFACE, BORDER, false), nine(130, 24, "{\"left\":2,\"top\":2,\"right\":2,\"bottom\":0}"));
@@ -75,11 +75,11 @@ public final class ThemeGen {
 
         // menu backgrounds (tiled 16x16) and separators
         String g = "assets/minecraft/textures/gui/";
-        sprite(g + "menu_background", solid(16, 16, 0x8C0F0C17), null);
-        sprite(g + "menu_list_background", solid(16, 16, 0xA017131F), null);
-        sprite(g + "inworld_menu_background", solid(16, 16, 0x8C0F0C17), null);
-        sprite(g + "inworld_menu_list_background", solid(16, 16, 0xA017131F), null);
-        sprite(g + "tab_header_background", solid(16, 16, 0xE617131F), null);
+        sprite(g + "menu_background", solid(16, 16, 0x8C070B14), null);
+        sprite(g + "menu_list_background", solid(16, 16, 0xA00D1424), null);
+        sprite(g + "inworld_menu_background", solid(16, 16, 0x8C070B14), null);
+        sprite(g + "inworld_menu_list_background", solid(16, 16, 0xA00D1424), null);
+        sprite(g + "tab_header_background", solid(16, 16, 0xE60D1424), null);
         sprite(g + "header_separator", separator(true), null);
         sprite(g + "footer_separator", separator(false), null);
         sprite(g + "inworld_header_separator", separator(true), null);
@@ -153,7 +153,7 @@ public final class ThemeGen {
         BufferedImage img = new BufferedImage(32, 2, BufferedImage.TYPE_INT_ARGB);
         for (int x = 0; x < 32; x++) {
             img.setRGB(x, header ? 0 : 1, BORDER);
-            img.setRGB(x, header ? 1 : 0, 0x660A0810);
+            img.setRGB(x, header ? 1 : 0, 0x6604070E);
         }
         return img;
     }

@@ -381,7 +381,7 @@ public final class HudEditorScreen extends Screen {
             int[][] corners = {{b.x, b.y}, {b.right(), b.y}, {b.x, b.bottom()}, {b.right(), b.bottom()}};
             for (int[] p : corners) {
                 g.fill(p[0] - h, p[1] - h, p[0] + h, p[1] + h, LumoraUi.ACCENT_HOVER);
-                g.fill(p[0] - h + 1, p[1] - h + 1, p[0] + h - 1, p[1] + h - 1, 0xFF0E0A16);
+                g.fill(p[0] - h + 1, p[1] - h + 1, p[0] + h - 1, p[1] + h - 1, 0xFF0A0E16);
             }
         }
         if (hover != null && model.mode() == HudEditorModel.Mode.NONE) {

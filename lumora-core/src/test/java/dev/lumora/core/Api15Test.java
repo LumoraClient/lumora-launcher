@@ -77,7 +77,7 @@ class Api15Test {
         assertEquals("gold:gold", t.accentId());
 
         assertTrue(core.addonManager().setWanted("gold", false).isEmpty());
-        assertEquals("purple", LumoraTheme.current().id(), "addon off: back to Lila");
+        assertEquals("blue", LumoraTheme.current().id(), "addon off: back to the default (Blau)");
         assertFalse(LumoraTheme.ACCENTS.stream().anyMatch(a -> a.id().equals("gold:gold")));
         assertTrue(core.addonManager().setWanted("gold", true).isEmpty());
         assertEquals("gold:gold", LumoraTheme.current().id(), "the player's choice comes back with the addon");

@@ -162,7 +162,7 @@ public final class ServerBrowserView extends BrowserView {
         if (px != null) {
             Icons.draw(g, px, ICON, ix, iy);
         } else {
-            g.roundedRect(ix, iy, ICON, ICON, 4, 0xFF2E2152);
+            g.roundedRect(ix, iy, ICON, ICON, 4, 0xFF213552);
             String l = e.name.isEmpty() ? "?" : e.name.substring(0, 1).toUpperCase(Locale.ROOT);
             g.centeredText(l, ix + ICON / 2 + 1, iy + 8, TEXT, false);
         }

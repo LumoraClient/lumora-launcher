@@ -451,7 +451,7 @@ public final class ServersPage extends JPanel {
             Live l = live(e.address());
             if (hover) {
                 g.setColor(Theme.alpha(Theme.SURFACE_2, 200));
-                g.fillRoundRect(0, 2, w, h - 4, 12, 12);
+                Theme.fillRound(g, 0, 2, w, h - 4, 12, 12);
             }
             g.setColor(Theme.alpha(Theme.BORDER, 120));
             g.fillRect(8, h - 1, w - 16, 1);
@@ -467,12 +467,12 @@ public final class ServersPage extends JPanel {
             int iy = cy - is / 2;
             if (l.icon != null) {
                 java.awt.Shape clip = g.getClip();
-                g.clip(new java.awt.geom.RoundRectangle2D.Double(ix, iy, is, is, 10, 10));
+                g.clip(Theme.roundShape(ix, iy, is, is, 10, 10));
                 g.drawImage(l.icon, ix, iy, is, is, null);
                 g.setClip(clip);
             } else {
                 g.setColor(Theme.SURFACE_2);
-                g.fillRoundRect(ix, iy, is, is, 10, 10);
+                Theme.fillRound(g, ix, iy, is, is, 10, 10);
                 g.setColor(Theme.MUTED);
                 g.setFont(Theme.font(Font.BOLD, 16f));
                 String ch = e.name().substring(0, 1).toUpperCase(Locale.ROOT);
@@ -561,7 +561,7 @@ public final class ServersPage extends JPanel {
             // play
             playBox = new Rectangle(c.play, cy - 17, 34, 34);
             g.setColor(l.state == State.OFFLINE ? Theme.SURFACE_2 : Theme.ACCENT_PRESSED);
-            g.fillRoundRect(playBox.x, playBox.y, 34, 34, 8, 8);
+            Theme.fillRound(g, playBox.x, playBox.y, 34, 34, 8, 8);
             Icons.of(Icons.Kind.PLAY, 18, Color.WHITE).paintIcon(this, g, playBox.x + 8, playBox.y + 8);
             g.dispose();
         }

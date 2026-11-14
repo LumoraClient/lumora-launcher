@@ -98,7 +98,7 @@ public final class AttackIndicatorModule implements LumoraAddon {
         size = s.slider("size", 100, 50, 200).step(5).unit("%").name(k + "size").visibleWhen(() -> !barStyle());
         color = s.chroma("color", 0xFFFFFFFF, true).name(k + "color").section(k + "section.colors");
         readyColor = s.chroma("ready_color", 0xFF4ADE80, true).name(k + "ready_color");
-        cooldownColor = s.chroma("cooldown_color", 0xFFA78BFA, true).name(k + "cooldown_color");
+        cooldownColor = s.chroma("cooldown_color", 0xFF8BBBFA, true).name(k + "cooldown_color");
         background = s.color("background", 0x70000000, true).name(k + "background").advanced();
         gradient = s.checkbox("gradient", false).name(k + "gradient");
         hideWhenReady = s.toggle("hide_when_ready", true).name(k + "hide_when_ready").section(k + "section.behaviour");

@@ -31,7 +31,7 @@ public abstract class SliderSkinMixin {
         if (w == HANDLE_WIDTH) {
             LumoraUi.card(g, x, y, w, h, hover ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT, LumoraUi.alpha(LumoraUi.ACCENT, 0xFF));
         } else {
-            LumoraUi.card(g, x, y, w, h, hover ? 0xE8241D31 : 0xDC13101A, LumoraUi.BORDER);
+            LumoraUi.card(g, x, y, w, h, hover ? 0xE81D2431 : 0xDC10141A, LumoraUi.BORDER);
         }
     }
 }

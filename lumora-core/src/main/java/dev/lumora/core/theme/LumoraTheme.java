@@ -18,8 +18,8 @@ public final class LumoraTheme {
 
     /** Lumora's own accents, then those addons added (Lumora API 1.5, ids {@code <addon>:<id>}). */
     public static final List<Accent> ACCENTS = new CopyOnWriteArrayList<>(List.of(
-            new Accent("purple", "Lila", "Purple", 0xFF8B5CF6),
             new Accent("blue", "Blau", "Blue", 0xFF3B82F6),
+            new Accent("purple", "Lila", "Purple", 0xFF8B5CF6),
             new Accent("cyan", "Türkis", "Cyan", 0xFF06B6D4),
             new Accent("green", "Grün", "Green", 0xFF22C55E),
             new Accent("amber", "Orange", "Orange", 0xFFF59E0B),
@@ -38,7 +38,7 @@ public final class LumoraTheme {
     private LumoraTheme() {
     }
 
-    /** The accent with this id, or the default (Lila) for unknown ids. */
+    /** The accent with this id, or the default (Blau, same as the launcher; Lila until 0.3.42) for unknown ids. */
     public static Accent accent(String id) {
         for (Accent a : ACCENTS) {
             if (a.id().equals(id)) {
@@ -95,16 +95,24 @@ public final class LumoraTheme {
         return accent.color();
     }
 
-    /** Lighter accent for hovered elements (the original Lumora values for Lila). */
+    /** Lighter accent for hovered elements (the launcher's values for Blau, the original ones for Lila). */
     public static int accentHover() {
         Accent a = accent;
-        return a == DEFAULT ? 0xFFA27BFA : mix(a.color(), 0xFFFFFFFF, 0.22f);
+        return switch (a.id()) {
+            case "blue" -> 0xFF5E9BF8;
+            case "purple" -> 0xFFA27BFA;
+            default -> mix(a.color(), 0xFFFFFFFF, 0.22f);
+        };
     }
 
     /** Darker accent for pressed elements and shadows. */
     public static int accentDark() {
         Accent a = accent;
-        return a == DEFAULT ? 0xFF7243E0 : mix(a.color(), 0xFF000000, 0.2f);
+        return switch (a.id()) {
+            case "blue" -> 0xFF306ACA;
+            case "purple" -> 0xFF7243E0;
+            default -> mix(a.color(), 0xFF000000, 0.2f);
+        };
     }
 
     /** {@code color} with the given alpha (0..255). */
@@ -124,7 +132,7 @@ public final class LumoraTheme {
         return r;
     }
 
-    /** The default accent (Lila) recoloured to the current accent, for colours derived from it (keeps alpha). */
+    /** The default accent recoloured to the current accent, for colours derived from it (keeps alpha). */
     public static int recolor(int argb) {
         return (argb & 0xFF000000) | (accent() & 0x00FFFFFF);
     }

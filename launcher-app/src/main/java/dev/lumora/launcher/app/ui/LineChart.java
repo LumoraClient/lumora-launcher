@@ -95,7 +95,7 @@ public final class LineChart extends JComponent {
         int lx = left;
         for (Series s : series) {
             g.setColor(s.color);
-            g.fillRoundRect(lx, top - 19, 10, 10, 4, 4);
+            Theme.fillRound(g, lx, top - 19, 10, 10, 4, 4);
             g.setColor(Theme.TEXT);
             g.drawString(s.name, lx + 15, top - 10);
             lx += 25 + g.getFontMetrics().stringWidth(s.name);
@@ -155,7 +155,7 @@ public final class LineChart extends JComponent {
             int tw = g.getFontMetrics().stringWidth(t) + 16;
             int bx = Math.clamp(x - tw / 2, left, left + w - tw);
             g.setColor(Theme.SURFACE_2);
-            g.fillRoundRect(bx, top + 4, tw, 22, 10, 10);
+            Theme.fillRound(g, bx, top + 4, tw, 22, 10, 10);
             g.setColor(Theme.TEXT);
             g.drawString(t, bx + 8, top + 19);
         }

@@ -85,14 +85,14 @@ public interface WidgetStyle {
     WidgetStyle NONE = new WidgetStyle() {
         @Override public boolean active() { return false; }
         @Override public boolean background() { return true; }
-        @Override public int backgroundColor() { return 0x9C0F0C17; }
+        @Override public int backgroundColor() { return 0x9C070B14; }
         @Override public int cornerRadius() { return 0; }
         @Override public boolean border() { return false; }
         @Override public int borderColor() { return 0x40FFFFFF; }
         @Override public boolean accentBar() { return true; }
-        @Override public int accentColor() { return 0xFF8B5CF6; }
-        @Override public int labelColor() { return 0xFFA27BFA; }
-        @Override public int valueColor() { return 0xFFECE8F4; }
+        @Override public int accentColor() { return 0xFF3B82F6; }
+        @Override public int labelColor() { return 0xFF5E9BF8; }
+        @Override public int valueColor() { return 0xFFE8EEFA; }
         @Override public boolean textShadow() { return true; }
         @Override public String format() { return SPACE; }
         @Override public boolean uppercaseLabels() { return false; }

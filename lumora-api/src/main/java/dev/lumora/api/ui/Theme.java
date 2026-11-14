@@ -29,27 +29,27 @@ public interface Theme {
     int accentDark();
 
     default int background() {
-        return 0xFF0F0C17;
+        return 0xFF070B14;
     }
 
     default int surface() {
-        return 0xFF17131F;
+        return 0xFF0D1424;
     }
 
     default int surface2() {
-        return 0xFF221C2D;
+        return 0xFF16213A;
     }
 
     default int border() {
-        return 0xFF2F2741;
+        return 0xFF22314F;
     }
 
     default int text() {
-        return 0xFFECE8F4;
+        return 0xFFE8EEFA;
     }
 
     default int muted() {
-        return 0xFF9D95AE;
+        return 0xFF8D9BB8;
     }
 
     default int ok() {

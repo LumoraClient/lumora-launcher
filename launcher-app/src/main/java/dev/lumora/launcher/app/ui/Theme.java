@@ -182,6 +182,117 @@ public final class Theme {
         return new Font(FlatInterFont.FAMILY, style, Math.round(size)).deriveFont(size);
     }
 
+    private static Font pixelFont;
+
+    /**
+     * Font for titles, navigation and buttons: in the Lumora pixel design (as in the game's Lumora menus) Silkscreen
+     * (OFL, the pixel font Lumora also offers in the game) at {@code pixelSize} (8, 16, 24, 32 stay sharp), otherwise
+     * Inter with {@code style} and {@code size}.
+     */
+    public static Font display(float pixelSize, int style, float size) {
+        Font f = pixelStyle ? silkscreen() : null;
+        return f != null ? f.deriveFont(pixelSize) : font(style, size);
+    }
+
+    private static synchronized Font silkscreen() {
+        if (pixelFont == null) {
+            try (java.io.InputStream in = Theme.class.getResourceAsStream("/lumora/fonts/silkscreen-regular.ttf")) {
+                pixelFont = in == null ? null : Font.createFont(Font.TRUETYPE_FONT, in);
+            } catch (java.io.IOException | java.awt.FontFormatException e) {
+                pixelFont = null;
+            }
+            if (pixelFont == null) {
+                pixelStyle = false; // without the font the modern design stays consistent
+                return null;
+            }
+        }
+        return pixelFont;
+    }
+
+    /** Size of one "pixel" step of the pixel design's corners. */
+    private static final int STEP = 2;
+
+    /**
+     * Fills a rounded rectangle; in the pixel design with stepped corners like the game's Lumora menus (two steps on
+     * larger shapes, one on small ones) instead of round arcs.
+     */
+    public static void fillRound(java.awt.Graphics g, int x, int y, int w, int h, int arcW, int arcH) {
+        if (!pixelStyle) {
+            g.fillRoundRect(x, y, w, h, arcW, arcH);
+            return;
+        }
+        int steps = Math.min(w, h) >= 20 ? 2 : Math.min(w, h) >= 6 ? 1 : 0;
+        if (steps == 0) {
+            g.fillRect(x, y, w, h);
+            return;
+        }
+        for (int i = 0; i <= steps; i++) {
+            int inset = (steps - i) * STEP;
+            int top = i * STEP;
+            g.fillRect(x + inset, y + top, w - 2 * inset, h - 2 * top);
+        }
+    }
+
+    /**
+     * Rounded rectangle as a shape (clips, gradients, outlines); in the pixel design with stepped corners like
+     * {@link #fillRound}.
+     */
+    public static java.awt.Shape roundShape(double x, double y, double w, double h, double arcW, double arcH) {
+        if (!pixelStyle) {
+            return new java.awt.geom.RoundRectangle2D.Double(x, y, w, h, arcW, arcH);
+        }
+        int steps = Math.min(w, h) >= 20 ? 2 : Math.min(w, h) >= 6 ? 1 : 0;
+        int ix = (int) Math.round(x);
+        int iy = (int) Math.round(y);
+        int x2 = (int) Math.round(x + w);
+        int y2 = (int) Math.round(y + h);
+        return steps == 0 ? new java.awt.Rectangle(ix, iy, x2 - ix, y2 - iy) : stepped(ix, iy, x2, y2, steps);
+    }
+
+    /** Outline matching {@link #fillRound} (1 px). */
+    public static void drawRound(java.awt.Graphics g, int x, int y, int w, int h, int arcW, int arcH) {
+        if (!pixelStyle) {
+            g.drawRoundRect(x, y, w, h, arcW, arcH);
+            return;
+        }
+        int x2 = x + w;
+        int y2 = y + h;
+        int steps = Math.min(w, h) >= 20 ? 2 : Math.min(w, h) >= 6 ? 1 : 0;
+        if (steps == 0) {
+            g.drawRect(x, y, w, h);
+            return;
+        }
+        g.drawPolygon(stepped(x, y, x2, y2, steps));
+    }
+
+    /** Outline of a rectangle with {@code n} pixel steps per corner, clockwise from the top left. */
+    static java.awt.Polygon stepped(int x, int y, int x2, int y2, int n) {
+        java.awt.Polygon p = new java.awt.Polygon();
+        int s = STEP;
+        p.addPoint(x + n * s, y);
+        p.addPoint(x2 - n * s, y);
+        for (int k = 1; k <= n; k++) {
+            p.addPoint(x2 - (n - k + 1) * s, y + k * s);
+            p.addPoint(x2 - (n - k) * s, y + k * s);
+        }
+        p.addPoint(x2, y2 - n * s);
+        for (int k = 1; k <= n; k++) {
+            p.addPoint(x2 - k * s, y2 - (n - k + 1) * s);
+            p.addPoint(x2 - k * s, y2 - (n - k) * s);
+        }
+        p.addPoint(x + n * s, y2);
+        for (int k = 1; k <= n; k++) {
+            p.addPoint(x + (n - k + 1) * s, y2 - k * s);
+            p.addPoint(x + (n - k) * s, y2 - k * s);
+        }
+        p.addPoint(x, y + n * s);
+        for (int k = 1; k <= n; k++) {
+            p.addPoint(x + k * s, y + (n - k + 1) * s);
+            p.addPoint(x + k * s, y + (n - k) * s);
+        }
+        return p;
+    }
+
     public static String hex(Color c) {
         return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
     }

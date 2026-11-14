@@ -41,7 +41,7 @@ public abstract class AbstractSliderButton extends AbstractWidget {
     @Override
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta) {
         boolean hover = active && isHoveredOrFocused();
-        LumoraUi.card(g, getX(), getY(), width, height, hover ? 0xE8241D31 : 0xDC13101A, LumoraUi.BORDER);
+        LumoraUi.card(g, getX(), getY(), width, height, hover ? 0xE81D2431 : 0xDC10141A, LumoraUi.BORDER);
         int hx = getX() + (int) (value * (width - HANDLE));
         LumoraUi.card(g, hx, getY(), HANDLE, height, hover ? dev.lumora.client.gui.LumoraUi.ACCENT_HOVER : dev.lumora.client.gui.LumoraUi.ACCENT, LumoraUi.ACCENT);
         Font font = Font.get();

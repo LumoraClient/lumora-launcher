@@ -74,7 +74,7 @@ public final class NavRail extends JPanel {
                 }
                 if (!iconsOnly) {
                     int ty = (size > 24 ? size + 2 : 0) + 30;
-                    g.setFont(Theme.font(Font.BOLD | Font.ITALIC, 25f));
+                    g.setFont(Theme.display(24f, Font.BOLD | Font.ITALIC, 25f));
                     FontMetrics fm = g.getFontMetrics();
                     String name = "LUMORA";
                     int x = (w - fm.stringWidth(name)) / 2;
@@ -206,7 +206,7 @@ public final class NavRail extends JPanel {
                 int h = getHeight();
                 if (hover) {
                     g.setColor(Theme.alpha(Theme.TEXT, 10));
-                    g.fillRoundRect(0, 0, getWidth(), h, Theme.arc(10), Theme.arc(10));
+                    Theme.fillRound(g, 0, 0, getWidth(), h, Theme.arc(10), Theme.arc(10));
                 }
                 Color c = hover ? Theme.TEXT : Theme.MUTED;
                 g.setColor(c);
@@ -294,8 +294,16 @@ public final class NavRail extends JPanel {
             int pw = sel.getWidth();
             int ph = (int) Math.round(pillH.value());
             int arc = Theme.arc(12);
-            g.setColor(Theme.alpha(Theme.TEXT, 20));
-            g.fillRoundRect(x, y, pw, ph, arc, arc);
+            if (Theme.pixelStyle) {
+                // like the selected entry of the game's Lumora hub: accent tint and an accent bar on the left
+                g.setColor(Theme.alpha(Theme.ACCENT, 46));
+                Theme.fillRound(g, x, y, pw, ph, arc, arc);
+                g.setColor(Theme.ACCENT);
+                g.fillRect(x, y + 6, 4, Math.max(0, ph - 12));
+            } else {
+                g.setColor(Theme.alpha(Theme.TEXT, 20));
+                Theme.fillRound(g, x, y, pw, ph, arc, arc);
+            }
         }
         g.dispose();
     }
@@ -354,7 +362,7 @@ public final class NavRail extends JPanel {
             if (!sel && hover) {
                 // the selected entry's pill is painted by the rail (it slides between entries)
                 g.setColor(Theme.alpha(Theme.TEXT, 10));
-                g.fillRoundRect(0, 0, w, h, arc, arc);
+                Theme.fillRound(g, 0, 0, w, h, arc, arc);
             }
             Color ic = sel ? Theme.ACCENT_HOVER : hover ? Theme.TEXT : Theme.MUTED;
             if (iconsOnly) {
@@ -371,7 +379,7 @@ public final class NavRail extends JPanel {
                     int bx = Math.min(w - bw - 2, ix + s - 6);
                     int by = Math.max(2, iy - 7);
                     g.setColor(online ? Theme.OK : Theme.ACCENT);
-                    g.fillRoundRect(bx, by, bw, 16, Theme.arc(16), Theme.arc(16));
+                    Theme.fillRound(g, bx, by, bw, 16, Theme.arc(16), Theme.arc(16));
                     g.setColor(online ? new Color(0x0D1424) : Theme.onAccent());
                     g.drawString(t, bx + (bw - bm.stringWidth(t)) / 2, by + 12);
                 }
@@ -379,7 +387,7 @@ public final class NavRail extends JPanel {
                 return;
             }
             Icons.of(icon, 20, ic).paintIcon(this, g, 14, (h - 20) / 2);
-            g.setFont(Theme.font(sel ? Font.BOLD : Font.PLAIN, 14.5f));
+            g.setFont(Theme.display(16f, sel ? Font.BOLD : Font.PLAIN, 14.5f));
             FontMetrics fm = g.getFontMetrics();
             g.setColor(sel ? Theme.TEXT : hover ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.3));
             g.drawString(label, 48, (h - fm.getHeight()) / 2 + fm.getAscent());
@@ -391,7 +399,7 @@ public final class NavRail extends JPanel {
                 int bx = w - bw - 8;
                 int by = (h - 20) / 2;
                 g.setColor(online ? Theme.SURFACE_2 : Theme.ACCENT);
-                g.fillRoundRect(bx, by, bw, 20, Theme.arc(20), Theme.arc(20));
+                Theme.fillRound(g, bx, by, bw, 20, Theme.arc(20), Theme.arc(20));
                 int tx = bx + (bw - bm.stringWidth(t)) / 2;
                 if (online) {
                     tx = bx + 7;

@@ -725,7 +725,7 @@ public final class ScreenshotView implements AddonView {
         footer(g, left, right, py + ph - footerH, footerH, mx, my);
         if (!toast.isEmpty() && now - toastAt < 2500) {
             int tw = g.textWidth(toast) + 16;
-            g.card(px + (pw - tw) / 2, contentBottom - 22, tw, 16, 8, 0xF0201B2E, accent);
+            g.card(px + (pw - tw) / 2, contentBottom - 22, tw, 16, 8, 0xF01B232E, accent);
             g.centeredText(toast, px + pw / 2, contentBottom - 18, TEXT, false);
         }
         g.pop();
@@ -795,7 +795,7 @@ public final class ScreenshotView implements AddonView {
     private void searchBox(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
         boolean focused = "search".equals(focus);
         boolean hover = HubView.in(mx, my, x, y, w, h);
-        g.card(x, y, w, h, h / 2, HubView.FIELD, focused ? LumoraTheme.accent() : hover ? 0xFF3A3450 : HubView.BORDER);
+        g.card(x, y, w, h, h / 2, HubView.FIELD, focused ? LumoraTheme.accent() : hover ? 0xFF344150 : HubView.BORDER);
         HubGlyphs.draw(g, "search", x + 5, y + (h - HubGlyphs.SIZE) / 2, focused ? LumoraTheme.accentHover() : DIM);
         String text = focused ? buffer.toString() : search;
         int max = w - 24;
@@ -931,7 +931,7 @@ public final class ScreenshotView implements AddonView {
             ScreenshotLibrary.Shot shot = shown.get(i);
             boolean sel = selected.contains(shot.name());
             boolean hover = my >= contentTop && my < contentBottom && HubView.in(mx, my, cx, cy, cw, ch);
-            g.card(cx, cy, cw, ch, 6, hover ? HubView.CARD_HOVER : HubView.CARD, sel ? accent : hover ? 0xFF3A3450 : HubView.BORDER);
+            g.card(cx, cy, cw, ch, 6, hover ? HubView.CARD_HOVER : HubView.CARD, sel ? accent : hover ? 0xFF344150 : HubView.BORDER);
             if (sel) {
                 g.outline(cx + 1, cy + 1, cw - 2, ch - 2, LumoraTheme.alpha(accent, 0x90));
             }
@@ -1040,7 +1040,7 @@ public final class ScreenshotView implements AddonView {
             boolean hover = my >= contentTop && my < contentBottom && HubView.in(mx, my, cx, cy, cw, ch);
             g.card(cx, cy, cw, ch, 6, hover ? HubView.CARD_HOVER : HubView.CARD, hover ? accent : HubView.BORDER);
             if (a == null) {
-                g.fill(cx + 4, cy + 4, cx + cw - 4, cy + thumbH, hover ? 0xFF1E1A2A : 0xFF15121E);
+                g.fill(cx + 4, cy + 4, cx + cw - 4, cy + thumbH, hover ? 0xFF1A212A : 0xFF12171E);
                 g.push();
                 g.translate(cx + cw / 2f, cy + 4 + (thumbH - 4) / 2f);
                 g.scale(2f);
@@ -1052,7 +1052,7 @@ public final class ScreenshotView implements AddonView {
                 continue;
             }
             if (a.shots().isEmpty()) {
-                g.fill(cx + 4, cy + 4, cx + cw - 4, cy + thumbH, 0xFF0B0A10);
+                g.fill(cx + 4, cy + 4, cx + cw - 4, cy + thumbH, 0xFF0A0D10);
                 HubGlyphs.draw(g, "folder", cx + (cw - HubGlyphs.SIZE) / 2, cy + (thumbH - HubGlyphs.SIZE) / 2, DIM);
             } else {
                 image(g, thumb(a.shots().get(0)), cx + 4, cy + 4, cw - 8, thumbH - 4);
@@ -1071,7 +1071,7 @@ public final class ScreenshotView implements AddonView {
 
     /** Draws a texture fitted into the box (centred, shape kept), or a placeholder while it loads. */
     private void image(HudGraphics g, Tex t, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, 0xFF0B0A10);
+        g.fill(x, y, x + w, y + h, 0xFF0A0D10);
         if (t != null && t.uploaded && t.width > 0) {
             double f = Math.min(w / (double) t.width, h / (double) t.height);
             int dw = Math.max(1, (int) Math.round(t.width * f));

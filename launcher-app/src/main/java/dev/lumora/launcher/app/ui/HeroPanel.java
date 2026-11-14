@@ -59,7 +59,7 @@ public final class HeroPanel extends JPanel {
         aurora(g, w, h, Motion.seconds(), true);
         g.setClip(clip0);
         g.setColor(Theme.alpha(Theme.ACCENT_HOVER, 40));
-        g.drawRoundRect(0, 0, w - 1, h - 1, Theme.arc(20), Theme.arc(20));
+        Theme.drawRound(g, 0, 0, w - 1, h - 1, Theme.arc(20), Theme.arc(20));
         g.dispose();
         super.paintComponent(g0);
     }

@@ -255,7 +255,7 @@ public final class VersionGrid extends JPanel {
                 FontMetrics im = g.getFontMetrics();
                 int iw = im.stringWidth(info) + 14;
                 g.setColor(new Color(10, 12, 16, 170));
-                g.fillRoundRect(w - iw - 8, 8, iw, 20, 10, 10);
+                Theme.fillRound(g, w - iw - 8, 8, iw, 20, 10, 10);
                 g.setColor(new Color(0xD7DCE3));
                 g.drawString(info, w - iw + 7 - 8, 22);
             }
@@ -274,10 +274,10 @@ public final class VersionGrid extends JPanel {
                     }
                     boolean chipSel = v.id().equals(selected);
                     g.setColor(chipSel ? Theme.ACCENT_PRESSED : i == hoverChip ? new Color(30, 36, 46, 240) : new Color(14, 17, 22, 220));
-                    g.fillRoundRect(x, y, cw, 22, 8, 8);
+                    Theme.fillRound(g, x, y, cw, 22, 8, 8);
                     g.setColor(chipSel ? Theme.ACCENT_HOVER : new Color(255, 255, 255, 40));
                     g.setStroke(new BasicStroke(1f));
-                    g.drawRoundRect(x, y, cw, 22, 8, 8);
+                    Theme.drawRound(g, x, y, cw, 22, 8, 8);
                     g.setColor(Color.WHITE);
                     g.drawString(v.version(), x + 8, y + 15);
                     chipBoxes.add(new Rectangle(x, y, cw, 22));

@@ -26,7 +26,7 @@ import java.util.List;
 @Mixin(Screen.class)
 public abstract class ScreenMixin {
     /** Dims the landscape behind menu text (the newer versions blur it). */
-    private static final int DIM = 0x990F0C16;
+    private static final int DIM = 0x990C1016;
 
     @Shadow
     protected List<ButtonWidget> buttons;

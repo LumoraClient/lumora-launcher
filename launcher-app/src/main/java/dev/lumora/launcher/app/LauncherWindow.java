@@ -492,11 +492,23 @@ final class LauncherWindow implements PageHost {
                 java.awt.Graphics2D g = (java.awt.Graphics2D) g0.create();
                 g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                g.setFont(Theme.font(Font.BOLD | Font.ITALIC, 58f));
+                g.setFont(Theme.display(64f, Font.BOLD | Font.ITALIC, 58f));
                 java.awt.FontMetrics fm = g.getFontMetrics();
                 String t = "LUMORA";
                 int x = (getWidth() - fm.stringWidth(t)) / 2;
                 int y = fm.getAscent() - 4;
+                if (Theme.pixelStyle) {
+                    // like the logo of the game's Lumora main menu: white pixel letters on a stepped accent shadow
+                    y = getHeight() - fm.getDescent() - 8;
+                    g.setColor(Theme.alpha(Color.BLACK, 140));
+                    g.drawString(t, x + 8, y + 8);
+                    g.setColor(Theme.ACCENT_DEEP);
+                    g.drawString(t, x + 4, y + 4);
+                    g.setColor(Color.WHITE);
+                    g.drawString(t, x, y);
+                    g.dispose();
+                    return;
+                }
                 g.setColor(Theme.alpha(Color.BLACK, 120));
                 g.drawString(t, x + 3, y + 4);
                 g.setPaint(new java.awt.GradientPaint(x, 0, Color.WHITE, x + fm.stringWidth(t), 0, Theme.ACCENT_HOVER));
@@ -504,8 +516,9 @@ final class LauncherWindow implements PageHost {
                 g.dispose();
             }
         };
-        wordmark.setPreferredSize(new Dimension(420, 66));
-        wordmark.setMaximumSize(new Dimension(Integer.MAX_VALUE, 66));
+        int wordmarkHeight = Theme.pixelStyle ? 80 : 66;
+        wordmark.setPreferredSize(new Dimension(420, wordmarkHeight));
+        wordmark.setMaximumSize(new Dimension(Integer.MAX_VALUE, wordmarkHeight));
         JLabel slogan = label("Dein All-in-One Minecraft Client", 18, Font.PLAIN, new Color(0xDCE7FA));
         slogan.setHorizontalAlignment(SwingConstants.CENTER);
         for (JComponent c : List.of(logo, wordmark, slogan)) {
@@ -1684,7 +1697,9 @@ final class LauncherWindow implements PageHost {
     private static JComponent pageTitle(String title, String subtitle) {
         JPanel p = column();
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.add(label(title, 28, Font.BOLD, Theme.TEXT));
+        JLabel t = label(title, 28, Font.BOLD, Theme.TEXT);
+        t.setFont(Theme.display(32f, Font.BOLD, 28f));
+        p.add(t);
         p.add(Box.createVerticalStrut(4));
         p.add(label(subtitle, 14, Font.PLAIN, Theme.MUTED));
         return p;
@@ -1694,7 +1709,9 @@ final class LauncherWindow implements PageHost {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.add(label(title, 17, Font.BOLD, Theme.TEXT));
+        JLabel t = label(title, 17, Font.BOLD, Theme.TEXT);
+        t.setFont(Theme.display(16f, Font.BOLD, 17f));
+        p.add(t);
         if (hint != null) {
             p.add(Box.createHorizontalStrut(12));
             p.add(label(hint, 13, Font.PLAIN, Theme.MUTED));
@@ -1711,7 +1728,7 @@ final class LauncherWindow implements PageHost {
                 java.awt.Graphics2D g = (java.awt.Graphics2D) g0.create();
                 g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setColor(Theme.alpha(Theme.ACCENT, 50));
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), Theme.arc(getHeight()), Theme.arc(getHeight()));
+                Theme.fillRound(g, 0, 0, getWidth(), getHeight(), Theme.arc(getHeight()), Theme.arc(getHeight()));
                 g.dispose();
                 super.paintComponent(g0);
             }

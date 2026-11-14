@@ -70,7 +70,7 @@ public final class ToggleSwitch extends JComponent {
         int h = 24;
         int y = (getHeight() - h) / 2;
         g.setColor(on ? Theme.ACCENT : Theme.BORDER);
-        g.fillRoundRect(0, y, w, h, Theme.arc(h), Theme.arc(h));
+        Theme.fillRound(g, 0, y, w, h, Theme.arc(h), Theme.arc(h));
         g.setColor(on ? java.awt.Color.WHITE : Theme.MUTED);
         int d = h - 6;
         if (Theme.pixelStyle) {
@@ -80,7 +80,7 @@ public final class ToggleSwitch extends JComponent {
         }
         if (isFocusOwner()) {
             g.setColor(Theme.alpha(Theme.ACCENT_HOVER, 120));
-            g.drawRoundRect(0, y, w - 1, h - 1, Theme.arc(h), Theme.arc(h));
+            Theme.drawRound(g, 0, y, w - 1, h - 1, Theme.arc(h), Theme.arc(h));
         }
         g.dispose();
     }

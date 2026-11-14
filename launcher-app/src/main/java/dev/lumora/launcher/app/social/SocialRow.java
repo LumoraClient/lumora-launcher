@@ -149,10 +149,10 @@ final class SocialRow extends JComponent {
         int h = getHeight();
         if (selected || (hover && onClick != null)) {
             g.setColor(selected ? SocialPaint.SELECTED : Theme.alpha(Theme.SURFACE_2, 170));
-            g.fillRoundRect(0, 2, w, h - 4, 14, 14);
+            Theme.fillRound(g, 0, 2, w, h - 4, 14, 14);
             if (selected) {
                 g.setColor(Theme.ACCENT);
-                g.fillRoundRect(0, 14, 3, h - 28, 3, 3);
+                Theme.fillRound(g, 0, 14, 3, h - 28, 3, 3);
             }
         }
         int ax = 12;
@@ -177,7 +177,7 @@ final class SocialRow extends JComponent {
             FontMetrics bm = g.getFontMetrics();
             int bw = Math.max(22, bm.stringWidth(t) + 12);
             g.setColor(Theme.ACCENT);
-            g.fillRoundRect(right - bw, (h - 22) / 2, bw, 22, 10, 10);
+            Theme.fillRound(g, right - bw, (h - 22) / 2, bw, 22, 10, 10);
             g.setColor(Color.WHITE);
             g.drawString(t, right - bw + (bw - bm.stringWidth(t)) / 2, h / 2 + 4);
             right -= bw + 8;

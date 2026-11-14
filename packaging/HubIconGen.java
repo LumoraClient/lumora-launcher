@@ -15,9 +15,9 @@ import java.util.Map;
  */
 public final class HubIconGen {
     private static final Map<Character, Integer> PALETTE = Map.ofEntries(
-            Map.entry('K', 0xFF1A1626), Map.entry('W', 0xFFF4F2FA), Map.entry('L', 0xFFC9C4D6),
-            Map.entry('G', 0xFF8A8499), Map.entry('D', 0xFF4A4458),
-            Map.entry('P', 0xFF8B5CF6), Map.entry('p', 0xFFB9A0FF), Map.entry('V', 0xFF5B3BB0),
+            Map.entry('K', 0xFF161D26), Map.entry('W', 0xFFF4F2FA), Map.entry('L', 0xFFC9C4D6),
+            Map.entry('G', 0xFF848C99), Map.entry('D', 0xFF444C58),
+            Map.entry('P', 0xFF3B82F6), Map.entry('p', 0xFFA0C8FF), Map.entry('V', 0xFF3B6BB0),
             Map.entry('B', 0xFF3B82F6), Map.entry('b', 0xFF93C5FD), Map.entry('N', 0xFF1E2A5A),
             Map.entry('R', 0xFFEF4444), Map.entry('r', 0xFFFCA5A5), Map.entry('M', 0xFF991B1B),
             Map.entry('Y', 0xFFFACC15), Map.entry('y', 0xFFFEF08A), Map.entry('O', 0xFFF59E0B),
@@ -231,7 +231,7 @@ public final class HubIconGen {
             int cell = 80;
             BufferedImage s = new BufferedImage(cols * cell, rows * cell, BufferedImage.TYPE_INT_ARGB);
             java.awt.Graphics2D g = s.createGraphics();
-            g.setColor(new java.awt.Color(0x1C1928));
+            g.setColor(new java.awt.Color(0x192028));
             g.fillRect(0, 0, s.getWidth(), s.getHeight());
             int i = 0;
             for (Map.Entry<String, BufferedImage> e : images.entrySet()) {

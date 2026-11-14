@@ -45,7 +45,7 @@ public final class EditBox extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta) {
-        LumoraUi.card(g, getX(), getY(), width, height, 0xFF0C0A12, isFocused() ? LumoraUi.ACCENT : LumoraUi.BORDER);
+        LumoraUi.card(g, getX(), getY(), width, height, 0xFF0A0D12, isFocused() ? LumoraUi.ACCENT : LumoraUi.BORDER);
         field.x = getX() + 4;
         field.y = getY() + (height - 8) / 2;
         field.render();

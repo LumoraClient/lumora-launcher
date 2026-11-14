@@ -27,7 +27,7 @@ public abstract class ButtonSkinMixin {
         GuiGraphics g = GuiGraphics.of(pose);
         if (self instanceof AbstractSliderButton) {
             boolean hover = self.active && self.isHoveredOrFocused();
-            LumoraUi.card(g, self.x, self.y, self.getWidth(), self.getHeight(), hover ? 0xE8241D31 : 0xDC13101A, LumoraUi.BORDER);
+            LumoraUi.card(g, self.x, self.y, self.getWidth(), self.getHeight(), hover ? 0xE81D2431 : 0xDC10141A, LumoraUi.BORDER);
         } else {
             LumoraUi.vanillaButton(g, self.x, self.y, self.getWidth(), self.getHeight(), self.active, self.active && self.isHoveredOrFocused());
         }

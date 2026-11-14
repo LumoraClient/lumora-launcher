@@ -108,7 +108,7 @@ public final class ChatModule implements LumoraAddon {
         String k = "lumora.extras.chat.";
         timestamps = s.toggle("timestamps", true).name(k + "timestamps").section(k + "section.messages");
         format = s.selection("format", "24h", "24h", "24h_seconds", "12h").name(k + "format").requires(timestamps);
-        timestampColor = s.color("timestamp_color", 0xFF9D95AE, false).name(k + "timestamp_color").requires(timestamps);
+        timestampColor = s.color("timestamp_color", 0xFF8D9BB8, false).name(k + "timestamp_color").requires(timestamps);
         stack = s.toggle("stack", true).name(k + "stack");
         history = s.slider("history", 500, 100, 1000).step(50).name(k + "history").description(k + "history.description");
 

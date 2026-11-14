@@ -21,15 +21,15 @@ import java.util.function.Consumer;
  * so it is the same on every Minecraft version.
  */
 abstract class BrowserView implements AddonView {
-    static final int TEXT = 0xFFECE8F4;
-    static final int MUTED = 0xFF9D95AE;
+    static final int TEXT = 0xFFE8EEFA;
+    static final int MUTED = 0xFF8D9BB8;
     static final int DIM = 0xFF6B7280;
-    static final int SURFACE = 0xD017131F;
-    static final int SURFACE_2 = 0xFF221C2D;
-    static final int ROW = 0xB0221C2D;
-    static final int ROW_HOVER = 0xD02B2340;
-    static final int ROW_SELECTED = 0xE02E2152;
-    static final int BORDER = 0xFF2F2741;
+    static final int SURFACE = 0xD00D1424;
+    static final int SURFACE_2 = 0xFF16213A;
+    static final int ROW = 0xB016213A;
+    static final int ROW_HOVER = 0xD0232F40;
+    static final int ROW_SELECTED = 0xE0213552;
+    static final int BORDER = 0xFF22314F;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int FAIL = 0xFFF2555A;
@@ -301,9 +301,9 @@ abstract class BrowserView implements AddonView {
         int rw = Math.min(1920, Math.round(w / s));
         int rh = Math.min(1080, Math.round(h / s));
         g.texture(BACKGROUND, 0, 0, w, h, (1920 - rw) / 2f, (1080 - rh) / 2f, rw, rh, 1920, 1080);
-        g.fill(0, 0, w, h, 0x780F0C17);
-        g.fill(0, 0, w, 36, 0x500F0C17);
-        g.fill(0, h - 36, w, h, 0x500F0C17);
+        g.fill(0, 0, w, h, 0x78070B14);
+        g.fill(0, 0, w, 36, 0x50070B14);
+        g.fill(0, h - 36, w, h, 0x50070B14);
     }
 
     private void header(HudGraphics g, int left, int right, int y) {
@@ -428,7 +428,7 @@ abstract class BrowserView implements AddonView {
         if (!styled) switch (style) {
             case PRIMARY -> g.roundedRect(x, y, w, h, 4, hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
             case DANGER -> g.roundedRect(x, y, w, h, 4, hover ? 0xFFF56F73 : FAIL);
-            case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, hover ? LumoraTheme.accent() : BORDER);
+            case SECONDARY -> g.card(x, y, w, h, 4, hover ? 0xF0232F40 : 0xE016213A, hover ? LumoraTheme.accent() : BORDER);
             case GHOST -> {
                 if (hover) {
                     g.roundedRect(x, y, w, h, 3, 0x40FFFFFF);
@@ -498,10 +498,10 @@ abstract class BrowserView implements AddonView {
         int w = g.textWidth(label) + 34;
         int x = right - w;
         boolean hover = mx >= x && mx < right && my >= y && my < y + h;
-        g.card(x, y, w, h, 4, hover ? 0xF02B2340 : 0xE0221C2D, BORDER);
+        g.card(x, y, w, h, 4, hover ? 0xF0232F40 : 0xE016213A, BORDER);
         int sx = x + 6;
         int sy = y + (h - 10) / 2;
-        g.roundedRect(sx, sy, 18, 10, 5, on ? LumoraTheme.accent() : 0xFF3A3248);
+        g.roundedRect(sx, sy, 18, 10, 5, on ? LumoraTheme.accent() : 0xFF323948);
         g.roundedRect(on ? sx + 9 : sx + 1, sy + 1, 8, 8, 4, 0xFFFFFFFF);
         g.text(label, sx + 23, y + (h - 8) / 2, on ? TEXT : MUTED, false);
         hits.add(new Hit(x, y, right, y + h, action));
@@ -509,7 +509,7 @@ abstract class BrowserView implements AddonView {
     }
 
     final void field(HudGraphics g, Field f, int x, int y, int w, int h, boolean focused, int mx, int my, Runnable onFocus) {
-        g.card(x, y, w, h, 4, 0xE0221C2D, focused ? LumoraTheme.accent() : BORDER);
+        g.card(x, y, w, h, 4, 0xE016213A, focused ? LumoraTheme.accent() : BORDER);
         int tx = x + 6;
         int ty = y + (h - 8) / 2;
         int room = w - 24;
@@ -530,7 +530,7 @@ abstract class BrowserView implements AddonView {
             }
             f.xs = xs;
             if (f.hasSelection()) {
-                g.fill(xs[f.selStart()], ty - 1, xs[f.selEnd()], ty + 9, focused ? LumoraTheme.recolor(0xA08B5CF6) : LumoraTheme.recolor(0x608B5CF6));
+                g.fill(xs[f.selStart()], ty - 1, xs[f.selEnd()], ty + 9, focused ? LumoraTheme.recolor(0xA03B82F6) : LumoraTheme.recolor(0x603B82F6));
             }
             g.text(f.value(), tx - shift, ty, TEXT, false);
             if (blink && !f.hasSelection()) {
@@ -611,7 +611,7 @@ abstract class BrowserView implements AddonView {
         int h = 30 + msg.size() * 11 + d.fields.size() * 36 + 34;
         int x = (width - w) / 2;
         int y = (height - h) / 2;
-        g.card(x, y, w, h, 7, 0xFA17131F, BORDER);
+        g.card(x, y, w, h, 7, 0xFA0D1424, BORDER);
         // the dialog itself swallows clicks that hit nothing in it; added first, so its fields and buttons win
         hits.add(new Hit(x, y, x + w, y + h, () -> { }));
         g.text("§l" + d.title, x + 12, y + 12, TEXT, false);

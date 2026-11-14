@@ -63,17 +63,28 @@ public final class Ui {
     public static JComponent pageTitle(String title, String subtitle) {
         JPanel p = column();
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.add(label(title, 24, Font.BOLD, Theme.TEXT));
+        JLabel t = label(title, 24, Font.BOLD, Theme.TEXT);
+        t.setFont(Theme.display(32f, Font.BOLD, 24f));
+        p.add(t);
         p.add(Box.createVerticalStrut(4));
         p.add(label(subtitle, 13.5f, Font.PLAIN, Theme.MUTED));
         return p;
+    }
+
+    /** Heading of a panel or dialog (pixel font in the Lumora pixel design). */
+    public static JLabel heading(String text) {
+        JLabel l = label(text, 19, Font.BOLD, Theme.TEXT);
+        l.setFont(Theme.display(16f, Font.BOLD, 19f));
+        return l;
     }
 
     public static JComponent sectionTitle(String title, String hint) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.add(label(title, 17, Font.BOLD, Theme.TEXT));
+        JLabel t = label(title, 17, Font.BOLD, Theme.TEXT);
+        t.setFont(Theme.display(16f, Font.BOLD, 17f));
+        p.add(t);
         if (hint != null) {
             p.add(Box.createHorizontalStrut(12));
             p.add(label(hint, 13, Font.PLAIN, Theme.MUTED));
@@ -95,7 +106,7 @@ public final class Ui {
                 Graphics2D g = (Graphics2D) g0.create();
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setColor(Theme.alpha(tint, 50));
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), Theme.arc(getHeight()), Theme.arc(getHeight()));
+                Theme.fillRound(g, 0, 0, getWidth(), getHeight(), Theme.arc(getHeight()), Theme.arc(getHeight()));
                 g.dispose();
                 super.paintComponent(g0);
             }
@@ -206,7 +217,7 @@ public final class Ui {
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 g.setColor(Theme.alpha(tint, 55));
-                g.fillRoundRect(0, 0, size, size, 12, 12);
+                Theme.fillRound(g, 0, 0, size, size, 12, 12);
                 g.setColor(tint.brighter());
                 g.setFont(Theme.font(Font.BOLD, size * 0.45f));
                 var fm = g.getFontMetrics();
@@ -249,7 +260,9 @@ public final class Ui {
         for (int i = 0; i < ids.size(); i++) {
             String id = ids.get(i);
             JToggleButton b = new JToggleButton(labels.get(i), id.equals(selected));
-            b.putClientProperty("JButton.buttonType", "roundRect");
+            if (!Theme.pixelStyle) {
+                b.putClientProperty("JButton.buttonType", "roundRect");
+            }
             b.setFont(Theme.font(Font.BOLD, 13f));
             b.setFocusable(false);
             b.addActionListener(e -> onSelect.accept(id));

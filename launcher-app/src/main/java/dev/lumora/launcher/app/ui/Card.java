@@ -116,14 +116,14 @@ public class Card extends JPanel {
         int h = getHeight();
         double hv = glow.value();
         g.setColor(fill);
-        g.fillRoundRect(0, 0, w - 1, h - 1, radius, radius);
+        Theme.fillRound(g, 0, 0, w - 1, h - 1, radius, radius);
         if (outline != null) {
             // minimal hover: the outline only brightens a little
             boolean selected = outline == Theme.ACCENT;
             Color c = selected ? outline : Theme.mix(outline, Theme.mix(Theme.BORDER, Theme.TEXT, 0.35), hv);
             g.setColor(c);
             g.setStroke(new BasicStroke(selected ? 1.5f : 1f));
-            g.drawRoundRect(0, 0, w - 1, h - 1, radius, radius);
+            Theme.drawRound(g, 0, 0, w - 1, h - 1, radius, radius);
         }
         g.dispose();
         super.paintComponent(g0);

@@ -20,7 +20,7 @@ final class ChatOverlay {
     static final int BUTTON_W = 12;
     static final int ITEM_H = 12;
     private static final int TEXT = 0xFFFFFFFF;
-    private static final int MENU_BG = 0xF0141220;
+    private static final int MENU_BG = 0xF0121A20;
 
     private final ChatModule module;
     Edge drag = Edge.NONE;

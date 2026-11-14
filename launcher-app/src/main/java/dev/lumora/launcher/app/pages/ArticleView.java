@@ -83,9 +83,9 @@ final class ArticleView extends JComponent {
                 Graphics2D g = (Graphics2D) g0.create();
                 quality(g);
                 g.setColor(Theme.mix(Theme.BG, Theme.SURFACE, 0.35));
-                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 18, 18));
+                g.fill(Theme.roundShape(0, 0, getWidth(), getHeight(), 18, 18));
                 g.setColor(Theme.BORDER);
-                g.draw(new RoundRectangle2D.Double(0.5, 0.5, getWidth() - 1, getHeight() - 1, 18, 18));
+                g.draw(Theme.roundShape(0.5, 0.5, getWidth() - 1, getHeight() - 1, 18, 18));
                 g.dispose();
             }
         };
@@ -515,9 +515,9 @@ final class ArticleView extends JComponent {
             for (Chip c : chips) {
                 int w = fm.stringWidth(c.text()) + 50;
                 g.setColor(Theme.SURFACE_2);
-                g.fillRoundRect(x, 0, w, 35, 10, 10);
+                Theme.fillRound(g, x, 0, w, 35, 10, 10);
                 g.setColor(Theme.BORDER);
-                g.drawRoundRect(x, 0, w - 1, 34, 10, 10);
+                Theme.drawRound(g, x, 0, w - 1, 34, 10, 10);
                 Icons.of(c.icon(), 15, Theme.TEXT).paintIcon(this, g, x + 14, 10);
                 g.setColor(Theme.TEXT);
                 g.drawString(c.text(), x + 36, (35 - fm.getHeight()) / 2 + fm.getAscent());
@@ -582,7 +582,7 @@ final class ArticleView extends JComponent {
             Image img = image();
             int ph = pictureHeight(w, img);
             java.awt.Shape clip0 = g.getClip();
-            RoundRectangle2D shape = new RoundRectangle2D.Double(0, 0, w, ph, 14, 14);
+            java.awt.Shape shape = Theme.roundShape(0, 0, w, ph, 14, 14);
             g.clip(shape);
             if (img == null) {
                 Color a = source == NewsFeed.Source.LUMORA ? Theme.mix(Theme.ACCENT_DEEP, Theme.BG, 0.6) : new Color(0x1E3A23);
@@ -603,7 +603,7 @@ final class ArticleView extends JComponent {
             }
             g.setClip(clip0);
             g.setColor(Theme.BORDER);
-            g.draw(new RoundRectangle2D.Double(0.5, 0.5, w - 1, ph - 1, 14, 14));
+            g.draw(Theme.roundShape(0.5, 0.5, w - 1, ph - 1, 14, 14));
             if (caption != null) {
                 g.setFont(CAPTION);
                 g.setColor(Theme.MUTED);

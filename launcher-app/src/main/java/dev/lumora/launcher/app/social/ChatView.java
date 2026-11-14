@@ -375,7 +375,7 @@ final class ChatView extends JComponent implements Scrollable {
 
     /** Rounded bubble; the first bubble of a run gets a small tail like in chat apps. */
     private static java.awt.Shape bubbleShape(Rectangle b, boolean own, boolean tail) {
-        RoundRectangle2D r = new RoundRectangle2D.Double(b.x, b.y, b.width, b.height, 18, 18);
+        java.awt.Shape r = Theme.roundShape(b.x, b.y, b.width, b.height, 18, 18);
         if (!tail) {
             return r;
         }

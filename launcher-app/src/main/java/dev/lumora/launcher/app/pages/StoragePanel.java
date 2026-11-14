@@ -167,7 +167,7 @@ final class StoragePanel extends JPanel {
                 Graphics2D g = (Graphics2D) g0.create();
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setColor(COLORS.get(c.kind()));
-                g.fillRoundRect(0, 6, 8, 8, Theme.arc(3), Theme.arc(3));
+                Theme.fillRound(g, 0, 6, 8, 8, Theme.arc(3), Theme.arc(3));
                 g.dispose();
             }
         };
@@ -307,7 +307,7 @@ final class StoragePanel extends JPanel {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             int w = getWidth();
             int h = getHeight();
-            g.clip(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, Theme.arc(6), Theme.arc(6)));
+            g.clip(Theme.roundShape(0, 0, w, h, Theme.arc(6), Theme.arc(6)));
             g.setColor(Theme.SURFACE_2);
             g.fillRect(0, 0, w, h);
             if (report != null && report.total() > 0) {

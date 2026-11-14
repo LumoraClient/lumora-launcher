@@ -49,12 +49,12 @@ public final class LumoraButton extends AbstractButton {
             switch (style) {
                 case PRIMARY -> {
                     LumoraShaders.glow(g, x, y, w, h, LumoraUi.ACCENT, hover ? 8 : 4);
-                    LumoraShaders.glass(g, x, y, w, h, !active ? 0xE0221C2D : hover ? LumoraUi.ACCENT_HOVER : LumoraUi.ACCENT);
+                    LumoraShaders.glass(g, x, y, w, h, !active ? 0xE016213A : hover ? LumoraUi.ACCENT_HOVER : LumoraUi.ACCENT);
                     textColor = 0xFFFFFFFF;
                 }
                 case NAV -> {
                     if (hover) {
-                        LumoraShaders.glass(g, x, y, w, h, 0xC02B2438);
+                        LumoraShaders.glass(g, x, y, w, h, 0xC01C2A47);
                         g.fill(x + 1, y + 5, x + 3, y + h - 5, LumoraUi.ACCENT);
                     }
                     textColor = hover ? LumoraUi.TEXT : active ? 0xFFCBC3DA : LumoraUi.MUTED;
@@ -63,7 +63,7 @@ public final class LumoraButton extends AbstractButton {
                     if (hover) {
                         LumoraShaders.glow(g, x, y, w, h, LumoraUi.ACCENT, 4);
                     }
-                    LumoraShaders.glass(g, x, y, w, h, hover ? 0xE82E2640 : 0xD81C1726);
+                    LumoraShaders.glass(g, x, y, w, h, hover ? 0xE8263040 : 0xD8171C26);
                 }
             }
             drawLabel(g, font, x, y, w, h, hover, textColor);

@@ -201,7 +201,7 @@ public final class DataTable extends JPanel {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         int arc = Theme.arc(10);
         g.setColor(Theme.SURFACE);
-        g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+        Theme.fillRound(g, 0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
         g.dispose();
     }
 
@@ -217,7 +217,7 @@ public final class DataTable extends JPanel {
         Graphics2D f = (Graphics2D) g0.create();
         f.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         f.setColor(Theme.BORDER);
-        f.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+        Theme.drawRound(f, 0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
         f.dispose();
     }
 }

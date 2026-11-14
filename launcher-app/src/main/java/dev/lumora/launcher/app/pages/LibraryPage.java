@@ -282,7 +282,9 @@ public final class LibraryPage extends JPanel {
         backup.setFocusable(false);
         backup.addActionListener(e -> backup(w, backup));
         JButton play = new JButton("Spielen", Icons.of(Icons.Kind.PLAY, 15, Color.WHITE));
-        play.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            play.putClientProperty("JButton.buttonType", "roundRect");
+        }
         play.setBackground(Theme.ACCENT_PRESSED);
         play.setForeground(Color.WHITE);
         play.setToolTipText("Minecraft starten und diese Welt direkt öffnen");
@@ -318,7 +320,9 @@ public final class LibraryPage extends JPanel {
         JLabel status = Ui.label("● prüfe…", 13, Font.BOLD, Theme.MUTED);
         status.setHorizontalAlignment(JLabel.RIGHT);
         JButton join = new JButton("Beitreten", Icons.of(Icons.Kind.PLAY, 15, Color.WHITE));
-        join.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            join.putClientProperty("JButton.buttonType", "roundRect");
+        }
         join.setBackground(Theme.ACCENT_PRESSED);
         join.setForeground(Color.WHITE);
         join.setToolTipText("Minecraft starten und direkt mit " + s.address() + " verbinden");

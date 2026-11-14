@@ -26,8 +26,10 @@ public final class LumoraConfig {
     public String menuShaders = "auto";
     /** Look of Lumora's menus: "lumora" or "vanilla" (Minecraft's own menus, buttons and font; the hub stays Lumora). */
     public String theme = "lumora";
-    /** Accent colour of Lumora's menus (id of dev.lumora.core.theme.LumoraTheme.ACCENTS, e.g. "purple", "blue"). */
-    public String accentColor = "purple";
+    /** Accent colour of Lumora's menus (id of dev.lumora.core.theme.LumoraTheme.ACCENTS, e.g. "blue", "purple"). */
+    public String accentColor = "blue";
+    /** 1 = the former default accent (Lila) was switched to the new default (Blau) once (0.3.43). */
+    public int accentVersion;
     /** Cross-fade when switching menus: "auto"/"on" (enabled) or "off". */
     public String menuTransitions = "auto";
     /** "fade", "slide" or "off". */
@@ -69,6 +71,14 @@ public final class LumoraConfig {
     public boolean validate() {
         int b = Math.clamp(benchmarkSeconds, 5, 300);
         boolean changed = b != benchmarkSeconds;
+        if (accentVersion < 1) {
+            // Lila was the default until 0.3.42: who still has it gets the new default once; Lila stays selectable
+            if ("purple".equals(accentColor)) {
+                accentColor = "blue";
+            }
+            accentVersion = 1;
+            changed = true;
+        }
         if (!"auto".equals(menuShaders) && !"on".equals(menuShaders) && !"off".equals(menuShaders)) {
             menuShaders = "auto";
             changed = true;

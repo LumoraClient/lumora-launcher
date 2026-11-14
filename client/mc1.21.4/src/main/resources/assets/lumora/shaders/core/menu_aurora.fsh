@@ -67,7 +67,7 @@ void main() {
     // aurora: three soft ribbons with vertical curtain streaks
     vec3 col = vec3(0.0);
     float acc = 0.0;
-    vec3 tint[3] = vec3[3](vec3(0.55, 0.36, 0.96), vec3(0.86, 0.42, 0.95), vec3(0.40, 0.48, 1.00));
+    vec3 tint[3] = vec3[3](vec3(0.23, 0.51, 0.96), vec3(0.13, 0.76, 0.93), vec3(0.18, 0.29, 0.85));
     for (int i = 0; i < 3; i++) {
         float fi = float(i);
         float center = 0.74 + 0.06 * fi

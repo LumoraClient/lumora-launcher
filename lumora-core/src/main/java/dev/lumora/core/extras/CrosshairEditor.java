@@ -16,14 +16,14 @@ import java.util.Map;
  * mode are hidden.
  */
 final class CrosshairEditor implements SettingsView.Panel {
-    private static final int TEXT = 0xFFECE8F4;
-    private static final int MUTED = 0xFF9D95AE;
-    private static final int DIM = 0xFF6B6580;
-    private static final int FIELD = 0xFF0F0D16;
-    private static final int BORDER = 0xFF2A2638;
-    private static final int TILE = 0xFF1C1928;
-    private static final int CHECK_A = 0xFF24212F;
-    private static final int CHECK_B = 0xFF2C2839;
+    private static final int TEXT = 0xFFE8EEFA;
+    private static final int MUTED = 0xFF8D9BB8;
+    private static final int DIM = 0xFF657180;
+    private static final int FIELD = 0xFF0D1116;
+    private static final int BORDER = 0xFF262E38;
+    private static final int TILE = 0xFF192028;
+    private static final int CHECK_A = 0xFF21282F;
+    private static final int CHECK_B = 0xFF283039;
     private static final int PREVIEW = 112;
     private static final int TILE_SIZE = 34;
     /** Smallest and largest size of a cell of the pixel editor (it grows with the free space). */
@@ -108,7 +108,7 @@ final class CrosshairEditor implements SettingsView.Panel {
             int tw = i == 2 ? w - 2 * tabW : tabW;
             boolean sel = CrosshairModule.MODES[i].equals(mode);
             boolean hover = in(mx, my, tx, y, tw, 18);
-            int fill = sel ? accent : hover ? 0xFF2C2840 : 0xFF1F1C2B; // opaque: 1.8.9 drops translucent fills here
+            int fill = sel ? accent : hover ? 0xFF283440 : 0xFF1C232B; // opaque: 1.8.9 drops translucent fills here
             g.roundedRect(tx + (i == 0 ? 0 : 1), y, tw - 1, 18, 4, fill);
             g.centeredText(labels[i], tx + tw / 2, y + 5, sel ? 0xFFFFFFFF : hover ? TEXT : MUTED, false);
             String id = CrosshairModule.MODES[i];
@@ -308,7 +308,7 @@ final class CrosshairEditor implements SettingsView.Panel {
     }
 
     private void tile(HudGraphics g, int x, int y, boolean selected, boolean hover) {
-        int border = selected ? LumoraTheme.accent() : hover ? 0xFF4A4458 : BORDER;
+        int border = selected ? LumoraTheme.accent() : hover ? 0xFF444C58 : BORDER;
         g.roundedRect(x, y, TILE_SIZE, TILE_SIZE, 4, border);
         g.roundedRect(x + 1, y + 1, TILE_SIZE - 2, TILE_SIZE - 2, 3, selected ? LumoraTheme.mix(TILE, LumoraTheme.accent(), 0.18f) : TILE);
     }
@@ -316,7 +316,7 @@ final class CrosshairEditor implements SettingsView.Panel {
     private void button(HudGraphics g, int x, int y, int w, String label, int mx, int my, Runnable action) {
         boolean hover = in(mx, my, x, y, w, 16);
         g.card(x, y, w, 16, 4, hover ? LumoraTheme.alpha(LumoraTheme.accent(), 0x50) : FIELD,
-                hover ? LumoraTheme.accent() : 0xFF3A3450);
+                hover ? LumoraTheme.accent() : 0xFF344150);
         g.centeredText(label, x + w / 2, y + 4, hover ? 0xFFFFFFFF : TEXT, false);
         hits.add(new Hit(x, y, w, 16, action));
     }

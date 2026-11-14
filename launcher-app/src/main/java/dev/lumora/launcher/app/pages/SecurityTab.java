@@ -53,13 +53,15 @@ final class SecurityTab extends JPanel {
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel in = Ui.column();
 
-        in.add(Ui.label("Zwei-Faktor-Authentifizierung", 19, Font.BOLD, Theme.TEXT));
+        in.add(Ui.heading("Zwei-Faktor-Authentifizierung"));
         in.add(Box.createVerticalStrut(6));
         in.add(Ui.wrapText("Lumora meldet sich nur über dein Microsoft-Konto an. Den zweiten Schritt richtest du deshalb direkt bei "
                 + "Microsoft ein, dann schützt er auch Minecraft.", 13.5f, Theme.MUTED));
         in.add(Box.createVerticalStrut(18));
         JButton setUp = new JButton("2FA bei Microsoft einrichten");
-        setUp.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            setUp.putClientProperty("JButton.buttonType", "roundRect");
+        }
         setUp.setBackground(Theme.ACCENT);
         setUp.setForeground(Theme.onAccent());
         setUp.setFont(Theme.font(Font.BOLD, 13.5f));
@@ -69,14 +71,16 @@ final class SecurityTab extends JPanel {
 
         in.add(Box.createVerticalStrut(30));
         JButton activity = new JButton("Aktivität bei Microsoft");
-        activity.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            activity.putClientProperty("JButton.buttonType", "roundRect");
+        }
         activity.setFocusable(false);
         activity.addActionListener(e -> host.browse(MS_ACTIVITY));
         JPanel head = new JPanel(new BorderLayout(12, 0));
         head.setOpaque(false);
         head.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel ht = Ui.column();
-        ht.add(Ui.label("Sitzungen", 19, Font.BOLD, Theme.TEXT));
+        ht.add(Ui.heading("Sitzungen"));
         ht.add(Box.createVerticalStrut(6));
         ht.add(Ui.label("Alles, was auf diesem PC Zugriff auf deine Konten hat.", 13.5f, Font.PLAIN, Theme.MUTED));
         head.add(ht, BorderLayout.CENTER);

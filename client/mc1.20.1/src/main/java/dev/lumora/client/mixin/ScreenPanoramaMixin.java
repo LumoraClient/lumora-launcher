@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Screen.class)
 public abstract class ScreenPanoramaMixin {
     /** Dims the landscape behind menu text (the newer versions blur it and lay the menu background on top). */
-    private static final int DIM = 0x990F0C16;
+    private static final int DIM = 0x990C1016;
 
     @Shadow
     public int width;

@@ -58,7 +58,9 @@ final class SocialDialogs {
 
     static JButton primary(String text) {
         JButton b = new JButton(text);
-        b.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            b.putClientProperty("JButton.buttonType", "roundRect");
+        }
         b.setBackground(Theme.ACCENT_PRESSED);
         b.setForeground(Color.WHITE);
         b.setFont(Theme.font(Font.BOLD, 13f));
@@ -68,7 +70,9 @@ final class SocialDialogs {
 
     static JButton secondary(String text) {
         JButton b = new JButton(text);
-        b.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            b.putClientProperty("JButton.buttonType", "roundRect");
+        }
         b.setFocusable(false);
         return b;
     }
@@ -126,7 +130,7 @@ final class SocialDialogs {
         JDialog d = new JDialog(w, title, java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         Card c = new Card(new BorderLayout(0, 12)).fill(Theme.SURFACE).outline(null).radius(0).padding(20, 22, 18, 22);
         JPanel head = Ui.column();
-        head.add(Ui.label(title, 19, Font.BOLD, Theme.TEXT));
+        head.add(Ui.heading(title));
         if (subtitle != null) {
             head.add(Box.createVerticalStrut(4));
             head.add(Ui.wrapText(subtitle, 13, Theme.MUTED));
@@ -345,11 +349,11 @@ final class SocialDialogs {
                     boolean sel = key.equals(icon[0]);
                     Color c = SocialPaint.rgb(color[0]);
                     g.setColor(sel ? Theme.alpha(c, 70) : Theme.SURFACE_2);
-                    g.fillRoundRect(0, 0, 34, 34, 12, 12);
+                    Theme.fillRound(g, 0, 0, 34, 34, 12, 12);
                     if (sel) {
                         g.setColor(c);
                         g.setStroke(new BasicStroke(1.5f));
-                        g.drawRoundRect(1, 1, 32, 32, 12, 12);
+                        Theme.drawRound(g, 1, 1, 32, 32, 12, 12);
                     }
                     Icons.of(Icons.symbol(key), 18, sel ? c.brighter() : Theme.MUTED).paintIcon(this, g, 8, 8);
                     g.dispose();

@@ -95,7 +95,7 @@ public final class KeystrokesView {
         shadow = s.toggle("shadow", true).visibleWhen(own);
         keyColor = s.color("key_color", defaultKey, true).section(k + "section.colors").visibleWhen(own);
         pressed = s.chroma("pressed", defaultPressed, false).visibleWhen(own);
-        pressedText = s.chroma("pressed_text", 0xFF0E0A16, false);
+        pressedText = s.chroma("pressed_text", 0xFF0A0E16, false);
         animation = s.selection("animation", "fade", "fade", "fill").section(k + "section.animation");
         fade = s.slider("fade", 100, 0, 400).step(25).unit(" ms");
     }
@@ -138,7 +138,7 @@ public final class KeystrokesView {
         pressed.setChroma(false);
         pressedText.setChroma(false);
         pressed.set(defaultPressed);
-        pressedText.set(0xFF0E0A16);
+        pressedText.set(0xFF0A0E16);
     }
 
     private int k() {

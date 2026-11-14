@@ -28,7 +28,7 @@ public final class PlayButton extends JButton {
         setOpaque(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         setPreferredSize(new Dimension(240, 56));
-        setFont(Theme.font(Font.BOLD, 20f));
+        setFont(Theme.display(24f, Font.BOLD, 20f));
         setForeground(Color.WHITE);
     }
 
@@ -74,7 +74,7 @@ public final class PlayButton extends JButton {
         if (progress >= 0) {
             int pw = (int) (w * Math.min(1, progress));
             java.awt.Shape clip = g.getClip();
-            g.clip(new java.awt.geom.RoundRectangle2D.Float(0, 0, pw, h - 4, Theme.arc(16), Theme.arc(16)));
+            g.clip(Theme.roundShape(0, 0, pw, h - 4, Theme.arc(16), Theme.arc(16)));
             g.setColor(Theme.alpha(Color.WHITE, 40));
             g.fillRect(0, 0, pw, h - 4);
             // moving stripes: the download is alive even when the percentage hardly changes
@@ -112,17 +112,28 @@ public final class PlayButton extends JButton {
         int arc = Theme.arc(16);
         double t = Motion.seconds();
         java.awt.Shape body = squareSide == 0
-                ? new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h - 4, arc, arc)
+                ? Theme.roundShape(0, 0, w, h - 4, arc, arc)
                 : unionSquare(w, h - 4, arc, squareSide);
         if (!enabled) {
             g.setColor(Theme.SURFACE_2);
             g.fill(body);
             return;
         }
+        if (Theme.pixelStyle) {
+            // Minecraft-like button: a darker bottom edge below the body instead of the glow
+            g.setColor(Theme.ACCENT_DEEP);
+            if (squareSide == 0) {
+                Theme.fillRound(g, 0, 4, w, h - 4, arc, arc);
+            } else {
+                g.fill(unionSquare(w, h - 4, arc, squareSide, 4));
+            }
+        }
         // breathing glow under the button
         double breath = 0.5 + 0.5 * Math.sin(t * 2.1);
-        g.setColor(Theme.alpha(Theme.ACCENT, (int) ((hover ? 85 : 45) + breath * 30)));
-        g.fillRoundRect(2, 6, w - 4, h - 4, arc + 2, arc + 2);
+        if (!Theme.pixelStyle) {
+            g.setColor(Theme.alpha(Theme.ACCENT, (int) ((hover ? 85 : 45) + breath * 30)));
+            Theme.fillRound(g, 2, 6, w - 4, h - 4, arc + 2, arc + 2);
+        }
         // flowing gradient: accent -> ice blue -> accent, drifting slowly to the right
         g.setPaint(Theme.flow(0, 0, w * 1.4f + 1, h * 0.6f, t * 0.12, 255));
         g.fill(body);
@@ -146,8 +157,14 @@ public final class PlayButton extends JButton {
 
     /** Round rectangle with one square side (split button halves). */
     private static java.awt.Shape unionSquare(int w, int h, int arc, int squareSide) {
-        java.awt.geom.Area a = new java.awt.geom.Area(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, arc, arc));
-        a.add(new java.awt.geom.Area(squareSide == 1 ? new java.awt.Rectangle(0, 0, arc, h) : new java.awt.Rectangle(w - arc, 0, arc, h)));
+        return unionSquare(w, h, arc, squareSide, 0);
+    }
+
+    private static java.awt.Shape unionSquare(int w, int h, int arc, int squareSide, int dy) {
+        java.awt.geom.Area a = new java.awt.geom.Area(Theme.roundShape(0, dy, w, h, arc, arc));
+        // the square side covers the rounded (or stepped) corners there
+        int edge = Math.max(arc, 6);
+        a.add(new java.awt.geom.Area(squareSide == 1 ? new java.awt.Rectangle(0, dy, edge, h) : new java.awt.Rectangle(w - edge, dy, edge, h)));
         return a;
     }
 

@@ -139,7 +139,7 @@ final class ConnectingView extends ConnectionView {
             } else if (done) {
                 g.text("✔", iconX - 2, py, OK, false);
             } else {
-                g.roundedRect(iconX - 1, py + 1, 6, 6, 3, 0xFF3A3150);
+                g.roundedRect(iconX - 1, py + 1, 6, 6, 3, 0xFF313D50);
             }
             int color = current ? TEXT : done && !skipped ? MUTED : DIM;
             g.text(skipped ? label + t(" (Offline-Server)", " (offline server)") : label, px + 16, py, color, false);

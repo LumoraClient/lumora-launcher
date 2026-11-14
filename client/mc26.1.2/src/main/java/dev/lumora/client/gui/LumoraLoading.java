@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
  * because during the first load neither textures nor fonts are available yet.
  */
 public final class LumoraLoading {
-    public static final int BACKGROUND = 0xFF0C0A12;
+    public static final int BACKGROUND = 0xFF0A0D12;
 
     /** 5x7 pixel glyphs of the wordmark. */
     private static final String[][] GLYPHS = {
@@ -72,8 +72,8 @@ public final class LumoraLoading {
                 if (p != '0') {
                     int color = switch (p) {
                         case 'S' -> 0xFFFFFFFF;
-                        case 'E' -> 0xFF14122A;
-                        case 'D' -> 0xFF2A1F5C;
+                        case 'E' -> 0xFF12202A;
+                        case 'D' -> 0xFF1F3E5C;
                         default -> y + x < 10 ? 0xFF6EE6F7 : 0xFF8B9CF6;
                     };
                     g.fill(left + x * moonPx, top + y * moonPx, left + (x + 1) * moonPx, top + (y + 1) * moonPx, withAlpha(color, alpha));
@@ -89,8 +89,8 @@ public final class LumoraLoading {
                     if (row.charAt(x) == '1') {
                         // shadow first, then the letter
                         g.fill(wx + x * px + px / 2, wy + y * px + px / 2, wx + (x + 1) * px + px / 2, wy + (y + 1) * px + px / 2,
-                                withAlpha(0xFF3B1F7A, alpha));
-                        g.fill(wx + x * px, wy + y * px, wx + (x + 1) * px, wy + (y + 1) * px, withAlpha(0xFFECE8F4, alpha));
+                                withAlpha(0xFF1F417A, alpha));
+                        g.fill(wx + x * px, wy + y * px, wx + (x + 1) * px, wy + (y + 1) * px, withAlpha(0xFFE8EEFA, alpha));
                     }
                 }
             }
@@ -99,13 +99,13 @@ public final class LumoraLoading {
         // progress bar: thin rounded track with accent fill
         int h = Math.max(4, (y1 - y0) / 2);
         int by = y0 + (y1 - y0 - h) / 2;
-        g.fill(x0 + 1, by, x1 - 1, by + h, withAlpha(0xFF221C2D, alpha));
-        g.fill(x0, by + 1, x1, by + h - 1, withAlpha(0xFF221C2D, alpha));
+        g.fill(x0 + 1, by, x1 - 1, by + h, withAlpha(0xFF16213A, alpha));
+        g.fill(x0, by + 1, x1, by + h - 1, withAlpha(0xFF16213A, alpha));
         int fill = Math.round(barW * Math.clamp(progress, 0f, 1f));
         if (fill > 2) {
             g.fill(x0 + 1, by, x0 + fill - 1, by + h, withAlpha(LumoraUi.ACCENT, alpha));
             g.fill(x0, by + 1, x0 + fill, by + h - 1, withAlpha(LumoraUi.ACCENT, alpha));
-            g.fill(x0 + 1, by, x0 + fill - 1, by + 1, withAlpha(0xFFC4B5FD, alpha));
+            g.fill(x0 + 1, by, x0 + fill - 1, by + 1, withAlpha(0xFFB5D7FD, alpha));
         }
     }
 }

@@ -118,12 +118,14 @@ final class HistoryTab extends JPanel {
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel t = Ui.column();
-        t.add(Ui.label(title, 19, Font.BOLD, Theme.TEXT));
+        t.add(Ui.heading(title));
         t.add(Box.createVerticalStrut(6));
         t.add(Ui.label(hint, 13.5f, Font.PLAIN, Theme.MUTED));
         p.add(t, BorderLayout.CENTER);
         JButton b = new JButton("Leeren");
-        b.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            b.putClientProperty("JButton.buttonType", "roundRect");
+        }
         b.setFocusable(false);
         b.addActionListener(e -> clear.run());
         JPanel w = new JPanel(new GridBagLayout());

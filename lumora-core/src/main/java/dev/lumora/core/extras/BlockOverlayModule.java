@@ -69,9 +69,9 @@ public final class BlockOverlayModule implements LumoraAddon {
         String k = "lumora.extras.blockoverlay.";
         mode = s.selection("mode", "box", "box", "outline", "fill").name(k + "mode").section(k + "section.look");
         thickness = s.slider("thickness", 3, 1, 8).unit(" px").name(k + "thickness").visibleWhen(() -> !"fill".equals(mode.get()));
-        color = s.color("color", 0xE6A27BFA, true).name(k + "color").visibleWhen(() -> !"fill".equals(mode.get()))
+        color = s.color("color", 0xE65E9BF8, true).name(k + "color").visibleWhen(() -> !"fill".equals(mode.get()))
                 .section(k + "section.colors");
-        fillColor = s.color("fill_color", 0x508B5CF6, true).name(k + "fill_color").visibleWhen(() -> !"outline".equals(mode.get()));
+        fillColor = s.color("fill_color", 0x503B82F6, true).name(k + "fill_color").visibleWhen(() -> !"outline".equals(mode.get()));
         rainbow = s.toggle("rainbow", false).name(k + "rainbow");
         rainbowSpeed = s.slider("rainbow_speed", 4, 1, 10).name(k + "rainbow_speed").requires(rainbow);
         fade = s.toggle("fade", true).name(k + "fade").section(k + "section.animation");

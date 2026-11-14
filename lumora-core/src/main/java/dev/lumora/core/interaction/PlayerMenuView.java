@@ -36,15 +36,15 @@ final class PlayerMenuView implements AddonView {
     /** The line with what the buttons do, at the bottom of the panel. */
     private static final int FOOT = 12;
 
-    private static final int PANEL = 0xF0110E18;
-    private static final int SURFACE = 0xF0181420;
-    private static final int ROW_BG = 0xF01D1828;
-    private static final int ROW_OFF = 0xC0161220;
-    private static final int ROW_BORDER = 0xFF2C2540;
-    private static final int BORDER = 0xFF2F2741;
+    private static final int PANEL = 0xF00E1218;
+    private static final int SURFACE = 0xF0141820;
+    private static final int ROW_BG = 0xF0181E28;
+    private static final int ROW_OFF = 0xC0121820;
+    private static final int ROW_BORDER = 0xFF253040;
+    private static final int BORDER = 0xFF22314F;
     private static final int TEXT = 0xFFEDEAF5;
-    private static final int MUTED = 0xFFA49DB8;
-    private static final int DIM = 0xFF6A6480;
+    private static final int MUTED = 0xFF9DA8B8;
+    private static final int DIM = 0xFF647180;
     private static final int ONLINE = 0xFF3DD68C;
     private static final int STAR = 0xFFF5C542;
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yy").withZone(ZoneId.systemDefault());
@@ -384,7 +384,7 @@ final class PlayerMenuView implements AddonView {
         g.centeredText("☺", PAD + 8, 10, TEXT, false);
         g.text(owner.t("Spieler-Interaktionen", "Player interactions"), PAD + 22, 10, TEXT, false);
         int cx = PW - PAD - 16;
-        g.card(cx, 6, 16, 16, 4, closeHover ? 0xFF2A2338 : 0x00000000, closeHover ? accent(0xFF) : BORDER);
+        g.card(cx, 6, 16, 16, 4, closeHover ? 0xFF232A38 : 0x00000000, closeHover ? accent(0xFF) : BORDER);
         g.centeredText("✕", cx + 8, 10, closeHover ? TEXT : MUTED, false);
         g.fill(PAD, HEAD - 1, PW - PAD, HEAD, BORDER);
     }
@@ -433,10 +433,10 @@ final class PlayerMenuView implements AddonView {
         g.card(x, y, w, h, 5, SURFACE, BORDER);
         PlayerCard c = target.card();
         int fx = x + (w - 40) / 2;
-        g.roundedRect(fx - 2, y + 6, 44, 44, 4, 0xFF0D0A13);
+        g.roundedRect(fx - 2, y + 6, 44, 44, 4, 0xFF0A0D13);
         SocialView.face(g, target.uuid32(), target.name(), fx, y + 8, 40);
         if (c != null && c.friend) {
-            g.roundedRect(x + w - 17, y + 5, 12, 12, 3, 0xFF2A2338);
+            g.roundedRect(x + w - 17, y + 5, 12, 12, 3, 0xFF232A38);
             g.centeredText("★", x + w - 11, y + 7, STAR, false);
         }
         int yy = y + 54;
@@ -485,7 +485,7 @@ final class PlayerMenuView implements AddonView {
         int on = ping < 0 ? DIM : TabModule.pingColor(ping);
         for (int i = 0; i < 4; i++) {
             int bh = 2 + i * 2;
-            g.fill(x + i * 2, y + 8 - bh, x + i * 2 + 1, y + 8, i < filled ? on : 0xFF3A334C);
+            g.fill(x + i * 2, y + 8 - bh, x + i * 2 + 1, y + 8, i < filled ? on : 0xFF333D4C);
         }
     }
 
@@ -493,7 +493,7 @@ final class PlayerMenuView implements AddonView {
 
     private void drawRow(HudGraphics g, Row r, boolean chosen) {
         boolean enabled = r.kind != Kind.ENTRY || owner.registry().enabled(r.entry, target);
-        int fill = chosen ? (enabled ? accent(0x48) : 0xE6262030) : r.kind == Kind.BACK ? SURFACE : enabled ? ROW_BG : ROW_OFF;
+        int fill = chosen ? (enabled ? accent(0x48) : 0xE6202530) : r.kind == Kind.BACK ? SURFACE : enabled ? ROW_BG : ROW_OFF;
         int border = chosen && enabled ? accent(0xFF) : ROW_BORDER;
         g.card(r.x, r.y, r.w, ROW, 4, fill, border);
         int ty = r.y + (ROW - 8) / 2;
@@ -508,7 +508,7 @@ final class PlayerMenuView implements AddonView {
                 icon(g, r.slot.icon != null ? r.slot.icon : r.slot.category.substring(0, 1), r.x + 13, r.y + ROW / 2, iconColor);
                 String count = String.valueOf(r.slot.entries.size());
                 int cw = g.textWidth(count) + 8;
-                g.roundedRect(right - 10 - cw, r.y + 5, cw, 10, 3, 0xFF2A2338);
+                g.roundedRect(right - 10 - cw, r.y + 5, cw, 10, 3, 0xFF232A38);
                 g.centeredText(count, right - 10 - cw / 2, r.y + 6, MUTED, false);
                 g.text(fit(g, r.slot.category, r.w - 46 - cw), r.x + 26, ty, TEXT, false);
                 g.rightText(">", right, ty, chosen ? TEXT : MUTED, false);

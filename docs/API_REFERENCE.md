@@ -182,6 +182,9 @@ Version, z. B. `GuiGraphicsExtractor` in 26.1.2, `GuiGraphics` in 1.21.x – Cod
 
 `TextureRef(namespace, path)` – einmal anlegen und behalten. `Colors` – `argb`, `withAlpha`, `fade`, `mix`, `toHex`,
 `parseHex` und die Lumora-Farben (`ACCENT`, `TEXT`, `MUTED`, `SURFACE`, `BORDER`, `OK`, `WARNING`, `ERROR`, …).
+Seit Lumora 0.3.43 sind sie blau wie der Launcher (vorher Lila). Java setzt diese Konstanten beim Kompilieren ein: Ein
+Addon zeigt die neuen Werte erst nach einem Neubau gegen die aktuelle `lumora-api`. Für die gerade gewählte Akzentfarbe
+des Spielers `context.theme().accent()` nutzen statt `Colors.ACCENT`.
 
 ### DynamicTextures (seit 1.8, `AddonContext.textures()`, ohne Berechtigung)
 
@@ -432,7 +435,7 @@ Eine Bedingung, ein Label oder eine Aktion, die eine Ausnahme wirft, wird einmal
 | `WidgetStyle` (`Theme.widgetStyle()`, seit 1.6) | Das Aussehen aller Widgets aus dem Modul *Widget-Design*: `active()`, `background()`, `backgroundColor()`, `cornerRadius()`, `border()`, `borderColor()`, `accentBar()`, `accentColor()`, `labelColor()`, `valueColor()`, `textShadow()`, `format()` (`space`, `colon`, `brackets`, `value_first`, `value_only`), `uppercaseLabels()`, `scale()`, `label(text)`; Zeichnen: `panel(g, w, h)`, `lineWidth(g, label, value)`, `line(g, x, y, label, value)`. `WidgetStyle.NONE`: nicht aktiv |
 
 Die Farben werden bei jedem Aufruf neu gelesen: Wählt der Spieler eine andere Akzentfarbe, folgen Widgets und Menüs
-sofort. Wählt er die Akzentfarbe eines Addons und ist das Addon aus, gilt Lila; mit dem Addon kommt seine Wahl zurück.
+sofort. Wählt er die Akzentfarbe eines Addons und ist das Addon aus, gilt der Standard (Blau, bis 0.3.42 Lila); mit dem Addon kommt seine Wahl zurück.
 
 **Widget-Design (seit 1.6):** Schaltet der Spieler im Hub das Modul *Widget-Design* ein, legt es Hintergrund, Rand,
 Ecken, Akzentstreifen, Farben, Textschatten, Format („FPS 60“, „FPS: 60“, „[FPS] 60“, „60 FPS“, „60“) und Größe aller

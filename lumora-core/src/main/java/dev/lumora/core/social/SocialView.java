@@ -47,18 +47,18 @@ public final class SocialView {
         String clipboard();
     }
 
-    static final int BG = 0xF20F0C17;
-    static final int SURFACE = 0xFF17131F;
-    static final int SURFACE_2 = 0xFF221C2D;
-    static final int BORDER = 0xFF2F2741;
-    static final int TEXT = 0xFFECE8F4;
-    static final int MUTED = 0xFF9D95AE;
+    static final int BG = 0xF2070B14;
+    static final int SURFACE = 0xFF0D1424;
+    static final int SURFACE_2 = 0xFF16213A;
+    static final int BORDER = 0xFF22314F;
+    static final int TEXT = 0xFFE8EEFA;
+    static final int MUTED = 0xFF8D9BB8;
     static final int DIM = 0xFF6B7280;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int FAIL = 0xFFF2555A;
-    static final int OWN = 0xFF4C2D8F;
-    static final int SELECTED = 0xFF2E2152;
+    static final int OWN = 0xFF2D518F;
+    static final int SELECTED = 0xFF213552;
     static final int BADGE = 0xFF3B82F6;
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMANY);
 
@@ -473,7 +473,7 @@ public final class SocialView {
             String shown = fit(g, tt, tw - 12, false);
             int tx = px + (pw - tw) / 2;
             int ty = py + ph - 44;
-            g.card(tx, ty, tw, 16, 4, 0xF02A1F48, LumoraTheme.accent());
+            g.card(tx, ty, tw, 16, 4, 0xF01F3048, LumoraTheme.accent());
             g.text(shown, tx + 6, ty + 4, TEXT, false);
         }
     }
@@ -659,7 +659,7 @@ public final class SocialView {
     private void row(HudGraphics g, int x, int y, int w, boolean selectedRow, int mx, int my, Runnable action) {
         boolean hover = mx >= x + 2 && mx < x + w - 2 && my >= y && my < y + 22 && my >= sideY1 && my < sideY2;
         if (selectedRow || hover) {
-            g.roundedRect(x + 2, y + 1, w - 4, 20, 3, selectedRow ? SELECTED : 0x66221C2D);
+            g.roundedRect(x + 2, y + 1, w - 4, 20, 3, selectedRow ? SELECTED : 0x6616213A);
             if (selectedRow) {
                 g.fill(x + 2, y + 6, x + 3, y + 16, LumoraTheme.accent());
             }
@@ -729,7 +729,7 @@ public final class SocialView {
         boolean canSend = gr != null || c.friend(other) != null;
         field(g, chatField, x + 6, iy, w - 12 - 20, 16, canSend ? t("Nachricht schreiben…", "Write a message…")
                 : t("Ihr seid keine Freunde mehr", "You are no longer friends"), focus == Focus.CHAT, mx, my, () -> focus = Focus.CHAT);
-        button(g, x + w - 6 - 17, iy, 17, 16, "➤", LumoraTheme.accent(), 0xFF0F0C17, mx, my, this::send);
+        button(g, x + w - 6 - 17, iy, 17, 16, "➤", LumoraTheme.accent(), 0xFF070B14, mx, my, this::send);
         // info column: beside the chat when both fit, else (small GUI) as an overlay that starts closed
         int columnW = Math.max(120, Math.min(170, (int) (w * 0.42)));
         boolean fits = w - columnW >= 220;
@@ -896,9 +896,9 @@ public final class SocialView {
                 ly += 10;
             }
             int mxr = bx + bw - 4 - metaW;
-            small(g, time, mxr, top + bh - 7, it.own ? 0xFFCFC4EA : MUTED);
+            small(g, time, mxr, top + bh - 7, it.own ? 0xFFC4D3EA : MUTED);
             if (!marks.isEmpty()) {
-                small(g, marks, mxr + smallWidth(g, time), top + bh - 7, it.status == 2 ? 0xFFC4B5FD : it.status == 4 ? FAIL : 0xFFB7A9DC);
+                small(g, marks, mxr + smallWidth(g, time), top + bh - 7, it.status == 2 ? 0xFFB5D7FD : it.status == 4 ? FAIL : 0xFFA9BEDC);
             }
             if (it.status == 4) {
                 String tip = t("Nicht gesendet – klicken zum Wiederholen", "Not sent – click to retry");

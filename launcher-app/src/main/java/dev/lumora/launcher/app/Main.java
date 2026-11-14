@@ -40,7 +40,9 @@ public final class Main {
             System.setProperty("sun.java2d.opengl", "false");
         }
         String accent = look.has("accentColor") ? look.get("accentColor").getAsString() : null;
-        boolean pixel = look.has("pixelStyle") && look.get("pixelStyle").getAsBoolean();
+        // Lumora pixel design: default since schema 3 (older settings are switched once, see LauncherConfig)
+        boolean pixel = !look.has("pixelStyle") || look.get("pixelStyle").getAsBoolean()
+                || (look.has("schemaVersion") && look.get("schemaVersion").getAsInt() < 3);
         boolean calm = look.has("reduceMotion") && look.get("reduceMotion").getAsBoolean();
         boolean tray = a.contains("--tray");
         SingleInstance instance = singleInstance(tray);

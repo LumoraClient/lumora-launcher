@@ -802,14 +802,14 @@ public final class StatusBarsModule implements LumoraAddon {
                 int y = v ? bar + i * 22 : 2;
                 boolean sel = i == s.selected();
                 g.roundedRect(x, y, 20, 20, 4, sel ? accentColor : 0xC0101018);
-                g.roundedRect(x + 1, y + 1, 18, 18, 3, sel ? Colors.mix(0xE0101018, accentColor, 0.25f) : 0xA0181424);
+                g.roundedRect(x + 1, y + 1, 18, 18, 3, sel ? Colors.mix(0xE0101018, accentColor, 0.25f) : 0xA0141B24);
                 slot(g, world, i, x + 2, y + 2);
             }
             if (showOffhand) {
                 int x = v ? 2 : off;
                 int y = v ? off : 2;
                 g.roundedRect(x, y, 20, 20, 4, 0xC0101018);
-                g.roundedRect(x + 1, y + 1, 18, 18, 3, 0xA0181424);
+                g.roundedRect(x + 1, y + 1, 18, 18, 3, 0xA0141B24);
                 if (world) {
                     module.extras().drawSlot(g, 9, x + 2, y + 2);
                 }

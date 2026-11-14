@@ -38,7 +38,7 @@ public final class LumoraIconButton extends AbstractButton {
         if (hover) {
             LumoraShaders.glow(g, getX(), getY(), 20, 20, LumoraUi.ACCENT, 4);
         }
-        LumoraShaders.glass(g, getX(), getY(), 20, 20, hover ? 0xE82E2640 : 0xD81C1726);
+        LumoraShaders.glass(g, getX(), getY(), 20, 20, hover ? 0xE8263040 : 0xD8171C26);
         RenderSystem.enableBlend();
         g.blit(texture, getX() + 2, getY() + 2, 0, 0, 15, 15, 15, 15);
         RenderSystem.disableBlend();

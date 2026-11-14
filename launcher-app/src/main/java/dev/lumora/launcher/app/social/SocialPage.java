@@ -443,7 +443,7 @@ public final class SocialPage extends JPanel {
                 Graphics2D g = (Graphics2D) g0.create();
                 SocialPaint.quality(g);
                 g.setColor(hover ? Theme.ACCENT_HOVER : Theme.ACCENT);
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                Theme.fillRound(g, 0, 0, getWidth(), getHeight(), 14, 14);
                 Icons.of(Icons.Kind.SEND, 22, Theme.BG).paintIcon(this, g, (getWidth() - 22) / 2 + 1, (getHeight() - 22) / 2);
                 g.dispose();
             }
@@ -524,7 +524,7 @@ public final class SocialPage extends JPanel {
                 SocialPaint.quality(g);
                 if (hover) {
                     g.setColor(Theme.SURFACE_2);
-                    g.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    Theme.fillRound(g, 0, 0, getWidth(), getHeight(), 10, 10);
                 }
                 Icons.of(kind, 20, hover ? Theme.TEXT : Theme.MUTED).paintIcon(this, g, (getWidth() - 20) / 2, (getHeight() - 20) / 2);
                 g.dispose();
@@ -818,7 +818,7 @@ public final class SocialPage extends JPanel {
                 Graphics2D g = (Graphics2D) g0.create();
                 SocialPaint.quality(g);
                 Color c = SocialPaint.rgb(color);
-                java.awt.Shape clip = new java.awt.geom.RoundRectangle2D.Double(0, 0, getWidth(), 140, Theme.RADIUS, Theme.RADIUS);
+                java.awt.Shape clip = Theme.roundShape(0, 0, getWidth(), 140, Theme.RADIUS, Theme.RADIUS);
                 java.awt.Shape clip0 = g.getClip();
                 g.clip(clip);
                 g.setPaint(new GradientPaint(0, 0, Theme.alpha(c, 200), getWidth(), 110, Theme.alpha(c.darker().darker(), 230)));
@@ -872,7 +872,7 @@ public final class SocialPage extends JPanel {
                     g.drawString(label, (getWidth() - w) / 2, 46);
                     if (sel) {
                         g.setColor(Theme.ACCENT);
-                        g.fillRoundRect((getWidth() - w) / 2 - 6, getHeight() - 3, w + 12, 3, 3, 3);
+                        Theme.fillRound(g, (getWidth() - w) / 2 - 6, getHeight() - 3, w + 12, 3, 3, 3);
                     }
                     g.dispose();
                 }
@@ -1036,7 +1036,7 @@ public final class SocialPage extends JPanel {
                     int n = g.membersWithRole(r.id);
                     SocialRow row = new SocialRow((gr, x, y, s) -> {
                         gr.setColor(Theme.alpha(SocialPaint.rgb(r.color), 45));
-                        gr.fillRoundRect(x, y, s, s, 12, 12);
+                        Theme.fillRound(gr, x, y, s, s, 12, 12);
                         Icons.of(Icons.symbol(r.icon), s - 14, SocialPaint.rgb(r.color)).paintIcon(null, gr, x + 7, y + 7);
                     }, r.name, n + (n == 1 ? " Mitglied" : " Mitglieder") + (r.manage && !Role.OWNER.equals(r.id) ? " · verwaltet" : ""),
                             Theme.MUTED, owner ? () -> editRole(c, g, r) : null).height(52, 36);

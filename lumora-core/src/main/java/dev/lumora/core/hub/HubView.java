@@ -39,15 +39,15 @@ public final class HubView implements AddonView {
     /** What the main area shows. */
     public enum Page { MODULES, THEMES, PROFILES, SYSTEM, ADDONS }
 
-    static final int TEXT = 0xFFECE8F4;
-    static final int MUTED = 0xFF9D95AE;
-    static final int DIM = 0xFF6B6580;
-    static final int MAIN = 0xFF14121C;
-    static final int SIDE = 0xFF0E0C14;
-    static final int BORDER = 0xFF2A2638;
-    static final int CARD = 0xFF1C1928;
-    static final int CARD_HOVER = 0xFF241F34;
-    static final int FIELD = 0xFF0F0D16;
+    static final int TEXT = 0xFFE8EEFA;
+    static final int MUTED = 0xFF8D9BB8;
+    static final int DIM = 0xFF657180;
+    static final int MAIN = 0xFF12171C;
+    static final int SIDE = 0xFF0C0F14;
+    static final int BORDER = 0xFF262E38;
+    static final int CARD = 0xFF192028;
+    static final int CARD_HOVER = 0xFF1F2834;
+    static final int FIELD = 0xFF0D1116;
     /** On / off of the module cards: blue and red. */
     static final int ON = 0xFF2F64D8;
     static final int ON_HOVER = 0xFF4579EE;
@@ -55,8 +55,8 @@ public final class HubView implements AddonView {
     static final int OFF_HOVER = 0xFFD03755;
     static final int FAILED = 0xFFB7791F;
     /** Not available in this version (grey, with a hover window that says why). */
-    static final int LOCKED = 0xFF4A4458;
-    static final int LOCKED_HOVER = 0xFF5A5368;
+    static final int LOCKED = 0xFF444C58;
+    static final int LOCKED_HOVER = 0xFF535A68;
     static final int OK = 0xFF3DD68C;
     static final int WARN = 0xFFF5B342;
     static final int HEART = 0xFFF0506E;
@@ -520,14 +520,14 @@ public final class HubView implements AddonView {
     static void background(HudGraphics g, int w, int h, float e, boolean inWorld) {
         if (inWorld) {
             // the game stays visible behind a dark veil
-            g.fill(0, 0, w, h, LumoraTheme.alpha(0x0B0910, (int) (0x60 + 0x50 * e)));
+            g.fill(0, 0, w, h, LumoraTheme.alpha(0x090C10, (int) (0x60 + 0x50 * e)));
             return;
         }
         float s = Math.max(w / 1920f, h / 1080f);
         int rw = Math.min(1920, Math.round(w / s));
         int rh = Math.min(1080, Math.round(h / s));
         g.texture(BACKGROUND, 0, 0, w, h, (1920 - rw) / 2f, (1080 - rh) / 2f, rw, rh, 1920, 1080);
-        g.fill(0, 0, w, h, LumoraTheme.alpha(0x0B0910, (int) (0x90 + 0x30 * e)));
+        g.fill(0, 0, w, h, LumoraTheme.alpha(0x090C10, (int) (0x90 + 0x30 * e)));
     }
 
     // ---- sidebar
@@ -592,7 +592,7 @@ public final class HubView implements AddonView {
         int bw = w - 20;
         boolean hover = in(mx, my, x + 10, yb, bw, buttonH);
         if (!ButtonStyleModule.drawViewButton(g, this, "new-profile", x + 10, yb, bw, buttonH, hover)) {
-            g.card(x + 10, yb, bw, buttonH, 3, hover ? LumoraTheme.alpha(accent, 0x30) : SIDE, hover ? accent : 0xFF3A3450);
+            g.card(x + 10, yb, bw, buttonH, 3, hover ? LumoraTheme.alpha(accent, 0x30) : SIDE, hover ? accent : 0xFF344150);
         }
         g.centeredText(label, x + 10 + bw / 2, yb + (buttonH - 8) / 2, hover ? TEXT : MUTED, false);
         hit(x + 10, yb, bw, buttonH, this::newProfile);
@@ -727,7 +727,7 @@ public final class HubView implements AddonView {
     private void searchBox(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
         int accent = LumoraTheme.accent();
         boolean hover = in(mx, my, x, y, w, h);
-        g.card(x, y, w, h, h / 2, FIELD, searchFocused ? accent : hover ? 0xFF3A3450 : BORDER);
+        g.card(x, y, w, h, h / 2, FIELD, searchFocused ? accent : hover ? 0xFF344150 : BORDER);
         HubGlyphs.draw(g, "search", x + 6, y + (h - HubGlyphs.SIZE) / 2, searchFocused ? LumoraTheme.accentHover() : DIM);
         int tx = x + 19;
         int max = w - 19 - 8;
@@ -979,7 +979,7 @@ public final class HubView implements AddonView {
         tw = Math.max(tw, g.textWidth("§l" + tip.title())) + 12;
         int x = Math.min(mx + 10, width - tw - 4);
         int y = Math.min(my + 12, height - th - 4);
-        g.card(x, y, tw, th, 4, 0xF2100E18, LumoraTheme.alpha(LumoraTheme.accent(), 0xB0));
+        g.card(x, y, tw, th, 4, 0xF20E1318, LumoraTheme.alpha(LumoraTheme.accent(), 0xB0));
         g.text("§l" + tip.title(), x + 6, y + 5, TEXT, false);
         int ly = y + 17;
         for (String l : tip.lines()) {
@@ -1001,7 +1001,7 @@ public final class HubView implements AddonView {
         int tw = Math.min(g.textWidth(toast), 320) + 20;
         int x = cx - tw / 2;
         int alpha = Math.round(0xF0 * a);
-        g.roundedRect(x, y, tw, 18, 9, LumoraTheme.alpha(0x100E18, alpha));
+        g.roundedRect(x, y, tw, 18, 9, LumoraTheme.alpha(0x0E1318, alpha));
         g.roundedRect(x + 4, y + 6, 6, 6, 3, LumoraTheme.alpha(LumoraTheme.accent(), alpha));
         g.text(trim(g, toast, 320), x + 14, y + 5, LumoraTheme.alpha(TEXT, Math.max(8, alpha)), false);
     }
@@ -1157,7 +1157,7 @@ public final class HubView implements AddonView {
                 g.roundedRect(bx - 2, by - 2, bw + 4, bh + 4, 6, MAIN);
             }
             if (ButtonStyleModule.LUMORA.equals(id)) {
-                g.card(bx, by, bw, bh, 4, hover ? CARD_HOVER : CARD, hover ? accent : 0xFF3A3450);
+                g.card(bx, by, bw, bh, 4, hover ? CARD_HOVER : CARD, hover ? accent : 0xFF344150);
             } else {
                 float[] st = previewAnim.computeIfAbsent(id, k -> new float[]{100, bw / 2f, 40});
                 ButtonStyleModule.paint(g, id, shadow, st, bx, by, bw, bh, hover, true);
@@ -1230,7 +1230,7 @@ public final class HubView implements AddonView {
             g.translate(px, py);
             dev.lumora.core.hud.WidgetDesign.position(px, py);
             if (!dev.lumora.core.hud.WidgetDesign.panel(g, pw, ph)) {
-                g.fill(0, 0, pw, ph, 0x9C0F0C17);
+                g.fill(0, 0, pw, ph, 0x9C070B14);
                 g.fill(0, 0, 2, ph, LumoraTheme.accent());
             }
             dev.lumora.core.hud.WidgetDesign.line(g, 6, 5, s[0], s[1], LumoraTheme.accentHover(),
@@ -1262,7 +1262,7 @@ public final class HubView implements AddonView {
             boolean hover = in(mx, my, cx, y, cw, h) && my >= contentTop && my < contentBottom;
             int accent = LumoraTheme.accent();
             g.card(cx, y, cw, h, h / 2, sel ? LumoraTheme.alpha(accent, 0x40) : hover ? CARD_HOVER : CARD,
-                    sel ? accent : hover ? 0xFF3A3450 : BORDER);
+                    sel ? accent : hover ? 0xFF344150 : BORDER);
             int tx = cx + 8;
             if (sel) {
                 HubGlyphs.draw(g, "check", cx + 6, y + (h - HubGlyphs.SIZE) / 2, LumoraTheme.accentHover());
@@ -1297,14 +1297,14 @@ public final class HubView implements AddonView {
     private void themeCard(HudGraphics g, int x, int y, int w, int h, boolean lumora, boolean selected, int mx, int my) {
         int accent = LumoraTheme.accent();
         boolean hover = in(mx, my, x, y, w, h) && my >= contentTop && my < contentBottom;
-        g.roundedRect(x, y, w, h, 5, selected ? accent : hover ? 0xFF3A3450 : BORDER);
+        g.roundedRect(x, y, w, h, 5, selected ? accent : hover ? 0xFF344150 : BORDER);
         g.roundedRect(x + 1, y + 1, w - 2, h - 2, 4, hover ? CARD_HOVER : CARD);
         int pvx = x + 6;
         int pvy = y + 6;
         int pvw = w - 12;
         int pvh = 38;
         if (lumora) {
-            g.roundedRect(pvx, pvy, pvw, pvh, 3, 0xFF0F0C17);
+            g.roundedRect(pvx, pvy, pvw, pvh, 3, 0xFF070B14);
             g.fill(pvx + 3, pvy + 3, pvx + 3 + pvw / 5, pvy + pvh - 3, SIDE);
             g.roundedRect(pvx + 5, pvy + 6, pvw / 5 - 4, 4, 2, LumoraTheme.alpha(accent, 0x90));
             int ax = pvx + 6 + pvw / 5;
@@ -1425,13 +1425,13 @@ public final class HubView implements AddonView {
     private static void switchControl(HudGraphics g, int right, int y, boolean on) {
         int sw = 22;
         int x = right - sw;
-        g.roundedRect(x, y + 1, sw, 11, 5, on ? LumoraTheme.accent() : 0xFF3A3450);
+        g.roundedRect(x, y + 1, sw, 11, 5, on ? LumoraTheme.accent() : 0xFF344150);
         g.roundedRect(on ? x + sw - 10 : x + 1, y + 2, 9, 9, 4, 0xFFFFFFFF);
     }
 
     private static void pill(HudGraphics g, int right, int y, String value) {
         int w = g.textWidth(value) + 18;
-        g.card(right - w, y, w, 13, 4, FIELD, 0xFF3A3450);
+        g.card(right - w, y, w, 13, 4, FIELD, 0xFF344150);
         g.text(value, right - w + 6, y + 3, TEXT, false);
         g.text("›", right - 9, y + 3, LumoraTheme.accentHover(), false);
     }
@@ -1482,7 +1482,7 @@ public final class HubView implements AddonView {
             boolean sel = id.equals(active);
             boolean visible = my >= contentTop && my < contentBottom;
             boolean hover = visible && in(mx, my, x, y, w, h);
-            g.roundedRect(x, y, w, h, 4, sel ? LumoraTheme.accent() : hover ? 0xFF3A3450 : BORDER);
+            g.roundedRect(x, y, w, h, 4, sel ? LumoraTheme.accent() : hover ? 0xFF344150 : BORDER);
             g.roundedRect(x + 1, y + 1, w - 2, h - 2, 3, hover ? CARD_HOVER : CARD);
             HubGlyphs.draw(g, "profiles", x + 8, y + (h - HubGlyphs.SIZE) / 2, sel ? LumoraTheme.accentHover() : DIM);
             String name = profileName(id);
@@ -1605,7 +1605,7 @@ public final class HubView implements AddonView {
     private void libraryCard(HudGraphics g, dev.lumora.core.addon.AddonLibrary.Entry e, int x, int y, int w, int h, int mx, int my) {
         boolean visible = my >= contentTop && my < contentBottom;
         boolean hover = visible && in(mx, my, x, y, w, h);
-        g.roundedRect(x, y, w, h, 5, hover ? 0xFF3A3450 : BORDER);
+        g.roundedRect(x, y, w, h, 5, hover ? 0xFF344150 : BORDER);
         g.roundedRect(x + 1, y + 1, w - 2, h - 2, 4, hover ? CARD_HOVER : CARD);
         g.texture(icon("addon"), x + 8, y + 8, 32, 32, 32, 32);
         int tx = x + 48;
@@ -1672,7 +1672,7 @@ public final class HubView implements AddonView {
             });
         } else {
             boolean ok = e.status() == dev.lumora.core.addon.AddonLibrary.Status.INSTALLED;
-            g.roundedRect(bx, by, bw, bh, 4, 0xFF2A2438);
+            g.roundedRect(bx, by, bw, bh, 4, 0xFF242C38);
             g.centeredText(label, bx + bw / 2 + 1, by + (bh - 8) / 2, ok ? OK : MUTED, false);
         }
     }
@@ -1751,7 +1751,7 @@ public final class HubView implements AddonView {
         } else if (primary) {
             g.roundedRect(x, y, w, h, 4, hover ? LumoraTheme.accentHover() : LumoraTheme.accent());
         } else {
-            g.card(x, y, w, h, 4, hover ? CARD_HOVER : CARD, hover ? LumoraTheme.accent() : 0xFF3A3450);
+            g.card(x, y, w, h, 4, hover ? CARD_HOVER : CARD, hover ? LumoraTheme.accent() : 0xFF344150);
         }
         g.centeredText(label, x + w / 2 + 1, y + (h - 8) / 2, TEXT, false);
         hit(x, y, w, h, action);

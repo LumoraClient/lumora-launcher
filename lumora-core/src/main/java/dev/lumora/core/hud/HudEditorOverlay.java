@@ -12,7 +12,7 @@ public final class HudEditorOverlay {
     private static final int GRID = 0x10FFFFFF;
     private static final int ZONE_LINE = 0x22FFFFFF;
     private static final int DOT = 0x70FFFFFF;
-    private static final int LABEL_BG = 0xF0141220;
+    private static final int LABEL_BG = 0xF0121A20;
 
     private HudEditorOverlay() {
     }

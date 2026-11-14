@@ -356,7 +356,9 @@ public final class BrowserPage extends JPanel {
             action.addActionListener(e -> install(h, (JButton) e.getSource()));
         } else {
             action = new JButton("Installieren", Icons.of(Icons.Kind.PLUS, 15, Color.WHITE));
-            action.putClientProperty("JButton.buttonType", "roundRect");
+            if (!Theme.pixelStyle) {
+                action.putClientProperty("JButton.buttonType", "roundRect");
+            }
             action.setBackground(Theme.ACCENT_PRESSED);
             action.setForeground(Color.WHITE);
             action.addActionListener(e -> install(h, (JButton) e.getSource()));

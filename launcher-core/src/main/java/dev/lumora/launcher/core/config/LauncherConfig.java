@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 /** Persistent launcher settings (config/launcher.json). Mutable POJO for Gson. */
 public final class LauncherConfig {
-    public static final int CURRENT_SCHEMA = 2;
+    public static final int CURRENT_SCHEMA = 3;
     /** Default accent since the blue redesign (schema 2); the violet before it. */
     public static final String DEFAULT_ACCENT = "#3B82F6";
     static final String OLD_DEFAULT_ACCENT = "#8B5CF6";
@@ -100,8 +100,11 @@ public final class LauncherConfig {
     // --- Erscheinungsbild
     /** Accent colour of the launcher, #RRGGBB. */
     public String accentColor = DEFAULT_ACCENT;
-    /** Hard pixel corners instead of rounded ones (applies after a restart). */
-    public boolean pixelStyle = false;
+    /**
+     * Lumora pixel design like the game's Lumora menus: pixel font for titles, navigation and buttons, stepped
+     * corners (default since schema 3, 0.3.43); off: the modern design with Inter and round corners. Applies after a restart.
+     */
+    public boolean pixelStyle = true;
     /** Side navigation with icons only (labels as tooltips) instead of icons with text. */
     public boolean navIconsOnly = false;
     /** No sliding/fading animations. */
@@ -174,6 +177,11 @@ public final class LauncherConfig {
             // blue redesign: the old default violet becomes the new default blue
             notes.add("accentColor " + accentColor + " -> " + DEFAULT_ACCENT);
             accentColor = DEFAULT_ACCENT;
+        }
+        if (schemaVersion < 3 && !pixelStyle) {
+            // Lumora pixel design (as in the game) becomes the default once; it can be switched off again
+            notes.add("pixelStyle -> true");
+            pixelStyle = true;
         }
         if (schemaVersion != CURRENT_SCHEMA) {
             notes.add("schemaVersion " + schemaVersion + " -> " + CURRENT_SCHEMA);

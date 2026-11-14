@@ -90,7 +90,9 @@ public final class AccountPage extends JPanel {
         head.setAlignmentX(Component.LEFT_ALIGNMENT);
         head.add(Ui.sectionTitle("Konten", "das aktive Konto wird beim Spielen verwendet"), BorderLayout.WEST);
         JButton add = new JButton("Konto hinzufügen", Icons.of(Icons.Kind.PLUS, 15, Color.WHITE));
-        add.putClientProperty("JButton.buttonType", "roundRect");
+        if (!Theme.pixelStyle) {
+            add.putClientProperty("JButton.buttonType", "roundRect");
+        }
         add.setBackground(Theme.ACCENT_PRESSED);
         add.setForeground(Color.WHITE);
         add.setFocusable(false);

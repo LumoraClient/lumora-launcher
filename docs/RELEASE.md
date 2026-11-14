@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.46 (2026-11-14):**
+- **Build:** `gradlew clean build` erfolgreich, 566 Unit-Tests ohne Fehler (1 übersprungen). Neu: Armor HUD (fünf Widgets mit eigenen Plätzen, Haltbarkeit als Rest, Rest/Maximum und Prozent, Anzahl bei Items ohne Haltbarkeit, Diamant-Vorschau außerhalb der Welt, leere Plätze ausgeblendet außer im HUD-Editor, Modul anfangs aus), eine Karte „Armor HUD“ mit fünf Abschnitten im Hub, Modulnamen und -beschreibungen in allen 32 Sprachdateien der 16 Versionen (Namen in Deutsch und Englisch gleich). Alle 16 Client-Module kompiliert (Ausrüstung lesen in vier Varianten: 1.8.9, 1.12.2, 1.16.5–1.21.11, 26.x).
+- **Vor dem Release** (Entwicklungsstand, Testordner, Armor HUD dort eingeschaltet): Smoke-Test 26.3 und 1.8.9 bestanden, Prüfung im Smoke-Test: 8 eingebaute Widgets und 5 Armor-HUD-Widgets. Im Spiel zeigt das Held-Item-Widget das Diamantschwert mit „1561“ in Grün, in 26.3 und in 1.8.9. Der Hub zeigt die Karte „Armor HUD“ und die englischen Namen.
+- **Smoke-Test mit dem fertigen 0.3.46-Build:** 26.3 – bestanden (Client-Module dieses Builds; danach nur noch die News im Launcher ergänzt).
+- **Nicht geprüft:** getragene Rüstung im Spiel (der Smoke-Test gibt nur ein Schwert), Rüstung in den Versionen 1.12.2 bis 1.21.11 im Spiel (nur kompiliert), die neue Standardposition links bei echter Bildschirmgröße, ein Selbst-Update von 0.3.45 auf 0.3.46.
+- **Release:** `SHA256SUMS.txt.sig` mit dem Release-Schlüssel signiert und gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.45 (2026-11-14):**
 - **Build:** `gradlew clean build` erfolgreich, 559 Unit-Tests ohne Fehler (1 übersprungen). Neu: Grafik-Backend (nur ab 26.2, Wert ersetzen/anlegen, „Standard“ lässt die Datei in Ruhe), Download-Cache-Grenze und Log-Aufbewahrung, Thread-Dump bei Hänger (einmal pro Hänger, neu scharf nach dem nächsten Tick), Lumora-Einstellungen zurücksetzen (als Sicherung) und Instanzen wiederherstellen, Update-Kanal „Vorab“ (Vorabversionen ja, Entwürfe nie) gegen einen lokalen Testserver. Alle 16 Client-Module kompiliert; im Spiel nur lumora-core (HangWatchdog, aus ohne `-Dlumora.hangDump`).
 - **Vor dem Release** (Entwicklungsstand, Testordner): Smoke-Test 26.3 mit Grafik-Backend „Vulkan“ bestanden, `options.txt` vom Launcher auf `preferredGraphicsBackend:"vulkan"` gesetzt, Minecraft meldet „Using graphics backend Vulkan“; ebenso mit „OpenGL“ („Using graphics backend OpenGL“). Startseite offscreen gerendert: Quick-Play-Leiste mit den Servern und Favicons aus der Serverliste; Einstellungen › Spiel und Speicher mit den neuen Zeilen.

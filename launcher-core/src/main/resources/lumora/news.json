@@ -1,6 +1,26 @@
 {
   "news": [
     {
+      "id": "lumora-armor-hud",
+      "date": "2026-11-14",
+      "author": "Lumora",
+      "version": "0.3.46",
+      "title": "Armor HUD und englische Modulnamen",
+      "text": "Jedes Rüstungsteil ist jetzt ein eigenes Widget, und alle Module heißen einheitlich auf Englisch.",
+      "image": "news-armor-hud.png",
+      "body": [
+        {"p": "Das neue Modul „Armor HUD“ zeigt Helm, Brustpanzer, Beinschutz, Stiefel und das Item in der Hand mit Icon und Haltbarkeit. Jedes Teil ist ein eigenes Widget und lässt sich im HUD-Editor einzeln verschieben, zum Beispiel als Spalte am Rand oder als Reihe über der Hotbar."},
+        {"list": [
+          "Haltbarkeit als Rest, Rest/Maximum oder Prozent",
+          "Farbe nach Haltbarkeit: grün, gelb, rot",
+          "Leere Plätze ausblenden",
+          "Bei Blöcken und Essen in der Hand die Anzahl"
+        ]},
+        {"p": "Das Modul ist anfangs aus und ersetzt das bisherige Widget „Rüstung“: einfach im Hub unter Kampf einschalten."},
+        {"p": "Außerdem heißen alle Module und Widgets jetzt auf Englisch, auch wenn das Spiel auf Deutsch läuft: Crosshair, Attack Indicator, Block Overlay, Hotbar & Status Bars, Coordinates, Keystrokes, Potion Effects, Item Counter und mehr. Beschreibungen und Einstellungen bleiben in deiner Sprache."}
+      ]
+    },
+    {
       "id": "lumora-quick-play",
       "date": "2026-11-14",
       "author": "Lumora",

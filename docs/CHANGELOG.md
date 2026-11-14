@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.46 (2026-11-14)
+
+### Im Spiel
+- **Englische Modulnamen, auch auf Deutsch:** Crosshair, Attack Indicator, Block Overlay, Connection Screen, Hotbar & Status Bars, Elytra Trails, Tab List & Scoreboard, Widget Design, Button Design, Server & World List; Widgets wie Coordinates, Keystrokes, Clock, Speed, Server Address, Potion Effects, Item Counter, Memory Usage, Day Counter, Pack Display, Combo Counter, Block Info und Health/Armor/Hunger/Air/Experience Bar. Beschreibungen und Einstellungen bleiben in der gewählten Sprache.
+- Namen und Beschreibungen der eingebauten Module stehen jetzt in den Sprachdateien (`lumora.module.<id>`), nicht mehr im Code.
+- **Neues Modul „Armor HUD“** (Kampf, anfangs aus): Helm, Brustpanzer, Beinschutz, Stiefel und Item in der Hand sind je ein eigenes Widget und lassen sich im HUD-Editor einzeln verschieben. Haltbarkeit als Rest, Rest/Maximum oder Prozent, Farbe nach Haltbarkeit, leere Plätze ausblenden. Ersetzt das bisherige Widget „Rüstung“ mit allen Teilen in einem Kasten; wer es benutzt hat, schaltet das neue Modul einmal ein.
+
 ## 0.3.45 (2026-11-14)
 
 ### Launcher

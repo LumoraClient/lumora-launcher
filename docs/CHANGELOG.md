@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.58 (2026-11-15)
+
+### Launcher
+- **Drache auf der Startseite:** Rechts im Kopfbereich fliegt jetzt ein Drache vor den Bergen, der Mond steht dafür links.
+- **Schmale Seitenleiste:** Die Seiten stehen links als Symbole mit dem Namen darunter. Die breite Leiste mit Text, der Umschalter unten und die Einstellung „Sidebar“ sind entfernt. Die Glocke heißt „News“.
+- **Versionsmenü mit Update-Bildern:** Jede Version zeigt das offizielle Bild ihres Updates aus den Minecraft-Patchnotes, etwa die Axolotl bei 1.17. 1.12 und 1.8 haben dort keine Patchnotes und behalten ihr eigenes Pixel-Bild.
+- **Neue Symbole:** gefüllte Symbole in der Seitenleiste, ein Kompass für „Discover“ und eine Flamme bei „Recently played“.
+
 ## 0.3.57 (2026-11-15)
 
 ### Launcher

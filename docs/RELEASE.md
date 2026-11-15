@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.58 (2026-11-15):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 618 Unit-Tests ohne Fehler (1 übersprungen). Neu: Test für `NewsFeed.updatePicture` (Release der Hauptversion, sonst ältester Patch, Snapshots zählen nicht). Nur Launcher geändert, Client und Mixins unverändert.
+- **Oberfläche:** Startseite und Einstellungen › Appearance per `--ui-shot` geprüft: Drache rechts im Kopfbereich, schmale Seitenleiste mit Namen unter den Symbolen, Einstellung „Sidebar“ entfernt. Versionsraster mit den echten Update-Bildern aus den Patchnotes gerendert (26.3 bis 1.16 mit Bild, 1.12 und 1.8 mit eigenem Pixel-Bild).
+- **Kein Smoke-Test** (nur Launcher-Oberfläche geändert).
+- **Nicht geprüft:** das Versionsmenü im laufenden Launcher geöffnet, ein Selbst-Update von 0.3.57 auf 0.3.58.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.57 (2026-11-15):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 617 Unit-Tests ohne Fehler (1 übersprungen). Nur Launcher geändert (`HeroPanel`: fester Berg-Hintergrund, Karussell entfernt), Client und Mixins unverändert.
 - **Oberfläche:** Startseite per `--ui-shot` geprüft: Berg-Hintergrund, keine Punkte mehr.

@@ -1,6 +1,23 @@
 {
   "news": [
     {
+      "id": "lumora-offhand-mainhand",
+      "date": "2026-11-15",
+      "author": "Lumora",
+      "version": "0.3.54",
+      "title": "Off Hand: Haupthand bleibt",
+      "text": "Die Haupthand ist im Modul Off Hand immer zu sehen und lässt sich nicht mehr ausschalten.",
+      "image": "news-mainhand.png",
+      "body": [
+        {"p": "Im Modul „Off Hand“ gibt es den Schalter „Haupthand anzeigen“ nicht mehr: Deine Haupthand wird in der Ego-Ansicht immer gezeichnet."},
+        {"list": [
+          "Die Zweithand kannst du weiter ganz ausblenden",
+          "Schild und Totem lassen sich in beiden Händen einzeln ausblenden",
+          "„Beide Hände anzeigen“ zeigt auch die leere Zweithand"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-offhand-both-hands",
       "date": "2026-11-15",
       "author": "Lumora",

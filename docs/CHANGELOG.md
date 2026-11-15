@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.54 (2026-11-15)
+
+### Im Spiel
+- **Off Hand:** Die Haupthand wird immer gezeichnet, der Schalter „Haupthand anzeigen“ ist entfernt. Schild und Totem in der Haupthand lassen sich weiter einzeln ausblenden.
+
 ## 0.3.53 (2026-11-15)
 
 ### Im Spiel

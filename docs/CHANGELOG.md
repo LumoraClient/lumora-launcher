@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.3.56 (2026-11-15)
+
+### Launcher
+- **Neue Startseite:** Der Kopfbereich ist kompakter, darunter stehen die Karten „Recently played“, „Downloads“ und „News“ statt der System-Kacheln.
+- **Wechselnde Hintergründe:** Fünf eigene Pixel-Szenen (Burg, Drache über der Burg, Berge im Mondlicht, schwebende Inseln, Leuchtturm) wechseln alle paar Sekunden; mit den Punkten unten rechts wählst du eine aus. Mit „Bewegung reduzieren“ bleibt das Bild stehen.
+- **Recently played:** zeigt die zuletzt gespielte Version mit deinem neuesten Screenshot, wann und wie lange du gespielt hast. „Continue playing“ startet sie wieder, direkt in die Welt der letzten Sitzung, falls es eine gab. Über „…“ erreichst du Spielordner, Screenshots, die Dateiprüfung und die Einstellungen.
+- **Downloads:** zeigt während einer Installation, was geladen wird und wie weit es ist, sonst ob die gewählte Version installiert ist und ob es Updates für Komponenten gibt.
+- **News:** die zwei neuesten Meldungen von Lumora und Minecraft, ein Klick öffnet den Artikel.
+- **Seitenleiste:** Die Glocke unten öffnet die News und zeigt mit einem roten Punkt, ob es ungelesene gibt. Die Bibliothek hat ein Puzzle-Symbol.
+
 ## 0.3.55 (2026-11-15)
 
 ### Launcher

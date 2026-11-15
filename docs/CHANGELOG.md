@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.57 (2026-11-15)
+
+### Launcher
+- **Startseite:** Der Kopfbereich zeigt jetzt immer die verschneiten Berge im Mondlicht. Der wechselnde Hintergrund und die Punkte zum Umschalten sind entfernt.
+
 ## 0.3.56 (2026-11-15)
 
 ### Launcher

@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.57 (2026-11-15):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 617 Unit-Tests ohne Fehler (1 übersprungen). Nur Launcher geändert (`HeroPanel`: fester Berg-Hintergrund, Karussell entfernt), Client und Mixins unverändert.
+- **Oberfläche:** Startseite per `--ui-shot` geprüft: Berg-Hintergrund, keine Punkte mehr.
+- **Kein Smoke-Test** (nur der Hintergrund der Startseite geändert).
+- **Nicht geprüft:** ein Selbst-Update von 0.3.56 auf 0.3.57.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.56 (2026-11-15):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 617 Unit-Tests ohne Fehler (1 übersprungen). Nur Launcher geändert (neue Startseite `HomeDashboard`, Szenen-Karussell in `HeroPanel`, Glocke in der Seitenleiste), Client und Mixins unverändert.
 - **Oberfläche:** Startseite des fertigen Builds per `--ui-shot` geprüft, mit und ohne Spielzeit (Beispielwert im Test-Datenordner), mit Beschriftung und nur Symbolen: alles bei 1320 × 840 ohne Scrollen sichtbar, alle Texte aus `en_us.json`. Die fünf Hintergrund-Szenen einzeln gerendert. News- und Bibliotheksseite unverändert.

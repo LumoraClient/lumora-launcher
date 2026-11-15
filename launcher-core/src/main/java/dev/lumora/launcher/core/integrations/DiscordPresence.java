@@ -82,7 +82,7 @@ public final class DiscordPresence implements Closeable {
                 disconnect();
                 Transport t = connector.get();
                 if (t == null) {
-                    warnOnce("Discord läuft nicht (kein IPC-Kanal gefunden)");
+                    warnOnce("Discord is not running (no IPC channel found)");
                     return;
                 }
                 transport = t;
@@ -118,7 +118,7 @@ public final class DiscordPresence implements Closeable {
         int op = head.getInt();
         int len = head.getInt();
         if (len < 0 || len > 1 << 20) {
-            throw new IOException("ungültige Antwort von Discord");
+            throw new IOException("invalid response from Discord");
         }
         String body = new String(transport.read(len), StandardCharsets.UTF_8);
         JsonObject o = JsonParser.parseString(body).getAsJsonObject();
@@ -128,7 +128,7 @@ public final class DiscordPresence implements Closeable {
             if (msg == null && o.get("data") instanceof JsonObject data) {
                 msg = text(data, "message");
             }
-            throw new IOException("Discord hat abgelehnt: " + (msg != null ? msg : body));
+            throw new IOException("Discord refused: " + (msg != null ? msg : body));
         }
         return o;
     }
@@ -270,7 +270,7 @@ public final class DiscordPresence implements Closeable {
             ByteBuffer b = ByteBuffer.allocate(n);
             while (b.hasRemaining()) {
                 if (channel.read(b) < 0) {
-                    throw new EOFException("Discord hat die Verbindung geschlossen");
+                    throw new EOFException("Discord closed the connection");
                 }
             }
             return b.array();

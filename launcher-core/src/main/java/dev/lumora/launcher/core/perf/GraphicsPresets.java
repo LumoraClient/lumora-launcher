@@ -1,5 +1,6 @@
 package dev.lumora.launcher.core.perf;
 
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.FileUtil;
 
 import java.io.IOException;
@@ -21,16 +22,14 @@ public final class GraphicsPresets {
     public static final String BACKUP = "options.txt.lumora-backup";
 
     public enum Preset {
-        MAX_FPS("Maximale FPS", "Kurze Sichtweite, schnelle Grafik, wenig Partikel, keine Wolken und Schatten – für schwache PCs und PvP."),
-        BALANCED("Ausgewogen", "Mittlere Sichtweite, schöne Grafik, weniger Partikel – gute Bilder bei flüssigen FPS."),
-        QUALITY("Beste Grafik", "Große Sichtweite, alle Partikel, Wolken, Schatten und V-Sync – für starke PCs.");
+        MAX_FPS, BALANCED, QUALITY;
 
-        public final String label;
-        public final String description;
+        public String label() {
+            return Lang.t("perf.preset." + name().toLowerCase(java.util.Locale.ROOT));
+        }
 
-        Preset(String label, String description) {
-            this.label = label;
-            this.description = description;
+        public String description() {
+            return Lang.t("perf.preset." + name().toLowerCase(java.util.Locale.ROOT) + ".desc");
         }
     }
 

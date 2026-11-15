@@ -5,6 +5,7 @@ import dev.lumora.launcher.app.ui.DataTable;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
 import dev.lumora.launcher.core.auth.AccountStore;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.stats.PlayStats;
 
 import javax.swing.BorderFactory;
@@ -37,7 +38,7 @@ final class SecurityTab extends JPanel {
     private final PageHost host;
     private final Consumer<AccountStore.Account> signOut;
     private final Consumer<AccountStore.Account> use;
-    private final DataTable sessions = new DataTable(List.of("Name", "Typ", "Zuletzt aktiv", "Erstmals genutzt"), 1.5, 1.1, 1, 1);
+    private final DataTable sessions = new DataTable(List.of(Lang.t("social.field.name"), Lang.t("security.col.type"), Lang.t("security.col.last_active"), Lang.t("security.col.first_used")), 1.5, 1.1, 1, 1);
 
     SecurityTab(PageHost host, Consumer<AccountStore.Account> signOut, Consumer<AccountStore.Account> use) {
         super(new BorderLayout());
@@ -53,12 +54,11 @@ final class SecurityTab extends JPanel {
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel in = Ui.column();
 
-        in.add(Ui.heading("Zwei-Faktor-Authentifizierung"));
+        in.add(Ui.heading(Lang.t("security.2fa")));
         in.add(Box.createVerticalStrut(6));
-        in.add(Ui.wrapText("Lumora meldet sich nur über dein Microsoft-Konto an. Den zweiten Schritt richtest du deshalb direkt bei "
-                + "Microsoft ein, dann schützt er auch Minecraft.", 13.5f, Theme.MUTED));
+        in.add(Ui.wrapText(Lang.t("security.2fa.text"), 13.5f, Theme.MUTED));
         in.add(Box.createVerticalStrut(18));
-        JButton setUp = new JButton("2FA bei Microsoft einrichten");
+        JButton setUp = new JButton(Lang.t("security.2fa.setup"));
         if (!Theme.pixelStyle) {
             setUp.putClientProperty("JButton.buttonType", "roundRect");
         }
@@ -67,10 +67,10 @@ final class SecurityTab extends JPanel {
         setUp.setFont(Theme.font(Font.BOLD, 13.5f));
         setUp.setFocusable(false);
         setUp.addActionListener(e -> host.browse(MS_TWO_STEP));
-        in.add(line("Authenticator-App", "Microsoft Authenticator oder eine andere App mit Einmal-Codes", setUp));
+        in.add(line(Lang.t("security.authenticator"), Lang.t("security.authenticator.desc"), setUp));
 
         in.add(Box.createVerticalStrut(30));
-        JButton activity = new JButton("Aktivität bei Microsoft");
+        JButton activity = new JButton(Lang.t("security.activity"));
         if (!Theme.pixelStyle) {
             activity.putClientProperty("JButton.buttonType", "roundRect");
         }
@@ -80,9 +80,9 @@ final class SecurityTab extends JPanel {
         head.setOpaque(false);
         head.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel ht = Ui.column();
-        ht.add(Ui.heading("Sitzungen"));
+        ht.add(Ui.heading(Lang.t("security.sessions")));
         ht.add(Box.createVerticalStrut(6));
-        ht.add(Ui.label("Alles, was auf diesem PC Zugriff auf deine Konten hat.", 13.5f, Font.PLAIN, Theme.MUTED));
+        ht.add(Ui.label(Lang.t("security.sessions.desc"), 13.5f, Font.PLAIN, Theme.MUTED));
         head.add(ht, BorderLayout.CENTER);
         head.add(centered(activity), BorderLayout.EAST);
         head.setMaximumSize(new Dimension(Integer.MAX_VALUE, head.getPreferredSize().height));
@@ -90,8 +90,7 @@ final class SecurityTab extends JPanel {
         in.add(Box.createVerticalStrut(16));
         in.add(sessions);
         in.add(Box.createVerticalStrut(12));
-        in.add(Ui.wrapText("Die Anmeldung jedes Kontos liegt einzeln verschlüsselt (Windows DPAPI) auf diesem PC. Passwörter "
-                + "speichert der Launcher nie. Geräte außerhalb dieses PCs siehst du unter „Aktivität bei Microsoft“.", 12.5f, Theme.MUTED));
+        in.add(Ui.wrapText(Lang.t("security.storage"), 12.5f, Theme.MUTED));
 
         card.add(in, BorderLayout.CENTER);
         col.add(card);
@@ -128,7 +127,7 @@ final class SecurityTab extends JPanel {
         Instant now = Instant.now();
         var history = host.ctx().play.history();
         if (list.isEmpty()) {
-            sessions.empty("Auf diesem PC ist kein Konto angemeldet.");
+            sessions.empty(Lang.t("security.sessions.empty"));
         }
         for (AccountStore.Account a : list) {
             boolean isActive = active.map(x -> x.uuid().equals(a.uuid())).orElse(false);
@@ -141,11 +140,11 @@ final class SecurityTab extends JPanel {
             }
             List<DataTable.Action> actions = new ArrayList<>();
             if (!isActive) {
-                actions.add(new DataTable.Action("Verwenden", () -> use.accept(a), false));
+                actions.add(new DataTable.Action(Lang.t("account.use"), () -> use.accept(a), false));
             }
-            actions.add(new DataTable.Action("Abmelden", () -> signOut.accept(a), true));
+            actions.add(new DataTable.Action(Lang.t("account.sign_out"), () -> signOut.accept(a), true));
             sessions.addRow(List.of(
-                    DataTable.twoLine(isActive ? "(aktives Konto)" : null, a.username()),
+                    DataTable.twoLine(isActive ? Lang.t("security.active_account") : null, a.username()),
                     DataTable.text("Lumora Launcher", false),
                     DataTable.text(PlayStats.ago(last, now), false),
                     DataTable.text(PlayStats.ago(first, now), false)), DataTable.menu(actions));

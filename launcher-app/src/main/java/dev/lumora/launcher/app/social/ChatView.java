@@ -2,6 +2,7 @@ package dev.lumora.launcher.app.social;
 
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.social.Conv;
 import dev.lumora.social.SocialClient;
 import dev.lumora.social.model.ChatMessage;
@@ -308,7 +309,7 @@ final class ChatView extends JComponent implements Scrollable {
         if (items.isEmpty()) {
             g.setFont(Theme.font(Font.PLAIN, 14f));
             g.setColor(Theme.MUTED);
-            String t = client != null && client.historyLoaded(conv) ? "Noch keine Nachrichten. Schreib die erste!" : "Lade Nachrichten…";
+            String t = client != null && client.historyLoaded(conv) ? Lang.t("chat.empty") : Lang.t("chat.loading");
             FontMetrics fm = g.getFontMetrics();
             g.drawString(t, (w - fm.stringWidth(t)) / 2, 60);
             g.dispose();
@@ -366,7 +367,7 @@ final class ChatView extends JComponent implements Scrollable {
             if (it.status == Status.FAILED) {
                 g.setFont(Theme.font(Font.PLAIN, 11.5f));
                 g.setColor(Theme.FAIL);
-                String t = (it.label == null ? "Nicht gesendet" : it.label) + " – klicken zum Wiederholen";
+                String t = Lang.t("chat.retry", it.label == null ? Lang.t("chat.not_sent") : it.label);
                 g.drawString(t, b.x + b.width - g.getFontMetrics().stringWidth(t), b.y + b.height + 14);
             }
         }

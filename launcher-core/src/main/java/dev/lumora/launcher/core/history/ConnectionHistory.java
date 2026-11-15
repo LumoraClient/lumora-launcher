@@ -1,5 +1,6 @@
 package dev.lumora.launcher.core.history;
 
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Json;
 import dev.lumora.launcher.core.util.Log;
 
@@ -31,16 +32,10 @@ public final class ConnectionHistory {
     static final Duration MERGE_REFRESH = Duration.ofHours(6);
 
     public enum Kind {
-        SIGN_IN("Anmeldung"), REFRESH("Sitzung erneuert"), SIGN_OUT("Abmeldung"), REMOVED("Konto entfernt"), GAME_START("Spielstart");
-
-        private final String label;
-
-        Kind(String label) {
-            this.label = label;
-        }
+        SIGN_IN, REFRESH, SIGN_OUT, REMOVED, GAME_START;
 
         public String label() {
-            return label;
+            return Lang.t("history.kind." + name().toLowerCase(java.util.Locale.ROOT));
         }
     }
 

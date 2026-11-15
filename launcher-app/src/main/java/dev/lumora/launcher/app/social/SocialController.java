@@ -5,6 +5,7 @@ import dev.lumora.launcher.core.BuildInfo;
 import dev.lumora.launcher.core.auth.AccountStore;
 import dev.lumora.launcher.core.auth.AuthException;
 import dev.lumora.launcher.core.auth.MinecraftSession;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Log;
 import dev.lumora.social.MojangSession;
 import dev.lumora.social.Rules;
@@ -100,10 +101,10 @@ public final class SocialController {
                     try {
                         s = ctx.play.freshSession(ctx.config);
                     } catch (AuthException e) {
-                        throw new IOException("Anmeldung abgelaufen. Bitte im Launcher neu anmelden.", e);
+                        throw new IOException(Lang.t("social.session_expired"), e);
                     }
                     if (s == null || !me.uuid.equals(Rules.uuid(s.uuid()))) {
-                        throw new IOException("Keine gültige Minecraft-Sitzung. Bitte im Launcher anmelden.");
+                        throw new IOException(Lang.t("social.no_session"));
                     }
                     MojangSession.join(s.accessToken(), me.uuid, serverId);
                 }

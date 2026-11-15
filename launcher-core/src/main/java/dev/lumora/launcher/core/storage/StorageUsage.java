@@ -1,6 +1,7 @@
 package dev.lumora.launcher.core.storage;
 
 import dev.lumora.launcher.core.LauncherPaths;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Log;
 
 import java.io.IOException;
@@ -27,29 +28,33 @@ public final class StorageUsage {
     static final Duration OLD_LOGS = Duration.ofDays(14);
 
     public enum Kind {
-        RUNTIMES("Java-Laufzeiten", "Werden bei Bedarf für die Versionen heruntergeladen, die sie brauchen", true),
-        CACHE("Download-Cache", "Zwischengespeicherte Mods, Bilder und Neuigkeiten, die bei Bedarf neu geladen werden", true),
-        LIBRARIES("Bibliotheken", "Gemeinsame Bibliotheken aller Versionen und Loader", true),
-        ASSETS("Assets", "Texturen, Sounds und Sprachen von Minecraft", true),
-        VERSIONS("Spielversionen", "Minecraft- und Fabric-Dateien der installierten Versionen", true),
-        LOGS("Logs", "Launcher- und Spielprotokolle", true),
-        CRASHES("Absturzberichte", "Crash-Reports aller Instanzen", true),
-        WORLDS("Welten", "Einzelspielerwelten aller Instanzen", false),
-        MODS("Mods", "In deinen Instanzen installierte Mod-JARs", false),
-        PACKS("Ressourcen- und Shaderpakete", "Pakete in deinen Instanzen", false),
-        SCREENSHOTS("Screenshots", "Bildschirmfotos aller Instanzen", false),
-        CONFIGS("Mod-Konfigurationen", "Einstellungen der Mods in deinen Instanzen", false),
-        OTHER("Sonstiges", "Einstellungen, Konten, Diagnose und übrige Spieldaten", false);
+        RUNTIMES(true),
+        CACHE(true),
+        LIBRARIES(true),
+        ASSETS(true),
+        VERSIONS(true),
+        LOGS(true),
+        CRASHES(true),
+        WORLDS(false),
+        MODS(false),
+        PACKS(false),
+        SCREENSHOTS(false),
+        CONFIGS(false),
+        OTHER(false);
 
-        public final String label;
-        public final String description;
         /** The launcher can restore it (download again), so "Leeren" is offered. */
         public final boolean clearable;
 
-        Kind(String label, String description, boolean clearable) {
-            this.label = label;
-            this.description = description;
+        Kind(boolean clearable) {
             this.clearable = clearable;
+        }
+
+        public String label() {
+            return Lang.t("storage.kind." + name().toLowerCase(java.util.Locale.ROOT));
+        }
+
+        public String description() {
+            return Lang.t("storage.kind." + name().toLowerCase(java.util.Locale.ROOT) + ".desc");
         }
     }
 
@@ -137,7 +142,7 @@ public final class StorageUsage {
      */
     public long clear(Kind k) throws IOException {
         if (!k.clearable) {
-            throw new IllegalArgumentException(k.label + " wird nicht vom Launcher verwaltet");
+            throw new IllegalArgumentException(k + " is not managed by the launcher");
         }
         long freed = 0;
         for (Path d : dirs(k)) {
@@ -282,7 +287,7 @@ public final class StorageUsage {
         Path root = paths.root().toAbsolutePath().normalize();
         Path target = dir.toAbsolutePath().normalize();
         if (!target.startsWith(root) || target.equals(root)) {
-            throw new IOException("Ordner liegt nicht im Lumora-Verzeichnis: " + dir);
+            throw new IOException("Folder is not inside the Lumora directory: " + dir);
         }
         long[] freed = {0};
         Path realRoot = root.toRealPath();
@@ -291,7 +296,7 @@ public final class StorageUsage {
             public FileVisitResult preVisitDirectory(Path d, BasicFileAttributes attrs) throws IOException {
                 // a junction or link that leads out of the data directory is never entered
                 if (!d.toRealPath().startsWith(realRoot)) {
-                    throw new IOException("Verknüpfung aus dem Lumora-Verzeichnis heraus: " + d);
+                    throw new IOException("Link pointing out of the Lumora directory: " + d);
                 }
                 return FileVisitResult.CONTINUE;
             }

@@ -1,6 +1,7 @@
 package dev.lumora.launcher.app;
 
 import dev.lumora.launcher.core.auth.MicrosoftAuthenticator;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -40,11 +41,11 @@ final class DeviceCodeDialog {
 
     void show(MicrosoftAuthenticator.DeviceCodePrompt prompt) {
         close();
-        dialog = new JDialog(owner, "Mit Microsoft anmelden", false);
+        dialog = new JDialog(owner, Lang.t("account.sign_in_microsoft"), false);
         JPanel p = new JPanel(new BorderLayout(0, 12));
         p.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
-        JLabel intro = new JLabel("<html><body style='width:380px'>Öffne <b>" + prompt.verificationUri()
-                + "</b> und gib diesen Code ein. Melde dich dort mit dem Microsoft-Konto an, dem Minecraft gehört.</body></html>");
+        JLabel intro = new JLabel("<html><body style='width:380px'>" + Lang.t("login.device.text", prompt.verificationUri())
+                + "</body></html>");
         JLabel code = new JLabel(prompt.userCode(), SwingConstants.CENTER);
         code.setFont(new Font(Font.MONOSPACED, Font.BOLD, 34));
         JPanel center = new JPanel(new GridLayout(2, 1, 0, 8));
@@ -52,12 +53,12 @@ final class DeviceCodeDialog {
         center.add(code);
         p.add(center, BorderLayout.CENTER);
 
-        JButton open = new JButton("Code kopieren & Browser öffnen");
+        JButton open = new JButton(Lang.t("login.device.open"));
         open.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(prompt.userCode()), null);
             openIfTrusted(prompt.verificationUri());
         });
-        JButton cancel = new JButton("Abbrechen");
+        JButton cancel = new JButton(Lang.t("common.cancel"));
         cancel.addActionListener(e -> {
             onCancel.run();
             close();
@@ -66,7 +67,7 @@ final class DeviceCodeDialog {
         buttons.add(open);
         buttons.add(cancel);
         p.add(buttons, BorderLayout.SOUTH);
-        JLabel waiting = new JLabel("Warte auf Bestätigung … (gültig " + prompt.expiresIn().toMinutes() + " Minuten)");
+        JLabel waiting = new JLabel(Lang.t("login.device.waiting", prompt.expiresIn().toMinutes()));
         p.add(waiting, BorderLayout.NORTH);
         dialog.setContentPane(p);
         dialog.pack();

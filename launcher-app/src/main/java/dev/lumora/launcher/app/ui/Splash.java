@@ -1,4 +1,5 @@
 package dev.lumora.launcher.app.ui;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import javax.swing.JComponent;
 import javax.swing.JWindow;
@@ -116,7 +117,7 @@ public final class Splash {
             long elapsed = System.currentTimeMillis() - startedAt;
             long perStep = idx == 0 ? 1200 : elapsed / Math.max(1, idx);
             long left = Math.max(1, Math.round(perStep * (total - idx - 0.5) / 1000.0));
-            String sub = "Schritt " + (idx + 1) + " von " + total + " · etwa " + left + " s";
+            String sub = Lang.t("splash.step", idx + 1, total, left);
             g.setFont(Theme.font(Font.PLAIN, 12.5f));
             fm = g.getFontMetrics();
             g.setColor(Theme.MUTED);

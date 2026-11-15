@@ -1,4 +1,5 @@
 package dev.lumora.launcher.core.stats;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import dev.lumora.launcher.core.util.Json;
 import dev.lumora.launcher.core.util.Log;
@@ -90,30 +91,30 @@ public final class PlayStats {
     public static String format(Duration d) {
         long minutes = d.toMinutes();
         if (minutes < 1) {
-            return d.isZero() ? "–" : "unter 1 min";
+            return d.isZero() ? "–" : Lang.t("time.under_minute");
         }
         long h = minutes / 60;
         long m = minutes % 60;
-        return h == 0 ? m + " min" : h + " h " + m + " min";
+        return h == 0 ? Lang.t("time.minutes", m) : Lang.t("time.hours_minutes", h, m);
     }
 
     /** "gerade eben", "vor 5 min", "vor 3 h", "gestern", "vor 4 Tagen", "nie". */
     public static String ago(Instant then, Instant now) {
         if (then == null) {
-            return "nie";
+            return Lang.t("time.never");
         }
         long minutes = Math.max(0, Duration.between(then, now).toMinutes());
         if (minutes < 1) {
-            return "gerade eben";
+            return Lang.t("time.just_now");
         }
         if (minutes < 60) {
-            return "vor " + minutes + " min";
+            return Lang.t("time.minutes_ago", minutes);
         }
         long hours = minutes / 60;
         if (hours < 24) {
-            return "vor " + hours + " h";
+            return Lang.t("time.hours_ago", hours);
         }
         long days = hours / 24;
-        return days == 1 ? "gestern" : "vor " + days + " Tagen";
+        return days == 1 ? Lang.t("time.yesterday") : Lang.t("time.days_ago", days);
     }
 }

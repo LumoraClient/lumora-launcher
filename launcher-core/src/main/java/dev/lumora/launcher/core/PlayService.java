@@ -6,6 +6,7 @@ import dev.lumora.launcher.core.auth.MinecraftSession;
 import dev.lumora.launcher.core.auth.AccountStore;
 import dev.lumora.launcher.core.config.LauncherConfig;
 import dev.lumora.launcher.core.diagnostics.CrashAnalyzer;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.install.ClientInstaller;
 import dev.lumora.launcher.core.install.ProgressListener;
 import dev.lumora.launcher.core.launch.GameProcess;
@@ -128,7 +129,7 @@ public final class PlayService {
             throw new GameProcess.AlreadyRunningException(instanceId);
         }
         try {
-            setState(listener, State.INSTALLING, "Prüfe Installation…");
+            setState(listener, State.INSTALLING, Lang.t("play.status.checking"));
             ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
             try {
                 // render backend of 26.2+ (Einstellungen › Spiel › Grafik-Backend; "default" leaves options.txt alone)
@@ -144,7 +145,7 @@ public final class PlayService {
                 identity = new LaunchCommandBuilder.Identity("DemoSmokeTest",
                         UUID.nameUUIDFromBytes("lumora-smoke".getBytes()).toString().replace("-", ""), "0", "0", "msa", true);
             } else {
-                setState(listener, State.LOGGING_IN, "Anmeldung wird geprüft…");
+                setState(listener, State.LOGGING_IN, Lang.t("play.status.signing_in"));
                 MinecraftSession session = ensureSession(config, interactiveLogin, cancelled);
                 history.record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.GAME_START, session.uuid(), session.username(),
                         instanceId, Instant.now());
@@ -152,7 +153,7 @@ public final class PlayService {
                         session.xuid(), "msa", false);
             }
 
-            setState(listener, State.LAUNCHING, "Minecraft wird gestartet…");
+            setState(listener, State.LAUNCHING, Lang.t("play.status.launching"));
             List<String> sysProps = new ArrayList<>();
             sysProps.add("-Dlumora.launcher.version=" + BuildInfo.VERSION);
             sysProps.add("-Dlumora.profile=" + instanceId);
@@ -199,7 +200,7 @@ public final class PlayService {
             java.time.Instant started = java.time.Instant.now();
             game.statusFile(statusFile);
             running.set(game);
-            setState(listener, State.PLAYING, "Spiel läuft (PID " + game.pid() + ")");
+            setState(listener, State.PLAYING, Lang.t("play.status.running", game.pid()));
             game.onExit().thenAccept(original -> {
                 running.compareAndSet(game, null);
                 GameProcess.Exit exit = original;
@@ -219,9 +220,9 @@ public final class PlayService {
                 List<CrashAnalyzer.Hint> hints = exit.crashed()
                         ? CrashAnalyzer.analyze(exit.outputLog(), exit.crashReport()) : List.of();
                 if (exit.crashed()) {
-                    setState(listener, State.ERROR, "Minecraft wurde mit Fehlercode " + exit.code() + " beendet.");
+                    setState(listener, State.ERROR, Lang.t("play.status.exit_code", exit.code()));
                 } else {
-                    setState(listener, State.IDLE, "Bereit");
+                    setState(listener, State.IDLE, Lang.t("status.ready"));
                 }
                 listener.gameExited(exit, hints);
             });

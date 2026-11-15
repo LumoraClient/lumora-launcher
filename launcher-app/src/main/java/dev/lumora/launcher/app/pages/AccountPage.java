@@ -4,9 +4,11 @@ import dev.lumora.launcher.app.ui.Avatar;
 import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.SkinViewer;
+import dev.lumora.launcher.app.ui.TabBar;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
 import dev.lumora.launcher.core.auth.AccountStore;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.skin.SkinService;
 import dev.lumora.launcher.core.stats.PlayStats;
 
@@ -55,11 +57,9 @@ public final class AccountPage extends JPanel {
         this.skins = new SkinService(host.ctx().downloader, host.ctx().paths.root().resolve("cache").resolve("skins"));
         setOpaque(false);
         JPanel top = Ui.column();
-        top.add(Ui.pageTitle("Konto", "Konten, Skin, Sicherheit und Verlauf."));
+        top.add(Ui.pageTitle(Lang.t("nav.account"), Lang.t("account.subtitle")));
         top.add(Box.createVerticalStrut(14));
-        tabRow = Ui.segmented(TABS, List.of("Allgemein", "Sicherheit", "Verlauf"),
-                "general", this::showTab);
-        tabRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tabRow = new TabBar(TABS, List.of(Lang.t("account.tab.general"), Lang.t("account.tab.security"), Lang.t("account.tab.history")), "general", this::showTab);
         top.add(tabRow);
         add(top, BorderLayout.NORTH);
 
@@ -73,10 +73,10 @@ public final class AccountPage extends JPanel {
         skinCard.add(viewer, BorderLayout.CENTER);
         JPanel look = new JPanel(new BorderLayout(8, 0));
         look.setOpaque(false);
-        lookup.putClientProperty("JTextField.placeholderText", "Skin eines Spielers ansehen…");
+        lookup.putClientProperty("JTextField.placeholderText", Lang.t("account.skin.lookup"));
         lookup.putClientProperty("JTextField.leadingIcon", Icons.of(Icons.Kind.SEARCH, 16, Theme.MUTED));
         lookup.addActionListener(e -> showByName(lookup.getText()));
-        JButton go = new JButton("Ansehen");
+        JButton go = new JButton(Lang.t("common.view"));
         go.setFocusable(false);
         go.addActionListener(e -> showByName(lookup.getText()));
         look.add(lookup, BorderLayout.CENTER);
@@ -88,8 +88,8 @@ public final class AccountPage extends JPanel {
         JPanel head = new JPanel(new BorderLayout());
         head.setOpaque(false);
         head.setAlignmentX(Component.LEFT_ALIGNMENT);
-        head.add(Ui.sectionTitle("Konten", "das aktive Konto wird beim Spielen verwendet"), BorderLayout.WEST);
-        JButton add = new JButton("Konto hinzufügen", Icons.of(Icons.Kind.PLUS, 15, Color.WHITE));
+        head.add(Ui.sectionTitle(Lang.t("account.accounts"), Lang.t("account.accounts.hint")), BorderLayout.WEST);
+        JButton add = new JButton(Lang.t("account.add"), Icons.of(Icons.Kind.PLUS, 15, Color.WHITE));
         if (!Theme.pixelStyle) {
             add.putClientProperty("JButton.buttonType", "roundRect");
         }
@@ -129,7 +129,7 @@ public final class AccountPage extends JPanel {
     private final HistoryTab historyTab;
 
     private static final List<String> TABS = List.of("general", "security", "history");
-    private JPanel tabRow;
+    private TabBar tabRow;
 
     /** Opens a tab ("general", "security", "history") and marks it in the tab row. */
     public void selectTab(String id) {
@@ -137,9 +137,7 @@ public final class AccountPage extends JPanel {
         if (i < 0) {
             return;
         }
-        if (tabRow.getComponent(i) instanceof javax.swing.AbstractButton b) {
-            b.setSelected(true);
-        }
+        tabRow.select(id);
         showTab(id);
     }
 
@@ -151,8 +149,7 @@ public final class AccountPage extends JPanel {
 
     /** Removes the stored sign-in of an account from this PC (after asking). */
     void removeAccount(AccountStore.Account a) {
-        if (JOptionPane.showConfirmDialog(host.frame(), a.username() + " von diesem PC abmelden? Die gespeicherte Anmeldung wird "
-                + "gelöscht, das Microsoft-Konto selbst bleibt unverändert.", "Abmelden", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("account.remove.confirm", a.username()), Lang.t("account.sign_out"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
         try {
@@ -160,7 +157,7 @@ public final class AccountPage extends JPanel {
             host.ctx().play.history().record(dev.lumora.launcher.core.history.ConnectionHistory.Kind.REMOVED, a.uuid(), a.username(),
                     "", Instant.now());
         } catch (IOException ex) {
-            host.error("Abmelden fehlgeschlagen", ex.getMessage());
+            host.error(Lang.t("account.sign_out.failed"), ex.getMessage());
         }
         host.accountsChanged();
         refresh();
@@ -170,7 +167,7 @@ public final class AccountPage extends JPanel {
         try {
             host.ctx().accounts.setActive(a.uuid());
         } catch (IOException ex) {
-            host.error("Wechsel fehlgeschlagen", ex.getMessage());
+            host.error(Lang.t("account.switch.failed"), ex.getMessage());
         }
         host.accountsChanged();
         refresh();
@@ -195,21 +192,21 @@ public final class AccountPage extends JPanel {
     private JComponent skinTools() {
         JPanel col = Ui.column();
         col.setAlignmentX(Component.LEFT_ALIGNMENT);
-        col.add(Ui.sectionTitle("Skin & Umhang", "für das aktive Konto, direkt bei Mojang"));
+        col.add(Ui.sectionTitle(Lang.t("account.skin_cape"), Lang.t("account.skin_cape.hint")));
         Card c = new Card(new BorderLayout(0, 12));
         c.padding(14, 16, 14, 16);
         c.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel buttons = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
         buttons.setOpaque(false);
-        JButton upload = new JButton("Skin hochladen …", Icons.of(Icons.Kind.SHIRT, 15, Theme.TEXT));
+        JButton upload = new JButton(Lang.t("account.skin.upload_dots"), Icons.of(Icons.Kind.SHIRT, 15, Theme.TEXT));
         upload.setFocusable(false);
         upload.addActionListener(e -> chooseAndUpload());
-        JButton reset = new JButton("Standard-Skin", Icons.of(Icons.Kind.REFRESH, 15, Theme.TEXT));
+        JButton reset = new JButton(Lang.t("account.skin.default"), Icons.of(Icons.Kind.REFRESH, 15, Theme.TEXT));
         reset.setFocusable(false);
         reset.addActionListener(e -> {
-            if (JOptionPane.showConfirmDialog(host.frame(), "Skin auf den Standard (Steve/Alex) zurücksetzen?", "Skin",
+            if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("account.skin.reset.confirm"), Lang.t("account.skin"),
                     JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-                withToken("Setze Skin zurück …", t -> changer().resetSkin(t), "Skin zurückgesetzt.");
+                withToken(Lang.t("account.skin.resetting"), t -> changer().resetSkin(t), Lang.t("account.skin.reset.done"));
             }
         });
         buttons.add(upload);
@@ -217,7 +214,7 @@ public final class AccountPage extends JPanel {
         c.add(buttons, BorderLayout.NORTH);
         JPanel capeRow = new JPanel(new BorderLayout(10, 0));
         capeRow.setOpaque(false);
-        capeRow.add(Ui.label("Umhang", 13.5f, Font.BOLD, Theme.TEXT), BorderLayout.WEST);
+        capeRow.add(Ui.label(Lang.t("account.cape"), 13.5f, Font.BOLD, Theme.TEXT), BorderLayout.WEST);
         capes.setPreferredSize(new Dimension(220, 32));
         capes.addActionListener(e -> {
             if (fillingCapes) {
@@ -225,14 +222,14 @@ public final class AccountPage extends JPanel {
             }
             Object sel = capes.getSelectedItem();
             String id = sel instanceof dev.lumora.launcher.core.skin.SkinChanger.Texture t ? t.id() : null;
-            withToken("Ändere Umhang …", t -> changer().setCape(t, id), id == null ? "Umhang ausgeblendet." : "Umhang geändert.");
+            withToken(Lang.t("account.cape.changing"), t -> changer().setCape(t, id), id == null ? Lang.t("account.cape.hidden") : Lang.t("account.cape.changed"));
         });
         capes.setRenderer(new javax.swing.DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(javax.swing.JList<?> l, Object v, int i, boolean s, boolean f) {
                 super.getListCellRendererComponent(l, v, i, s, f);
                 setText(v instanceof dev.lumora.launcher.core.skin.SkinChanger.Texture t
-                        ? (t.alias() != null ? t.alias() : "Umhang") : String.valueOf(v));
+                        ? (t.alias() != null ? t.alias() : Lang.t("account.cape")) : String.valueOf(v));
                 return this;
             }
         });
@@ -245,7 +242,7 @@ public final class AccountPage extends JPanel {
         c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
         col.add(c);
         col.add(Box.createVerticalStrut(14));
-        col.add(Ui.sectionTitle("Skin-Bibliothek", "gespeicherte Skins mit einem Klick anlegen"));
+        col.add(Ui.sectionTitle(Lang.t("account.skin_library"), Lang.t("account.skin_library.hint")));
         library.setAlignmentX(Component.LEFT_ALIGNMENT);
         col.add(library);
         return col;
@@ -254,7 +251,7 @@ public final class AccountPage extends JPanel {
     private void refreshSkinTools() {
         fillLibrary();
         if (host.ctx().play.storedSession() == null) {
-            skinStatus.setText("Melde dich an, um Skin und Umhang zu ändern.");
+            skinStatus.setText(Lang.t("account.skin.sign_in"));
             fillCapes(null);
             return;
         }
@@ -262,13 +259,13 @@ public final class AccountPage extends JPanel {
             try {
                 var s = host.ctx().play.freshSession(host.ctx().config);
                 if (s == null) {
-                    SwingUtilities.invokeLater(() -> skinStatus.setText("Bitte einmal neu anmelden, um den Skin zu ändern."));
+                    SwingUtilities.invokeLater(() -> skinStatus.setText(Lang.t("account.skin.sign_in_again")));
                     return;
                 }
                 var p = changer().profile(s.accessToken());
                 SwingUtilities.invokeLater(() -> {
                     fillCapes(p);
-                    skinStatus.setText(p.capes().isEmpty() ? "Dieses Konto besitzt keine Umhänge." : p.capes().size() + " Umhang/Umhänge im Besitz.");
+                    skinStatus.setText(p.capes().isEmpty() ? Lang.t("account.cape.none_owned") : Lang.plural("account.cape.owned", p.capes().size()));
                 });
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> skinStatus.setText(e.getMessage()));
@@ -279,7 +276,7 @@ public final class AccountPage extends JPanel {
     private void fillCapes(dev.lumora.launcher.core.skin.SkinChanger.Profile p) {
         fillingCapes = true;
         capes.removeAllItems();
-        capes.addItem("Kein Umhang");
+        capes.addItem(Lang.t("account.cape.none"));
         if (p != null) {
             for (var t : p.capes()) {
                 capes.addItem(t);
@@ -296,8 +293,7 @@ public final class AccountPage extends JPanel {
         library.removeAll();
         var saved = changer().library();
         if (saved.isEmpty()) {
-            library.add(Ui.wrapText("Noch keine Skins gespeichert. Beim Hochladen kannst du einen Skin hier ablegen und später "
-                    + "mit einem Klick wieder anlegen.", 12.5f, Theme.MUTED));
+            library.add(Ui.wrapText(Lang.t("account.skin_library.empty"), 12.5f, Theme.MUTED));
         }
         for (var s : saved) {
             Card row = new Card(new BorderLayout(12, 0));
@@ -307,31 +303,31 @@ public final class AccountPage extends JPanel {
             row.add(new JLabel(face(png)), BorderLayout.WEST);
             JPanel t = Ui.column();
             t.add(Ui.label(s.name(), 14, Font.BOLD, Theme.TEXT));
-            t.add(Ui.label(s.slim() ? "schmal (Alex)" : "breit (Steve)", 12, Font.PLAIN, Theme.MUTED));
+            t.add(Ui.label(s.slim() ? Lang.t("account.skin.slim_short") : Lang.t("account.skin.wide_short"), 12, Font.PLAIN, Theme.MUTED));
             row.add(t, BorderLayout.CENTER);
             JPanel b = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
             b.setOpaque(false);
             JButton view = new JButton(Icons.of(Icons.Kind.USER, 14, Theme.TEXT));
-            view.setToolTipText("Vorschau");
+            view.setToolTipText(Lang.t("account.skin.preview"));
             view.setFocusable(false);
             view.addActionListener(e -> {
                 viewer.setSkin(png, s.slim());
                 skinTitle.setText(s.name());
-                skinHint.setText("Vorschau aus der Bibliothek");
+                skinHint.setText(Lang.t("account.skin.preview_library"));
             });
-            JButton use = new JButton("Anlegen");
+            JButton use = new JButton(Lang.t("account.skin.apply"));
             use.setFocusable(false);
             use.addActionListener(e -> upload(png, s.slim()));
             JButton del = new JButton(Icons.of(Icons.Kind.TRASH, 14, Theme.FAIL));
-            del.setToolTipText("Aus der Bibliothek löschen");
+            del.setToolTipText(Lang.t("account.skin_library.delete_tip"));
             del.setFocusable(false);
             del.addActionListener(e -> {
-                if (JOptionPane.showConfirmDialog(host.frame(), "„" + s.name() + "“ aus der Bibliothek löschen?", "Skin-Bibliothek",
+                if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("account.skin_library.delete.confirm", s.name()), Lang.t("account.skin_library"),
                         JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
                     try {
                         changer().delete(s.id());
                     } catch (IOException ex) {
-                        host.error("Skin-Bibliothek", ex.getMessage());
+                        host.error(Lang.t("account.skin_library"), ex.getMessage());
                     }
                     fillLibrary();
                 }
@@ -373,8 +369,8 @@ public final class AccountPage extends JPanel {
 
     private void chooseAndUpload() {
         javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-        fc.setDialogTitle("Skin auswählen (PNG, 64×64)");
-        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Minecraft-Skin (PNG)", "png"));
+        fc.setDialogTitle(Lang.t("account.skin.choose"));
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(Lang.t("account.skin.file_type"), "png"));
         if (fc.showOpenDialog(host.frame()) != javax.swing.JFileChooser.APPROVE_OPTION) {
             return;
         }
@@ -383,27 +379,27 @@ public final class AccountPage extends JPanel {
             png = java.nio.file.Files.readAllBytes(fc.getSelectedFile().toPath());
             dev.lumora.launcher.core.skin.SkinChanger.checkSkin(png);
         } catch (IOException | IllegalArgumentException e) {
-            host.error("Skin", e.getMessage());
+            host.error(Lang.t("account.skin"), e.getMessage());
             return;
         }
         viewer.setSkin(png, false);
-        javax.swing.JRadioButton classic = new javax.swing.JRadioButton("Breite Arme (Steve)", true);
-        javax.swing.JRadioButton slim = new javax.swing.JRadioButton("Schmale Arme (Alex)");
+        javax.swing.JRadioButton classic = new javax.swing.JRadioButton(Lang.t("account.skin.wide"), true);
+        javax.swing.JRadioButton slim = new javax.swing.JRadioButton(Lang.t("account.skin.slim"));
         javax.swing.ButtonGroup g = new javax.swing.ButtonGroup();
         g.add(classic);
         g.add(slim);
         slim.addActionListener(e -> viewer.setSkin(png, true));
         classic.addActionListener(e -> viewer.setSkin(png, false));
-        javax.swing.JCheckBox keep = new javax.swing.JCheckBox("In der Skin-Bibliothek speichern", true);
+        javax.swing.JCheckBox keep = new javax.swing.JCheckBox(Lang.t("account.skin.keep"), true);
         JTextField name = new JTextField(fc.getSelectedFile().getName().replaceFirst("(?i)\\.png$", ""));
         JPanel form = Ui.column();
-        form.add(Ui.label("Die Vorschau links zeigt den Skin. Modell:", 13, Font.PLAIN, Theme.TEXT));
+        form.add(Ui.label(Lang.t("account.skin.model"), 13, Font.PLAIN, Theme.TEXT));
         form.add(classic);
         form.add(slim);
         form.add(Box.createVerticalStrut(8));
         form.add(keep);
         form.add(name);
-        if (JOptionPane.showConfirmDialog(host.frame(), form, "Skin hochladen", JOptionPane.OK_CANCEL_OPTION,
+        if (JOptionPane.showConfirmDialog(host.frame(), form, Lang.t("account.skin.upload"), JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
             refresh();
             return;
@@ -412,7 +408,7 @@ public final class AccountPage extends JPanel {
             try {
                 changer().save(name.getText(), png, slim.isSelected());
             } catch (IOException | IllegalArgumentException e) {
-                host.error("Skin-Bibliothek", e.getMessage());
+                host.error(Lang.t("account.skin_library"), e.getMessage());
             }
         }
         upload(png, slim.isSelected());
@@ -422,7 +418,7 @@ public final class AccountPage extends JPanel {
         if (png == null) {
             return;
         }
-        withToken("Lade Skin zu Mojang hoch …", t -> changer().upload(t, png, slim), "Skin geändert. Im Spiel sichtbar nach dem nächsten Beitreten.");
+        withToken(Lang.t("account.skin.uploading"), t -> changer().upload(t, png, slim), Lang.t("account.skin.changed"));
         viewer.setSkin(png, slim);
     }
 
@@ -442,7 +438,7 @@ public final class AccountPage extends JPanel {
             try {
                 var s = host.ctx().play.freshSession(host.ctx().config);
                 if (s == null) {
-                    SwingUtilities.invokeLater(() -> skinStatus.setText("Bitte einmal neu anmelden, um den Skin zu ändern."));
+                    SwingUtilities.invokeLater(() -> skinStatus.setText(Lang.t("account.skin.sign_in_again")));
                     return;
                 }
                 var p = call.run(s.accessToken());
@@ -454,7 +450,7 @@ public final class AccountPage extends JPanel {
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
                     skinStatus.setText(" ");
-                    host.error("Skin & Umhang", e.getMessage());
+                    host.error(Lang.t("account.skin_cape"), e.getMessage());
                 });
             }
         });
@@ -474,9 +470,8 @@ public final class AccountPage extends JPanel {
             c.setAlignmentX(Component.LEFT_ALIGNMENT);
             c.add(new JLabel(Icons.of(Icons.Kind.USER, 26, Theme.ACCENT_HOVER)), BorderLayout.WEST);
             JPanel t = Ui.column();
-            t.add(Ui.label("Noch kein Konto", 15, Font.BOLD, Theme.TEXT));
-            t.add(Ui.wrapText("Melde dich mit deinem Microsoft-Konto an, auf dem Minecraft gekauft ist. Du kannst danach "
-                    + "weitere Konten hinzufügen und hier zwischen ihnen wechseln.", 13f, Theme.MUTED));
+            t.add(Ui.label(Lang.t("account.none"), 15, Font.BOLD, Theme.TEXT));
+            t.add(Ui.wrapText(Lang.t("account.none.text"), 13f, Theme.MUTED));
             c.add(t, BorderLayout.CENTER);
             accounts.add(c);
         }
@@ -487,7 +482,7 @@ public final class AccountPage extends JPanel {
         accounts.revalidate();
         accounts.repaint();
         if (active.isPresent()) {
-            showByUuid(active.get().uuid(), active.get().username(), "Aktives Konto");
+            showByUuid(active.get().uuid(), active.get().username(), Lang.t("account.active"));
         } else {
             showDefault();
         }
@@ -507,26 +502,26 @@ public final class AccountPage extends JPanel {
         JPanel line = Ui.row(8);
         line.add(Ui.label(a.username(), 15, Font.BOLD, Theme.TEXT));
         if (active) {
-            line.add(Ui.chip("Aktiv"));
+            line.add(Ui.chip(Lang.t("account.active_chip")));
         }
         t.add(line);
-        JLabel sub = Ui.label("zuletzt verwendet " + PlayStats.ago(a.lastUsed(), Instant.now()), 12, Font.PLAIN, Theme.MUTED);
+        JLabel sub = Ui.label(Lang.t("account.last_used", PlayStats.ago(a.lastUsed(), Instant.now())), 12, Font.PLAIN, Theme.MUTED);
         sub.setToolTipText("UUID " + a.uuid());
         t.add(sub);
         c.add(t, BorderLayout.CENTER);
         JPanel buttons = Ui.row(6);
         JButton skin = new JButton(Icons.of(Icons.Kind.USER, 15, Theme.TEXT));
-        skin.setToolTipText("Skin ansehen");
+        skin.setToolTipText(Lang.t("account.skin.view"));
         skin.setFocusable(false);
-        skin.addActionListener(e -> showByUuid(a.uuid(), a.username(), "Konto"));
+        skin.addActionListener(e -> showByUuid(a.uuid(), a.username(), Lang.t("nav.account")));
         buttons.add(skin);
         if (!active) {
-            JButton use = new JButton("Verwenden");
+            JButton use = new JButton(Lang.t("account.use"));
             use.setFocusable(false);
             use.addActionListener(e -> useAccount(a));
             buttons.add(use);
         }
-        JButton remove = new JButton("Abmelden");
+        JButton remove = new JButton(Lang.t("account.sign_out"));
         remove.setFocusable(false);
         remove.addActionListener(e -> removeAccount(a));
         buttons.add(remove);
@@ -543,13 +538,13 @@ public final class AccountPage extends JPanel {
         }
         int gen = ++generation;
         skinTitle.setText(name.strip());
-        skinHint.setText("Lade Skin…");
+        skinHint.setText(Lang.t("account.skin.loading"));
         io.submit(() -> {
             try {
                 SkinService.Skin s = skins.byName(name.strip());
                 SwingUtilities.invokeLater(() -> {
                     if (gen == generation) {
-                        apply(s, "Spieler");
+                        apply(s, Lang.t("account.player"));
                     }
                 });
             } catch (IOException | RuntimeException e) {
@@ -565,7 +560,7 @@ public final class AccountPage extends JPanel {
     private void showByUuid(String uuid, String name, String label) {
         int gen = ++generation;
         skinTitle.setText(name);
-        skinHint.setText("Lade Skin…");
+        skinHint.setText(Lang.t("account.skin.loading"));
         io.submit(() -> {
             try {
                 SkinService.Skin s = skins.byUuid(uuid);
@@ -577,7 +572,7 @@ public final class AccountPage extends JPanel {
             } catch (IOException | RuntimeException e) {
                 SwingUtilities.invokeLater(() -> {
                     if (gen == generation) {
-                        skinHint.setText("Skin nicht verfügbar: " + e.getMessage());
+                        skinHint.setText(Lang.t("account.skin.unavailable", e.getMessage()));
                         showDefaultSkinOnly();
                     }
                 });
@@ -589,13 +584,13 @@ public final class AccountPage extends JPanel {
         skinTitle.setText(s.name() != null ? s.name() : skinTitle.getText());
         byte[] png = s.png() != null ? s.png() : defaultSkin(s.slim());
         viewer.setSkin(png, s.slim());
-        skinHint.setText(label + "  ·  " + (s.slim() ? "schmale Arme (Alex)" : "klassische Arme (Steve)")
-                + (s.png() == null ? "  ·  Standard-Skin" : "") + "  ·  ziehen zum Drehen");
+        skinHint.setText(label + "  ·  " + (s.slim() ? Lang.t("account.skin.slim_arms") : Lang.t("account.skin.classic_arms"))
+                + (s.png() == null ? "  ·  " + Lang.t("account.skin.default") : "") + "  ·  " + Lang.t("account.skin.drag"));
     }
 
     private void showDefault() {
-        skinTitle.setText("Kein Konto");
-        skinHint.setText("Standard-Skin  ·  ziehen zum Drehen");
+        skinTitle.setText(Lang.t("account.none_short"));
+        skinHint.setText(Lang.t("account.skin.default") + "  ·  " + Lang.t("account.skin.drag"));
         showDefaultSkinOnly();
     }
 

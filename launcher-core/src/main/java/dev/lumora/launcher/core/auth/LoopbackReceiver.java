@@ -2,6 +2,7 @@ package dev.lumora.launcher.core.auth;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Log;
 
 import java.io.IOException;
@@ -88,20 +89,20 @@ final class LoopbackReceiver implements AutoCloseable {
     private void handle(HttpExchange ex) throws IOException {
         try (ex) {
             if (!"GET".equals(ex.getRequestMethod()) || !"/".equals(ex.getRequestURI().getPath())) {
-                respond(ex, 404, page("Nicht gefunden", ""));
+                respond(ex, 404, page(Lang.t("auth.page.not_found"), ""));
                 return;
             }
             Map<String, String> q = parseQuery(ex.getRequestURI().getRawQuery());
             if (!state.equals(q.get("state"))) {
-                respond(ex, 400, page("Ungültige Anfrage", "Diese Anmeldeantwort gehört nicht zur aktuellen Anmeldung."));
+                respond(ex, 400, page(Lang.t("auth.page.bad_request"), Lang.t("auth.page.bad_request.text")));
                 return;
             }
             if (q.containsKey("code")) {
-                respond(ex, 200, page("Anmeldung erfolgreich",
-                        "Du bist angemeldet. Dieses Fenster kann geschlossen werden – zurück zum Lumora Launcher."));
+                respond(ex, 200, page(Lang.t("auth.page.success"),
+                        Lang.t("auth.page.success.text")));
             } else {
-                respond(ex, 200, page("Anmeldung abgebrochen",
-                        "Die Anmeldung wurde nicht abgeschlossen. Du kannst es im Launcher erneut versuchen."));
+                respond(ex, 200, page(Lang.t("auth.page.cancelled"),
+                        Lang.t("auth.page.cancelled.text")));
             }
             result.complete(q);
         }
@@ -122,10 +123,8 @@ final class LoopbackReceiver implements AutoCloseable {
     }
 
     private static String page(String title, String text) {
-        return "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\"><title>Lumora Client – " + title
-                + "</title><style>body{font-family:Segoe UI,sans-serif;background:#1e2227;color:#e6e6e6;display:flex;"
-                + "align-items:center;justify-content:center;height:100vh;margin:0}div{max-width:480px;padding:32px;"
-                + "background:#2b3036;border-radius:12px}h1{color:#13a8c0;font-size:22px}</style></head><body><div><h1>"
+        return "<!doctype html><html lang=\"" + Lang.locale().getLanguage() + "\"><head><meta charset=\"utf-8\"><title>Lumora Client – " + title
+                + "</title><style>body{font-family:Segoe UI,sans-serif;background:#1e2227;color:#e6e6e6;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}div{max-width:480px;padding:32px;background:#2b3036;border-radius:12px}h1{color:#13a8c0;font-size:22px}</style></head><body><div><h1>"
                 + title + "</h1><p>" + text + "</p></div></body></html>";
     }
 

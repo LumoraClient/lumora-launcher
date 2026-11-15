@@ -1,10 +1,14 @@
 package dev.lumora.launcher.app.ui;
 
+import dev.lumora.launcher.core.i18n.Lang;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -33,6 +37,9 @@ import java.util.function.Consumer;
 
 /** Small, shared building blocks of the launcher pages (all in the launcher's dark theme). */
 public final class Ui {
+    /** Height of text fields, dropdowns, buttons and tabs, so controls in one row line up. */
+    public static final int CONTROL_HEIGHT = 34;
+
     private Ui() {
     }
 
@@ -63,7 +70,7 @@ public final class Ui {
     public static JComponent pageTitle(String title, String subtitle) {
         JPanel p = column();
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel t = label(title, 24, Font.BOLD, Theme.TEXT);
+        JLabel t = label(Theme.pixelSafe(title), 24, Font.BOLD, Theme.TEXT);
         t.setFont(Theme.display(32f, Font.BOLD, 24f));
         p.add(t);
         p.add(Box.createVerticalStrut(4));
@@ -73,7 +80,7 @@ public final class Ui {
 
     /** Heading of a panel or dialog (pixel font in the Lumora pixel design). */
     public static JLabel heading(String text) {
-        JLabel l = label(text, 19, Font.BOLD, Theme.TEXT);
+        JLabel l = label(Theme.pixelSafe(text), 19, Font.BOLD, Theme.TEXT);
         l.setFont(Theme.display(16f, Font.BOLD, 19f));
         return l;
     }
@@ -82,7 +89,7 @@ public final class Ui {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel t = label(title, 17, Font.BOLD, Theme.TEXT);
+        JLabel t = label(Theme.pixelSafe(title), 17, Font.BOLD, Theme.TEXT);
         t.setFont(Theme.display(16f, Font.BOLD, 17f));
         p.add(t);
         if (hint != null) {
@@ -253,6 +260,77 @@ public final class Ui {
         return c;
     }
 
+    /** The launcher's button: text, optional icon, {@link #CONTROL_HEIGHT} high. */
+    public static JButton button(String text, Icons.Kind icon, Runnable action) {
+        // only the height is fixed: the width follows the text, also when it changes later ("Show report" / "Hide report")
+        JButton b = new JButton(text, icon == null ? null : Icons.of(icon, 15, Theme.TEXT)) {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(super.getPreferredSize().width, CONTROL_HEIGHT);
+            }
+
+            @Override
+            public Dimension getMinimumSize() {
+                return getPreferredSize();
+            }
+
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+        };
+        b.setFocusable(false);
+        if (!Theme.pixelStyle) {
+            b.putClientProperty("JButton.buttonType", "roundRect");
+        }
+        if (action != null) {
+            b.addActionListener(e -> action.run());
+        }
+        return b;
+    }
+
+    /** "Open folder" - the same button everywhere a folder can be opened. */
+    public static JButton openFolderButton(Runnable action) {
+        return button(Lang.t("common.open_folder"), Icons.Kind.FOLDER, action);
+    }
+
+    /** Dropdown with the launcher's control height. */
+    public static <T> JComboBox<T> dropdown(List<T> items) {
+        JComboBox<T> box = new JComboBox<>(new java.util.Vector<>(items));
+        box.setFocusable(false);
+        box.setMaximumRowCount(16);
+        controlHeight(box);
+        return box;
+    }
+
+    /**
+     * Dropdown for a choice from a long list (game versions): the same job as {@link #segmented}, but never cut off.
+     * {@code onSelect} receives the id of a newly chosen entry.
+     */
+    public static JComboBox<String> choice(List<String> ids, List<String> labels, String selected, Consumer<String> onSelect) {
+        JComboBox<String> box = dropdown(labels);
+        int at = ids.indexOf(selected);
+        if (at >= 0) {
+            box.setSelectedIndex(at);
+        }
+        box.addActionListener(e -> {
+            int i = box.getSelectedIndex();
+            if (i >= 0 && !ids.get(i).equals(selected)) {
+                onSelect.accept(ids.get(i));
+            }
+        });
+        return box;
+    }
+
+    /** Gives a control the shared height ({@link #CONTROL_HEIGHT}) and keeps its preferred width. */
+    public static <C extends JComponent> C controlHeight(C c) {
+        Dimension d = c.getPreferredSize();
+        c.setPreferredSize(new Dimension(d.width, CONTROL_HEIGHT));
+        c.setMinimumSize(new Dimension(Math.min(d.width, c.getMinimumSize().width), CONTROL_HEIGHT));
+        c.setMaximumSize(new Dimension(d.width, CONTROL_HEIGHT));
+        return c;
+    }
+
     /** Segmented selector (one toggle per option); {@code onSelect} receives the chosen id. */
     public static JPanel segmented(List<String> ids, List<String> labels, String selected, Consumer<String> onSelect) {
         JPanel p = row(6);
@@ -266,6 +344,7 @@ public final class Ui {
             b.setFont(Theme.font(Font.BOLD, 13f));
             b.setFocusable(false);
             b.addActionListener(e -> onSelect.accept(id));
+            controlHeight(b);
             group.add(b);
             p.add(b);
         }
@@ -275,7 +354,7 @@ public final class Ui {
     /** "1,2 MB", "830 KB". */
     public static String size(long bytes) {
         if (bytes >= 1024 * 1024) {
-            return String.format(java.util.Locale.GERMANY, "%.1f MB", bytes / 1048576.0);
+            return String.format(Lang.locale(), "%.1f MB", bytes / 1048576.0);
         }
         return Math.max(1, bytes / 1024) + " KB";
     }

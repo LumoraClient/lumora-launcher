@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.lumora.launcher.core.download.UserAgent;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.FileUtil;
 import dev.lumora.launcher.core.util.Json;
 import dev.lumora.launcher.core.util.Log;
@@ -83,8 +84,7 @@ public final class SkinChanger {
         String boundary = "lumora-" + UUID.randomUUID();
         ByteArrayOutputStream body = new ByteArrayOutputStream();
         part(body, boundary, "Content-Disposition: form-data; name=\"variant\"\r\n\r\n" + (slim ? "slim" : "classic"));
-        body.writeBytes(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"skin.png\"\r\n"
-                + "Content-Type: image/png\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+        body.writeBytes(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"skin.png\"\r\nContent-Type: image/png\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
         body.writeBytes(png);
         body.writeBytes(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.US_ASCII));
         return parseProfile(send(token, HttpRequest.newBuilder(URI.create(api + "/skins"))
@@ -114,7 +114,7 @@ public final class SkinChanger {
 
     private String send(String token, HttpRequest.Builder b) throws IOException {
         if (token == null || token.isBlank()) {
-            throw new IOException("Nicht angemeldet");
+            throw new IOException(Lang.t("account.signed_out"));
         }
         HttpRequest req = b.timeout(Duration.ofSeconds(30)).header("Authorization", "Bearer " + token)
                 .header("User-Agent", UserAgent.VALUE).header("Accept", "application/json").build();
@@ -126,11 +126,11 @@ public final class SkinChanger {
             }
             Log.warn("Minecraft profile API " + req.method() + " " + req.uri().getPath() + ": HTTP " + code);
             throw new IOException(switch (code) {
-                case 400 -> "Mojang hat die Datei abgelehnt (kein gültiger Skin).";
-                case 401, 403 -> "Die Anmeldung ist abgelaufen. Bitte einmal neu anmelden.";
-                case 404 -> "Für dieses Konto gibt es kein Minecraft-Profil.";
-                case 429 -> "Zu viele Änderungen in kurzer Zeit. Bitte in ein paar Minuten noch einmal.";
-                default -> "Mojang antwortet mit HTTP " + code + ".";
+                case 400 -> Lang.t("skin.error.400");
+                case 401, 403 -> Lang.t("skin.error.401");
+                case 404 -> Lang.t("skin.error.404");
+                case 429 -> Lang.t("skin.error.429");
+                default -> Lang.t("skin.error.http", code);
             });
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -147,7 +147,7 @@ public final class SkinChanger {
             JsonObject o = JsonParser.parseString(json).getAsJsonObject();
             return new Profile(o.has("name") ? o.get("name").getAsString() : "", textures(o, "skins"), textures(o, "capes"));
         } catch (RuntimeException e) {
-            throw new IOException("Unerwartete Antwort von Mojang: " + e.getMessage());
+            throw new IOException(Lang.t("skin.error.unexpected", e.getMessage()));
         }
     }
 
@@ -177,18 +177,18 @@ public final class SkinChanger {
     /** A Minecraft skin: PNG signature and 64x64 or 64x32 pixels (read from the IHDR chunk), at most {@link #MAX_PNG}. */
     public static void checkSkin(byte[] png) {
         if (png == null || png.length < 33 || png.length > MAX_PNG) {
-            throw new IllegalArgumentException("Ein Skin ist eine PNG-Datei bis 24 KB.");
+            throw new IllegalArgumentException(Lang.t("skin.error.size"));
         }
         byte[] sig = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'};
         for (int i = 0; i < sig.length; i++) {
             if (png[i] != sig[i]) {
-                throw new IllegalArgumentException("Die Datei ist kein PNG-Bild.");
+                throw new IllegalArgumentException(Lang.t("skin.error.not_png"));
             }
         }
         int w = ((png[16] & 0xFF) << 24) | ((png[17] & 0xFF) << 16) | ((png[18] & 0xFF) << 8) | (png[19] & 0xFF);
         int h = ((png[20] & 0xFF) << 24) | ((png[21] & 0xFF) << 16) | ((png[22] & 0xFF) << 8) | (png[23] & 0xFF);
         if (w != 64 || (h != 64 && h != 32)) {
-            throw new IllegalArgumentException("Ein Skin muss 64×64 (oder 64×32) Pixel groß sein, diese Datei hat " + w + "×" + h + ".");
+            throw new IllegalArgumentException(Lang.t("skin.error.dimensions", w, h));
         }
     }
 

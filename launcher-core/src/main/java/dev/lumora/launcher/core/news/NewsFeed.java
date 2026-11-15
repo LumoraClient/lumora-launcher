@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Log;
 
 import java.io.IOException;
@@ -251,7 +252,7 @@ public final class NewsFeed {
             }
         }
         String subtitle = r == null || r.sections().isEmpty() ? null
-                : r.changes() + (r.changes() == 1 ? " Änderung – " : " Änderungen – ") + String.join(", ", r.sections());
+                : Lang.plural("news.changes", r.changes(), String.join(", ", r.sections()));
         return new Article(c.source(), c.id(), c.title(), subtitle, c.date(), "Lumora", "Lumora " + c.version(), c.image(),
                 null, blocks);
     }
@@ -259,7 +260,7 @@ public final class NewsFeed {
     /** Minecraft patch notes with their (already sanitized) HTML body, or a note when they could not be loaded. */
     public static Article patchNotesArticle(Change c, String sanitizedHtml) {
         List<Article.Block> blocks = List.of(sanitizedHtml == null
-                ? Article.Block.paragraph("Die Patch Notes sind gerade nicht erreichbar.")
+                ? Article.Block.paragraph(Lang.t("news.patch_notes_unreachable"))
                 : Article.Block.html(sanitizedHtml));
         return new Article(Source.MINECRAFT, c.id(), c.title(), "Minecraft: Java Edition " + c.version(), c.date(),
                 "Mojang", c.snapshot() ? "Snapshot" : "Release", c.image(), null, blocks);
@@ -353,7 +354,7 @@ public final class NewsFeed {
         String name = "pn-" + u.getPath().replaceAll("[^A-Za-z0-9._-]", "_");
         String json = fetchCached(u.getPath(), name);
         if (json == null) {
-            throw new IOException("Patch Notes nicht erreichbar");
+            throw new IOException(Lang.t("news.patch_notes_unreachable_short"));
         }
         return str(JsonParser.parseString(json).getAsJsonObject(), "body");
     }

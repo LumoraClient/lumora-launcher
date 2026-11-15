@@ -3,6 +3,7 @@ package dev.lumora.launcher.core.integrations;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,9 +53,9 @@ public record GameStatus(State state, String server, long since, String version)
     public DiscordPresence.Activity activity(String flavor, String fallbackVersion, long gameStarted, boolean showServer) {
         String v = version.isEmpty() ? fallbackVersion : version;
         String line = switch (state) {
-            case MENU -> "Im Hauptmenü";
-            case SINGLEPLAYER -> "Einzelspieler";
-            case MULTIPLAYER -> showServer && !server.isEmpty() ? "auf " + server : "Mehrspieler";
+            case MENU -> Lang.t("presence.menu");
+            case SINGLEPLAYER -> Lang.t("presence.singleplayer");
+            case MULTIPLAYER -> showServer && !server.isEmpty() ? Lang.t("presence.discord.on_server", server) : Lang.t("presence.multiplayer");
         };
         long start = state == State.MENU || since <= 0 ? gameStarted : since;
         return new DiscordPresence.Activity(flavor + " " + v, line, start);

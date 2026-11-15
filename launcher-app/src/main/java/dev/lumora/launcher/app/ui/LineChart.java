@@ -1,5 +1,7 @@
 package dev.lumora.launcher.app.ui;
 
+import dev.lumora.launcher.core.i18n.Lang;
+
 import javax.swing.JComponent;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -13,7 +15,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Small line chart in the launcher theme: x = runs in order, one or more series, y from 0 to a rounded maximum.
@@ -87,7 +88,7 @@ public final class LineChart extends JComponent {
             g.setColor(Theme.alpha(Theme.BORDER, 160));
             g.drawLine(left, y, left + w, y);
             g.setColor(Theme.MUTED);
-            String t = String.format(Locale.GERMANY, "%.0f", max * i / 4);
+            String t = String.format(Lang.locale(), "%.0f", max * i / 4);
             g.drawString(t, left - 8 - g.getFontMetrics().stringWidth(t), y + 4);
         }
         g.drawString(unit, 4, top - 10);
@@ -148,7 +149,7 @@ public final class LineChart extends JComponent {
             StringBuilder sb = new StringBuilder(labels.get(hover));
             for (Series s : series) {
                 if (hover < s.values.length) {
-                    sb.append("   ").append(s.name).append(": ").append(String.format(Locale.GERMANY, "%.0f", s.values[hover]));
+                    sb.append("   ").append(s.name).append(": ").append(String.format(Lang.locale(), "%.0f", s.values[hover]));
                 }
             }
             String t = sb.toString();

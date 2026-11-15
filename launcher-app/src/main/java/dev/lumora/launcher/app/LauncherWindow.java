@@ -27,6 +27,7 @@ import dev.lumora.launcher.core.auth.MinecraftSession;
 import dev.lumora.launcher.core.config.LauncherConfig;
 import dev.lumora.launcher.core.diagnostics.CrashAnalyzer;
 import dev.lumora.launcher.core.diagnostics.SystemCheck;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.launch.GameProcess;
 import dev.lumora.launcher.core.profile.ProfileCatalog;
 import dev.lumora.launcher.core.crash.CrashReport;
@@ -197,8 +198,7 @@ final class LauncherWindow implements PageHost {
         gameStatusTimer.start();
         updateNewsBadge();
         if (ctx.configLoad.recoveredFromCorruption()) {
-            JOptionPane.showMessageDialog(frame, "Die Einstellungsdatei war beschädigt und wurde auf Standardwerte zurückgesetzt.\n"
-                    + "Sicherung: " + ctx.configLoad.backup(), BuildInfo.NAME, JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(frame, Lang.t("config.corrupt", ctx.configLoad.backup()), BuildInfo.NAME, JOptionPane.WARNING_MESSAGE);
         }
         runSystemCheck();
         if (ctx.config.checkForUpdates) {
@@ -222,7 +222,7 @@ final class LauncherWindow implements PageHost {
         return frame;
     }
 
-    /** Used by documentation screenshots; "account/security" or "settings/Spiel" also open a tab or category. */
+    /** Used by documentation screenshots; "account/security" or "settings/game" also open a tab or category. */
     @Override
     public void showPage(String id) {
         int slash = id.indexOf('/');
@@ -327,7 +327,7 @@ final class LauncherWindow implements PageHost {
 
             @Override
             public void memoryChanged() {
-                statRam.setText(String.format("%.1f GB für das Spiel", ctx.config.maxMemoryMb / 1024.0));
+                statRam.setText(Lang.t("home.stat.ram_value", String.format(Lang.locale(), "%.1f", ctx.config.maxMemoryMb / 1024.0)));
             }
 
             @Override
@@ -365,18 +365,18 @@ final class LauncherWindow implements PageHost {
                 crashPage.refresh();
             }
         });
-        nav.addItem("home", "Startseite", Icons.Kind.HOME);
-        nav.addItem("browser", "Entdecken", Icons.Kind.SEARCH);
-        nav.addItem("performance", "Performance", Icons.Kind.CHART);
-        nav.addItem("library", "Bibliothek", Icons.Kind.LIBRARY);
-        nav.addItem("account", "Konto", Icons.Kind.USER);
-        nav.addItem("settings", "Einstellungen", Icons.Kind.GEAR);
+        nav.addItem("home", Lang.t("nav.home_page"), Icons.Kind.HOME);
+        nav.addItem("browser", Lang.t("nav.browser"), Icons.Kind.SEARCH);
+        nav.addItem("performance", Lang.t("nav.performance"), Icons.Kind.CHART);
+        nav.addItem("library", Lang.t("nav.library"), Icons.Kind.LIBRARY);
+        nav.addItem("account", Lang.t("nav.account"), Icons.Kind.USER);
+        nav.addItem("settings", Lang.t("settings.title"), Icons.Kind.GEAR);
         nav.addSeparator();
-        nav.addItem("social", "Freunde", Icons.Kind.USERS);
-        nav.addItem("servers", "Server", Icons.Kind.GLOBE);
-        nav.addItem("news", "News", Icons.Kind.NEWS);
+        nav.addItem("social", Lang.t("nav.social"), Icons.Kind.USERS);
+        nav.addItem("servers", Lang.t("nav.servers"), Icons.Kind.GLOBE);
+        nav.addItem("news", Lang.t("nav.news"), Icons.Kind.NEWS);
         nav.addGlue();
-        nav.addItem("crashes", "Abstürze", Icons.Kind.ALERT);
+        nav.addItem("crashes", Lang.t("nav.crashes"), Icons.Kind.ALERT);
         nav.addModeToggle(on -> {
             ctx.config.navIconsOnly = on;
             saveConfigQuietly();
@@ -430,7 +430,7 @@ final class LauncherWindow implements PageHost {
         page.add(hero());
 
         page.add(Box.createVerticalStrut(22));
-        page.add(sectionTitle("System", null));
+        page.add(sectionTitle(Lang.t("home.system"), null));
         JPanel stats = new JPanel(new GridBagLayout());
         stats.setOpaque(false);
         statGpu = new JLabel("…");
@@ -442,10 +442,10 @@ final class LauncherWindow implements PageHost {
         sc.fill = GridBagConstraints.BOTH;
         sc.weighty = 1;
         Object[][] tiles4 = {
-                {statTile(Icons.Kind.MONITOR, "Grafikkarte", statGpu, null), 1.6},
+                {statTile(Icons.Kind.MONITOR, Lang.t("home.stat.gpu"), statGpu, null), 1.6},
                 {statTile(Icons.Kind.CHIP, "Minecraft", statVersion, null), 1.0},
-                {statTile(Icons.Kind.MEMORY, "Arbeitsspeicher", statRam, null), 1.15},
-                {statTile(Icons.Kind.PUZZLE, "Erweiterungen", statExtensions, statUpdates), 1.15}};
+                {statTile(Icons.Kind.MEMORY, Lang.t("home.stat.ram"), statRam, null), 1.15},
+                {statTile(Icons.Kind.PUZZLE, Lang.t("home.stat.extensions"), statExtensions, statUpdates), 1.15}};
         for (int i = 0; i < tiles4.length; i++) {
             sc.gridx = i;
             sc.weightx = (Double) tiles4[i][1];
@@ -523,7 +523,7 @@ final class LauncherWindow implements PageHost {
         int wordmarkHeight = Theme.pixelStyle ? 80 : 66;
         wordmark.setPreferredSize(new Dimension(420, wordmarkHeight));
         wordmark.setMaximumSize(new Dimension(Integer.MAX_VALUE, wordmarkHeight));
-        JLabel slogan = label("Dein All-in-One Minecraft Client", 18, Font.PLAIN, new Color(0xDCE7FA));
+        JLabel slogan = label(Lang.t("home.slogan"), 18, Font.PLAIN, new Color(0xDCE7FA));
         slogan.setHorizontalAlignment(SwingConstants.CENTER);
         for (JComponent c : List.of(logo, wordmark, slogan)) {
             c.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -538,20 +538,20 @@ final class LauncherWindow implements PageHost {
         controls.setOpaque(false);
         JPanel split = new JPanel(new BorderLayout(0, 0));
         split.setOpaque(false);
-        heroPlay = new PlayButton("Spiel starten").split();
+        heroPlay = new PlayButton(Lang.t("play.start_game")).split();
         heroPlay.setPreferredSize(new Dimension(290, 56));
         heroPlay.addActionListener(e -> startPlay(false));
         heroArrow = new PlayButton.Arrow();
-        heroArrow.setToolTipText("Version und Startart wählen");
+        heroArrow.setToolTipText(Lang.t("play.choose_version"));
         heroArrow.addActionListener(e -> showVersionMenu());
         split.add(heroPlay, BorderLayout.CENTER);
         split.add(heroArrow, BorderLayout.EAST);
         controls.add(split);
-        controls.add(heroButton(Icons.Kind.FOLDER, "Spielordner öffnen",
+        controls.add(heroButton(Icons.Kind.FOLDER, Lang.t("home.open_game_dir"),
                 () -> open(ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id)))));
-        controls.add(heroButton(Icons.Kind.GEAR, "Einstellungen", () -> showPage("settings")));
+        controls.add(heroButton(Icons.Kind.GEAR, Lang.t("settings.title"), () -> showPage("settings")));
         JButton[] more = new JButton[1];
-        more[0] = heroButton(Icons.Kind.MORE, "Mehr", () -> moreMenu().show(more[0], 0, more[0].getHeight()));
+        more[0] = heroButton(Icons.Kind.MORE, Lang.t("common.more"), () -> moreMenu().show(more[0], 0, more[0].getHeight()));
         controls.add(more[0]);
         controls.setAlignmentX(Component.CENTER_ALIGNMENT);
         controls.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
@@ -630,7 +630,7 @@ final class LauncherWindow implements PageHost {
                 }
                 quickPlayBar.removeAll();
                 if (!servers.isEmpty()) {
-                    JLabel title = label("QUICK PLAY", 11, Font.BOLD, Theme.ACCENT_HOVER);
+                    JLabel title = label(Lang.t("home.quick_play"), 11, Font.BOLD, Theme.ACCENT_HOVER);
                     title.setFont(Theme.display(16f, Font.BOLD, 11f));
                     title.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 8));
                     quickPlayBar.add(title);
@@ -644,7 +644,7 @@ final class LauncherWindow implements PageHost {
                         b.setIconTextGap(7);
                         b.setFocusable(false);
                         b.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                        b.setToolTipText("Direkt auf " + s.address() + " spielen");
+                        b.setToolTipText(Lang.t("home.quick_play.tip", s.address()));
                         b.addActionListener(e -> launch(new LaunchCommandBuilder.QuickPlay(LaunchCommandBuilder.QuickPlay.Kind.MULTIPLAYER, s.address()), false));
                         quickPlayBar.add(b);
                     }
@@ -687,8 +687,8 @@ final class LauncherWindow implements PageHost {
         int all = ctx.catalog.profiles().size();
         int shown = ctx.visibleProfiles().size();
         return shown < all
-                ? shown + " von " + all + " Versionen · weitere unter Einstellungen › Spiel"
-                : all + " Versionen · Standard-Ordner oder eigene Instanz";
+                ? Lang.t("versions.shown_of", shown, all)
+                : Lang.t("versions.all", all);
     }
 
     /** Content of the version menu; {@code close} hides the menu. */
@@ -698,7 +698,7 @@ final class LauncherWindow implements PageHost {
         body.setBackground(Theme.SURFACE);
         body.setBorder(BorderFactory.createEmptyBorder(14, 16, 14, 16));
 
-        JLabel title = label("Version wählen", 15, Font.BOLD, Theme.TEXT);
+        JLabel title = label(Lang.t("versions.choose"), 15, Font.BOLD, Theme.TEXT);
         body.add(title);
         body.add(Box.createVerticalStrut(2));
         body.add(label(versionCountText(), 12, Font.PLAIN, Theme.MUTED));
@@ -720,8 +720,8 @@ final class LauncherWindow implements PageHost {
             b.setFocusable(false);
             b.setIconTextGap(7);
             b.setToolTipText(switch (fl) {
-                case LUMORA -> "Lumora-Oberfläche, Performance-Mods und Addons";
-                case VANILLA -> "Reines Minecraft ohne Mods, eigener Spielordner";
+                case LUMORA -> Lang.t("flavor.lumora.desc");
+                case VANILLA -> Lang.t("flavor.vanilla.desc");
             });
             b.addActionListener(e -> {
                 setFlavor(fl);
@@ -742,7 +742,7 @@ final class LauncherWindow implements PageHost {
             boolean recommended = p.id.equals(ctx.catalog.defaultProfile());
             String played = playInfo.get(p.id);
             list.add(new VersionGrid.Version(p.id, p.minecraftVersion, "<html><b>Minecraft " + p.minecraftVersion + "</b>"
-                    + (recommended ? "  ·  Empfohlene Version" : "") + "<br>Lumora Loader"
+                    + (recommended ? "  ·  " + Lang.t("versions.recommended") : "") + "<br>Lumora Loader"
                     + (played == null ? "" : "<br>" + played) + "</html>"));
         }
         VersionGrid grid = new VersionGrid(list, id -> ctx.gameDir(id).resolve("screenshots"), id -> {
@@ -758,7 +758,7 @@ final class LauncherWindow implements PageHost {
         body.add(grid);
 
         body.add(Box.createVerticalStrut(12));
-        JButton repair = new JButton("Dateien prüfen und starten", Icons.of(Icons.Kind.CHECK, 14, Theme.TEXT));
+        JButton repair = new JButton(Lang.t("versions.repair"), Icons.of(Icons.Kind.CHECK, 14, Theme.TEXT));
         repair.setFocusable(false);
         repair.setAlignmentX(Component.LEFT_ALIGNMENT);
         repair.addActionListener(e -> {
@@ -780,10 +780,10 @@ final class LauncherWindow implements PageHost {
         JPanel modes = new JPanel(new GridLayout(1, 2, 6, 0));
         modes.setOpaque(false);
         modes.setAlignmentX(Component.LEFT_ALIGNMENT);
-        javax.swing.JToggleButton standard = new javax.swing.JToggleButton("Standard-Ordner", Icons.of(Icons.Kind.FOLDER, 14, Theme.TEXT));
-        javax.swing.JToggleButton own = new javax.swing.JToggleButton("Eigene Instanz", Icons.of(Icons.Kind.ARCHIVE, 14, Theme.TEXT));
-        standard.setToolTipText("Wie Minecraft selbst: Welten, Ressourcenpakete, Screenshots und Optionen teilen sich alle Versionen und Vanilla");
-        own.setToolTipText("Eigener Ordner nur für diese Version (instances/<Version>)");
+        javax.swing.JToggleButton standard = new javax.swing.JToggleButton(Lang.t("instance.default"), Icons.of(Icons.Kind.FOLDER, 14, Theme.TEXT));
+        javax.swing.JToggleButton own = new javax.swing.JToggleButton(Lang.t("instance.own"), Icons.of(Icons.Kind.ARCHIVE, 14, Theme.TEXT));
+        standard.setToolTipText(Lang.t("instance.default.tip"));
+        own.setToolTipText(Lang.t("instance.own.tip"));
         javax.swing.ButtonGroup g = new javax.swing.ButtonGroup();
         for (javax.swing.JToggleButton b : List.of(standard, own)) {
             b.setFont(Theme.font(Font.BOLD, 12.5f));
@@ -795,7 +795,7 @@ final class LauncherWindow implements PageHost {
         modes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         box.add(modes);
         box.add(Box.createVerticalStrut(6));
-        javax.swing.JCheckBox shared = new javax.swing.JCheckBox("Lumora-Einstellungen, HUD und Addons mit allen Versionen teilen");
+        javax.swing.JCheckBox shared = new javax.swing.JCheckBox(Lang.t("instance.share_settings"));
         shared.setOpaque(false);
         shared.setFocusable(false);
         shared.setFont(Theme.font(Font.PLAIN, 12.5f));
@@ -812,8 +812,8 @@ final class LauncherWindow implements PageHost {
             own.setSelected(l.own());
             shared.setSelected(l.sharedSettings());
             shared.setVisible(currentFlavor() == dev.lumora.launcher.core.profile.Flavor.LUMORA);
-            where.setText("Spielordner: " + l.gameDir());
-            where.setToolTipText("Lumora-Einstellungen: " + l.configDir());
+            where.setText(Lang.t("instance.game_dir", l.gameDir()));
+            where.setToolTipText(Lang.t("instance.config_dir", l.configDir()));
         };
         standard.addActionListener(e -> {
             setInstanceChoice(false, shared.isSelected());
@@ -839,7 +839,7 @@ final class LauncherWindow implements PageHost {
             return;
         }
         if (ctx.play.runningGame().isPresent()) {
-            error("Spielordner", "Minecraft läuft gerade. Beende das Spiel, dann wähle den Spielordner.");
+            error(Lang.t("instance.game_dir.title"), Lang.t("instance.game_running"));
             return;
         }
         ctx.config.instances.put(id, new dev.lumora.launcher.core.config.LauncherConfig.InstanceChoice(own, shared));
@@ -860,17 +860,17 @@ final class LauncherWindow implements PageHost {
     private javax.swing.JPopupMenu moreMenu() {
         javax.swing.JPopupMenu m = new javax.swing.JPopupMenu();
         Object[][] items = {
-                {"Logs", Icons.Kind.TERMINAL, "logs"},
-                {"Diagnose", Icons.Kind.PULSE, "diagnostics"},
-                {"Abstürze", Icons.Kind.ALERT, "crashes"},
-                {"Performance", Icons.Kind.CHART, "performance"}};
+                {Lang.t("settings.debug.logs.title"), Icons.Kind.TERMINAL, "logs"},
+                {Lang.t("settings.debug.diag.title"), Icons.Kind.PULSE, "diagnostics"},
+                {Lang.t("nav.crashes"), Icons.Kind.ALERT, "crashes"},
+                {Lang.t("nav.performance"), Icons.Kind.CHART, "performance"}};
         for (Object[] it : items) {
             javax.swing.JMenuItem mi = new javax.swing.JMenuItem((String) it[0], Icons.of((Icons.Kind) it[1], 14, Theme.TEXT));
             mi.addActionListener(e -> showPage((String) it[2]));
             m.add(mi);
         }
         m.addSeparator();
-        javax.swing.JMenuItem upd = new javax.swing.JMenuItem("Nach Updates suchen", Icons.of(Icons.Kind.REFRESH, 14, Theme.TEXT));
+        javax.swing.JMenuItem upd = new javax.swing.JMenuItem(Lang.t("update.check_menu"), Icons.of(Icons.Kind.REFRESH, 14, Theme.TEXT));
         upd.addActionListener(e -> checkUpdates());
         m.add(upd);
         return m;
@@ -941,11 +941,11 @@ final class LauncherWindow implements PageHost {
             lastGameStatus = gameStatus(running.get());
             a = lastGameStatus != null
                     ? lastGameStatus.activity("Lumora", p.minecraftVersion, gameStarted, ctx.config.discordShowServer)
-                    : new dev.lumora.launcher.core.integrations.DiscordPresence.Activity("Spielt Minecraft " + p.minecraftVersion,
+                    : new dev.lumora.launcher.core.integrations.DiscordPresence.Activity(Lang.t("discord.playing", p.minecraftVersion),
                     currentFlavor().label(), gameStarted);
         } else {
             lastGameStatus = null;
-            a = new dev.lumora.launcher.core.integrations.DiscordPresence.Activity("Im Launcher", "Lumora " + BuildInfo.VERSION, launcherStarted);
+            a = new dev.lumora.launcher.core.integrations.DiscordPresence.Activity(Lang.t("discord.in_launcher"), "Lumora " + BuildInfo.VERSION, launcherStarted);
         }
         discord.update(a);
     }
@@ -984,7 +984,7 @@ final class LauncherWindow implements PageHost {
                     heroChips.add(chip("Lumora-UI"));
                 }
             } else {
-                heroChips.add(chip(ctx.layout(fl.instanceId(p.id)).own() ? "eigene Instanz" : "Standard-Ordner"));
+                heroChips.add(chip(ctx.layout(fl.instanceId(p.id)).own() ? Lang.t("instance.own.chip") : Lang.t("instance.default")));
             }
             heroChips.revalidate();
             heroChips.repaint();
@@ -1051,7 +1051,7 @@ final class LauncherWindow implements PageHost {
     private void updateExtensionStat() {
         if (statExtensions != null) {
             int n = ctx.config.enabledExtensions.size();
-            statExtensions.setText(n == 0 ? "keine aktiv" : n + " aktiv");
+            statExtensions.setText(n == 0 ? Lang.t("home.stat.extensions_none") : Lang.t("home.stat.extensions_active", n));
         }
     }
 
@@ -1075,8 +1075,8 @@ final class LauncherWindow implements PageHost {
         avatar = new Avatar(42);
         account.add(avatar, BorderLayout.WEST);
         JPanel accText = column();
-        accountName = label("Nicht angemeldet", 14, Font.BOLD, Theme.TEXT);
-        accountHint = label("Anmelden", 12, Font.PLAIN, Theme.ACCENT_HOVER);
+        accountName = label(Lang.t("account.signed_out"), 14, Font.BOLD, Theme.TEXT);
+        accountHint = label(Lang.t("account.sign_in"), 12, Font.PLAIN, Theme.ACCENT_HOVER);
         accountHint.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         accountHint.addMouseListener(new MouseAdapter() {
             @Override
@@ -1097,7 +1097,7 @@ final class LauncherWindow implements PageHost {
         // status (center)
         JPanel status = new JPanel(new GridBagLayout());
         status.setOpaque(false);
-        statusLabel = label("Bereit", 13, Font.PLAIN, Theme.MUTED);
+        statusLabel = label(Lang.t("status.ready"), 13, Font.PLAIN, Theme.MUTED);
         progress = new JProgressBar(0, 1000);
         progress.setPreferredSize(new Dimension(10, 6));
         progress.setVisible(false);
@@ -1138,11 +1138,11 @@ final class LauncherWindow implements PageHost {
                 selectProfile(sel.id);
             }
         });
-        stopButton = new JButton("Beenden");
+        stopButton = new JButton(Lang.t("play.stop"));
         stopButton.setVisible(false);
         stopButton.setPreferredSize(new Dimension(100, 40));
         stopButton.addActionListener(e -> ctx.play.runningGame().ifPresent(g -> worker.submit(() -> g.stop(java.time.Duration.ofSeconds(15)))));
-        playButton = new PlayButton("Spielen");
+        playButton = new PlayButton(Lang.t("play.play"));
         playButton.addActionListener(e -> startPlay(false));
         right.add(profileBox);
         right.add(stopButton);
@@ -1155,11 +1155,11 @@ final class LauncherWindow implements PageHost {
         MinecraftSession s = ctx.play.storedSession();
         if (s != null) {
             accountName.setText(s.username());
-            accountHint.setText(ctx.accounts.list().size() > 1 ? "Konto wechseln" : "Konten verwalten");
+            accountHint.setText(ctx.accounts.list().size() > 1 ? Lang.t("account.switch") : Lang.t("account.manage"));
             avatar.setPlayer(s.username(), s.uuid());
         } else {
-            accountName.setText("Nicht angemeldet");
-            accountHint.setText("Mit Microsoft anmelden");
+            accountName.setText(Lang.t("account.signed_out"));
+            accountHint.setText(Lang.t("account.sign_in_microsoft"));
             avatar.setPlayer(null, null);
         }
         if (social != null) {
@@ -1168,14 +1168,14 @@ final class LauncherWindow implements PageHost {
     }
 
     private void signOut() {
-        if (JOptionPane.showConfirmDialog(frame, "Abmelden? Beim nächsten Start ist eine neue Anmeldung nötig.",
+        if (JOptionPane.showConfirmDialog(frame, Lang.t("account.sign_out.confirm"),
                 BuildInfo.NAME, JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
         try {
             ctx.play.signOut();
         } catch (IOException ex) {
-            error("Abmelden fehlgeschlagen", ex.getMessage());
+            error(Lang.t("account.sign_out.failed"), ex.getMessage());
         }
         refreshAccount();
     }
@@ -1186,20 +1186,20 @@ final class LauncherWindow implements PageHost {
         }
         LoginFlow flow = new LoginFlow(frame, ctx);
         currentLogin = flow;
-        statusLabel.setText("Anmeldung im Browser …");
+        statusLabel.setText(Lang.t("account.signing_in_browser"));
         worker.submit(() -> {
             try {
                 MinecraftSession s = ctx.play.signIn(ctx.config, flow.interactive(), flow.cancelled());
-                SwingUtilities.invokeLater(() -> statusLabel.setText("Angemeldet als " + s.username()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText(Lang.t("account.signed_in_as", s.username())));
             } catch (AuthException e) {
                 SwingUtilities.invokeLater(() -> {
-                    statusLabel.setText("Bereit");
+                    statusLabel.setText(Lang.t("status.ready"));
                     if (e.reason() != AuthException.Reason.CANCELLED) {
-                        error("Anmeldung fehlgeschlagen", e.getMessage());
+                        error(Lang.t("account.sign_in.failed"), e.getMessage());
                     }
                 });
             } catch (IOException e) {
-                SwingUtilities.invokeLater(() -> error("Anmeldung fehlgeschlagen", e.getMessage()));
+                SwingUtilities.invokeLater(() -> error(Lang.t("account.sign_in.failed"), e.getMessage()));
             } finally {
                 busy.set(false);
                 SwingUtilities.invokeLater(() -> {
@@ -1239,8 +1239,7 @@ final class LauncherWindow implements PageHost {
 
     private void startPlay(boolean repair, LaunchCommandBuilder.QuickPlay quickPlay) {
         if (ctx.play.runningGame().isPresent() && !ctx.config.multipleInstances) {
-            JOptionPane.showMessageDialog(frame, "Minecraft läuft bereits. Mehrere Instanzen lassen sich unter "
-                    + "Einstellungen → Spiel erlauben.", BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(frame, Lang.t("play.already_running"), BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         if (!busy.compareAndSet(false, true)) {
@@ -1250,7 +1249,7 @@ final class LauncherWindow implements PageHost {
         dev.lumora.launcher.core.profile.Flavor flavor = currentFlavor();
         LoginFlow flow = new LoginFlow(frame, ctx);
         currentLogin = flow;
-        setPlay("Vorbereiten …", false);
+        setPlay(Lang.t("play.preparing"), false);
         progress.setVisible(true);
         worker.submit(() -> {
             try {
@@ -1272,7 +1271,7 @@ final class LauncherWindow implements PageHost {
                     flow.closeDialogs();
                     resetPlayButton();
                     if (e.reason() != AuthException.Reason.CANCELLED) {
-                        error("Anmeldung fehlgeschlagen", e.getMessage());
+                        error(Lang.t("account.sign_in.failed"), e.getMessage());
                     }
                 });
             } catch (Exception e) {
@@ -1280,7 +1279,7 @@ final class LauncherWindow implements PageHost {
                 SwingUtilities.invokeLater(() -> {
                     flow.closeDialogs();
                     resetPlayButton();
-                    error("Start fehlgeschlagen", e.getMessage() + "\n\nDetails: " + Log.file());
+                    error(Lang.t("play.failed"), Lang.t("play.failed_details", e.getMessage(), Log.file()));
                 });
             } finally {
                 busy.set(false);
@@ -1295,11 +1294,11 @@ final class LauncherWindow implements PageHost {
                 SwingUtilities.invokeLater(() -> {
                     statusLabel.setText(message);
                     switch (state) {
-                        case INSTALLING -> setPlay("Installiere …", false);
-                        case LOGGING_IN -> setPlay("Anmeldung …", false);
-                        case LAUNCHING -> setPlay("Starte …", false);
+                        case INSTALLING -> setPlay(Lang.t("play.installing"), false);
+                        case LOGGING_IN -> setPlay(Lang.t("play.signing_in"), false);
+                        case LAUNCHING -> setPlay(Lang.t("play.launching"), false);
                         case PLAYING -> {
-                            setPlay(ctx.config.multipleInstances ? "Spielen" : "Läuft", ctx.config.multipleInstances);
+                            setPlay(ctx.config.multipleInstances ? Lang.t("play.play") : Lang.t("play.running"), ctx.config.multipleInstances);
                             setButtonProgress(-1);
                             progress.setVisible(false);
                             stopButton.setVisible(true);
@@ -1355,7 +1354,7 @@ final class LauncherWindow implements PageHost {
         playButton.setText(text);
         playButton.setEnabled(enabled);
         if (heroPlay != null) {
-            heroPlay.setText(text.equals("Spielen") ? "Spiel starten" : text);
+            heroPlay.setText(text.equals(Lang.t("play.play")) ? Lang.t("play.start_game") : text);
             heroPlay.setEnabled(enabled);
             heroArrow.setEnabled(enabled);
         }
@@ -1371,7 +1370,7 @@ final class LauncherWindow implements PageHost {
     private void resetPlayButton() {
         boolean running = ctx.play.runningGame().isPresent();
         // several instances: the play button stays usable while a game runs
-        setPlay(running && !ctx.config.multipleInstances ? "Läuft" : "Spielen", !running || ctx.config.multipleInstances);
+        setPlay(running && !ctx.config.multipleInstances ? Lang.t("play.running") : Lang.t("play.play"), !running || ctx.config.multipleInstances);
         stopButton.setVisible(running);
         setButtonProgress(-1);
         progress.setIndeterminate(false);
@@ -1403,7 +1402,7 @@ final class LauncherWindow implements PageHost {
         try {
             Desktop.getDesktop().browse(java.net.URI.create(url));
         } catch (IOException | UnsupportedOperationException | IllegalArgumentException e) {
-            error("Link kann nicht geöffnet werden", url + "\n" + e.getMessage());
+            error(Lang.t("error.open_link"), url + "\n" + e.getMessage());
         }
     }
 
@@ -1446,16 +1445,16 @@ final class LauncherWindow implements PageHost {
             SwingUtilities.invokeLater(() -> {
                 frame.setState(JFrame.NORMAL);
                 StringBuilder sb = new StringBuilder();
-                sb.append(r != null ? r.description() : "Minecraft wurde unerwartet beendet").append(" (Code ").append(exit.code()).append(")\n");
+                sb.append(r != null ? r.description() : Lang.t("crash.dialog.exited")).append(" (Code ").append(exit.code()).append(")\n");
                 if (r != null && r.exception() != null) {
                     sb.append('\n').append(r.exception()).append('\n');
                 }
                 if (r != null && !r.suspects().isEmpty()) {
                     CrashReport.Suspect s = r.suspects().getFirst();
-                    sb.append("\nWahrscheinliche Ursache: ").append(s.name()).append("\n(").append(s.reason()).append(")\n");
+                    sb.append("\n" + Lang.t("crash.dialog.cause")).append(" ").append(s.name()).append("\n(").append(s.reason()).append(")\n");
                 }
                 for (CrashAnalyzer.Hint h : r != null ? r.hints() : hints) {
-                    sb.append("\nTipp – ").append(h.title()).append(": ").append(h.advice());
+                    sb.append("\n" + Lang.t("crash.dialog.tip")).append(" ").append(h.title()).append(": ").append(h.advice());
                 }
                 JTextArea text = new JTextArea(sb.toString().strip());
                 text.setEditable(false);
@@ -1463,8 +1462,8 @@ final class LauncherWindow implements PageHost {
                 text.setWrapStyleWord(true);
                 text.setColumns(56);
                 text.setOpaque(false);
-                Object[] options = {"Crash-Report ansehen", "Erneut starten", "Schließen"};
-                int choice = JOptionPane.showOptionDialog(frame, text, "Minecraft ist abgestürzt", JOptionPane.DEFAULT_OPTION,
+                Object[] options = {Lang.t("crash.dialog.view"), Lang.t("crash.dialog.restart"), Lang.t("common.close")};
+                int choice = JOptionPane.showOptionDialog(frame, text, Lang.t("crash.dialog.title"), JOptionPane.DEFAULT_OPTION,
                         JOptionPane.ERROR_MESSAGE, null, options, options[0]);
                 if (choice == 0) {
                     showPage("crashes");
@@ -1497,14 +1496,14 @@ final class LauncherWindow implements PageHost {
                     if (r.isPresent()) {
                         offerLauncherUpdate(u, r.get());
                     } else if (interactive) {
-                        JOptionPane.showMessageDialog(frame, "Der Launcher ist aktuell (Version " + BuildInfo.VERSION + ").",
+                        JOptionPane.showMessageDialog(frame, Lang.t("update.launcher.up_to_date", BuildInfo.VERSION),
                                 BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
                     }
                 });
             } catch (IOException | RuntimeException e) {
                 Log.info("Launcher update check: " + e.getMessage());
                 if (interactive) {
-                    SwingUtilities.invokeLater(() -> error("Update-Prüfung fehlgeschlagen", e.getMessage()));
+                    SwingUtilities.invokeLater(() -> error(Lang.t("update.check_failed"), e.getMessage()));
                 }
             }
         });
@@ -1545,14 +1544,12 @@ final class LauncherWindow implements PageHost {
         if (notes.length() > 2000) {
             notes = notes.substring(0, 1998) + "…";
         }
-        JTextArea text = new JTextArea("Lumora " + r.version() + " ist verfügbar (du hast " + BuildInfo.VERSION + ")."
+        JTextArea text = new JTextArea(Lang.t("update.launcher.available", r.version(), BuildInfo.VERSION)
                 + (notes.isEmpty() ? "" : "\n\n" + notes)
-                + (managedCopy ? "\n\nDas Update wird geladen, mit der Signatur geprüft und als " + portable.get()
-                + " gespeichert, danach startet der Launcher neu. Hefte das Lumora-Symbol danach neu an."
-                : portable.isPresent() ? "\n\nDas Update wird geladen, mit der Signatur geprüft und der Launcher danach neu gestartet."
-                : directStartOff ? "\n\nDer Launcher wurde direkt gestartet, nicht über LumoraClient.exe, und „Update auch beim "
-                + "direkten Start“ ist aus (Einstellungen). Lade die neue Version von der Release-Seite."
-                : "\n\nDiese Installation aktualisiert sich nicht selbst: lade die neue Version von der Release-Seite."));
+                + (managedCopy ? "\n\n" + Lang.t("update.launcher.managed", portable.get())
+                : portable.isPresent() ? "\n\n" + Lang.t("update.launcher.portable")
+                : directStartOff ? "\n\n" + Lang.t("update.launcher.direct_off")
+                : "\n\n" + Lang.t("update.launcher.manual")));
         text.setEditable(false);
         text.setLineWrap(true);
         text.setWrapStyleWord(true);
@@ -1567,8 +1564,8 @@ final class LauncherWindow implements PageHost {
         notesPane.getVerticalScrollBar().setUnitIncrement(16);
         int maxHeight = Math.max(160, Math.min(320, frame.getGraphicsConfiguration().getBounds().height / 3));
         notesPane.setPreferredSize(new Dimension(520, maxHeight));
-        Object[] options = portable.isPresent() ? new Object[]{"Jetzt aktualisieren", "Später"} : new Object[]{"Release-Seite öffnen", "Später"};
-        int choice = JOptionPane.showOptionDialog(frame, notesPane, "Launcher-Update", JOptionPane.DEFAULT_OPTION,
+        Object[] options = portable.isPresent() ? new Object[]{Lang.t("update.launcher.now"), Lang.t("common.later")} : new Object[]{Lang.t("update.launcher.open_release"), Lang.t("common.later")};
+        int choice = JOptionPane.showOptionDialog(frame, notesPane, Lang.t("update.launcher.title"), JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
         if (choice != 0) {
             return;
@@ -1579,15 +1576,14 @@ final class LauncherWindow implements PageHost {
             }
             return;
         }
-        statusLabel.setText("Lade Lumora " + r.version() + " …");
+        statusLabel.setText(Lang.t("update.launcher.downloading", r.version()));
         pageIo.submit(() -> {
             try {
                 java.nio.file.Path file = u.download(r, ctx.paths.root().resolve("cache").resolve("launcher-update"));
                 SwingUtilities.invokeLater(() -> {
                     if (ctx.play.runningGame().isPresent()) {
-                        JOptionPane.showMessageDialog(frame, "Das Update ist geladen. Bitte erst Minecraft beenden, dann noch einmal "
-                                + "„Jetzt aktualisieren“ wählen.", "Launcher-Update", JOptionPane.INFORMATION_MESSAGE);
-                        statusLabel.setText("Bereit");
+                        JOptionPane.showMessageDialog(frame, Lang.t("update.launcher.quit_game"), Lang.t("update.launcher.title"), JOptionPane.INFORMATION_MESSAGE);
+                        statusLabel.setText(Lang.t("status.ready"));
                         return;
                     }
                     try {
@@ -1598,14 +1594,14 @@ final class LauncherWindow implements PageHost {
                         new ProcessBuilder(portable.get().toString()).start();
                         quit(true);
                     } catch (IOException ex) {
-                        error("Launcher-Update fehlgeschlagen", ex.getMessage());
+                        error(Lang.t("update.launcher.failed"), ex.getMessage());
                     }
                 });
             } catch (IOException | RuntimeException e) {
                 Log.warn("Launcher update failed: " + e.getMessage());
                 SwingUtilities.invokeLater(() -> {
-                    statusLabel.setText("Bereit");
-                    error("Launcher-Update fehlgeschlagen", e.getMessage());
+                    statusLabel.setText(Lang.t("status.ready"));
+                    error(Lang.t("update.launcher.failed"), e.getMessage());
                 });
             }
         });
@@ -1613,28 +1609,28 @@ final class LauncherWindow implements PageHost {
 
     private void backgroundUpdateCheck() {
         List<UpdateChecker.Update> updates = new UpdateChecker(ctx.downloader).check(ctx.catalog, ctx.selectedProfile());
-        SwingUtilities.invokeLater(() -> statUpdates.setText(updates.isEmpty() ? "alles aktuell" : updates.size() + " Update(s) verfügbar"));
+        SwingUtilities.invokeLater(() -> statUpdates.setText(updates.isEmpty() ? Lang.t("home.stat.up_to_date") : Lang.plural("home.stat.updates", updates.size())));
     }
 
     private void interactiveUpdateCheck() {
         List<UpdateChecker.Update> updates = new UpdateChecker(ctx.downloader).check(ctx.catalog, ctx.selectedProfile());
         SwingUtilities.invokeLater(() -> {
             if (updates.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Alle Komponenten sind aktuell.", BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(frame, Lang.t("update.components.none"), BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-            StringBuilder sb = new StringBuilder("Verfügbare Updates:\n\n");
+            StringBuilder sb = new StringBuilder(Lang.t("update.components.list") + "\n\n");
             for (UpdateChecker.Update u : updates) {
                 sb.append("• ").append(u.current().name).append(": ").append(u.current().version).append(" → ").append(u.candidate().version).append('\n');
             }
-            sb.append("\nÜbernehmen? Die Dateien werden beim nächsten Start geladen, geprüft und auf Kompatibilität getestet.");
+            sb.append("\n" + Lang.t("update.components.apply"));
             if (JOptionPane.showConfirmDialog(frame, sb.toString(), BuildInfo.NAME, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 try {
                     UpdateChecker.writeOverride(new LauncherPaths(ctx.defaultRoot).lockfileOverride(),
                             updates.stream().map(UpdateChecker.Update::candidate).toList());
-                    JOptionPane.showMessageDialog(frame, "Updates vorgemerkt. Bitte den Launcher neu starten.", BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, Lang.t("update.components.queued"), BuildInfo.NAME, JOptionPane.INFORMATION_MESSAGE);
                 } catch (IOException ex) {
-                    error("Update fehlgeschlagen", ex.getMessage());
+                    error(Lang.t("update.failed"), ex.getMessage());
                 }
             }
         });
@@ -1646,28 +1642,28 @@ final class LauncherWindow implements PageHost {
 
     private Component diagnosticsPage() {
         JPanel page = column();
-        page.add(pageTitle("Diagnose", "Systemprüfung, Reparatur und schneller Zugriff auf alle Ordner."));
+        page.add(pageTitle(Lang.t("settings.debug.diag.title"), Lang.t("diag.subtitle")));
         page.add(Box.createVerticalStrut(18));
         Card card = new Card(new BorderLayout());
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         diagList.setOpaque(false);
         diagList.setLayout(new BoxLayout(diagList, BoxLayout.Y_AXIS));
-        diagList.add(label("Systemprüfung läuft …", 13, Font.PLAIN, Theme.MUTED));
+        diagList.add(label(Lang.t("diag.running"), 13, Font.PLAIN, Theme.MUTED));
         card.add(diagList, BorderLayout.CENTER);
         page.add(card);
         page.add(Box.createVerticalStrut(16));
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         buttons.setOpaque(false);
         buttons.setAlignmentX(Component.LEFT_ALIGNMENT);
-        buttons.add(actionButton("Erneut prüfen", Icons.Kind.REFRESH, this::runSystemCheck));
+        buttons.add(actionButton(Lang.t("diag.check_again"), Icons.Kind.REFRESH, this::runSystemCheck));
         buttons.add(Box.createHorizontalStrut(8));
-        buttons.add(actionButton("Installation reparieren", Icons.Kind.CHECK, () -> startPlay(true)));
+        buttons.add(actionButton(Lang.t("diag.repair"), Icons.Kind.CHECK, () -> startPlay(true)));
         buttons.add(Box.createHorizontalStrut(8));
-        buttons.add(actionButton("Log-Ordner", Icons.Kind.FOLDER, () -> open(ctx.defaultRoot.resolve("logs"))));
+        buttons.add(actionButton(Lang.t("diag.log_folder"), Icons.Kind.FOLDER, () -> open(ctx.defaultRoot.resolve("logs"))));
         buttons.add(Box.createHorizontalStrut(8));
-        buttons.add(actionButton("Spielordner", Icons.Kind.FOLDER, () -> open(ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id)))));
+        buttons.add(actionButton(Lang.t("instance.game_dir.title"), Icons.Kind.FOLDER, () -> open(ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id)))));
         buttons.add(Box.createHorizontalStrut(8));
-        buttons.add(actionButton("Spiel-Diagnose", Icons.Kind.FOLDER, () -> open(ctx.paths.diagnostics())));
+        buttons.add(actionButton(Lang.t("diag.game_diagnostics"), Icons.Kind.FOLDER, () -> open(ctx.paths.diagnostics())));
         page.add(buttons);
         page.add(Box.createVerticalGlue());
         return scroll(page);
@@ -1696,8 +1692,8 @@ final class LauncherWindow implements PageHost {
                 }
                 diagList.revalidate();
                 diagList.repaint();
-                statGpu.setText(r.gpus().isEmpty() ? "unbekannt" : r.gpus().getFirst().replaceAll(" \\(Treiber.*", ""));
-                statRam.setText(String.format("%.1f von %d GB", ctx.config.maxMemoryMb / 1024.0, Math.round(r.totalRamMb() / 1024.0)));
+                statGpu.setText(r.gpus().isEmpty() ? Lang.t("common.unknown") : r.gpus().getFirst().replaceAll(" \\(driver.*", ""));
+                statRam.setText(Lang.t("home.stat.ram_of", String.format(Lang.locale(), "%.1f", ctx.config.maxMemoryMb / 1024.0), Math.round(r.totalRamMb() / 1024.0)));
             });
         });
     }
@@ -1740,7 +1736,7 @@ final class LauncherWindow implements PageHost {
     private Component logsPage() {
         JPanel page = new JPanel(new BorderLayout(0, 14));
         page.setOpaque(false);
-        page.add(pageTitle("Logs", "Launcher- und Spielausgabe live. Zugangstoken werden automatisch geschwärzt."), BorderLayout.NORTH);
+        page.add(pageTitle(Lang.t("settings.debug.logs.title"), Lang.t("logs.subtitle")), BorderLayout.NORTH);
         logArea.setEditable(false);
         logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         logArea.setBackground(Theme.SURFACE);
@@ -1788,7 +1784,7 @@ final class LauncherWindow implements PageHost {
     private static JComponent pageTitle(String title, String subtitle) {
         JPanel p = column();
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel t = label(title, 28, Font.BOLD, Theme.TEXT);
+        JLabel t = label(Theme.pixelSafe(title), 28, Font.BOLD, Theme.TEXT);
         t.setFont(Theme.display(32f, Font.BOLD, 28f));
         p.add(t);
         p.add(Box.createVerticalStrut(4));
@@ -1800,7 +1796,7 @@ final class LauncherWindow implements PageHost {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel t = label(title, 17, Font.BOLD, Theme.TEXT);
+        JLabel t = label(Theme.pixelSafe(title), 17, Font.BOLD, Theme.TEXT);
         t.setFont(Theme.display(16f, Font.BOLD, 17f));
         p.add(t);
         if (hint != null) {
@@ -1891,7 +1887,7 @@ final class LauncherWindow implements PageHost {
             frame.setVisible(false);
             if (!trayHintShown) {
                 trayHintShown = true;
-                tray.notify("Lumora läuft weiter", "Der Launcher ist im Infobereich. Beenden über das Lumora-Symbol.");
+                tray.notify(Lang.t("tray.still_running"), Lang.t("tray.still_running.text"));
             }
             return;
         }
@@ -1939,7 +1935,7 @@ final class LauncherWindow implements PageHost {
             frame.setVisible(true);
         }
         if (!afterLaunch && ctx.play.runningGame().isPresent()) {
-            int r = JOptionPane.showConfirmDialog(frame, "Minecraft läuft noch. Launcher schließen? Das Spiel läuft weiter.",
+            int r = JOptionPane.showConfirmDialog(frame, Lang.t("quit.game_running"),
                     BuildInfo.NAME, JOptionPane.YES_NO_OPTION);
             if (r != JOptionPane.YES_OPTION) {
                 return;
@@ -1965,7 +1961,7 @@ final class LauncherWindow implements PageHost {
             Files.createDirectories(dir);
             Desktop.getDesktop().open(dir.toFile());
         } catch (IOException | UnsupportedOperationException e) {
-            error("Ordner kann nicht geöffnet werden", dir + "\n" + e.getMessage());
+            error(Lang.t("error.open_folder"), dir + "\n" + e.getMessage());
         }
     }
 

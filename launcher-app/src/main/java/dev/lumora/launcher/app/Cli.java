@@ -3,6 +3,7 @@ package dev.lumora.launcher.app;
 import dev.lumora.launcher.core.PlayService;
 import dev.lumora.launcher.core.diagnostics.CrashAnalyzer;
 import dev.lumora.launcher.core.diagnostics.SystemCheck;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.install.ProgressListener;
 import dev.lumora.launcher.core.launch.GameProcess;
 import dev.lumora.launcher.core.profile.ProfileCatalog;
@@ -36,7 +37,7 @@ final class Cli {
         try {
             AppContext ctx = new AppContext();
             ProfileCatalog.Profile profile = ctx.catalog.profile(option(a, "--profile", ctx.config.selectedProfile))
-                    .orElseThrow(() -> new IllegalArgumentException("Unbekanntes Profil. Verfügbar: "
+                    .orElseThrow(() -> new IllegalArgumentException(Lang.t("cli.unknown_profile") + " "
                             + ctx.catalog.profiles().stream().map(p -> p.id).toList()));
             if (a.contains("--system-check")) {
                 System.out.print(SystemCheck.run(ctx.os, ctx.paths).render());
@@ -61,7 +62,7 @@ final class Cli {
             if (a.contains("--smoke-test")) {
                 return smokeTest(ctx, profile, Integer.parseInt(option(a, "--timeout", "600")), a.contains("--crash-test"));
             }
-            System.err.println("Unbekannte Option. Siehe docs/BUILD.md");
+            System.err.println(Lang.t("cli.unknown_option"));
             return 2;
         } catch (Exception e) {
             Log.error("CLI command failed", e);

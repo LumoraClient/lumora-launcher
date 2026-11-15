@@ -3,6 +3,7 @@ package dev.lumora.launcher.core.crash;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Json;
 
 import java.io.IOException;
@@ -69,7 +70,7 @@ public final class CulpritFinder {
         for (Mod m : mods) {
             for (String cfg : m.mixinConfigs()) {
                 if (configsInReport.contains(cfg.toLowerCase(Locale.ROOT)) && report.toLowerCase(Locale.ROOT).contains("mixin")) {
-                    add(score, reason, m.id(), 60, "Mixin-Konfiguration „" + cfg + "“ wird im Bericht genannt");
+                    add(score, reason, m.id(), 60, Lang.t("crash.culprit.mixin", cfg));
                 }
             }
         }
@@ -90,13 +91,13 @@ public final class CulpritFinder {
                 frames.merge(m.id(), 1, Integer::sum);
             }
         }
-        frames.forEach((id, n) -> reason.putIfAbsent(id, n + (n == 1 ? " Zeile" : " Zeilen") + " im Stacktrace stammen aus dieser Mod"));
+        frames.forEach((id, n) -> reason.putIfAbsent(id, Lang.plural("crash.culprit.frames", n)));
         // 3) Fabric Loader dependency/format errors name the mod directly
         Matcher lm = LOADER_MOD.matcher(report);
         while (lm.find()) {
             String id = lm.group(2);
             if (byId.containsKey(id)) {
-                add(score, reason, id, 40, "wird in der Fehlermeldung von Fabric Loader genannt");
+                add(score, reason, id, 40, Lang.t("crash.culprit.fabric"));
             }
         }
         List<CrashReport.Suspect> out = new ArrayList<>();

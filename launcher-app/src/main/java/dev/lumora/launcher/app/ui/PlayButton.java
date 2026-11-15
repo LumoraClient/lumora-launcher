@@ -1,4 +1,5 @@
 package dev.lumora.launcher.app.ui;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import javax.swing.JButton;
 import java.awt.Color;
@@ -57,7 +58,7 @@ public final class PlayButton extends JButton {
     }
 
     private static boolean playText(String t) {
-        return "Spielen".equals(t) || "Spiel starten".equals(t);
+        return Lang.t("play.play").equals(t) || Lang.t("play.start_game").equals(t);
     }
 
     @Override
@@ -177,7 +178,7 @@ public final class PlayButton extends JButton {
             setOpaque(false);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setPreferredSize(new Dimension(46, 56));
-            setToolTipText("Weitere Startoptionen");
+            setToolTipText(Lang.t("play.more_options"));
         }
 
         @Override

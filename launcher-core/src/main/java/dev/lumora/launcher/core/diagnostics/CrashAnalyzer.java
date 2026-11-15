@@ -1,4 +1,5 @@
 package dev.lumora.launcher.core.diagnostics;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,22 +29,20 @@ public final class CrashAnalyzer {
         String t = text.toLowerCase(Locale.ROOT);
         List<Hint> hints = new ArrayList<>();
         if (t.contains("incompatible mods found") || t.contains("incompatible mod set") || t.contains("net.fabricmc.loader.impl.formatterror")) {
-            hints.add(new Hint("Inkompatible Mods",
-                    "Fabric Loader hat eine ungültige Mod-Kombination erkannt. Entferne manuell hinzugefügte Mods aus dem "
-                            + "mods-Ordner des Profils oder deaktiviere Erweiterungen."));
+            hints.add(new Hint(Lang.t("crash.hint.incompatible"),
+                    Lang.t("crash.hint.incompatible.text")));
         }
         if (t.contains("java.lang.outofmemoryerror")) {
-            hints.add(new Hint("Zu wenig Arbeitsspeicher", "Erhöhe den maximalen Arbeitsspeicher in den Launcher-Einstellungen."));
+            hints.add(new Hint(Lang.t("crash.hint.memory"), Lang.t("crash.hint.memory.text")));
         }
         if (t.contains("mixin apply failed") || t.contains("mixintransformererror")) {
-            hints.add(new Hint("Mixin-Fehler", "Eine Mod konnte nicht in das Spiel eingreifen. Meist eine nicht passende "
-                    + "Zusatz-Mod; Erweiterungen deaktivieren und erneut starten."));
+            hints.add(new Hint(Lang.t("crash.hint.mixin"), Lang.t("crash.hint.mixin.text")));
         }
         if (t.contains("glfw error 65542") || t.contains("wgl: the driver does not appear to support opengl")) {
-            hints.add(new Hint("OpenGL nicht verfügbar", "Der Grafiktreiber stellt kein OpenGL bereit. Grafiktreiber installieren."));
+            hints.add(new Hint(Lang.t("crash.hint.opengl"), Lang.t("crash.hint.opengl.text")));
         }
         if (t.contains("invalid session") || t.contains("failed to verify username")) {
-            hints.add(new Hint("Sitzung ungültig", "Bitte im Launcher ab- und wieder anmelden."));
+            hints.add(new Hint(Lang.t("crash.hint.session"), Lang.t("crash.hint.session.text")));
         }
         return hints;
     }

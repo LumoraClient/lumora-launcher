@@ -6,6 +6,7 @@ import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.ToggleSwitch;
 import dev.lumora.launcher.app.ui.Ui;
 import dev.lumora.launcher.core.diagnostics.SystemCheck;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.perf.GraphicsPresets;
 import dev.lumora.launcher.core.profile.Flavor;
 import dev.lumora.launcher.core.profile.ProfileCatalog;
@@ -29,7 +30,6 @@ import java.awt.GridLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -61,36 +61,35 @@ public final class PerformancePage extends JPanel {
         Flavor flavor = Flavor.of(host.ctx().config.selectedFlavor);
         Path gameDir = host.ctx().gameDir(flavor.instanceId(p.id));
 
-        content.add(Ui.pageTitle("Performance", "Mehr FPS für Minecraft " + p.minecraftVersion + " (" + flavor.label()
-                + "): Grafik-Profile, Performance-Mods und Java-Einstellungen."));
+        content.add(Ui.pageTitle(Lang.t("nav.performance"), Lang.t("perf.subtitle", p.minecraftVersion, flavor.label()
+                )));
         content.add(Box.createVerticalStrut(18));
 
         JPanel tiles = new JPanel(new GridLayout(1, 4, 14, 0));
         tiles.setOpaque(false);
         tiles.setAlignmentX(Component.LEFT_ALIGNMENT);
-        tiles.add(tile(Icons.Kind.CHIP, "Prozessor", cpu));
-        tiles.add(tile(Icons.Kind.MEMORY, "Arbeitsspeicher", ram));
-        tiles.add(tile(Icons.Kind.MONITOR, "Grafikkarte", gpu));
+        tiles.add(tile(Icons.Kind.CHIP, Lang.t("perf.cpu"), cpu));
+        tiles.add(tile(Icons.Kind.MEMORY, Lang.t("home.stat.ram"), ram));
+        tiles.add(tile(Icons.Kind.MONITOR, Lang.t("home.stat.gpu"), gpu));
         tiles.add(tile(Icons.Kind.CUBE, "Java", javaLabel));
         tiles.setMaximumSize(new Dimension(Integer.MAX_VALUE, 92));
         content.add(tiles);
         cpu.setText(Runtime.getRuntime().availableProcessors() + " Threads");
-        javaLabel.setText(p.javaComponent != null && flavor == Flavor.LUMORA ? javaName(p.javaComponent) : "von Mojang");
+        javaLabel.setText(p.javaComponent != null && flavor == Flavor.LUMORA ? javaName(p.javaComponent) : Lang.t("perf.java.mojang"));
         io.submit(() -> {
             SystemCheck.Report r = SystemCheck.run(host.ctx().os, host.ctx().paths);
             SwingUtilities.invokeLater(() -> {
                 totalRamMb = r.totalRamMb();
-                gpu.setText(r.gpus().isEmpty() ? "unbekannt" : r.gpus().getFirst().replaceAll(" \\(Treiber.*", ""));
+                gpu.setText(r.gpus().isEmpty() ? Lang.t("common.unknown") : r.gpus().getFirst().replaceAll(" \\(driver.*", ""));
                 gpu.setToolTipText(String.join(", ", r.gpus()));
-                ram.setText(String.format(Locale.GERMANY, "%.1f von %d GB", host.ctx().config.maxMemoryMb / 1024.0,
+                ram.setText(Lang.t("home.stat.ram_of", String.format(Lang.locale(), "%.1f", host.ctx().config.maxMemoryMb / 1024.0),
                         Math.round(r.totalRamMb() / 1024.0)));
             });
         });
 
         // graphics profiles
         content.add(Box.createVerticalStrut(24));
-        content.add(Ui.sectionTitle("Grafik-Profil", "Ändert die Video-Einstellungen in options.txt dieser Version. "
-                + "Das Original wird vorher gesichert."));
+        content.add(Ui.sectionTitle(Lang.t("perf.profile"), Lang.t("perf.profile.hint")));
         GraphicsPresets.Preset active = GraphicsPresets.current(gameDir);
         boolean hasOptions = Files.isRegularFile(gameDir.resolve("options.txt"));
         JPanel presets = new JPanel(new GridLayout(1, 3, 14, 0));
@@ -106,16 +105,16 @@ public final class PerformancePage extends JPanel {
         under.setAlignmentX(Component.LEFT_ALIGNMENT);
         under.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         if (!hasOptions) {
-            under.add(Ui.label("Starte Minecraft " + p.minecraftVersion + " (" + flavor.label() + ") einmal, dann lassen sich die Profile anwenden.",
+            under.add(Ui.label(Lang.t("perf.profile.start_once", p.minecraftVersion, flavor.label()),
                     12.5f, Font.PLAIN, Theme.WARN));
         } else if (Files.isRegularFile(gameDir.resolve(GraphicsPresets.BACKUP))) {
-            JButton restore = new JButton("Ursprüngliche Einstellungen wiederherstellen", Icons.of(Icons.Kind.REFRESH, 14, Theme.TEXT));
+            JButton restore = new JButton(Lang.t("perf.profile.restore"), Icons.of(Icons.Kind.REFRESH, 14, Theme.TEXT));
             restore.setFocusable(false);
             restore.addActionListener(e -> {
                 try {
                     GraphicsPresets.restore(gameDir);
                 } catch (Exception ex) {
-                    host.error("Wiederherstellen", ex.getMessage());
+                    host.error(Lang.t("settings.debug.restore.button"), ex.getMessage());
                 }
                 refresh();
             });
@@ -126,7 +125,7 @@ public final class PerformancePage extends JPanel {
 
         // java and memory
         content.add(Box.createVerticalStrut(24));
-        content.add(Ui.sectionTitle("Java & Speicher", null));
+        content.add(Ui.sectionTitle(Lang.t("perf.java_memory"), null));
         Card jm = new Card(new GridLayout(0, 1, 0, 14));
         jm.setAlignmentX(Component.LEFT_ALIGNMENT);
         ToggleSwitch flags = new ToggleSwitch(host.ctx().config.performanceFlags);
@@ -134,8 +133,8 @@ public final class PerformancePage extends JPanel {
             host.ctx().config.performanceFlags = on;
             host.saveConfig();
         });
-        jm.add(settingRow(Icons.Kind.BOLT, "Performance-Verbesserungen", "G1-Garbage-Collector mit kurzen Pausen gegen Ruckler beim Laden.", flags));
-        JButton recommend = new JButton("Empfohlen übernehmen");
+        jm.add(settingRow(Icons.Kind.BOLT, Lang.t("settings.game.perf.title"), Lang.t("perf.flags.desc"), flags));
+        JButton recommend = new JButton(Lang.t("perf.memory.recommend"));
         recommend.setFocusable(false);
         recommend.addActionListener(e -> {
             long total = totalRamMb > 0 ? totalRamMb : 8192;
@@ -143,16 +142,16 @@ public final class PerformancePage extends JPanel {
             host.ctx().config.maxMemoryMb = mb;
             host.ctx().config.minMemoryMb = Math.min(host.ctx().config.minMemoryMb, mb);
             host.saveConfig();
-            JOptionPane.showMessageDialog(host.frame(), String.format(Locale.GERMANY, "Minecraft bekommt jetzt %.1f GB Arbeitsspeicher.", mb / 1024.0),
-                    "Performance", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(host.frame(), Lang.t("perf.memory.applied", String.format(Lang.locale(), "%.1f", mb / 1024.0)),
+                    Lang.t("nav.performance"), JOptionPane.INFORMATION_MESSAGE);
             refresh();
         });
-        jm.add(settingRow(Icons.Kind.MEMORY, "Arbeitsspeicher", String.format(Locale.GERMANY,
-                "Zugewiesen: %.1f GB. Empfohlen sind 4–6 GB; mehr bringt meist keine FPS.", host.ctx().config.maxMemoryMb / 1024.0), recommend));
+        jm.add(settingRow(Icons.Kind.MEMORY, Lang.t("home.stat.ram"), Lang.t("perf.memory.allocated",
+                String.format(Lang.locale(), "%.1f", host.ctx().config.maxMemoryMb / 1024.0)), recommend));
         List<BenchmarkHistory.Run> runs = BenchmarkHistory.load(host.ctx().paths.diagnostics(), p.id);
         if (!runs.isEmpty()) {
             BenchmarkHistory.Run last = runs.getLast();
-            jm.add(settingRow(Icons.Kind.CHART, "Letzter Benchmark", String.format(Locale.GERMANY, "%.0f FPS im Schnitt, 1%%-Low %.0f FPS (%s)",
+            jm.add(settingRow(Icons.Kind.CHART, Lang.t("perf.bench.last"), String.format(Lang.locale(), Lang.t("perf.bench.last_fmt"),
                     last.avgFps(), last.onePercentLowFps(), last.renderer() == null ? "" : last.renderer()), new JLabel()));
         }
         jm.setMaximumSize(new Dimension(Integer.MAX_VALUE, Short.MAX_VALUE));
@@ -173,28 +172,28 @@ public final class PerformancePage extends JPanel {
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         title.add(new JLabel(Icons.of(preset == GraphicsPresets.Preset.MAX_FPS ? Icons.Kind.BOLT
                 : preset == GraphicsPresets.Preset.BALANCED ? Icons.Kind.SLIDERS : Icons.Kind.IMAGE, 18, Theme.ACCENT_HOVER)));
-        title.add(Ui.label(preset.label, 15, Font.BOLD, Theme.TEXT));
+        title.add(Ui.label(preset.label(), 15, Font.BOLD, Theme.TEXT));
         if (active) {
-            title.add(Ui.chip("aktiv"));
+            title.add(Ui.chip(Lang.t("perf.profile.active")));
         }
         t.add(title);
         t.add(Box.createVerticalStrut(6));
-        t.add(Ui.wrapText(preset.description, 12.5f, Theme.MUTED));
+        t.add(Ui.wrapText(preset.description(), 12.5f, Theme.MUTED));
         c.add(t, BorderLayout.CENTER);
-        JButton apply = new JButton(active ? "Angewendet" : "Anwenden");
+        JButton apply = new JButton(active ? Lang.t("perf.profile.applied") : Lang.t("common.apply"));
         apply.setFocusable(false);
         apply.setEnabled(enabled && !active);
         apply.addActionListener(e -> {
             if (host.gameRunning()) {
-                JOptionPane.showMessageDialog(host.frame(), "Bitte zuerst Minecraft beenden – das Spiel überschreibt options.txt beim Schließen.",
-                        "Grafik-Profil", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(host.frame(), Lang.t("perf.profile.quit_game"),
+                        Lang.t("perf.profile"), JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
             try {
                 List<String> changed = GraphicsPresets.apply(gameDir, preset);
                 Log.info("Graphics preset " + preset + " applied to " + gameDir + ": " + changed);
             } catch (Exception ex) {
-                host.error("Grafik-Profil", ex.getMessage());
+                host.error(Lang.t("perf.profile"), ex.getMessage());
             }
             refresh();
         });
@@ -228,7 +227,7 @@ public final class PerformancePage extends JPanel {
         i.setVerticalAlignment(JLabel.TOP);
         c.add(i, BorderLayout.WEST);
         JPanel t = Ui.column();
-        t.add(Ui.label(title.toUpperCase(Locale.GERMANY), 11, Font.BOLD, Theme.MUTED));
+        t.add(Ui.label(title.toUpperCase(Lang.locale()), 11, Font.BOLD, Theme.MUTED));
         t.add(Box.createVerticalStrut(4));
         value.setAlignmentX(Component.LEFT_ALIGNMENT);
         t.add(value);

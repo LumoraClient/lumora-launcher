@@ -1,4 +1,5 @@
 package dev.lumora.launcher.core.library;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import dev.lumora.launcher.core.util.FileUtil;
 
@@ -34,7 +35,7 @@ public final class WorldBackup {
 
     public static Path backup(Path worldDir, Path backupsDir, Instant now) throws IOException {
         if (!Files.isRegularFile(worldDir.resolve("level.dat"))) {
-            throw new IOException(worldDir.getFileName() + " ist keine Minecraft-Welt");
+            throw new IOException(Lang.t("library.backup.not_world", worldDir.getFileName()));
         }
         Files.createDirectories(backupsDir);
         String folder = worldDir.getFileName().toString();

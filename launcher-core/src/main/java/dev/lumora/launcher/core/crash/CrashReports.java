@@ -2,6 +2,7 @@ package dev.lumora.launcher.core.crash;
 
 import dev.lumora.launcher.core.LauncherPaths;
 import dev.lumora.launcher.core.diagnostics.CrashAnalyzer;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.FileUtil;
 import dev.lumora.launcher.core.util.Log;
 import dev.lumora.launcher.core.util.Redactor;
@@ -96,7 +97,7 @@ public final class CrashReports {
             exitCode = Integer.parseInt(m.group(1));
         }
         String description = p.description() != null ? p.description()
-                : launcher ? "Minecraft wurde ohne Absturzbericht beendet" : "Unbekannter Absturz";
+                : launcher ? Lang.t("crash.desc.no_report") : Lang.t("crash.desc.unknown");
         return new CrashReport(profileId, file, launcher ? CrashReport.Source.LAUNCHER : CrashReport.Source.MINECRAFT, time,
                 description, p.exception(), exitCode, CulpritFinder.find(text, mods), CrashAnalyzer.analyze(text));
     }
@@ -117,12 +118,12 @@ public final class CrashReports {
         Path file = FileUtil.resolveInside(dir, LAUNCHER_PREFIX + FILE_TIME.format(when) + ".txt");
         List<String> tail = tail(outputLog, OUTPUT_TAIL_LINES);
         StringBuilder sb = new StringBuilder();
-        sb.append("---- Lumora Launcher: Spielende mit Fehler ----\n");
+        sb.append(Lang.t("crash.record.header"));
         sb.append("Time: ").append(DateTimeFormatter.ISO_INSTANT.format(when)).append('\n');
-        sb.append("Description: Minecraft wurde mit Fehlercode ").append(exitCode).append(" beendet (kein Absturzbericht)\n");
+        sb.append("Description: ").append(Lang.t("crash.record.description", exitCode)).append("\n");
         sb.append("Profile: ").append(profileId).append('\n');
         sb.append("Exit code: ").append(exitCode).append("\n\n");
-        sb.append("---- Letzte ").append(tail.size()).append(" Zeilen der Spielausgabe ----\n");
+        sb.append(Lang.t("crash.record.tail", tail.size())).append("\n");
         tail.forEach(l -> sb.append(l).append('\n'));
         FileUtil.writeAtomically(file, Redactor.redact(sb.toString()).getBytes(StandardCharsets.UTF_8));
         return file;
@@ -183,10 +184,10 @@ public final class CrashReports {
                 entry(zip, "launcher/launcher.log", anonymize(String.join("\n", tail(launcherLog, 2000))));
             }
             StringBuilder s = new StringBuilder();
-            s.append("Lumora Diagnosepaket\n\nProfil: ").append(r.profileId()).append("\nZeit: ").append(r.time())
-                    .append("\nBeschreibung: ").append(r.description()).append("\nAusnahme: ").append(r.exception()).append('\n');
-            r.suspects().forEach(x -> s.append("Verdacht: ").append(x.name()).append(" (").append(x.modId()).append(") - ").append(x.reason()).append('\n'));
-            r.hints().forEach(h -> s.append("Hinweis: ").append(h.title()).append(" - ").append(h.advice()).append('\n'));
+            s.append(Lang.t("crash.zip.title")).append("\n\n").append(Lang.t("crash.zip.profile")).append(' ').append(r.profileId()).append('\n').append(Lang.t("crash.zip.time")).append(' ').append(r.time())
+                    .append('\n').append(Lang.t("crash.zip.description")).append(' ').append(r.description()).append('\n').append(Lang.t("crash.zip.exception")).append(' ').append(r.exception()).append('\n');
+            r.suspects().forEach(x -> s.append(Lang.t("crash.zip.suspect") + " ").append(x.name()).append(" (").append(x.modId()).append(") - ").append(x.reason()).append('\n'));
+            r.hints().forEach(h -> s.append(Lang.t("browser.install.note") + " ").append(h.title()).append(" - ").append(h.advice()).append('\n'));
             extra.forEach((k, v) -> s.append('\n').append(k).append(":\n").append(v).append('\n'));
             entry(zip, "summary.txt", anonymize(s.toString()));
         }

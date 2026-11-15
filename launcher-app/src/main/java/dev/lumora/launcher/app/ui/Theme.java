@@ -42,15 +42,18 @@ public final class Theme {
     /** No automatic animations (skin rotation, spinners). */
     public static boolean reduceMotion;
 
-    /** Accent presets of the settings page: name and colour. */
-    public record Preset(String name, String hex) {
+    /** Accent presets of the settings page: id (name in the language file, {@code color.<id>}) and colour. */
+    public record Preset(String id, String hex) {
+        public String name() {
+            return dev.lumora.launcher.core.i18n.Lang.t("color." + id);
+        }
     }
 
     public static final List<Preset> PRESETS = List.of(
-            new Preset("Blau", "#3B82F6"), new Preset("Eisblau", "#38BDF8"), new Preset("Türkis", "#18B4CC"), new Preset("Indigo", "#6366F1"),
-            new Preset("Lila", "#8B5CF6"), new Preset("Violett", "#A855F7"), new Preset("Rosa", "#EC4899"), new Preset("Grün", "#22C55E"),
-            new Preset("Smaragd", "#10B981"), new Preset("Orange", "#F97316"), new Preset("Gelb", "#F59E0B"), new Preset("Rot", "#EF4444"),
-            new Preset("Schiefer", "#64748B"), new Preset("Weiß", "#E5E7EB"));
+            new Preset("blue", "#3B82F6"), new Preset("ice_blue", "#38BDF8"), new Preset("turquoise", "#18B4CC"), new Preset("indigo", "#6366F1"),
+            new Preset("purple", "#8B5CF6"), new Preset("violet", "#A855F7"), new Preset("pink", "#EC4899"), new Preset("green", "#22C55E"),
+            new Preset("emerald", "#10B981"), new Preset("orange", "#F97316"), new Preset("yellow", "#F59E0B"), new Preset("red", "#EF4444"),
+            new Preset("slate", "#64748B"), new Preset("white", "#E5E7EB"));
 
     private static boolean installed;
 
@@ -192,6 +195,17 @@ public final class Theme {
     public static Font display(float pixelSize, int style, float size) {
         Font f = pixelStyle ? silkscreen() : null;
         return f != null ? f.deriveFont(pixelSize) : font(style, size);
+    }
+
+    /**
+     * Text for the pixel font: Silkscreen draws "&amp;" almost like "$", so in the pixel design it is written out
+     * ({@code common.and}, "and"). Without the pixel font the text stays as it is.
+     */
+    public static String pixelSafe(String text) {
+        if (!pixelStyle || text == null || text.indexOf('&') < 0) {
+            return text;
+        }
+        return text.replace(" & ", " " + dev.lumora.launcher.core.i18n.Lang.t("common.and") + " ").replace("&", dev.lumora.launcher.core.i18n.Lang.t("common.and"));
     }
 
     private static synchronized Font silkscreen() {

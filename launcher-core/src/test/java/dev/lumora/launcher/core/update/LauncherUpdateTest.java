@@ -121,7 +121,7 @@ class LauncherUpdateTest {
         publish("v0.3.0", exe, exe, attacker.getPrivate());
         LauncherUpdate.Release r = updater().check("0.1.0").orElseThrow();
         IOException e = assertThrows(IOException.class, () -> updater().download(r, tmp.resolve("a")));
-        assertTrue(e.getMessage().contains("Signatur"));
+        assertTrue(e.getMessage().contains("signature"));
 
         // signed list, but the EXE on the server is not the one in it
         publish("v0.3.0", "MZ evil".getBytes(StandardCharsets.UTF_8), exe, keys.getPrivate());

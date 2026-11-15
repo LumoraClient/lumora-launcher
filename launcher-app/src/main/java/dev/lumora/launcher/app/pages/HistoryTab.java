@@ -6,6 +6,7 @@ import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.ToggleSwitch;
 import dev.lumora.launcher.app.ui.Ui;
 import dev.lumora.launcher.core.history.ConnectionHistory;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.launch.LaunchCommandBuilder;
 import dev.lumora.launcher.core.stats.PlayStats;
 
@@ -25,7 +26,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * "Konto → Verlauf": the local connection history - sign-ins, renewals, sign-outs and game starts per account, and the
@@ -34,12 +34,12 @@ import java.util.Locale;
 final class HistoryTab extends JPanel {
     /** Rows shown per table (the file keeps more). */
     static final int SHOWN = 60;
-    private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm", Locale.GERMANY)
+    private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern(Lang.t("format.date_time"), Lang.locale())
             .withZone(ZoneId.systemDefault());
 
     private final PageHost host;
-    private final DataTable events = new DataTable(List.of("Ereignis", "Konto", "Details", "Zeitpunkt"), 1.1, 1.1, 1, 1.2);
-    private final DataTable servers = new DataTable(List.of("Server", "Konto", "Version", "Zuletzt", "Erstmals", "Besuche"),
+    private final DataTable events = new DataTable(List.of(Lang.t("history.col.event"), Lang.t("nav.account"), Lang.t("history.col.details"), Lang.t("history.col.time")), 1.1, 1.1, 1, 1.2);
+    private final DataTable servers = new DataTable(List.of(Lang.t("history.col.server"), Lang.t("nav.account"), Lang.t("common.version"), Lang.t("history.col.last"), Lang.t("history.col.first"), Lang.t("history.col.visits")),
             1.6, 1, 0.8, 0.9, 0.9, 0.6);
     private final JLabel eventsMore = Ui.label(" ", 12.5f, Font.PLAIN, Theme.MUTED);
     private final JLabel serversMore = Ui.label(" ", 12.5f, Font.PLAIN, Theme.MUTED);
@@ -61,11 +61,11 @@ final class HistoryTab extends JPanel {
             host.ctx().play.history().setEnabled(on);
             host.saveConfig();
         });
-        in.add(line("Verlauf speichern", "Anmeldungen, Spielstarts und Server. Bleibt auf diesem PC, ohne Zugangsdaten.", keep));
+        in.add(line(Lang.t("history.keep"), Lang.t("history.keep.desc"), keep));
 
         in.add(Box.createVerticalStrut(28));
-        in.add(head("Anmeldungen", "Wann sich ein Konto hier angemeldet, erneuert oder das Spiel gestartet hat.", () -> {
-            if (confirm("Alle Anmeldungen aus dem Verlauf löschen?")) {
+        in.add(head(Lang.t("history.signins"), Lang.t("history.signins.desc"), () -> {
+            if (confirm(Lang.t("history.signins.clear"))) {
                 host.ctx().play.history().clearEvents();
                 refresh();
             }
@@ -76,8 +76,8 @@ final class HistoryTab extends JPanel {
         in.add(eventsMore);
 
         in.add(Box.createVerticalStrut(26));
-        in.add(head("Server", "Server, mit denen sich Minecraft verbunden hat.", () -> {
-            if (confirm("Alle Server aus dem Verlauf löschen?")) {
+        in.add(head(Lang.t("history.col.server"), Lang.t("history.servers.desc"), () -> {
+            if (confirm(Lang.t("history.servers.clear"))) {
                 host.ctx().play.history().clearServers();
                 refresh();
             }
@@ -93,7 +93,7 @@ final class HistoryTab extends JPanel {
     }
 
     private boolean confirm(String question) {
-        return JOptionPane.showConfirmDialog(host.frame(), question, "Verlauf", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+        return JOptionPane.showConfirmDialog(host.frame(), question, Lang.t("account.tab.history"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
     }
 
     private static JComponent line(String title, String hint, JComponent control) {
@@ -122,7 +122,7 @@ final class HistoryTab extends JPanel {
         t.add(Box.createVerticalStrut(6));
         t.add(Ui.label(hint, 13.5f, Font.PLAIN, Theme.MUTED));
         p.add(t, BorderLayout.CENTER);
-        JButton b = new JButton("Leeren");
+        JButton b = new JButton(Lang.t("history.clear"));
         if (!Theme.pixelStyle) {
             b.putClientProperty("JButton.buttonType", "roundRect");
         }
@@ -143,7 +143,7 @@ final class HistoryTab extends JPanel {
         events.clear();
         List<ConnectionHistory.Event> ev = h.events();
         if (ev.isEmpty()) {
-            events.empty(h.enabled() ? "Noch keine Anmeldungen aufgezeichnet." : "Der Verlauf ist ausgeschaltet.");
+            events.empty(h.enabled() ? Lang.t("history.signins.empty") : Lang.t("history.off"));
         }
         for (ConnectionHistory.Event e : ev.subList(0, Math.min(SHOWN, ev.size()))) {
             String detail = e.kind() == ConnectionHistory.Kind.GAME_START ? "Minecraft " + e.detail() : e.detail();
@@ -153,13 +153,13 @@ final class HistoryTab extends JPanel {
                     DataTable.text(detail.isBlank() ? "–" : detail, true),
                     DataTable.twoLine(PlayStats.ago(e.time(), now), WHEN.format(e.time()))), null);
         }
-        eventsMore.setText(ev.size() > SHOWN ? "und " + (ev.size() - SHOWN) + " ältere Einträge" : " ");
+        eventsMore.setText(ev.size() > SHOWN ? Lang.t("history.more_entries", ev.size() - SHOWN) : " ");
 
         servers.clear();
         List<ConnectionHistory.Server> sv = h.servers();
         if (sv.isEmpty()) {
-            servers.empty(h.enabled() ? "Noch keine Server. Sobald du einem Server beitrittst, erscheint er hier."
-                    : "Der Verlauf ist ausgeschaltet.");
+            servers.empty(h.enabled() ? Lang.t("history.servers.empty")
+                    : Lang.t("history.off"));
         }
         for (ConnectionHistory.Server s : sv.subList(0, Math.min(SHOWN, sv.size()))) {
             servers.addRow(List.of(
@@ -169,14 +169,14 @@ final class HistoryTab extends JPanel {
                     DataTable.text(PlayStats.ago(s.last(), now), false),
                     DataTable.text(PlayStats.ago(s.first(), now), true),
                     DataTable.text(Integer.toString(s.visits()), false)), DataTable.menu(List.of(
-                    new DataTable.Action("Beitreten", () -> join(s.address()), false),
-                    new DataTable.Action("Adresse kopieren", () -> copy(s.address()), false),
-                    new DataTable.Action("Aus dem Verlauf entfernen", () -> {
+                    new DataTable.Action(Lang.t("library.server.join"), () -> join(s.address()), false),
+                    new DataTable.Action(Lang.t("history.copy_address"), () -> copy(s.address()), false),
+                    new DataTable.Action(Lang.t("history.remove"), () -> {
                         h.removeServer(s.address());
                         refresh();
                     }, true))));
         }
-        serversMore.setText(sv.size() > SHOWN ? "und " + (sv.size() - SHOWN) + " weitere Server" : " ");
+        serversMore.setText(sv.size() > SHOWN ? Lang.t("history.more_servers", sv.size() - SHOWN) : " ");
         revalidate();
         repaint();
     }
@@ -184,13 +184,13 @@ final class HistoryTab extends JPanel {
     /** Starts the selected version straight onto the server (Minecraft Quick Play). */
     private void join(String address) {
         if (host.gameRunning()) {
-            host.error("Server beitreten", "Minecraft läuft bereits.");
+            host.error(Lang.t("social.join.title"), Lang.t("history.game_running"));
             return;
         }
         try {
             host.launch(new LaunchCommandBuilder.QuickPlay(LaunchCommandBuilder.QuickPlay.Kind.MULTIPLAYER, address), false);
         } catch (IllegalArgumentException e) {
-            host.error("Server beitreten", e.getMessage());
+            host.error(Lang.t("social.join.title"), e.getMessage());
         }
     }
 

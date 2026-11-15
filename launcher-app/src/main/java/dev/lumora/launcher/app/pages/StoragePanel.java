@@ -3,6 +3,7 @@ package dev.lumora.launcher.app.pages;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.storage.StorageUsage;
 import dev.lumora.launcher.core.util.Log;
 
@@ -54,12 +55,12 @@ final class StoragePanel extends JPanel {
     private final StorageUsage usage;
     private StorageUsage.Report report;
     private String sort = "standard";
-    private final JLabel title = Ui.label("Speicher wird berechnet …", 17, Font.BOLD, Theme.TEXT);
+    private final JLabel title = Ui.label(Lang.t("storage.calculating"), 17, Font.BOLD, Theme.TEXT);
     private final JLabel subtitle = Ui.label(" ", 12.5f, Font.PLAIN, Theme.MUTED);
     private final Bar bar = new Bar();
-    private final JLabel barHint = Ui.label("Fahr über den Balken, um zu sehen, wofür jede Farbe steht", 12, Font.PLAIN, Theme.MUTED);
+    private final JLabel barHint = Ui.label(Lang.t("storage.bar_hint"), 12, Font.PLAIN, Theme.MUTED);
     private final JPanel rows = Ui.column();
-    private final JButton unused = new JButton("Ungenutzte Daten löschen", Icons.of(Icons.Kind.BROOM, 15, Theme.TEXT));
+    private final JButton unused = new JButton(Lang.t("storage.unused.button"), Icons.of(Icons.Kind.BROOM, 15, Theme.TEXT));
 
     StoragePanel(PageHost host, ExecutorService io) {
         super(new BorderLayout(0, 12));
@@ -77,17 +78,19 @@ final class StoragePanel extends JPanel {
         head.add(text, BorderLayout.NORTH);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         actions.setOpaque(false);
-        actions.add(Ui.segmented(List.of("standard", "size", "name"), List.of("Standard", "Größe", "Name"), sort, s -> {
+        actions.add(Ui.segmented(List.of("standard", "size", "name"), List.of(Lang.t("common.default"), Lang.t("storage.sort.size"), Lang.t("social.field.name")), sort, s -> {
             sort = s;
             fill();
         }));
         unused.setFocusable(false);
         unused.addActionListener(e -> clearUnused());
+        Ui.controlHeight(unused);
         actions.add(unused);
         JButton refresh = new JButton(Icons.of(Icons.Kind.REFRESH, 15, Theme.TEXT));
-        refresh.setToolTipText("Neu berechnen");
+        refresh.setToolTipText(Lang.t("storage.recalculate"));
         refresh.setFocusable(false);
         refresh.addActionListener(e -> refresh());
+        refresh.setPreferredSize(new Dimension(Ui.CONTROL_HEIGHT, Ui.CONTROL_HEIGHT));
         actions.add(refresh);
         head.add(actions, BorderLayout.CENTER);
         add(head, BorderLayout.NORTH);
@@ -105,7 +108,7 @@ final class StoragePanel extends JPanel {
 
     /** Measures in the background (assets are many small files). */
     void refresh() {
-        title.setText("Speicher wird berechnet …");
+        title.setText(Lang.t("storage.calculating"));
         io.submit(() -> {
             StorageUsage.Report r = usage.scan();
             SwingUtilities.invokeLater(() -> {
@@ -119,18 +122,18 @@ final class StoragePanel extends JPanel {
         if (report == null) {
             return;
         }
-        title.setText(StorageUsage.format(report.total()) + " vom Launcher belegt");
+        title.setText(Lang.t("storage.used", StorageUsage.format(report.total())));
         subtitle.setText(report.diskTotal() > 0
-                ? StorageUsage.format(report.diskFree()) + " von " + StorageUsage.format(report.diskTotal()) + " frei auf diesem Laufwerk"
+                ? Lang.t("storage.disk_free", StorageUsage.format(report.diskFree()), StorageUsage.format(report.diskTotal()))
                 : " ");
         unused.setEnabled(report.unusedBytes() > 0);
-        unused.setToolTipText(report.unusedBytes() > 0 ? StorageUsage.format(report.unusedBytes()) + " in " + report.unusedFiles()
-                + " Dateien: Download-Cache, entpackte native Bibliotheken und Logs älter als 14 Tage" : "Nichts zu löschen");
+        unused.setToolTipText(report.unusedBytes() > 0 ? Lang.t("storage.unused.tip", StorageUsage.format(report.unusedBytes()), report.unusedFiles())
+                : Lang.t("storage.unused.nothing"));
         List<StorageUsage.Category> cats = new ArrayList<>(report.categories());
         if (sort.equals("size")) {
             cats.sort(Comparator.comparingLong(StorageUsage.Category::bytes).reversed());
         } else if (sort.equals("name")) {
-            cats.sort(Comparator.comparing(c -> c.kind().label));
+            cats.sort(Comparator.comparing(c -> c.kind().label()));
         }
         bar.set(report);
         rows.removeAll();
@@ -177,9 +180,9 @@ final class StoragePanel extends JPanel {
         west.add(dot, BorderLayout.NORTH);
         r.add(west, BorderLayout.WEST);
         JPanel text = Ui.column();
-        text.add(Ui.label(c.kind().label, 14, Font.BOLD, Theme.TEXT));
+        text.add(Ui.label(c.kind().label(), 14, Font.BOLD, Theme.TEXT));
         text.add(Box.createVerticalStrut(2));
-        String desc = c.kind().description;
+        String desc = c.kind().description();
         text.add(Ui.label(desc, 12.5f, Font.PLAIN, Theme.MUTED));
         r.add(text, BorderLayout.CENTER);
         JPanel east = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
@@ -188,11 +191,11 @@ final class StoragePanel extends JPanel {
         size.setPreferredSize(new Dimension(90, 30));
         size.setHorizontalAlignment(JLabel.RIGHT);
         east.add(size);
-        JButton folder = iconButton(Icons.Kind.FOLDER, "Ordner öffnen");
+        JButton folder = iconButton(Icons.Kind.FOLDER, Lang.t("common.open_folder"));
         Path dir = c.dirs().size() == 1 ? c.dirs().getFirst() : host.ctx().paths.root().resolve("instances");
         folder.addActionListener(e -> host.openFolder(dir));
         east.add(folder);
-        JButton clear = iconButton(Icons.Kind.BROOM, c.kind().clearable ? "Leeren" : "Spielerdaten werden nicht vom Launcher gelöscht");
+        JButton clear = iconButton(Icons.Kind.BROOM, c.kind().clearable ? Lang.t("history.clear") : Lang.t("storage.player_data"));
         clear.setEnabled(c.kind().clearable && c.bytes() > 0);
         clear.setVisible(c.kind().clearable);
         clear.addActionListener(e -> clear(c));
@@ -215,8 +218,8 @@ final class StoragePanel extends JPanel {
 
     private boolean gameBlocks() {
         if (host.gameRunning()) {
-            JOptionPane.showMessageDialog(host.frame(), "Bitte zuerst Minecraft beenden – das Spiel nutzt diese Dateien gerade.",
-                    "Speicher", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(host.frame(), Lang.t("storage.game_running"),
+                    Lang.t("settings.category.storage"), JOptionPane.INFORMATION_MESSAGE);
             return true;
         }
         return false;
@@ -226,9 +229,7 @@ final class StoragePanel extends JPanel {
         if (gameBlocks()) {
             return;
         }
-        if (JOptionPane.showConfirmDialog(host.frame(), c.kind().label + " leeren (" + StorageUsage.format(c.bytes()) + ")?\n"
-                        + "Der Launcher lädt die Dateien beim nächsten Start wieder herunter, wenn sie gebraucht werden.\n"
-                        + "Welten, Screenshots, eigene Mods und Einstellungen bleiben unberührt.", "Speicher freigeben",
+        if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("storage.clear.confirm", c.kind().label(), StorageUsage.format(c.bytes())), Lang.t("storage.free"),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
@@ -237,7 +238,7 @@ final class StoragePanel extends JPanel {
                 usage.clear(c.kind());
             } catch (Exception e) {
                 Log.warn("Clearing " + c.kind() + " failed: " + e.getMessage());
-                SwingUtilities.invokeLater(() -> host.error("Speicher freigeben", e.getMessage()));
+                SwingUtilities.invokeLater(() -> host.error(Lang.t("storage.free"), e.getMessage()));
             }
             SwingUtilities.invokeLater(this::refresh);
         });
@@ -247,9 +248,8 @@ final class StoragePanel extends JPanel {
         if (report == null || gameBlocks()) {
             return;
         }
-        if (JOptionPane.showConfirmDialog(host.frame(), StorageUsage.format(report.unusedBytes()) + " in " + report.unusedFiles()
-                        + " Dateien löschen?\nDownload-Cache, entpackte native Bibliotheken und Logs älter als 14 Tage. "
-                        + "Alles davon wird bei Bedarf neu angelegt.", "Ungenutzte Daten löschen",
+        if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("storage.unused.confirm", StorageUsage.format(report.unusedBytes()), report.unusedFiles())
+                        , Lang.t("storage.unused.button"),
                 JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) {
             return;
         }
@@ -283,7 +283,7 @@ final class StoragePanel extends JPanel {
         @Override
         public String getToolTipText(MouseEvent e) {
             StorageUsage.Category c = at(e.getX());
-            return c == null ? null : c.kind().label + ": " + StorageUsage.format(c.bytes());
+            return c == null ? null : c.kind().label() + ": " + StorageUsage.format(c.bytes());
         }
 
         private StorageUsage.Category at(int x) {

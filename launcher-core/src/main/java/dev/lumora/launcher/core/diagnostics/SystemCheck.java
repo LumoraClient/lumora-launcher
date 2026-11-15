@@ -2,6 +2,7 @@ package dev.lumora.launcher.core.diagnostics;
 
 import dev.lumora.launcher.core.BuildInfo;
 import dev.lumora.launcher.core.LauncherPaths;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.OsInfo;
 
 import java.io.IOException;
@@ -38,29 +39,29 @@ public final class SystemCheck {
         List<Item> items = new ArrayList<>();
         items.add(new Item("Launcher", Status.OK, BuildInfo.NAME + " " + BuildInfo.VERSION
                 + " (Java " + Runtime.version() + ")"));
-        items.add(new Item("Betriebssystem", os.arch().is64Bit() ? Status.OK : Status.FAIL,
+        items.add(new Item(Lang.t("diag.os"), os.arch().is64Bit() ? Status.OK : Status.FAIL,
                 System.getProperty("os.name") + " " + os.version() + " " + os.mojangArch()
-                        + (os.arch().is64Bit() ? "" : " - 64-Bit-System erforderlich")));
+                        + (os.arch().is64Bit() ? "" : " - " + Lang.t("diag.os.need64"))));
 
         long ram = totalRamMb();
-        items.add(new Item("Arbeitsspeicher", ram >= 6144 ? Status.OK : Status.WARN, ram + " MB"
-                + (ram > 0 && ram < 6144 ? " - empfohlen sind mind. 8 GB" : "")));
+        items.add(new Item(Lang.t("home.stat.ram"), ram >= 6144 ? Status.OK : Status.WARN, ram + " MB"
+                + (ram > 0 && ram < 6144 ? " - " + Lang.t("diag.ram.recommended") : "")));
 
         List<String> gpus = gpuNames(os);
-        items.add(new Item("Grafikkarte(n)", gpus.isEmpty() ? Status.WARN : Status.OK,
-                gpus.isEmpty() ? "nicht ermittelbar" : String.join("; ", gpus)));
+        items.add(new Item(Lang.t("diag.gpus"), gpus.isEmpty() ? Status.WARN : Status.OK,
+                gpus.isEmpty() ? Lang.t("diag.unknown") : String.join("; ", gpus)));
 
 
         try {
             Path probe = Files.exists(paths.root()) ? paths.root() : paths.root().getRoot();
             FileStore store = Files.getFileStore(probe);
             long freeMb = store.getUsableSpace() / 1048576;
-            items.add(new Item("Freier Speicherplatz", freeMb > 3000 ? Status.OK : Status.WARN,
-                    freeMb + " MB auf " + store + (freeMb <= 3000 ? " - mind. 3 GB empfohlen" : "")));
+            items.add(new Item(Lang.t("diag.disk"), freeMb > 3000 ? Status.OK : Status.WARN,
+                    Lang.t("diag.disk.free", freeMb, store) + (freeMb <= 3000 ? " - " + Lang.t("diag.disk.recommended") : "")));
         } catch (IOException e) {
-            items.add(new Item("Freier Speicherplatz", Status.WARN, "nicht ermittelbar: " + e.getMessage()));
+            items.add(new Item(Lang.t("diag.disk"), Status.WARN, Lang.t("diag.unknown_reason", e.getMessage())));
         }
-        items.add(new Item("Datenverzeichnis", Status.OK, paths.root().toAbsolutePath().toString()));
+        items.add(new Item(Lang.t("diag.data_dir"), Status.OK, paths.root().toAbsolutePath().toString()));
         return new Report(List.copyOf(items), gpus, ram);
     }
 
@@ -74,7 +75,7 @@ public final class SystemCheck {
     static List<String> gpuNames(OsInfo os) {
         List<String> cmd = switch (os.name()) {
             case WINDOWS -> List.of("powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
-                    "Get-CimInstance Win32_VideoController | ForEach-Object { $_.Name + ' (Treiber ' + $_.DriverVersion + ')' }");
+                    "Get-CimInstance Win32_VideoController | ForEach-Object { $_.Name + ' (driver ' + $_.DriverVersion + ')' }");
             case LINUX -> List.of("sh", "-c", "command -v lspci >/dev/null && lspci | grep -Ei 'vga|3d|display' | cut -d: -f3-");
             case OSX -> List.of("sh", "-c", "system_profiler SPDisplaysDataType | grep 'Chipset Model' | cut -d: -f2");
         };

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import dev.lumora.launcher.core.download.Downloader;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.profile.ProfileCatalog;
 import dev.lumora.launcher.core.util.FileUtil;
 import dev.lumora.launcher.core.util.Hashing;
@@ -226,14 +227,14 @@ public final class ModrinthBrowser {
         Version v = latest(projectId, mc, kind);
         if (v == null) {
             if (depth == 0) {
-                throw new IOException("Keine passende Version für Minecraft " + mc + " gefunden");
+                throw new IOException(Lang.t("browser.error.no_version", mc));
             }
-            notes.add("Abhängigkeit " + projectId + " hat keine Version für Minecraft " + mc);
+            notes.add(Lang.t("browser.error.dependency", projectId, mc));
             return;
         }
         String safeName = v.fileName().replaceAll("[^A-Za-z0-9_.+\\-\\[\\]() ]", "_");
         if (!safeName.endsWith(kind == Kind.MOD ? ".jar" : ".zip")) {
-            throw new IOException("Unerwarteter Dateityp: " + v.fileName());
+            throw new IOException(Lang.t("browser.error.file_type", v.fileName()));
         }
         Path target = FileUtil.resolveInside(dir, safeName);
         // a previous version of the same project is replaced

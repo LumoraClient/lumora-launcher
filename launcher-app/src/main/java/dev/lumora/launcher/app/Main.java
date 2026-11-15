@@ -6,6 +6,7 @@ import dev.lumora.launcher.app.ui.Splash;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.core.BuildInfo;
 import dev.lumora.launcher.core.LauncherPaths;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Log;
 import dev.lumora.launcher.core.util.OsInfo;
 import dev.lumora.launcher.core.util.SingleInstance;
@@ -52,8 +53,8 @@ public final class Main {
                 Theme.install(accent, pixel, calm);
                 if (!tray) {
                     List<java.awt.Image> icons = LauncherWindow.icons();
-                    splash[0] = new Splash(List.of("Vorbereiten …", "Einstellungen laden …", "Anmeldung prüfen …",
-                            "Launcher einrichten …"), icons.isEmpty() ? null : icons.getLast());
+                    splash[0] = new Splash(List.of(Lang.t("play.preparing"), Lang.t("splash.settings"), Lang.t("splash.signin"),
+                            Lang.t("splash.setup")), icons.isEmpty() ? null : icons.getLast());
                     splash[0].show();
                     splash[0].step(0);
                 }
@@ -79,7 +80,7 @@ public final class Main {
             if (s != null) {
                 s.close();
             }
-            JOptionPane.showMessageDialog(null, "Der Launcher konnte nicht gestartet werden:\n" + e.getMessage(),
+            JOptionPane.showMessageDialog(null, Lang.t("main.start_failed", e.getMessage()),
                     BuildInfo.NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
             return;
@@ -115,7 +116,7 @@ public final class Main {
             if (mine != null) {
                 return mine; // the other launcher has just ended
             }
-            int r = JOptionPane.showConfirmDialog(null, "Lumora läuft bereits, reagiert aber nicht.\nTrotzdem einen weiteren Launcher starten?",
+            int r = JOptionPane.showConfirmDialog(null, Lang.t("main.unresponsive"),
                     BuildInfo.NAME, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (r != JOptionPane.YES_OPTION) {
                 System.exit(0);

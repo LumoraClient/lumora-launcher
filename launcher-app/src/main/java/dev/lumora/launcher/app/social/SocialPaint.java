@@ -2,6 +2,7 @@ package dev.lumora.launcher.app.social;
 
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.social.SkinFaces;
 import dev.lumora.social.model.Presence;
 import dev.lumora.social.model.Role;
@@ -27,9 +28,9 @@ final class SocialPaint {
     static final Color OWN_BUBBLE = new Color(0x0F5E6B);
     static final Color OTHER_BUBBLE = Theme.SURFACE_2;
     static final Color SELECTED = Theme.mix(Theme.SURFACE, Theme.ACCENT, 0.22);
-    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMANY);
-    private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("EEEE, d. MMMM", Locale.GERMANY);
-    private static final DateTimeFormatter DAY_YEAR = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm", Lang.locale());
+    private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern(Lang.t("format.day_long"), Lang.locale());
+    private static final DateTimeFormatter DAY_YEAR = DateTimeFormatter.ofPattern(Lang.t("format.date_long"), Lang.locale());
 
     /** True when a face was still loading in the last paint (the page repaints a little later). */
     static volatile boolean facesPending;
@@ -93,11 +94,11 @@ final class SocialPaint {
     static String presenceText(Presence p) {
         String v = p.version.isEmpty() ? "" : " · " + p.version;
         return switch (p.state) {
-            case OFFLINE -> "Offline";
-            case LAUNCHER -> "Online";
-            case MENU -> "Im Hauptmenü" + v;
-            case SINGLEPLAYER -> "Einzelspieler" + v;
-            case MULTIPLAYER -> (p.detail.isEmpty() ? "Mehrspieler" : "Auf " + p.detail) + v;
+            case OFFLINE -> Lang.t("presence.offline");
+            case LAUNCHER -> Lang.t("presence.online");
+            case MENU -> Lang.t("presence.menu") + v;
+            case SINGLEPLAYER -> Lang.t("presence.singleplayer") + v;
+            case MULTIPLAYER -> (p.detail.isEmpty() ? Lang.t("presence.multiplayer") : Lang.t("presence.on_server", p.detail)) + v;
         };
     }
 
@@ -105,11 +106,11 @@ final class SocialPaint {
     static String listText(Presence p) {
         String v = p.version.isEmpty() ? "" : " · " + p.version;
         return switch (p.state) {
-            case OFFLINE -> "offline";
-            case LAUNCHER -> "im Launcher";
-            case MENU -> "im Hauptmenü" + v;
-            case SINGLEPLAYER -> "im Einzelspieler" + v;
-            case MULTIPLAYER -> p.detail.isEmpty() ? "im Mehrspieler" + v : "spielt auf";
+            case OFFLINE -> Lang.t("presence.list.offline");
+            case LAUNCHER -> Lang.t("presence.list.launcher");
+            case MENU -> Lang.t("presence.list.menu") + v;
+            case SINGLEPLAYER -> Lang.t("presence.list.singleplayer") + v;
+            case MULTIPLAYER -> p.detail.isEmpty() ? Lang.t("presence.list.multiplayer") + v : Lang.t("presence.list.playing_on");
         };
     }
 
@@ -152,12 +153,12 @@ final class SocialPaint {
     static String dayLabel(LocalDate d) {
         LocalDate today = LocalDate.now();
         if (d.equals(today)) {
-            return "HEUTE";
+            return Lang.t("chat.day.today");
         }
         if (d.equals(today.minusDays(1))) {
-            return "GESTERN";
+            return Lang.t("chat.day.yesterday");
         }
-        return (d.getYear() == today.getYear() ? DAY.format(d) : DAY_YEAR.format(d)).toUpperCase(Locale.GERMANY);
+        return (d.getYear() == today.getYear() ? DAY.format(d) : DAY_YEAR.format(d)).toUpperCase(Lang.locale());
     }
 
     /** "16:45", "Gestern", "Mo." or "12.10." for list previews. */
@@ -168,12 +169,12 @@ final class SocialPaint {
             return time(at);
         }
         if (d.equals(today.minusDays(1))) {
-            return "Gestern";
+            return Lang.t("chat.yesterday");
         }
         if (d.isAfter(today.minusDays(7))) {
-            return DateTimeFormatter.ofPattern("EE", Locale.GERMANY).format(d);
+            return DateTimeFormatter.ofPattern("EE", Lang.locale()).format(d);
         }
-        return DateTimeFormatter.ofPattern("d.M.", Locale.GERMANY).format(d);
+        return DateTimeFormatter.ofPattern(Lang.t("format.date_short"), Lang.locale()).format(d);
     }
 
     /** Word wrap for {@code maxWidth} (long words are broken by character). Keeps explicit line breaks. */

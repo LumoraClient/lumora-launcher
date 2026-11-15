@@ -21,10 +21,10 @@ class GameStatusTest {
         GameStatus s = GameStatus.read(f).orElseThrow();
         DiscordPresence.Activity a = s.activity("Lumora", "26.1.2", 1_800_000_000L, true);
         assertEquals("Lumora 26.3", a.details());
-        assertEquals("auf eineip.de", a.state());
+        assertEquals("on eineip.de", a.state());
         assertEquals(1_800_000_100L, a.startEpochSeconds());
         // server hidden in the settings
-        assertEquals("Mehrspieler", s.activity("Lumora", "26.3", 1, false).state());
+        assertEquals("Multiplayer", s.activity("Lumora", "26.3", 1, false).state());
     }
 
     @Test
@@ -33,12 +33,12 @@ class GameStatusTest {
         Files.createDirectories(f.getParent());
         Files.writeString(f, "{\"state\":\"menu\",\"server\":\"\",\"since\":1800000500,\"version\":\"26.3\"}");
         DiscordPresence.Activity menu = GameStatus.read(f).orElseThrow().activity("Lumora", "26.3", 1_800_000_000L, true);
-        assertEquals("Im Hauptmenü", menu.state());
+        assertEquals("In the main menu", menu.state());
         assertEquals(1_800_000_000L, menu.startEpochSeconds(), "the menu counts from the game start");
         Files.writeString(f, "{\"state\":\"singleplayer\",\"server\":\"\",\"since\":1800000600,\"version\":\"\"}");
         DiscordPresence.Activity sp = GameStatus.read(f).orElseThrow().activity("Lumora", "26.2", 1_800_000_000L, true);
         assertEquals("Lumora 26.2", sp.details(), "the profile's version if the game sent none");
-        assertEquals("Einzelspieler", sp.state());
+        assertEquals("Singleplayer", sp.state());
         assertEquals(1_800_000_600L, sp.startEpochSeconds());
     }
 
@@ -54,7 +54,7 @@ class GameStatusTest {
         Files.writeString(f, "{\"state\":\"multiplayer\",\"server\":\"evil text\nhere\",\"since\":null,\"version\":null}");
         GameStatus s = GameStatus.read(f).orElseThrow();
         assertEquals("", s.server());
-        assertEquals("Mehrspieler", s.activity("Lumora", "26.3", 5, true).state());
+        assertEquals("Multiplayer", s.activity("Lumora", "26.3", 5, true).state());
         assertEquals(5, s.activity("Lumora", "26.3", 5, true).startEpochSeconds());
     }
 }

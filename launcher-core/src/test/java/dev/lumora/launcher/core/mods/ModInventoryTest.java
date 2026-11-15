@@ -120,7 +120,7 @@ class ModInventoryTest {
         assertEquals(2, e.launches);
         assertEquals("1 h 15 min", PlayStats.format(e.playTime()));
         assertEquals(0, reloaded.get("26.1.2").launches);
-        assertEquals("gestern", PlayStats.ago(t0, t0.plus(Duration.ofHours(30))));
-        assertEquals("nie", PlayStats.ago(null, t0));
+        assertEquals("yesterday", PlayStats.ago(t0, t0.plus(Duration.ofHours(30))));
+        assertEquals("never", PlayStats.ago(null, t0));
     }
 }

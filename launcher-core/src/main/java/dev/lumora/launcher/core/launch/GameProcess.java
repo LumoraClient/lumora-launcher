@@ -1,4 +1,5 @@
 package dev.lumora.launcher.core.launch;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import dev.lumora.launcher.core.util.Log;
 import dev.lumora.launcher.core.util.Redactor;
@@ -64,7 +65,7 @@ public final class GameProcess {
         private static final long serialVersionUID = 1L;
 
         public AlreadyRunningException(String profile) {
-            super("Das Profil '" + profile + "' läuft bereits.");
+            super(Lang.t("play.error.already_running", profile));
         }
     }
 
@@ -97,7 +98,7 @@ public final class GameProcess {
         } catch (IOException e) {
             lock.release();
             lockChannel.close();
-            throw new IOException("Java-Prozess konnte nicht gestartet werden: " + e.getMessage(), e);
+            throw new IOException(Lang.t("play.error.java_start", e.getMessage()), e);
         }
         Path outputLog = gameDir.resolve(OUTPUT_LOG);
         FileLock heldLock = lock;

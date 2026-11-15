@@ -157,7 +157,7 @@ class MicrosoftAuthenticatorTest {
         AuthException e = assertThrows(AuthException.class, () -> auth(server).signIn(p -> { }, () -> false));
         assertEquals(AuthException.Reason.NETWORK, e.reason());
         assertTrue(e.getMessage().contains("AADSTS70012"), e.getMessage());
-        assertTrue(e.getMessage().contains("Azure-App-ID"));
+        assertTrue(e.getMessage().contains("Azure app ID"));
     }
 
     @Test

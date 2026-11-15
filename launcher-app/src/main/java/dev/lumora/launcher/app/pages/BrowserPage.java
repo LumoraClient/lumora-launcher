@@ -4,6 +4,7 @@ import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.modrinth.ModrinthBrowser;
 import dev.lumora.launcher.core.profile.ProfileCatalog;
 
@@ -34,7 +35,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +46,7 @@ import java.util.concurrent.ExecutorService;
  */
 public final class BrowserPage extends JPanel {
     private static final int PAGE = 20;
-    private static final String[] SORTS = {"Relevanz", "Downloads", "Beliebt", "Neu", "Aktualisiert"};
+    private static final String[] SORTS = {Lang.t("browser.sort.relevance"), Lang.t("browser.sort.downloads"), Lang.t("browser.sort.follows"), Lang.t("browser.sort.newest"), Lang.t("browser.sort.updated")};
     private static final Map<String, ImageIcon> ICONS = new ConcurrentHashMap<>();
 
     private final PageHost host;
@@ -75,7 +75,7 @@ public final class BrowserPage extends JPanel {
         this.modrinth = new ModrinthBrowser(host.ctx().downloader);
         setOpaque(false);
         JPanel head = Ui.column();
-        head.add(Ui.pageTitle("Entdecken", "Ressourcenpakete von Modrinth – passend zur Version, mit Prüfsumme installiert."));
+        head.add(Ui.pageTitle(Lang.t("nav.browser"), Lang.t("browser.subtitle")));
         head.add(Box.createVerticalStrut(14));
         JPanel tools = new JPanel(new BorderLayout(10, 0));
         tools.setOpaque(false);
@@ -83,7 +83,7 @@ public final class BrowserPage extends JPanel {
         JPanel left = Ui.row(12);
         tools.add(left, BorderLayout.WEST);
         JPanel right = Ui.row(8);
-        search.putClientProperty("JTextField.placeholderText", "Auf Modrinth suchen…");
+        search.putClientProperty("JTextField.placeholderText", Lang.t("browser.search"));
         search.putClientProperty("JTextField.leadingIcon", Icons.of(Icons.Kind.SEARCH, 16, Theme.MUTED));
         search.putClientProperty("JTextField.showClearButton", true);
         search.setPreferredSize(new Dimension(240, 34));
@@ -136,16 +136,16 @@ public final class BrowserPage extends JPanel {
 
     /** Modrinth category slugs with German names, in the order shown (first six visible, the rest behind "Mehr"). */
     private static final String[][] PACK_CATEGORIES = {
-            {"vanilla-like", "Vanilla-ähnlich"}, {"simplistic", "Schlicht"}, {"realistic", "Realistisch"}, {"themed", "Thema"},
-            {"combat", "PvP"}, {"gui", "Oberfläche"}, {"16x", "16x"}, {"32x", "32x"}, {"64x", "64x"}, {"128x", "128x"},
-            {"blocks", "Blöcke"}, {"items", "Gegenstände"}, {"entities", "Kreaturen"}, {"environment", "Umgebung"},
-            {"fonts", "Schriften"}, {"audio", "Klänge"}, {"tweaks", "Verbesserungen"}, {"utility", "Werkzeuge"}};
+            {"vanilla-like", Lang.t("browser.cat.vanilla_like")}, {"simplistic", Lang.t("browser.cat.simplistic")}, {"realistic", Lang.t("browser.cat.realistic")}, {"themed", Lang.t("browser.cat.themed")},
+            {"combat", Lang.t("browser.cat.combat")}, {"gui", Lang.t("browser.cat.gui")}, {"16x", "16x"}, {"32x", "32x"}, {"64x", "64x"}, {"128x", "128x"},
+            {"blocks", Lang.t("browser.cat.blocks")}, {"items", Lang.t("browser.cat.items")}, {"entities", Lang.t("browser.cat.entities")}, {"environment", Lang.t("browser.cat.environment")},
+            {"fonts", Lang.t("browser.cat.fonts")}, {"audio", Lang.t("browser.cat.audio")}, {"tweaks", Lang.t("browser.cat.tweaks")}, {"utility", Lang.t("browser.cat.utility")}};
 
     /** Left filter column: categories, loader, game versions (like modrinth.com). */
     private void buildFilters() {
         filters.removeAll();
         String[][] cats = PACK_CATEGORIES;
-        filters.add(filterTitle("Kategorien"));
+        filters.add(filterTitle(Lang.t("browser.categories")));
         JPanel grid = new JPanel(new java.awt.GridLayout(0, 2, 8, 8));
         grid.setOpaque(false);
         int shown = allCategories ? cats.length : Math.min(6, cats.length);
@@ -163,13 +163,13 @@ public final class BrowserPage extends JPanel {
         grid.setAlignmentX(Component.LEFT_ALIGNMENT);
         filters.add(grid);
         if (cats.length > 6) {
-            filters.add(more(allCategories ? "Weniger anzeigen" : (cats.length - 6) + " weitere anzeigen", () -> {
+            filters.add(more(allCategories ? Lang.t("browser.show_less") : Lang.t("browser.show_more", cats.length - 6), () -> {
                 allCategories = !allCategories;
                 buildFilters();
             }));
         }
         filters.add(Box.createVerticalStrut(10));
-        filters.add(filterTitle("Spielversionen"));
+        filters.add(filterTitle(Lang.t("browser.game_versions")));
         JPanel versions = new JPanel(new java.awt.GridLayout(0, 3, 8, 8));
         versions.setOpaque(false);
         List<ProfileCatalog.Profile> ps = host.ctx().catalog.profiles();
@@ -185,7 +185,7 @@ public final class BrowserPage extends JPanel {
         versions.setAlignmentX(Component.LEFT_ALIGNMENT);
         filters.add(versions);
         if (ps.size() > 9) {
-            filters.add(more(allVersions ? "Weniger anzeigen" : (ps.size() - 9) + " weitere anzeigen", () -> {
+            filters.add(more(allVersions ? Lang.t("browser.show_less") : Lang.t("browser.show_more", ps.size() - 9), () -> {
                 allVersions = !allVersions;
                 buildFilters();
             }));
@@ -241,7 +241,7 @@ public final class BrowserPage extends JPanel {
         String mc = profile().minecraftVersion;
         ModrinthBrowser.Kind k = kind;
         List<String> cats = List.copyOf(categories);
-        summary.setText("Suche auf Modrinth…");
+        summary.setText(Lang.t("browser.searching"));
         io.submit(() -> {
             try {
                 ModrinthBrowser.Page page = modrinth.search(query, mc, k, s, cats, offset, PAGE);
@@ -256,7 +256,7 @@ public final class BrowserPage extends JPanel {
             } catch (IOException | RuntimeException e) {
                 SwingUtilities.invokeLater(() -> {
                     if (gen == generation) {
-                        summary.setText("Modrinth ist gerade nicht erreichbar: " + e.getMessage());
+                        summary.setText(Lang.t("browser.unreachable", e.getMessage()));
                         list.removeAll();
                         list.revalidate();
                         list.repaint();
@@ -271,8 +271,8 @@ public final class BrowserPage extends JPanel {
         Path instance = host.ctx().gameDir(profile().id);
         Map<String, String> installed = ModrinthBrowser.installed(instance, kind);
         Set<String> managed = ModrinthBrowser.managedProjects(host.ctx().catalog, profile());
-        summary.setText(String.format(Locale.GERMANY, "%,d Treffer für Minecraft %s", total, profile().minecraftVersion)
-                + "  ·  Quelle: modrinth.com");
+        summary.setText(Lang.t("browser.results", String.format(Lang.locale(), "%,d", total), profile().minecraftVersion)
+                + "  ·  " + Lang.t("browser.source"));
         for (int i = 0; i < hits.size(); i++) {
             if (i > 0) {
                 list.add(Box.createVerticalStrut(8));
@@ -282,7 +282,7 @@ public final class BrowserPage extends JPanel {
         }
         if (hits.size() < total) {
             list.add(Box.createVerticalStrut(12));
-            JButton more = new JButton("Mehr laden (" + hits.size() + " von " + total + ")");
+            JButton more = new JButton(Lang.t("browser.load_more", hits.size(), total));
             more.setFocusable(false);
             more.addActionListener(e -> load(hits.size()));
             JPanel w = Ui.row(0);
@@ -290,7 +290,7 @@ public final class BrowserPage extends JPanel {
             list.add(w);
         }
         if (hits.isEmpty()) {
-            list.add(Ui.label("Nichts gefunden – anderer Suchbegriff oder andere Version?", 14, Font.PLAIN, Theme.MUTED));
+            list.add(Ui.label(Lang.t("browser.nothing"), 14, Font.PLAIN, Theme.MUTED));
         }
         list.revalidate();
         list.repaint();
@@ -327,7 +327,7 @@ public final class BrowserPage extends JPanel {
         JPanel text = Ui.column();
         JPanel head = Ui.row(8);
         head.add(Ui.label(h.title(), 15.5f, Font.BOLD, Theme.TEXT));
-        head.add(Ui.label("von " + h.author(), 12.5f, Font.PLAIN, Theme.MUTED));
+        head.add(Ui.label(Lang.t("browser.by", h.author()), 12.5f, Font.PLAIN, Theme.MUTED));
         head.setMaximumSize(new Dimension(Integer.MAX_VALUE, head.getPreferredSize().height));
         text.add(head);
         text.add(Box.createVerticalStrut(4));
@@ -336,7 +336,7 @@ public final class BrowserPage extends JPanel {
             text.add(Box.createVerticalStrut(4));
         }
         List<String> meta = new ArrayList<>();
-        meta.add(String.format(Locale.GERMANY, "%,d Downloads", h.downloads()));
+        meta.add(Lang.t("browser.downloads", String.format(Lang.locale(), "%,d", h.downloads())));
         if (h.license() != null) {
             meta.add(h.license().replace("LicenseRef-", ""));
         }
@@ -348,14 +348,14 @@ public final class BrowserPage extends JPanel {
         side.setOpaque(false);
         JButton action;
         if (managed) {
-            action = new JButton("In Lumora enthalten", Icons.of(Icons.Kind.CHECK, 15, Theme.OK));
+            action = new JButton(Lang.t("browser.included"), Icons.of(Icons.Kind.CHECK, 15, Theme.OK));
             action.setEnabled(false);
         } else if (installed) {
-            action = new JButton("Installiert", Icons.of(Icons.Kind.CHECK, 15, Theme.OK));
-            action.setToolTipText("Erneut klicken aktualisiert auf die neueste passende Version");
+            action = new JButton(Lang.t("browser.installed"), Icons.of(Icons.Kind.CHECK, 15, Theme.OK));
+            action.setToolTipText(Lang.t("browser.installed.tip"));
             action.addActionListener(e -> install(h, (JButton) e.getSource()));
         } else {
-            action = new JButton("Installieren", Icons.of(Icons.Kind.PLUS, 15, Color.WHITE));
+            action = new JButton(Lang.t("browser.install"), Icons.of(Icons.Kind.PLUS, 15, Color.WHITE));
             if (!Theme.pixelStyle) {
                 action.putClientProperty("JButton.buttonType", "roundRect");
             }
@@ -382,7 +382,7 @@ public final class BrowserPage extends JPanel {
 
     private void install(ModrinthBrowser.Hit h, JButton button) {
         if (host.gameRunning()) {
-            host.error("Installation nicht möglich", "Minecraft läuft gerade. Beende das Spiel, dann installiere das Paket.");
+            host.error(Lang.t("browser.install.impossible"), Lang.t("browser.install.game_running"));
             return;
         }
         ProfileCatalog.Profile p = profile();
@@ -390,26 +390,26 @@ public final class BrowserPage extends JPanel {
         ModrinthBrowser.Kind k = kind;
         Set<String> managed = ModrinthBrowser.managedProjects(host.ctx().catalog, p);
         button.setEnabled(false);
-        button.setText("Installiere…");
+        button.setText(Lang.t("browser.installing"));
         io.submit(() -> {
             try {
                 ModrinthBrowser.Installed r = modrinth.install(h.projectId(), p.minecraftVersion, k, instance, managed);
                 SwingUtilities.invokeLater(() -> {
                     render();
-                    StringBuilder sb = new StringBuilder(h.title() + " ist für Minecraft " + p.minecraftVersion + " installiert.\n\n");
+                    StringBuilder sb = new StringBuilder(Lang.t("browser.install.done", h.title(), p.minecraftVersion) + "\n\n");
                     r.files().forEach(f -> sb.append("✓ ").append(f).append('\n'));
                     if (!r.skippedManaged().isEmpty()) {
-                        sb.append("\nSchon von Lumora mitgebracht: ").append(r.skippedManaged().size()).append('\n');
+                        sb.append("\n" + Lang.t("browser.install.managed") + " ").append(r.skippedManaged().size()).append('\n');
                     }
-                    r.notes().forEach(n -> sb.append("\nHinweis: ").append(n));
-                    sb.append("\nJede Datei wurde mit der SHA-512-Prüfsumme von Modrinth verifiziert.");
-                    JOptionPane.showMessageDialog(host.frame(), sb.toString(), "Installiert", JOptionPane.INFORMATION_MESSAGE);
+                    r.notes().forEach(n -> sb.append("\n" + Lang.t("browser.install.note") + " ").append(n));
+                    sb.append("\n" + Lang.t("browser.install.verified"));
+                    JOptionPane.showMessageDialog(host.frame(), sb.toString(), Lang.t("browser.installed"), JOptionPane.INFORMATION_MESSAGE);
                 });
             } catch (IOException | RuntimeException e) {
                 SwingUtilities.invokeLater(() -> {
                     button.setEnabled(true);
-                    button.setText("Installieren");
-                    host.error("Installation fehlgeschlagen", h.title() + ": " + e.getMessage());
+                    button.setText(Lang.t("browser.install"));
+                    host.error(Lang.t("browser.install.failed"), h.title() + ": " + e.getMessage());
                 });
             }
         });

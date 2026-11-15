@@ -79,7 +79,7 @@ class CrashReportsTest {
                 "net/caffeinemc/mods/sodium/client/render/SodiumWorldRenderer.class");
         List<CrashReport.Suspect> s = CulpritFinder.find(MC_REPORT, mods);
         assertEquals("zoomify", s.getFirst().modId(), s.toString());
-        assertTrue(s.getFirst().reason().contains("Stacktrace"));
+        assertTrue(s.getFirst().reason().contains("stack trace"));
     }
 
     @Test

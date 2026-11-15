@@ -6,6 +6,7 @@ import dev.lumora.launcher.core.auth.AuthException;
 import dev.lumora.launcher.core.auth.MicrosoftAuthenticator;
 import dev.lumora.launcher.core.auth.MinecraftSession;
 import dev.lumora.launcher.core.config.LauncherConfig;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Log;
 
 import javax.swing.BorderFactory;
@@ -90,31 +91,28 @@ final class LoginFlow {
 
     private void showBrowserDialog() {
         closeBrowserDialog();
-        browserDialog = new JDialog(owner, "Mit Microsoft anmelden", false);
+        browserDialog = new JDialog(owner, Lang.t("account.sign_in_microsoft"), false);
         JPanel p = new JPanel(new BorderLayout(0, 14));
         p.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
-        JLabel title = new JLabel("Anmeldung im Browser");
+        JLabel title = new JLabel(Lang.t("login.browser.title"));
         title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
-        JLabel text = new JLabel("<html><body style='width:400px'>Im Browser hat sich die Anmeldeseite von "
-                + "<b>Microsoft</b> geöffnet. Melde dich dort mit dem Konto an, dem Minecraft gehört. "
-                + "Danach kehrt der Launcher automatisch zurück.<br><br>Dein Passwort gibst du nur bei Microsoft ein, "
-                + "der Launcher sieht es nie.</body></html>");
+        JLabel text = new JLabel("<html><body style='width:400px'>" + Lang.t("login.browser.text") + "</body></html>");
         p.add(title, BorderLayout.NORTH);
         p.add(text, BorderLayout.CENTER);
-        JButton again = new JButton("Browser erneut öffnen");
+        JButton again = new JButton(Lang.t("login.browser.again"));
         again.addActionListener(e -> {
             URI u = lastUrl.get();
             if (u != null) {
                 openBrowser(u);
             }
         });
-        JButton code = new JButton("Mit Code anmelden");
-        code.setToolTipText("Falls sich kein Browser öffnet oder du dich auf einem anderen Gerät anmelden möchtest");
+        JButton code = new JButton(Lang.t("login.code"));
+        code.setToolTipText(Lang.t("login.code.tip"));
         code.addActionListener(e -> {
             switchToCode.set(true);
             closeBrowserDialog();
         });
-        JButton cancel = new JButton("Abbrechen");
+        JButton cancel = new JButton(Lang.t("common.cancel"));
         cancel.addActionListener(e -> {
             userCancelled.set(true);
             closeBrowserDialog();

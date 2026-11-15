@@ -1,4 +1,5 @@
 package dev.lumora.launcher.app.ui;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -195,7 +196,7 @@ public final class NavRail extends JPanel {
 
             @Override
             public String getToolTipText() {
-                return iconsOnly ? "Seitenleiste mit Text" : null;
+                return iconsOnly ? Lang.t("nav.with_text") : null;
             }
 
             @Override
@@ -223,7 +224,7 @@ public final class NavRail extends JPanel {
                 if (!iconsOnly) {
                     g.setFont(Theme.font(Font.PLAIN, 13f));
                     FontMetrics fm = g.getFontMetrics();
-                    g.drawString("Nur Icons", 48, (h - fm.getHeight()) / 2 + fm.getAscent());
+                    g.drawString(Lang.t("settings.appearance.sidebar.icons"), 48, (h - fm.getHeight()) / 2 + fm.getAscent());
                 }
                 g.dispose();
             }
@@ -390,7 +391,7 @@ public final class NavRail extends JPanel {
             g.setFont(Theme.display(16f, sel ? Font.BOLD : Font.PLAIN, 14.5f));
             FontMetrics fm = g.getFontMetrics();
             g.setColor(sel ? Theme.TEXT : hover ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.3));
-            g.drawString(label, 48, (h - fm.getHeight()) / 2 + fm.getAscent());
+            g.drawString(Theme.pixelSafe(label), 48, (h - fm.getHeight()) / 2 + fm.getAscent());
             if (badge > 0) {
                 String t = badge > 99 ? "99+" : Integer.toString(badge);
                 g.setFont(Theme.font(Font.BOLD, 11f));

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.lumora.launcher.core.download.Downloader;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.FileUtil;
 import dev.lumora.launcher.core.util.Hashing;
 import dev.lumora.launcher.core.util.Log;
@@ -85,7 +86,7 @@ public final class LauncherUpdate {
             try {
                 all = JsonParser.parseString(downloader.fetchString(URI.create(api + "/releases?per_page=20"))).getAsJsonArray();
             } catch (RuntimeException e) {
-                throw new IOException("Unerwartete Antwort von GitHub: " + e.getMessage());
+                throw new IOException(Lang.t("update.error.github", e.getMessage()));
             }
             Release best = null;
             for (JsonElement e : all) {
@@ -118,7 +119,7 @@ public final class LauncherUpdate {
         try {
             o = JsonParser.parseString(json).getAsJsonObject();
         } catch (RuntimeException e) {
-            throw new IOException("Unerwartete Antwort von GitHub: " + e.getMessage());
+            throw new IOException(Lang.t("update.error.github", e.getMessage()));
         }
         return parse(o, false);
     }
@@ -166,14 +167,14 @@ public final class LauncherUpdate {
         String sums = downloader.fetchString(r.sums());
         String sig = downloader.fetchString(r.sig()).strip();
         if (!verify(sums.getBytes(StandardCharsets.UTF_8), sig)) {
-            throw new IOException("Die Signatur des Updates ist ungültig. Das Update wurde nicht installiert.");
+            throw new IOException(Lang.t("update.error.signature"));
         }
         String sha256 = sha256Of(sums, EXE);
         if (sha256 == null) {
-            throw new IOException(EXE + " fehlt in " + SUMS);
+            throw new IOException(Lang.t("update.error.missing", EXE, SUMS));
         }
         if (r.exeSize() > MAX_EXE) {
-            throw new IOException("Update ist unerwartet groß");
+            throw new IOException(Lang.t("update.error.too_large"));
         }
         Files.createDirectories(dir);
         Path target = dir.resolve("LumoraClient-" + r.version() + ".exe");
@@ -181,7 +182,7 @@ public final class LauncherUpdate {
                 null, Downloader.Verify.FULL);
         if (!Hashing.matches(target, new Hashing.Expected(Hashing.Algorithm.SHA256, sha256))) {
             Files.deleteIfExists(target);
-            throw new IOException("Prüfsumme des Updates stimmt nicht");
+            throw new IOException(Lang.t("update.error.checksum"));
         }
         return target;
     }
@@ -376,12 +377,12 @@ public final class LauncherUpdate {
     static PublicKey bundledKey() throws IOException {
         try (InputStream in = LauncherUpdate.class.getResourceAsStream("/lumora/update-key.pub")) {
             if (in == null) {
-                throw new IOException("Update-Schlüssel fehlt im Launcher");
+                throw new IOException(Lang.t("update.error.no_key"));
             }
             byte[] der = Base64.getDecoder().decode(new String(in.readAllBytes(), StandardCharsets.US_ASCII).strip());
             return KeyFactory.getInstance("Ed25519").generatePublic(new X509EncodedKeySpec(der));
         } catch (GeneralSecurityException | IllegalArgumentException e) {
-            throw new IOException("Update-Schlüssel ungültig: " + e.getMessage());
+            throw new IOException(Lang.t("update.error.bad_key", e.getMessage()));
         }
     }
 }

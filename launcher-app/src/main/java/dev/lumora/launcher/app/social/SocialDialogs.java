@@ -5,6 +5,7 @@ import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.ToggleSwitch;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.social.Rules;
 import dev.lumora.social.model.Friend;
 
@@ -115,7 +116,7 @@ final class SocialDialogs {
     }
 
     static JLabel caption(String text) {
-        JLabel l = Ui.label(text.toUpperCase(java.util.Locale.GERMANY), 11.5f, Font.BOLD, Theme.MUTED);
+        JLabel l = Ui.label(text.toUpperCase(dev.lumora.launcher.core.i18n.Lang.locale()), 11.5f, Font.BOLD, Theme.MUTED);
         l.setBorder(BorderFactory.createEmptyBorder(12, 0, 6, 0));
         return l;
     }
@@ -138,7 +139,7 @@ final class SocialDialogs {
         c.add(head, BorderLayout.NORTH);
         c.add(body, BorderLayout.CENTER);
         JLabel error = Ui.label(" ", 12.5f, Font.PLAIN, Theme.FAIL);
-        JButton cancel = secondary("Abbrechen");
+        JButton cancel = secondary(Lang.t("common.cancel"));
         JButton ok = primary(action);
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         buttons.setOpaque(false);
@@ -163,7 +164,7 @@ final class SocialDialogs {
                     d.dispose();
                 } else {
                     Throwable cause = ex instanceof java.util.concurrent.CompletionException && ex.getCause() != null ? ex.getCause() : ex;
-                    error.setText(cause.getMessage() == null ? "Fehlgeschlagen" : cause.getMessage());
+                    error.setText(cause.getMessage() == null ? Lang.t("common.failed") : cause.getMessage());
                     ok.setEnabled(true);
                 }
             }));
@@ -181,23 +182,22 @@ final class SocialDialogs {
 
     static void addFriend(Component parent, Function<String, CompletableFuture<?>> send) {
         JPanel body = Ui.column();
-        body.add(caption("Minecraft-Name"));
-        JTextField name = field("", 16, "z. B. CuzImMax");
+        body.add(caption(Lang.t("social.minecraft_name")));
+        JTextField name = field("", 16, Lang.t("social.minecraft_name.placeholder"));
         body.add(name);
         body.add(Box.createVerticalStrut(6));
-        body.add(Ui.wrapText("Der Spieler muss sich mindestens einmal mit demselben Lumora-Social-Server verbunden haben. "
-                + "Sobald er annimmt, seht ihr gegenseitig euren Status und könnt schreiben.", 12.5f, Theme.MUTED));
-        JDialog d = dialog(parent, "Freund hinzufügen", null, body, "Anfrage senden", () -> send.apply(name.getText().strip()));
+        body.add(Ui.wrapText(Lang.t("social.add_friend.hint"), 12.5f, Theme.MUTED));
+        JDialog d = dialog(parent, Lang.t("social.add_friend"), null, body, Lang.t("social.add_friend.send"), () -> send.apply(name.getText().strip()));
         d.setVisible(true);
     }
 
     static void group(Component parent, String title, GroupValues initial, String action,
                       Function<GroupValues, CompletableFuture<?>> save) {
         JPanel body = Ui.column();
-        body.add(caption("Name"));
-        JTextField name = field(initial.name(), Rules.GROUP_NAME_MAX, "z. B. BedWars Squad");
+        body.add(caption(Lang.t("social.field.name")));
+        JTextField name = field(initial.name(), Rules.GROUP_NAME_MAX, Lang.t("social.group.name.placeholder"));
         body.add(name);
-        body.add(caption("Beschreibung"));
+        body.add(caption(Lang.t("social.field.description")));
         JTextArea desc = new JTextArea(initial.description(), 3, 30);
         desc.setLineWrap(true);
         desc.setWrapStyleWord(true);
@@ -209,7 +209,7 @@ final class SocialDialogs {
         body.add(ds);
         String[] icon = {initial.icon()};
         int[] color = {initial.color()};
-        body.add(caption("Symbol und Farbe"));
+        body.add(caption(Lang.t("social.field.icon_color")));
         JComponent[] previewRef = new JComponent[1];
         body.add(iconPicker(icon, color, () -> previewRef[0].repaint()));
         body.add(Box.createVerticalStrut(8));
@@ -218,7 +218,7 @@ final class SocialDialogs {
         JDialog d = dialog(parent, title, null, body, action, () -> {
             String n = name.getText().strip();
             if (n.isEmpty()) {
-                return CompletableFuture.failedFuture(new IllegalArgumentException("Die Gruppe braucht einen Namen."));
+                return CompletableFuture.failedFuture(new IllegalArgumentException(Lang.t("social.group.name_required")));
             }
             return save.apply(new GroupValues(n, desc.getText(), icon[0], color[0]));
         });
@@ -228,24 +228,24 @@ final class SocialDialogs {
     static void role(Component parent, String title, RoleValues initial, boolean fixedManage, String action,
                      Function<RoleValues, CompletableFuture<?>> save) {
         JPanel body = Ui.column();
-        body.add(caption("Name"));
-        JTextField name = field(initial.name(), Rules.ROLE_NAME_MAX, "z. B. Strateg");
+        body.add(caption(Lang.t("social.field.name")));
+        JTextField name = field(initial.name(), Rules.ROLE_NAME_MAX, Lang.t("social.role.name.placeholder"));
         body.add(name);
         String[] icon = {initial.icon()};
         int[] color = {initial.color()};
         JComponent[] ref = new JComponent[1];
-        body.add(caption("Symbol und Farbe"));
+        body.add(caption(Lang.t("social.field.icon_color")));
         body.add(iconPicker(icon, color, () -> ref[0].repaint()));
         body.add(Box.createVerticalStrut(8));
         body.add(colorPicker(color, () -> ref[0].repaint()));
         ref[0] = body;
         ToggleSwitch manage = new ToggleSwitch(initial.manage());
         if (!fixedManage) {
-            body.add(caption("Rechte"));
+            body.add(caption(Lang.t("social.field.rights")));
             JPanel row = new JPanel(new BorderLayout(12, 0));
             row.setOpaque(false);
             row.setAlignmentX(Component.LEFT_ALIGNMENT);
-            row.add(Ui.wrapText("Darf die Gruppe verwalten: Mitglieder hinzufügen und entfernen, Name und Beschreibung ändern.",
+            row.add(Ui.wrapText(Lang.t("social.role.manage"),
                     12.5f, Theme.MUTED), BorderLayout.CENTER);
             row.add(manage, BorderLayout.EAST);
             body.add(row);
@@ -253,7 +253,7 @@ final class SocialDialogs {
         JDialog d = dialog(parent, title, null, body, action, () -> {
             String n = name.getText().strip();
             if (n.isEmpty()) {
-                return CompletableFuture.failedFuture(new IllegalArgumentException("Die Rolle braucht einen Namen."));
+                return CompletableFuture.failedFuture(new IllegalArgumentException(Lang.t("social.role.name_required")));
             }
             return save.apply(new RoleValues(n, icon[0], color[0], manage.isOn()));
         });
@@ -287,11 +287,11 @@ final class SocialDialogs {
         sp.getViewport().setOpaque(false);
         sp.setOpaque(false);
         JComponent body = friends.isEmpty()
-                ? Ui.wrapText("Alle deine Freunde sind schon in der Gruppe – oder du hast noch keine. Füge zuerst Freunde hinzu.", 13, Theme.MUTED)
+                ? Ui.wrapText(Lang.t("social.pick.none"), 13, Theme.MUTED)
                 : sp;
-        JDialog d = dialog(parent, title, "Nur Freunde können hinzugefügt werden.", body, "Hinzufügen", () -> {
+        JDialog d = dialog(parent, title, Lang.t("social.pick.friends_only"), body, Lang.t("common.add"), () -> {
             if (chosen[0] == null) {
-                return CompletableFuture.failedFuture(new IllegalArgumentException("Bitte einen Freund auswählen."));
+                return CompletableFuture.failedFuture(new IllegalArgumentException(Lang.t("social.pick.required")));
             }
             return pick.apply(chosen[0]);
         });
@@ -300,14 +300,12 @@ final class SocialDialogs {
 
     static void server(Component parent, String current, Consumer<String> save) {
         JPanel body = Ui.column();
-        body.add(caption("Server-Adresse"));
-        JTextField addr = field(current, 200, "z. B. chat.meinserver.de oder 192.168.0.10");
+        body.add(caption(Lang.t("social.field.server")));
+        JTextField addr = field(current, 200, Lang.t("social.server.placeholder"));
         body.add(addr);
         body.add(Box.createVerticalStrut(8));
-        body.add(Ui.wrapText("Lumora Social braucht einen eigenen Server, den du oder ein Freund betreibt (lumora-social-server.jar, "
-                + "siehe SOCIAL.md). Im lokalen Netz reicht eine IP-Adresse, im Internet ist wss:// (TLS) Pflicht. "
-                + "Nachrichten liegen auf diesem Server – wer ihn betreibt, kann sie lesen.", 12.5f, Theme.MUTED));
-        JDialog d = dialog(parent, "Lumora-Social-Server", null, body, "Speichern", () -> {
+        body.add(Ui.wrapText(Lang.t("social.server.hint"), 12.5f, Theme.MUTED));
+        JDialog d = dialog(parent, Lang.t("settings.chat.server.title"), null, body, Lang.t("common.save"), () -> {
             String a = addr.getText().strip();
             if (a.isEmpty()) {
                 save.accept(null);

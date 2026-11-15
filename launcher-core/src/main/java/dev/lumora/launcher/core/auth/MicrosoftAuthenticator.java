@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import dev.lumora.launcher.core.download.UserAgent;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.Json;
 import dev.lumora.launcher.core.util.Log;
 import dev.lumora.launcher.core.util.Redactor;
@@ -108,14 +109,14 @@ public final class MicrosoftAuthenticator {
         Duration wait = Duration.ofSeconds(interval).compareTo(minPollInterval) < 0 ? minPollInterval : Duration.ofSeconds(interval);
         while (true) {
             if (cancelled.getAsBoolean()) {
-                throw new AuthException(AuthException.Reason.CANCELLED, "Anmeldung abgebrochen.");
+                throw new AuthException(AuthException.Reason.CANCELLED, Lang.t("auth.cancelled"));
             }
             if (clock.instant().isAfter(deadline)) {
-                throw new AuthException(AuthException.Reason.EXPIRED, "Der Anmeldecode ist abgelaufen. Bitte erneut versuchen.");
+                throw new AuthException(AuthException.Reason.EXPIRED, Lang.t("auth.code_expired"));
             }
             sleep(wait);
             if (cancelled.getAsBoolean()) {
-                throw new AuthException(AuthException.Reason.CANCELLED, "Anmeldung abgebrochen.");
+                throw new AuthException(AuthException.Reason.CANCELLED, Lang.t("auth.cancelled"));
             }
             JsonObject tok = postForm(endpoints.token(), Map.of(
                     "grant_type", "urn:ietf:params:oauth:grant-type:device_code",
@@ -129,9 +130,9 @@ public final class MicrosoftAuthenticator {
                 case "authorization_pending" -> { }
                 case "slow_down" -> wait = wait.plusSeconds(5);
                 case "authorization_declined" -> throw new AuthException(AuthException.Reason.DECLINED,
-                        "Die Anmeldung wurde im Browser abgelehnt.");
+                        Lang.t("auth.declined"));
                 case "expired_token" -> throw new AuthException(AuthException.Reason.EXPIRED,
-                        "Der Anmeldecode ist abgelaufen. Bitte erneut versuchen.");
+                        Lang.t("auth.code_expired"));
                 default -> throw msError(tok);
             }
         }
@@ -153,7 +154,7 @@ public final class MicrosoftAuthenticator {
             receiver = LoopbackReceiver.start(state);
         } catch (IOException e) {
             throw new AuthException(AuthException.Reason.NETWORK,
-                    "Lokaler Anmelde-Empfänger konnte nicht gestartet werden: " + e.getMessage(), e);
+                    Lang.t("auth.loopback_failed", e.getMessage()), e);
         }
         try {
             String redirectUri = receiver.redirectUri();
@@ -171,19 +172,19 @@ public final class MicrosoftAuthenticator {
             try {
                 opener.open(authorizeUrl);
             } catch (IOException e) {
-                throw new AuthException(AuthException.Reason.NETWORK, "Browser konnte nicht geöffnet werden: " + e.getMessage(), e);
+                throw new AuthException(AuthException.Reason.NETWORK, Lang.t("auth.browser_failed", e.getMessage()), e);
             }
             Map<String, String> result = receiver.await(BROWSER_LOGIN_TIMEOUT, cancelled);
             if (result == null) {
                 if (cancelled.getAsBoolean()) {
-                    throw new AuthException(AuthException.Reason.CANCELLED, "Anmeldung abgebrochen.");
+                    throw new AuthException(AuthException.Reason.CANCELLED, Lang.t("auth.cancelled"));
                 }
-                throw new AuthException(AuthException.Reason.EXPIRED, "Die Anmeldung im Browser wurde nicht rechtzeitig abgeschlossen.");
+                throw new AuthException(AuthException.Reason.EXPIRED, Lang.t("auth.browser_timeout"));
             }
             if (result.containsKey("error")) {
                 String err = result.get("error");
                 if ("access_denied".equals(err) || "consent_required".equals(err)) {
-                    throw new AuthException(AuthException.Reason.DECLINED, "Die Anmeldung wurde im Browser abgebrochen oder abgelehnt.");
+                    throw new AuthException(AuthException.Reason.DECLINED, Lang.t("auth.browser_declined"));
                 }
                 JsonObject o = new JsonObject();
                 o.addProperty("error", err);
@@ -232,7 +233,7 @@ public final class MicrosoftAuthenticator {
     public MinecraftSession refresh(MinecraftSession previous) throws AuthException {
         requireClientId();
         if (previous == null || previous.msRefreshToken() == null) {
-            throw new AuthException(AuthException.Reason.SESSION_INVALID, "Keine gespeicherte Anmeldung vorhanden.");
+            throw new AuthException(AuthException.Reason.SESSION_INVALID, Lang.t("auth.no_saved"));
         }
         JsonObject tok = postForm(endpoints.token(), Map.of(
                 "grant_type", "refresh_token",
@@ -243,7 +244,7 @@ public final class MicrosoftAuthenticator {
             String err = tok.get("error").getAsString();
             if ("invalid_grant".equals(err) || "interaction_required".equals(err)) {
                 throw new AuthException(AuthException.Reason.SESSION_INVALID,
-                        "Die gespeicherte Anmeldung ist abgelaufen. Bitte erneut anmelden.");
+                        Lang.t("auth.saved_expired"));
             }
             throw msError(tok);
         }
@@ -268,7 +269,7 @@ public final class MicrosoftAuthenticator {
         HttpResponse<String> xblResp = postJson(endpoints.xboxUser(), xblReq, null, "Xbox Live");
         if (xblResp.statusCode() != 200) {
             throw new AuthException(AuthException.Reason.XBOX_OTHER,
-                    "Xbox-Live-Anmeldung fehlgeschlagen (HTTP " + xblResp.statusCode() + ").");
+                    Lang.t("auth.xbl_failed", xblResp.statusCode()));
         }
         JsonObject xbl = parse(xblResp.body());
         String xblToken = str(xbl, "Token");
@@ -291,7 +292,7 @@ public final class MicrosoftAuthenticator {
         }
         if (xstsResp.statusCode() != 200) {
             throw new AuthException(AuthException.Reason.XBOX_OTHER,
-                    "XSTS-Autorisierung fehlgeschlagen (HTTP " + xstsResp.statusCode() + ").");
+                    Lang.t("auth.xsts_failed", xstsResp.statusCode()));
         }
         JsonObject xsts = parse(xstsResp.body());
         String xstsToken = str(xsts, "Token");
@@ -303,12 +304,11 @@ public final class MicrosoftAuthenticator {
         HttpResponse<String> mcResp = postJson(endpoints.mcLogin(), mcReq, null, "Minecraft login");
         if (mcResp.statusCode() == 403) {
             throw new AuthException(AuthException.Reason.APP_NOT_APPROVED,
-                    "Minecraft Services hat die Anmeldung abgelehnt (HTTP 403). Die konfigurierte Azure-App-ID ist "
-                            + "vermutlich nicht von Mojang für die Minecraft-API freigeschaltet (siehe docs/TROUBLESHOOTING.md).");
+                    Lang.t("auth.mc_403"));
         }
         if (mcResp.statusCode() != 200) {
             throw new AuthException(AuthException.Reason.INVALID_RESPONSE,
-                    "Minecraft-Anmeldung fehlgeschlagen (HTTP " + mcResp.statusCode() + ").");
+                    Lang.t("auth.mc_failed", mcResp.statusCode()));
         }
         JsonObject mc = parse(mcResp.body());
         String mcToken = str(mc, "access_token");
@@ -319,12 +319,11 @@ public final class MicrosoftAuthenticator {
         HttpResponse<String> profileResp = get(endpoints.mcProfile(), mcToken, "profile");
         if (profileResp.statusCode() == 404) {
             throw new AuthException(AuthException.Reason.NO_PROFILE,
-                    "Für dieses Konto existiert kein Minecraft-Profil. Bitte zuerst im offiziellen Launcher "
-                            + "bzw. auf minecraft.net einen Spielernamen festlegen.");
+                    Lang.t("auth.no_profile"));
         }
         if (profileResp.statusCode() != 200) {
             throw new AuthException(AuthException.Reason.INVALID_RESPONSE,
-                    "Minecraft-Profil konnte nicht geladen werden (HTTP " + profileResp.statusCode() + ").");
+                    Lang.t("auth.profile_failed", profileResp.statusCode()));
         }
         JsonObject profile = parse(profileResp.body());
         String name = str(profile, "name");
@@ -340,7 +339,7 @@ public final class MicrosoftAuthenticator {
         HttpResponse<String> resp = get(endpoints.mcEntitlements(), mcToken, "entitlements");
         if (resp.statusCode() != 200) {
             throw new AuthException(AuthException.Reason.INVALID_RESPONSE,
-                    "Lizenzprüfung fehlgeschlagen (HTTP " + resp.statusCode() + ").");
+                    Lang.t("auth.license_failed", resp.statusCode()));
         }
         JsonObject ent = parse(resp.body());
         boolean owned = false;
@@ -355,7 +354,7 @@ public final class MicrosoftAuthenticator {
         }
         if (!owned) {
             throw new AuthException(AuthException.Reason.NOT_OWNED,
-                    "Dieses Microsoft-Konto besitzt keine Lizenz für Minecraft: Java Edition.");
+                    Lang.t("auth.no_license"));
         }
     }
 
@@ -363,21 +362,21 @@ public final class MicrosoftAuthenticator {
         long code = body.has("XErr") ? body.get("XErr").getAsLong() : 0;
         if (code == 2148916233L) {
             return new AuthException(AuthException.Reason.NO_XBOX_ACCOUNT,
-                    "Dieses Microsoft-Konto hat kein Xbox-Profil. Bitte einmal auf xbox.com anmelden und ein Profil anlegen.");
+                    Lang.t("auth.no_xbox"));
         }
         if (code == 2148916235L) {
             return new AuthException(AuthException.Reason.XBOX_REGION_BLOCKED,
-                    "Xbox Live ist in deinem Land/deiner Region nicht verfügbar.");
+                    Lang.t("auth.xbox_region"));
         }
         if (code == 2148916236L || code == 2148916237L) {
             return new AuthException(AuthException.Reason.XBOX_OTHER,
-                    "Für dieses Konto ist eine Altersverifizierung bei Xbox erforderlich (xbox.com).");
+                    Lang.t("auth.xbox_age"));
         }
         if (code == 2148916238L) {
             return new AuthException(AuthException.Reason.CHILD_ACCOUNT,
-                    "Kinderkonto: Ein Erwachsener muss das Konto zu einer Microsoft-Familie hinzufügen.");
+                    Lang.t("auth.xbox_child"));
         }
-        return new AuthException(AuthException.Reason.XBOX_OTHER, "XSTS-Autorisierung abgelehnt (XErr " + code + ").");
+        return new AuthException(AuthException.Reason.XBOX_OTHER, Lang.t("auth.xsts_declined", code));
     }
 
     private AuthException msError(JsonObject body) {
@@ -387,22 +386,19 @@ public final class MicrosoftAuthenticator {
         String code = m.find() ? m.group() : err;
         if ("invalid_client".equals(err) || "unauthorized_client".equals(err) || desc.contains("AADSTS700016")) {
             return new AuthException(AuthException.Reason.NOT_CONFIGURED,
-                    "Die konfigurierte Azure-App-ID wird von Microsoft nicht akzeptiert (" + code + "). "
-                            + "Prüfe, ob die App 'Persönliche Microsoft-Konten' und 'Public client flows' erlaubt.");
+                    Lang.t("auth.app_rejected", code));
         }
         if ("temporarily_unavailable".equals(err)) {
             return new AuthException(AuthException.Reason.NETWORK,
-                    "Microsoft meldet einen vorübergehenden Fehler (" + code + "). Tritt er dauerhaft auf, ist die "
-                            + "Azure-App-ID meist nicht registriert oder nicht für persönliche Microsoft-Konten freigegeben "
-                            + "(siehe docs/TROUBLESHOOTING.md).");
+                    Lang.t("auth.ms_temporary", code));
         }
-        return new AuthException(AuthException.Reason.INVALID_RESPONSE, "Microsoft-Anmeldung fehlgeschlagen (" + code + ").");
+        return new AuthException(AuthException.Reason.INVALID_RESPONSE, Lang.t("auth.ms_failed", code));
     }
 
     private void requireClientId() throws AuthException {
         if (clientId == null || clientId.isBlank()) {
             throw new AuthException(AuthException.Reason.NOT_CONFIGURED,
-                    "Es ist keine Azure-App-ID (Client-ID) für die Microsoft-Anmeldung vorhanden (eingebaut in AppIds).");
+                    Lang.t("auth.no_app_id"));
         }
     }
 
@@ -410,7 +406,7 @@ public final class MicrosoftAuthenticator {
         try {
             return xbl.getAsJsonObject("DisplayClaims").getAsJsonArray("xui").get(0).getAsJsonObject().get("uhs").getAsString();
         } catch (RuntimeException e) {
-            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, "Unerwartete Xbox-Live-Antwort (uhs fehlt).", e);
+            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, Lang.t("auth.bad_xbl"), e);
         }
     }
 
@@ -441,10 +437,10 @@ public final class MicrosoftAuthenticator {
             return o;
         }
         if (resp.statusCode() >= 500) {
-            throw new AuthException(AuthException.Reason.NETWORK, "Microsoft-Anmeldedienst nicht erreichbar (HTTP " + resp.statusCode() + ").");
+            throw new AuthException(AuthException.Reason.NETWORK, Lang.t("auth.ms_unreachable", resp.statusCode()));
         }
         if (resp.statusCode() != 200 && !o.has("error")) {
-            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, "Unerwartete Antwort beim Schritt '" + what + "' (HTTP " + resp.statusCode() + ").");
+            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, Lang.t("auth.bad_response_step", what, resp.statusCode()));
         }
         return o;
     }
@@ -471,10 +467,10 @@ public final class MicrosoftAuthenticator {
         try {
             return http.send(req, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            throw new AuthException(AuthException.Reason.NETWORK, "Netzwerkfehler bei '" + what + "': " + e.getMessage(), e);
+            throw new AuthException(AuthException.Reason.NETWORK, Lang.t("auth.network", what, e.getMessage()), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new AuthException(AuthException.Reason.CANCELLED, "Anmeldung unterbrochen.", e);
+            throw new AuthException(AuthException.Reason.CANCELLED, Lang.t("auth.interrupted"), e);
         }
     }
 
@@ -482,11 +478,11 @@ public final class MicrosoftAuthenticator {
         try {
             JsonObject o = Json.GSON.fromJson(body, JsonObject.class);
             if (o == null) {
-                throw new AuthException(AuthException.Reason.INVALID_RESPONSE, "Leere Antwort vom Anmeldedienst.");
+                throw new AuthException(AuthException.Reason.INVALID_RESPONSE, Lang.t("auth.empty_response"));
             }
             return o;
         } catch (JsonParseException | IllegalStateException e) {
-            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, "Ungültige Antwort vom Anmeldedienst.", e);
+            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, Lang.t("auth.invalid_response"), e);
         }
     }
 
@@ -501,7 +497,7 @@ public final class MicrosoftAuthenticator {
 
     private static String str(JsonObject o, String key) throws AuthException {
         if (!o.has(key) || o.get(key).isJsonNull()) {
-            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, "Antwort des Anmeldedienstes ohne Feld '" + key + "'.");
+            throw new AuthException(AuthException.Reason.INVALID_RESPONSE, Lang.t("auth.missing_field", key));
         }
         return o.get(key).getAsString();
     }
@@ -511,7 +507,7 @@ public final class MicrosoftAuthenticator {
             Thread.sleep(d.toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new AuthException(AuthException.Reason.CANCELLED, "Anmeldung unterbrochen.", e);
+            throw new AuthException(AuthException.Reason.CANCELLED, Lang.t("auth.interrupted"), e);
         }
     }
 }

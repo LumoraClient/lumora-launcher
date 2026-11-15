@@ -1,4 +1,5 @@
 package dev.lumora.launcher.app.ui;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -169,7 +170,7 @@ public final class DataTable extends JPanel {
         javax.swing.JButton b = new javax.swing.JButton(Icons.of(Icons.Kind.MORE, 16, Theme.TEXT));
         b.putClientProperty("JButton.buttonType", "borderless");
         b.setFocusable(false);
-        b.setToolTipText("Aktionen");
+        b.setToolTipText(Lang.t("table.actions"));
         b.addActionListener(e -> {
             javax.swing.JPopupMenu m = new javax.swing.JPopupMenu();
             for (Action a : actions) {

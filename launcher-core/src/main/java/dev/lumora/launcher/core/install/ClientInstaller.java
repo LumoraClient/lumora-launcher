@@ -3,6 +3,7 @@ package dev.lumora.launcher.core.install;
 import dev.lumora.launcher.core.LauncherPaths;
 import dev.lumora.launcher.core.config.LauncherConfig;
 import dev.lumora.launcher.core.download.Downloader;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.java.JavaProbe;
 import dev.lumora.launcher.core.java.JavaRuntimeInstaller;
 import dev.lumora.launcher.core.mods.BundledMods;
@@ -76,8 +77,8 @@ public final class ClientInstaller {
                             ProgressListener progress) throws IOException {
         MetadataService meta = new MetadataService(downloader, paths.versions());
         boolean vanillaOnly = flavor == Flavor.VANILLA;
-        progress.stage("Lade Versionsinformationen (Minecraft " + profile.minecraftVersion
-                + (vanillaOnly ? ", Vanilla" : ", Lumora Loader") + ")");
+        progress.stage(Lang.t("install.stage.version_info", profile.minecraftVersion
+                , vanillaOnly ? "Vanilla" : "Lumora Loader"));
         progress.progress(-1, "");
         // only Mojang's version JSON: Lumora needs no mod loader profile
         VersionJson vanilla = meta.vanilla(profile.minecraftVersion);
@@ -92,7 +93,7 @@ public final class ClientInstaller {
         Log.info("Preparing profile " + profile.id + " (" + version.id() + "), verification " + verify);
 
         // client jar + libraries
-        progress.stage("Prüfe Spieldateien und Bibliotheken");
+        progress.stage(Lang.t("install.stage.check_files"));
         List<Downloader.Task> tasks = new ArrayList<>();
         Path clientJar = FileUtil.resolveInside(paths.versions(), vanilla.id + "/" + vanilla.id + ".jar");
         tasks.add(new Downloader.Task(URI.create(version.clientJar().url), clientJar,
@@ -101,7 +102,7 @@ public final class ClientInstaller {
             tasks.add(new Downloader.Task(URI.create(lib.url()), FileUtil.resolveInside(paths.libraries(), lib.path()),
                     Hashing.Expected.sha1(lib.sha1()), lib.size()));
         }
-        downloader.downloadAll(tasks, progressAdapter(progress, "Bibliotheken"), verify);
+        downloader.downloadAll(tasks, progressAdapter(progress, Lang.t("storage.kind.libraries")), verify);
 
         // native libraries (up to 1.18.2): classifier jars, extracted into the natives directory below
         List<Downloader.Task> nativeTasks = new ArrayList<>();
@@ -109,10 +110,10 @@ public final class ClientInstaller {
             nativeTasks.add(new Downloader.Task(URI.create(n.url()), FileUtil.resolveInside(paths.libraries(), n.path()),
                     Hashing.Expected.sha1(n.sha1()), n.size()));
         }
-        downloader.downloadAll(nativeTasks, progressAdapter(progress, "Native Bibliotheken"), verify);
+        downloader.downloadAll(nativeTasks, progressAdapter(progress, Lang.t("install.native_libraries")), verify);
 
         // assets
-        progress.stage("Prüfe Assets (Texturen, Sounds, Sprachen)");
+        progress.stage(Lang.t("install.stage.assets"));
         VersionJson.AssetIndex idx = version.assetIndex();
         Path indexFile = FileUtil.resolveInside(paths.assets(), "indexes/" + idx.id + ".json");
         downloader.download(new Downloader.Task(URI.create(idx.url), indexFile, Hashing.Expected.sha1(idx.sha1), idx.size), null);
@@ -146,7 +147,7 @@ public final class ClientInstaller {
         Files.createDirectories(paths.addonLibrary());
 
         // the Lumora jar(s) of the profile (verified); they live in .lumora/client, a mods/ folder is left alone
-        progress.stage("Installiere Client-Komponenten (" + profile.displayName + ")");
+        progress.stage(Lang.t("install.stage.client", profile.displayName));
         List<ProfileCatalog.Artifact> mods = catalog.resolveMods(profile, List.of(), null);
         ModInstaller modInstaller = new ModInstaller(downloader, paths.modCache(), bundled.get());
         ModInstaller.Result modResult = modInstaller.install(mods, layout.clientDir(),
@@ -158,8 +159,8 @@ public final class ClientInstaller {
         if (layout.own()) {
             List<ProfileCatalog.Artifact> packs = catalog.resolvePacks(profile, config.disabledResourcePacks).stream()
                     .filter(a -> a.requires == null || a.requires.isEmpty()).toList();
-            progress.stage("Installiere Ressourcenpakete (" + packs.size() + ")");
-            modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, "Ressourcenpakete"));
+            progress.stage(Lang.t("install.stage.packs", packs.size()));
+            modInstaller.install(packs, gameDir.resolve("resourcepacks"), progressAdapter(progress, Lang.t("library.packs")));
             ResourcePackOptions.apply(gameDir, packs);
         }
 
@@ -201,9 +202,9 @@ public final class ClientInstaller {
             // newer official runtime than the version JSON asks for (the profile needs it, e.g. for the Lumora mod)
             int major = componentMajor(profileComponent);
             if (major < required) {
-                throw new IOException(profileComponent + " ist älter als Java " + required);
+                throw new IOException(Lang.t("install.java_too_old", profileComponent, required));
             }
-            progress.stage("Prüfe Java-Laufzeit (" + profileComponent + ", Java " + major + ")");
+            progress.stage(Lang.t("install.stage.java", profileComponent, major));
             JavaRuntimeInstaller jri = new JavaRuntimeInstaller(downloader, paths.runtimes(), os);
             return jri.install(profileComponent, progressAdapter(progress, "Java"), verify).javaExecutable();
         }
@@ -211,14 +212,13 @@ public final class ClientInstaller {
             Path custom = Path.of(config.javaPath);
             int major = JavaProbe.majorVersion(custom);
             if (major < required) {
-                throw new IOException("Die eingestellte Java-Installation ist Version " + major + ", Minecraft "
-                        + version.vanillaId() + " benötigt Java " + required + ". Entferne den Java-Pfad in den "
-                        + "Einstellungen, dann verwendet der Launcher die offizielle Mojang-Laufzeit.");
+                throw new IOException(Lang.t("install.custom_java_old", major,
+                        version.vanillaId(), required));
             }
             return custom;
         }
         String component = version.javaVersion() != null ? version.javaVersion().component : "java-runtime-epsilon";
-        progress.stage("Prüfe Java-Laufzeit (" + component + ", Java " + required + ")");
+        progress.stage(Lang.t("install.stage.java", component, required));
         JavaRuntimeInstaller jri = new JavaRuntimeInstaller(downloader, paths.runtimes(), os);
         return jri.install(component, progressAdapter(progress, "Java"), verify).javaExecutable();
     }

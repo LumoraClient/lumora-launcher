@@ -6,6 +6,7 @@ import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.ToggleSwitch;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.launch.LaunchCommandBuilder;
 import dev.lumora.social.Conv;
 import dev.lumora.social.Endpoint;
@@ -54,7 +55,6 @@ import java.awt.geom.Ellipse2D;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -62,7 +62,7 @@ import java.util.concurrent.CompletableFuture;
  * the in-game version: list | group/friend info (Übersicht, Mitglieder, Einstellungen; can be hidden) | chat.
  */
 public final class SocialPage extends JPanel {
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(Lang.t("format.date_long"), Lang.locale());
 
     private final PageHost host;
     private final SocialController social;
@@ -255,22 +255,19 @@ public final class SocialPage extends JPanel {
     private JComponent setupView() {
         JPanel p = new JPanel(new BorderLayout(0, 18));
         p.setOpaque(false);
-        p.add(Ui.pageTitle("Freunde & Gruppen", "Mit Freunden schreiben, Gruppen mit Rollen anlegen und sehen, wer gerade spielt – im Launcher und im Spiel."),
+        p.add(Ui.pageTitle(Lang.t("social.title"), Lang.t("social.subtitle")),
                 BorderLayout.NORTH);
         Card c = new Card(new BorderLayout(0, 14));
         JPanel col = Ui.column();
-        col.add(Ui.label("Mit einem Lumora-Social-Server verbinden", 17, Font.BOLD, Theme.TEXT));
+        col.add(Ui.label(Lang.t("social.setup.title"), 17, Font.BOLD, Theme.TEXT));
         col.add(Box.createVerticalStrut(8));
-        col.add(Ui.wrapText("Freunde und Chats laufen über einen eigenen Lumora-Social-Server, den du oder jemand aus deiner Runde "
-                + "betreibt (lumora-social-server.jar, Anleitung in SOCIAL.md). Es gibt keinen voreingestellten Server. "
-                + "Die Anmeldung läuft über dein Minecraft-Konto (offizieller Mojang-Sitzungsdienst); der Server sieht dabei "
-                + "weder Passwort noch Token. Nachrichten werden auf dem Server gespeichert.", 13.5f, Theme.MUTED));
+        col.add(Ui.wrapText(Lang.t("social.setup.text"), 13.5f, Theme.MUTED));
         col.add(Box.createVerticalStrut(14));
-        JTextField addr = SocialDialogs.field("", 200, "Server-Adresse, z. B. chat.meinserver.de oder 192.168.0.10");
+        JTextField addr = SocialDialogs.field("", 200, Lang.t("social.setup.address"));
         addr.setMaximumSize(new Dimension(520, 38));
         col.add(addr);
         col.add(Box.createVerticalStrut(10));
-        JButton connect = SocialDialogs.primary("Verbinden");
+        JButton connect = SocialDialogs.primary(Lang.t("social.setup.connect"));
         connect.addActionListener(e -> {
             try {
                 String uri = Endpoint.parse(addr.getText()).toString();
@@ -297,18 +294,17 @@ public final class SocialPage extends JPanel {
     private JComponent signInView() {
         JPanel p = new JPanel(new BorderLayout(0, 18));
         p.setOpaque(false);
-        p.add(Ui.pageTitle("Freunde & Gruppen", "Melde dich mit deinem Microsoft-Konto an, um Freunde und Chats zu nutzen."), BorderLayout.NORTH);
+        p.add(Ui.pageTitle(Lang.t("social.title"), Lang.t("social.signin.subtitle")), BorderLayout.NORTH);
         Card c = new Card(new BorderLayout(0, 12));
         JPanel col = Ui.column();
-        col.add(Ui.label("Nicht angemeldet", 17, Font.BOLD, Theme.TEXT));
+        col.add(Ui.label(Lang.t("account.signed_out"), 17, Font.BOLD, Theme.TEXT));
         col.add(Box.createVerticalStrut(8));
-        col.add(Ui.wrapText("Lumora Social erkennt dich an deinem Minecraft-Konto. Nach der Anmeldung verbindet sich der Launcher "
-                + "automatisch mit dem eingestellten Server.", 13.5f, Theme.MUTED));
+        col.add(Ui.wrapText(Lang.t("social.signin.text"), 13.5f, Theme.MUTED));
         col.add(Box.createVerticalStrut(14));
         JPanel row = Ui.row(10);
-        JButton signIn = SocialDialogs.primary("Anmelden");
+        JButton signIn = SocialDialogs.primary(Lang.t("account.sign_in"));
         signIn.addActionListener(e -> host.signIn());
-        JButton server = SocialDialogs.secondary("Server ändern…");
+        JButton server = SocialDialogs.secondary(Lang.t("social.change_server"));
         server.addActionListener(e -> SocialDialogs.server(this, host.ctx().config.socialServer, this::setServer));
         row.add(signIn);
         row.add(server);
@@ -383,7 +379,7 @@ public final class SocialPage extends JPanel {
         input.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
         input.setOpaque(false);
         input.setFont(Theme.font(Font.PLAIN, 14.5f));
-        input.putClientProperty("JTextField.placeholderText", "Nachricht schreiben…");
+        input.putClientProperty("JTextField.placeholderText", Lang.t("social.write_message.placeholder"));
         input.putClientProperty("JComponent.outline", null);
         SocialDialogs.limit(input.getDocument(), Rules.MESSAGE_MAX);
         input.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -417,7 +413,7 @@ public final class SocialPage extends JPanel {
             {
                 setPreferredSize(new Dimension(48, 48));
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                setToolTipText("Senden (Enter)");
+                setToolTipText(Lang.t("social.send"));
                 addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -459,7 +455,7 @@ public final class SocialPage extends JPanel {
             return;
         }
         if (Conv.isDm(selected) && c.friend(Conv.other(selected, c.self().uuid)) == null) {
-            toast("Nachrichten gehen nur an Freunde.");
+            toast(Lang.t("social.friends_only"));
             return;
         }
         c.send(selected, text);
@@ -541,21 +537,21 @@ public final class SocialPage extends JPanel {
             return;
         }
         String me = c.self().uuid;
-        sideList.add(caption("FREUNDE", Icons.Kind.USER_PLUS, "Freund hinzufügen",
+        sideList.add(caption(Lang.t("social.friends"), Icons.Kind.USER_PLUS, Lang.t("social.add_friend"),
                 () -> SocialDialogs.addFriend(this, name -> c.addFriend(name).thenRun(() -> SwingUtilities.invokeLater(
-                        () -> toast("Anfrage an " + name + " gesendet."))))));
+                        () -> toast(Lang.t("social.request_sent", name)))))));
         for (FriendRequest r : c.requests()) {
             SocialRow row = new SocialRow((g, x, y, s) -> SocialPaint.face(g, r.profile.uuid, r.profile.name, x, y, s),
-                    r.profile.name, r.incoming ? "möchte dein Freund sein" : "Anfrage gesendet", r.incoming ? Theme.ACCENT_HOVER : Theme.MUTED, null);
+                    r.profile.name, r.incoming ? Lang.t("social.request.incoming") : Lang.t("social.request.outgoing"), r.incoming ? Theme.ACCENT_HOVER : Theme.MUTED, null);
             if (r.incoming) {
-                row.action(Icons.Kind.CHECK, "Annehmen", Theme.OK, () -> run(c.acceptFriend(r.profile.uuid)));
+                row.action(Icons.Kind.CHECK, Lang.t("social.request.accept"), Theme.OK, () -> run(c.acceptFriend(r.profile.uuid)));
             }
-            row.action(Icons.Kind.X, r.incoming ? "Ablehnen" : "Zurückziehen", Theme.FAIL, () -> run(c.declineFriend(r.profile.uuid)));
+            row.action(Icons.Kind.X, r.incoming ? Lang.t("social.request.decline") : Lang.t("social.request.withdraw"), Theme.FAIL, () -> run(c.declineFriend(r.profile.uuid)));
             sideList.add(row);
         }
         List<Friend> friends = c.friends();
         if (friends.isEmpty() && c.requests().isEmpty()) {
-            sideList.add(hint(c.status() == SocialClient.Status.ONLINE ? "Noch keine Freunde. Über + per Minecraft-Namen hinzufügen." : "Nicht verbunden."));
+            sideList.add(hint(c.status() == SocialClient.Status.ONLINE ? Lang.t("social.no_friends") : Lang.t("social.not_connected")));
         }
         for (Friend f : friends) {
             String conv = Conv.dm(me, f.profile.uuid);
@@ -570,16 +566,16 @@ public final class SocialPage extends JPanel {
                             ? f.presence.detail : null);
             if (f.presence.state == Presence.State.MULTIPLAYER && !f.presence.detail.isEmpty()) {
                 // one click onto the friend's server (Quick Play, or --server on versions before 1.20)
-                row.action(Icons.Kind.PLAY, "Server beitreten: " + f.presence.detail, Theme.ACCENT_HOVER, () -> joinServer(f.presence));
+                row.action(Icons.Kind.PLAY, Lang.t("social.join_server", f.presence.detail), Theme.ACCENT_HOVER, () -> joinServer(f.presence));
             }
             row.setComponentPopupMenu(friendMenu(c, f));
             sideList.add(row);
         }
         sideList.add(Box.createVerticalStrut(10));
-        sideList.add(caption("GRUPPEN", Icons.Kind.PLUS, "Gruppe erstellen", this::createGroup));
+        sideList.add(caption(Lang.t("social.groups"), Icons.Kind.PLUS, Lang.t("social.group.create"), this::createGroup));
         List<Group> groups = c.groups();
         if (groups.isEmpty()) {
-            sideList.add(hint("Noch keine Gruppen. Über + eine Gruppe erstellen und Freunde einladen."));
+            sideList.add(hint(Lang.t("social.no_groups")));
         }
         for (Group g : groups) {
             String conv = g.conv();
@@ -620,11 +616,11 @@ public final class SocialPage extends JPanel {
         Color color;
         switch (c.status()) {
             case ONLINE -> {
-                status = "Online · " + Endpoint.display(c.uri());
+                status = Lang.t("social.online_at", Endpoint.display(c.uri()));
                 color = Theme.OK;
             }
             case CONNECTING -> {
-                status = "Verbinde mit " + Endpoint.display(c.uri()) + "…";
+                status = Lang.t("social.connecting", Endpoint.display(c.uri()));
                 color = Theme.WARN;
             }
             case REJECTED -> {
@@ -632,7 +628,7 @@ public final class SocialPage extends JPanel {
                 color = Theme.FAIL;
             }
             default -> {
-                status = "Getrennt" + (c.statusText().isEmpty() ? "" : ": " + c.statusText()) + " – neuer Versuch gleich";
+                status = (c.statusText().isEmpty() ? Lang.t("social.disconnected") : Lang.t("social.disconnected_reason", c.statusText()));
                 color = Theme.WARN;
             }
         }
@@ -642,12 +638,12 @@ public final class SocialPage extends JPanel {
             SocialPaint.statusDot(g, p, x + s - 3, y + s - 3, 5, Theme.SURFACE);
         }, me.name, status, color, null);
         if (c.status() == SocialClient.Status.REJECTED || c.status() == SocialClient.Status.OFFLINE) {
-            row.action(Icons.Kind.REFRESH, "Neu verbinden", Theme.TEXT, () -> {
+            row.action(Icons.Kind.REFRESH, Lang.t("social.reconnect"), Theme.TEXT, () -> {
                 social.reconnect();
                 rebuildSelf();
             });
         }
-        row.action(Icons.Kind.SLIDERS, "Lumora-Social-Einstellungen", Theme.TEXT, () -> settingsMenu().show(selfBox, selfBox.getWidth() - 220, -10));
+        row.action(Icons.Kind.SLIDERS, Lang.t("social.settings"), Theme.TEXT, () -> settingsMenu().show(selfBox, selfBox.getWidth() - 220, -10));
         row.setToolTipText(status);
         selfBox.add(row, BorderLayout.CENTER);
         selfBox.revalidate();
@@ -656,21 +652,21 @@ public final class SocialPage extends JPanel {
 
     private JPopupMenu settingsMenu() {
         JPopupMenu m = new JPopupMenu();
-        JMenuItem server = new JMenuItem("Server ändern…");
+        JMenuItem server = new JMenuItem(Lang.t("social.change_server"));
         server.addActionListener(e -> SocialDialogs.server(this, host.ctx().config.socialServer, this::setServer));
         m.add(server);
-        JCheckBoxMenuItem share = new JCheckBoxMenuItem("Server-Adresse für Freunde sichtbar", host.ctx().config.socialShareServer);
-        share.setToolTipText("Wirkt beim nächsten Spielstart: Freunde sehen, auf welchem Server du spielst.");
+        JCheckBoxMenuItem share = new JCheckBoxMenuItem(Lang.t("settings.chat.share_server.title"), host.ctx().config.socialShareServer);
+        share.setToolTipText(Lang.t("social.share_server.tip"));
         share.addActionListener(e -> {
             host.ctx().config.socialShareServer = share.isSelected();
             host.saveConfig();
         });
         m.add(share);
         m.addSeparator();
-        JMenuItem off = new JMenuItem("Lumora Social ausschalten");
+        JMenuItem off = new JMenuItem(Lang.t("social.off.title"));
         off.addActionListener(e -> {
-            if (SocialDialogs.confirm(this, "Lumora Social ausschalten", "Der Launcher und das Spiel verbinden sich nicht mehr mit "
-                    + Endpoint.display(java.net.URI.create(host.ctx().config.socialServer)) + ". Freunde und Gruppen bleiben auf dem Server erhalten.", "Ausschalten")) {
+            if (SocialDialogs.confirm(this, Lang.t("social.off.title"), Lang.t("social.off.confirm",
+                    Endpoint.display(java.net.URI.create(host.ctx().config.socialServer))), Lang.t("social.off.button"))) {
                 setServer(null);
             }
         });
@@ -680,15 +676,15 @@ public final class SocialPage extends JPanel {
 
     private JPopupMenu friendMenu(SocialClient c, Friend f) {
         JPopupMenu m = new JPopupMenu();
-        JMenuItem msg = new JMenuItem("Nachricht schreiben");
+        JMenuItem msg = new JMenuItem(Lang.t("social.write_message"));
         msg.addActionListener(e -> select(Conv.dm(c.self().uuid, f.profile.uuid)));
         m.add(msg);
         if (f.presence.state == Presence.State.MULTIPLAYER && !f.presence.detail.isEmpty()) {
-            JMenuItem join = new JMenuItem("Server beitreten (" + f.presence.detail + ")");
+            JMenuItem join = new JMenuItem(Lang.t("social.join_server_menu", f.presence.detail));
             join.addActionListener(e -> joinServer(f.presence));
             m.add(join);
         }
-        JMenu add = new JMenu("Zu Gruppe hinzufügen");
+        JMenu add = new JMenu(Lang.t("social.add_to_group"));
         for (Group g : c.groups()) {
             if (g.canManage(c.self().uuid) && g.member(f.profile.uuid) == null) {
                 JMenuItem gi = new JMenuItem(g.name);
@@ -699,11 +695,10 @@ public final class SocialPage extends JPanel {
         add.setEnabled(add.getItemCount() > 0);
         m.add(add);
         m.addSeparator();
-        JMenuItem remove = new JMenuItem("Freund entfernen");
+        JMenuItem remove = new JMenuItem(Lang.t("social.remove_friend"));
         remove.setForeground(Theme.FAIL);
         remove.addActionListener(e -> {
-            if (SocialDialogs.confirm(this, "Freund entfernen", f.profile.name + " wird aus deiner Freundesliste entfernt. "
-                    + "Ihr seht euren Status nicht mehr und könnt euch nicht mehr direkt schreiben.", "Entfernen")) {
+            if (SocialDialogs.confirm(this, Lang.t("social.remove_friend"), Lang.t("social.remove_friend.confirm_long", f.profile.name), Lang.t("common.remove"))) {
                 run(c.removeFriend(f.profile.uuid));
             }
         });
@@ -715,8 +710,7 @@ public final class SocialPage extends JPanel {
         if (host.gameRunning()) {
             // the running game cannot be redirected from outside: hand over the address
             java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(p.detail), null);
-            javax.swing.JOptionPane.showMessageDialog(host.frame(), "Minecraft läuft schon. Die Adresse " + p.detail + " ist kopiert:\n"
-                    + "im Spiel unter Mehrspieler → Direkt verbinden einfügen.", "Server beitreten", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(host.frame(), Lang.t("social.join.copied", p.detail), Lang.t("social.join.title"), javax.swing.JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         if (!p.version.isEmpty() && host.ctx().catalog.profile(p.version).isPresent()) {
@@ -730,7 +724,7 @@ public final class SocialPage extends JPanel {
         if (c == null) {
             return;
         }
-        SocialDialogs.group(this, "Gruppe erstellen", new SocialDialogs.GroupValues("", "", "flag", Rules.COLORS.get(2)), "Erstellen",
+        SocialDialogs.group(this, Lang.t("social.group.create"), new SocialDialogs.GroupValues("", "", "flag", Rules.COLORS.get(2)), Lang.t("common.create"),
                 v -> c.createGroup(v.name(), v.description(), v.icon(), v.color()).thenAccept(id -> SwingUtilities.invokeLater(() -> {
                     if (id != null) {
                         select(Conv.group(id));
@@ -745,7 +739,7 @@ public final class SocialPage extends JPanel {
         SocialClient c = social.client();
         if (c == null || selected == null) {
             chatHeader.add(Ui.label(c != null && c.status() == SocialClient.Status.ONLINE
-                    ? "Wähle links einen Freund oder eine Gruppe." : "Nicht verbunden", 15, Font.BOLD, Theme.MUTED), BorderLayout.CENTER);
+                    ? Lang.t("social.pick_chat") : Lang.t("social.not_connected_short"), 15, Font.BOLD, Theme.MUTED), BorderLayout.CENTER);
             chatHeader.revalidate();
             chatHeader.repaint();
             input.setEnabled(false);
@@ -777,12 +771,12 @@ public final class SocialPage extends JPanel {
         actions.setOpaque(false);
         ConversationInfo ci = c.conversation(selected);
         boolean muted = ci != null && ci.muted;
-        actions.add(iconButton(Icons.Kind.INFO, infoWanted ? "Infos ausblenden" : "Infos anzeigen", () -> {
+        actions.add(iconButton(Icons.Kind.INFO, infoWanted ? Lang.t("social.info.hide") : Lang.t("social.info.show"), () -> {
             infoWanted = !infoWanted;
             updateInfoVisibility();
             rebuildHeader();
         }));
-        actions.add(iconButton(muted ? Icons.Kind.BELL_OFF : Icons.Kind.BELL, muted ? "Benachrichtigungen an" : "Stummschalten",
+        actions.add(iconButton(muted ? Icons.Kind.BELL_OFF : Icons.Kind.BELL, muted ? Lang.t("social.notify.on") : Lang.t("social.mute"),
                 () -> run(c.setMuted(selected, !muted))));
         chatHeader.add(actions, BorderLayout.EAST);
         chatHeader.revalidate();
@@ -921,15 +915,15 @@ public final class SocialPage extends JPanel {
         names.add(Box.createVerticalStrut(3));
         names.add(Ui.label(g.members.size() + (g.members.size() == 1 ? " Mitglied" : " Mitglieder"), 13.5f, Font.PLAIN, Theme.MUTED));
         title.add(names, BorderLayout.CENTER);
-        title.add(iconButton(Icons.Kind.MORE, "Mehr", () -> groupMenu(c, g).show(title, title.getWidth() - 180, 40)), BorderLayout.EAST);
+        title.add(iconButton(Icons.Kind.MORE, Lang.t("common.more"), () -> groupMenu(c, g).show(title, title.getWidth() - 180, 40)), BorderLayout.EAST);
         title.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
         col.add(title);
-        col.add(tabs(List.of("overview", "members", "settings"), List.of("Übersicht", "Mitglieder", "Einstellungen"),
+        col.add(tabs(List.of("overview", "members", "settings"), List.of(Lang.t("social.group.tab.overview"), Lang.t("social.group.tab.members"), Lang.t("settings.title")),
                 List.of(Icons.Kind.INFO, Icons.Kind.USERS, Icons.Kind.SLIDERS)));
         switch (infoTab) {
             case "members" -> {
                 if (manage) {
-                    JButton add = SocialDialogs.secondary("Mitglied hinzufügen");
+                    JButton add = SocialDialogs.secondary(Lang.t("social.group.add_member"));
                     add.setIcon(Icons.of(Icons.Kind.USER_PLUS, 16, Theme.TEXT));
                     add.addActionListener(e -> {
                         List<Friend> candidates = new ArrayList<>();
@@ -938,7 +932,7 @@ public final class SocialPage extends JPanel {
                                 candidates.add(f);
                             }
                         }
-                        SocialDialogs.pickFriend(this, "Mitglied hinzufügen", candidates, f -> c.addMember(g.id, f.profile.uuid));
+                        SocialDialogs.pickFriend(this, Lang.t("social.group.add_member"), candidates, f -> c.addMember(g.id, f.profile.uuid));
                     });
                     JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
                     row.setOpaque(false);
@@ -948,7 +942,7 @@ public final class SocialPage extends JPanel {
                     row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
                     col.add(row);
                 }
-                col.add(section("MITGLIEDER – " + g.members.size()));
+                col.add(section(Lang.t("social.group.members_count", g.members.size())));
                 List<Member> members = new ArrayList<>(g.members);
                 List<Role> order = g.rolesInOrder();
                 members.sort((a, b) -> {
@@ -971,67 +965,66 @@ public final class SocialPage extends JPanel {
                     }, m.profile.name + (self ? " (du)" : ""), r.name, SocialPaint.rgb(r.color), null).height(52, 36);
                     JPopupMenu menu = memberMenu(c, g, m);
                     if (menu.getComponentCount() > 0) {
-                        row.action(Icons.Kind.MORE, "Mitglied verwalten", Theme.MUTED, () -> menu.show(row, row.getWidth() - 200, row.getHeight()));
+                        row.action(Icons.Kind.MORE, Lang.t("social.group.manage_member"), Theme.MUTED, () -> menu.show(row, row.getWidth() - 200, row.getHeight()));
                     }
                     col.add(padded(row));
                 }
             }
             case "settings" -> {
-                col.add(section("BENACHRICHTIGUNGEN"));
+                col.add(section(Lang.t("social.section.notifications")));
                 ConversationInfo ci = c.conversation(g.conv());
                 ToggleSwitch notify = new ToggleSwitch(ci == null || !ci.muted);
                 notify.onChange(on -> run(c.setMuted(g.conv(), !on)));
-                col.add(padded(settingRow("Neue Nachrichten melden", "Zähler und Hinweise", notify)));
+                col.add(padded(settingRow(Lang.t("social.notify_new"), Lang.t("social.notify_new.hint"), notify)));
                 if (manage) {
-                    col.add(section("GRUPPE"));
-                    JButton edit = SocialDialogs.secondary("Gruppe bearbeiten…");
-                    edit.setToolTipText("Name, Beschreibung, Symbol und Farbe");
+                    col.add(section(Lang.t("social.section.group")));
+                    JButton edit = SocialDialogs.secondary(Lang.t("social.group.edit_dots"));
+                    edit.setToolTipText(Lang.t("social.group.edit.tip"));
                     edit.setIcon(Icons.of(Icons.Kind.EDIT, 16, Theme.TEXT));
                     edit.addActionListener(e -> editGroup(c, g));
                     col.add(padded(edit));
                 }
                 if (owner) {
-                    col.add(section("ROLLEN"));
-                    JButton role = SocialDialogs.secondary("Neue Rolle…");
+                    col.add(section(Lang.t("social.section.roles")));
+                    JButton role = SocialDialogs.secondary(Lang.t("social.role.new_dots"));
                     role.setIcon(Icons.of(Icons.Kind.PLUS, 16, Theme.TEXT));
                     role.setEnabled(g.roles.size() < Rules.ROLES_MAX);
-                    role.addActionListener(e -> SocialDialogs.role(this, "Neue Rolle", new SocialDialogs.RoleValues("", "star", Rules.COLORS.get(1), false),
-                            false, "Erstellen", v -> c.saveRole(g.id, null, v.name(), v.icon(), v.color(), v.manage())));
+                    role.addActionListener(e -> SocialDialogs.role(this, Lang.t("social.role.new"), new SocialDialogs.RoleValues("", "star", Rules.COLORS.get(1), false),
+                            false, Lang.t("common.create"), v -> c.saveRole(g.id, null, v.name(), v.icon(), v.color(), v.manage())));
                     col.add(padded(role));
                     col.add(Box.createVerticalStrut(6));
-                    col.add(padded(Ui.wrapText("Rollen bearbeiten: in der Übersicht auf eine Rolle klicken. Owner und Mitglied sind fest.",
+                    col.add(padded(Ui.wrapText(Lang.t("social.role.hint"),
                             12f, Theme.MUTED)));
                 }
-                col.add(section("GEFAHRENZONE"));
-                JButton leave = SocialDialogs.danger("Gruppe verlassen");
+                col.add(section(Lang.t("social.section.danger")));
+                JButton leave = SocialDialogs.danger(Lang.t("social.group.leave"));
                 leave.setIcon(Icons.of(Icons.Kind.LOGOUT, 16, Theme.FAIL));
                 leave.addActionListener(e -> {
-                    if (SocialDialogs.confirm(this, "Gruppe verlassen", "Du verlässt „" + g.name + "“." + (owner
-                            ? " Die Gruppe geht an das dienstälteste verwaltende Mitglied." : "") + " Zurück nur über eine neue Einladung.", "Verlassen")) {
+                    if (SocialDialogs.confirm(this, Lang.t("social.group.leave"), Lang.t("social.group.leave.confirm", g.name) + (owner
+                            ? Lang.t("social.group.leave.owner") : "") + " " + Lang.t("social.group.leave.no_return"), Lang.t("social.group.leave.button"))) {
                         run(c.leaveGroup(g.id));
                     }
                 });
                 col.add(padded(leave));
                 if (owner) {
                     col.add(Box.createVerticalStrut(8));
-                    JButton del = SocialDialogs.danger("Gruppe löschen");
+                    JButton del = SocialDialogs.danger(Lang.t("social.group.delete"));
                     del.setIcon(Icons.of(Icons.Kind.TRASH, 16, Theme.FAIL));
                     del.addActionListener(e -> {
-                        if (SocialDialogs.confirm(this, "Gruppe löschen", "„" + g.name + "“ wird mit allen Nachrichten für alle Mitglieder gelöscht. "
-                                + "Das lässt sich nicht rückgängig machen.", "Endgültig löschen")) {
+                        if (SocialDialogs.confirm(this, Lang.t("social.group.delete"), Lang.t("social.group.delete.confirm", g.name), Lang.t("social.group.delete.button"))) {
                             run(c.deleteGroup(g.id));
                         }
                     });
                     col.add(padded(del));
                 }
                 col.add(Box.createVerticalStrut(14));
-                col.add(padded(Ui.wrapText("Erstellt am " + DATE.format(SocialPaint.day(g.created)), 12f, Theme.MUTED)));
+                col.add(padded(Ui.wrapText(Lang.t("social.group.created", DATE.format(SocialPaint.day(g.created))), 12f, Theme.MUTED)));
             }
             default -> {
-                col.add(section("BESCHREIBUNG"));
-                col.add(padded(Ui.wrapText(g.description.isEmpty() ? (manage ? "Noch keine Beschreibung. Unter Einstellungen hinzufügen."
-                        : "Keine Beschreibung.") : g.description, 13.5f, g.description.isEmpty() ? Theme.MUTED : Theme.TEXT)));
-                col.add(section("ROLLEN"));
+                col.add(section(Lang.t("social.section.description")));
+                col.add(padded(Ui.wrapText(g.description.isEmpty() ? (manage ? Lang.t("social.group.no_description_manage")
+                        : Lang.t("social.group.no_description")) : g.description, 13.5f, g.description.isEmpty() ? Theme.MUTED : Theme.TEXT)));
+                col.add(section(Lang.t("social.section.roles")));
                 for (Role r : g.rolesInOrder()) {
                     int n = g.membersWithRole(r.id);
                     SocialRow row = new SocialRow((gr, x, y, s) -> {
@@ -1065,12 +1058,12 @@ public final class SocialPage extends JPanel {
     }
 
     private void editGroup(SocialClient c, Group g) {
-        SocialDialogs.group(this, "Gruppe bearbeiten", new SocialDialogs.GroupValues(g.name, g.description, g.icon, g.color), "Speichern",
+        SocialDialogs.group(this, Lang.t("social.group.edit"), new SocialDialogs.GroupValues(g.name, g.description, g.icon, g.color), Lang.t("common.save"),
                 v -> c.updateGroup(g.id, v.name(), v.description(), v.icon(), v.color()));
     }
 
     private void editRole(SocialClient c, Group g, Role r) {
-        SocialDialogs.role(this, "Rolle bearbeiten", new SocialDialogs.RoleValues(r.name, r.icon, r.color, r.manage), r.fixed(), "Speichern",
+        SocialDialogs.role(this, Lang.t("social.role.edit"), new SocialDialogs.RoleValues(r.name, r.icon, r.color, r.manage), r.fixed(), Lang.t("common.save"),
                 v -> c.saveRole(g.id, r.id, v.name(), v.icon(), v.color(), Role.OWNER.equals(r.id) || v.manage()));
     }
 
@@ -1078,26 +1071,26 @@ public final class SocialPage extends JPanel {
         String me = c.self().uuid;
         JPopupMenu m = new JPopupMenu();
         if (g.canManage(me)) {
-            JMenuItem edit = new JMenuItem("Gruppe bearbeiten…");
+            JMenuItem edit = new JMenuItem(Lang.t("social.group.edit_dots"));
             edit.addActionListener(e -> editGroup(c, g));
             m.add(edit);
         }
         if (me.equals(g.owner) && g.roles.size() < Rules.ROLES_MAX) {
-            JMenuItem role = new JMenuItem("Neue Rolle…");
-            role.addActionListener(e -> SocialDialogs.role(this, "Neue Rolle", new SocialDialogs.RoleValues("", "star", Rules.COLORS.get(1), false),
-                    false, "Erstellen", v -> c.saveRole(g.id, null, v.name(), v.icon(), v.color(), v.manage())));
+            JMenuItem role = new JMenuItem(Lang.t("social.role.new_dots"));
+            role.addActionListener(e -> SocialDialogs.role(this, Lang.t("social.role.new"), new SocialDialogs.RoleValues("", "star", Rules.COLORS.get(1), false),
+                    false, Lang.t("common.create"), v -> c.saveRole(g.id, null, v.name(), v.icon(), v.color(), v.manage())));
             m.add(role);
         }
         ConversationInfo ci = c.conversation(g.conv());
         boolean muted = ci != null && ci.muted;
-        JMenuItem mute = new JMenuItem(muted ? "Benachrichtigungen einschalten" : "Stummschalten");
+        JMenuItem mute = new JMenuItem(muted ? Lang.t("social.notify.enable") : Lang.t("social.mute"));
         mute.addActionListener(e -> run(c.setMuted(g.conv(), !muted)));
         m.add(mute);
         m.addSeparator();
-        JMenuItem leave = new JMenuItem("Gruppe verlassen");
+        JMenuItem leave = new JMenuItem(Lang.t("social.group.leave"));
         leave.setForeground(Theme.FAIL);
         leave.addActionListener(e -> {
-            if (SocialDialogs.confirm(this, "Gruppe verlassen", "Du verlässt „" + g.name + "“.", "Verlassen")) {
+            if (SocialDialogs.confirm(this, Lang.t("social.group.leave"), Lang.t("social.group.leave.confirm", g.name), Lang.t("social.group.leave.button"))) {
                 run(c.leaveGroup(g.id));
             }
         });
@@ -1114,13 +1107,13 @@ public final class SocialPage extends JPanel {
             return menu;
         }
         if (c.friend(target) != null) {
-            JMenuItem msg = new JMenuItem("Nachricht schreiben");
+            JMenuItem msg = new JMenuItem(Lang.t("social.write_message"));
             msg.addActionListener(e -> select(Conv.dm(me, target)));
             menu.add(msg);
         }
         boolean targetManages = g.canManage(target);
         if (!target.equals(g.owner) && (owner || (g.canManage(me) && !targetManages))) {
-            JMenu roles = new JMenu("Rolle");
+            JMenu roles = new JMenu(Lang.t("social.role"));
             for (Role r : g.rolesInOrder()) {
                 if (Role.OWNER.equals(r.id) || (!owner && r.manage)) {
                     continue;
@@ -1132,9 +1125,9 @@ public final class SocialPage extends JPanel {
             menu.add(roles);
         }
         if (owner) {
-            JMenuItem transfer = new JMenuItem("Zum Owner machen");
+            JMenuItem transfer = new JMenuItem(Lang.t("social.group.make_owner"));
             transfer.addActionListener(e -> {
-                if (SocialDialogs.confirm(this, "Gruppe übergeben", m.profile.name + " wird Owner von „" + g.name + "“. Du wirst Mitglied.", "Übergeben")) {
+                if (SocialDialogs.confirm(this, Lang.t("social.group.transfer"), Lang.t("social.group.transfer.confirm", m.profile.name, g.name), Lang.t("social.group.transfer.button"))) {
                     run(c.setMemberRole(g.id, target, Role.OWNER));
                 }
             });
@@ -1142,10 +1135,10 @@ public final class SocialPage extends JPanel {
         }
         if (!target.equals(g.owner) && g.canManage(me) && (owner || !targetManages)) {
             menu.addSeparator();
-            JMenuItem kick = new JMenuItem("Aus der Gruppe entfernen");
+            JMenuItem kick = new JMenuItem(Lang.t("social.group.kick"));
             kick.setForeground(Theme.FAIL);
             kick.addActionListener(e -> {
-                if (SocialDialogs.confirm(this, "Mitglied entfernen", m.profile.name + " wird aus „" + g.name + "“ entfernt.", "Entfernen")) {
+                if (SocialDialogs.confirm(this, Lang.t("social.group.kick.title"), Lang.t("social.group.kick.confirm", m.profile.name, g.name), Lang.t("common.remove"))) {
                     run(c.kickMember(g.id, target));
                 }
             });
@@ -1169,24 +1162,24 @@ public final class SocialPage extends JPanel {
         names.add(status);
         col.add(names);
         if (f == null) {
-            col.add(padded(Ui.wrapText("Ihr seid keine Freunde mehr. Der Verlauf bleibt lesbar, neue Nachrichten gehen nicht.", 13, Theme.MUTED)));
+            col.add(padded(Ui.wrapText(Lang.t("social.not_friends"), 13, Theme.MUTED)));
             return col;
         }
-        col.add(section("FREUND SEIT"));
+        col.add(section(Lang.t("social.section.friend_since")));
         col.add(padded(Ui.label(DATE.format(SocialPaint.day(f.since)), 13.5f, Font.PLAIN, Theme.TEXT)));
         if (p.state == Presence.State.MULTIPLAYER && !p.detail.isEmpty()) {
-            col.add(section("SPIELT AUF"));
-            JButton join = SocialDialogs.primary("Server beitreten: " + p.detail);
+            col.add(section(Lang.t("social.section.playing_on")));
+            JButton join = SocialDialogs.primary(Lang.t("social.join_server", p.detail));
             join.setIcon(Icons.of(Icons.Kind.PLAY, 16, Color.WHITE));
             join.addActionListener(e -> joinServer(p));
             col.add(padded(join));
         }
-        col.add(section("BENACHRICHTIGUNGEN"));
+        col.add(section(Lang.t("social.section.notifications")));
         String conv = Conv.dm(c.self().uuid, uuid);
         ConversationInfo ci = c.conversation(conv);
         ToggleSwitch notify = new ToggleSwitch(ci == null || !ci.muted);
         notify.onChange(on -> run(c.setMuted(conv, !on)));
-        col.add(padded(settingRow("Neue Nachrichten melden", "Zähler und Hinweise", notify)));
+        col.add(padded(settingRow(Lang.t("social.notify_new"), Lang.t("social.notify_new.hint"), notify)));
         List<Group> common = new ArrayList<>();
         for (Group g : c.groups()) {
             if (g.member(uuid) != null) {
@@ -1194,17 +1187,17 @@ public final class SocialPage extends JPanel {
             }
         }
         if (!common.isEmpty()) {
-            col.add(section("GEMEINSAME GRUPPEN"));
+            col.add(section(Lang.t("social.section.shared_groups")));
             for (Group g : common) {
                 col.add(padded(new SocialRow((gr, x, y, s) -> SocialPaint.groupTile(gr, g.icon, g.color, x, y, s), g.name,
                         g.roleOf(uuid).name, SocialPaint.rgb(g.roleOf(uuid).color), () -> select(g.conv())).height(50, 34)));
             }
         }
         col.add(section(""));
-        JButton remove = SocialDialogs.danger("Freund entfernen");
+        JButton remove = SocialDialogs.danger(Lang.t("social.remove_friend"));
         remove.setIcon(Icons.of(Icons.Kind.TRASH, 16, Theme.FAIL));
         remove.addActionListener(e -> {
-            if (SocialDialogs.confirm(this, "Freund entfernen", name + " wird aus deiner Freundesliste entfernt.", "Entfernen")) {
+            if (SocialDialogs.confirm(this, Lang.t("social.remove_friend"), Lang.t("social.remove_friend.confirm", name), Lang.t("common.remove"))) {
                 run(c.removeFriend(uuid));
             }
         });

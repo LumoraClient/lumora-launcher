@@ -44,7 +44,7 @@ class MiscTest {
     void crashAnalyzerRecognisesMemoryAndModProblems() {
         List<CrashAnalyzer.Hint> h = CrashAnalyzer.analyze("Incompatible mods found!\njava.lang.OutOfMemoryError: Java heap space");
         assertEquals(2, h.size());
-        assertTrue(h.get(1).advice().contains("Arbeitsspeicher"));
+        assertTrue(h.get(1).advice().contains("memory"));
         assertTrue(CrashAnalyzer.analyze("all good").isEmpty());
     }
 

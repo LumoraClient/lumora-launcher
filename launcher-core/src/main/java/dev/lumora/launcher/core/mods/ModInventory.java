@@ -1,4 +1,5 @@
 package dev.lumora.launcher.core.mods;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import dev.lumora.launcher.core.profile.ProfileCatalog;
 import dev.lumora.launcher.core.util.FileUtil;
@@ -160,7 +161,7 @@ public final class ModInventory {
         String target = enabled ? name.substring(0, name.length() - DISABLED_SUFFIX.length()) : name + DISABLED_SUFFIX;
         Path dest = FileUtil.resolveInside(file.getParent(), target);
         if (Files.exists(dest)) {
-            throw new IOException(target + " existiert bereits");
+            throw new IOException(Lang.t("mods.error.exists", target));
         }
         return Files.move(file, dest);
     }

@@ -4,6 +4,7 @@ import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.launch.LaunchCommandBuilder;
 import dev.lumora.launcher.core.library.ServerPing;
 import dev.lumora.launcher.core.servers.ServerDirectory;
@@ -109,7 +110,7 @@ public final class ServersPage extends JPanel {
         JPanel titleRow = new JPanel(new BorderLayout());
         titleRow.setOpaque(false);
         titleRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        titleRow.add(Ui.pageTitle("Server", "Beliebte Server und deine eigenen, sortiert nach Spielern online. Zahlen kommen live vom jeweiligen Server."),
+        titleRow.add(Ui.pageTitle(Lang.t("nav.servers"), Lang.t("servers.subtitle")),
                 BorderLayout.WEST);
         head.add(titleRow);
         head.add(Box.createVerticalStrut(14));
@@ -142,7 +143,7 @@ public final class ServersPage extends JPanel {
         bar.setOpaque(false);
         bar.setAlignmentX(Component.LEFT_ALIGNMENT);
         bar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        search.putClientProperty("JTextField.placeholderText", "Server suchen…");
+        search.putClientProperty("JTextField.placeholderText", Lang.t("servers.search"));
         search.putClientProperty("JTextField.leadingIcon", Icons.of(Icons.Kind.SEARCH, 16, Theme.MUTED));
         search.setPreferredSize(new Dimension(260, 36));
         search.getDocument().addDocumentListener(new DocumentListener() {
@@ -171,9 +172,9 @@ public final class ServersPage extends JPanel {
             modes.addAll(e.modes());
             langs.addAll(e.languages());
         }
-        mode.addItem("Alle Spielmodi");
+        mode.addItem(Lang.t("servers.all_modes"));
         modes.forEach(mode::addItem);
-        language.addItem("Alle Sprachen");
+        language.addItem(Lang.t("servers.all_languages"));
         langs.forEach(language::addItem);
         mode.addActionListener(e -> rebuild());
         language.addActionListener(e -> rebuild());
@@ -185,12 +186,12 @@ public final class ServersPage extends JPanel {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
         right.add(updated);
-        JButton add = new JButton("Eigener Server…", Icons.of(Icons.Kind.PLUS, 16, Theme.TEXT));
+        JButton add = new JButton(Lang.t("servers.add_own"), Icons.of(Icons.Kind.PLUS, 16, Theme.TEXT));
         add.setFocusable(false);
         add.addActionListener(e -> addServer());
         right.add(add);
         JButton reload = new JButton(Icons.of(Icons.Kind.REFRESH, 16, Theme.TEXT));
-        reload.setToolTipText("Jetzt aktualisieren");
+        reload.setToolTipText(Lang.t("servers.refresh_now"));
         reload.setFocusable(false);
         reload.addActionListener(e -> refresh());
         right.add(reload);
@@ -199,14 +200,14 @@ public final class ServersPage extends JPanel {
     }
 
     private void addServer() {
-        String a = JOptionPane.showInputDialog(host.frame(), "Adresse des Servers (z. B. play.example.de oder play.example.de:25566):",
-                "Eigener Server", JOptionPane.PLAIN_MESSAGE);
+        String a = JOptionPane.showInputDialog(host.frame(), Lang.t("servers.add.prompt"),
+                Lang.t("servers.add.title"), JOptionPane.PLAIN_MESSAGE);
         if (a == null || a.isBlank()) {
             return;
         }
         String addr = a.strip();
         if (!ServerDirectory.validAddress(addr)) {
-            host.error("Ungültige Adresse", "„" + addr + "“ ist keine gültige Server-Adresse.");
+            host.error(Lang.t("servers.add.invalid"), Lang.t("servers.add.invalid_text", addr));
             return;
         }
         if (!host.ctx().config.customServers.contains(addr)) {
@@ -226,7 +227,7 @@ public final class ServersPage extends JPanel {
         lastRefresh = System.currentTimeMillis();
         List<ServerDirectory.Entry> all = entries();
         AtomicInteger left = new AtomicInteger(all.size());
-        updated.setText("Aktualisiere…");
+        updated.setText(Lang.t("servers.updating"));
         for (ServerDirectory.Entry e : all) {
             ping(e.address(), left);
         }
@@ -254,7 +255,7 @@ public final class ServersPage extends JPanel {
             }
             if (left.decrementAndGet() <= 0) {
                 history.save();
-                SwingUtilities.invokeLater(() -> updated.setText("Aktualisiert " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))));
+                SwingUtilities.invokeLater(() -> updated.setText(Lang.t("servers.updated", LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))));
             }
             SwingUtilities.invokeLater(this::rebuild);
         });
@@ -292,7 +293,7 @@ public final class ServersPage extends JPanel {
             list.add(new ServerRow(e, rank));
         }
         if (shownList.isEmpty()) {
-            JLabel none = Ui.label("Keine Server für diesen Filter.", 14, Font.PLAIN, Theme.MUTED);
+            JLabel none = Ui.label(Lang.t("servers.none"), 14, Font.PLAIN, Theme.MUTED);
             none.setBorder(BorderFactory.createEmptyBorder(20, 16, 20, 16));
             list.add(none);
         }
@@ -339,18 +340,18 @@ public final class ServersPage extends JPanel {
             g.setColor(Theme.MUTED);
             int y = 19;
             g.drawString("#", c.rank + 8, y);
-            g.drawString("SERVER", c.name, y);
+            g.drawString(Lang.t("servers.col.server"), c.name, y);
             if (c.showModes) {
-                g.drawString("SPIELMODI", c.modes, y);
+                g.drawString(Lang.t("servers.col.modes"), c.modes, y);
             }
-            g.drawString("BEWERTUNG", c.rating, y);
-            g.drawString("SPR.", c.lang, y);
+            g.drawString(Lang.t("servers.col.rating"), c.rating, y);
+            g.drawString(Lang.t("servers.col.lang"), c.lang, y);
             if (c.showSpark) {
-                g.drawString("24 STD.", c.spark, y);
+                g.drawString(Lang.t("servers.col.day"), c.spark, y);
             }
             FontMetrics fm = g.getFontMetrics();
-            g.drawString("ONLINE", c.week - 12 - fm.stringWidth("ONLINE"), y);
-            g.drawString("WOCHE", c.week + 4, y);
+            g.drawString(Lang.t("servers.col.online"), c.week - 12 - fm.stringWidth(Lang.t("servers.col.online")), y);
+            g.drawString(Lang.t("servers.col.week"), c.week + 4, y);
             g.setColor(Theme.BORDER);
             g.fillRect(0, getHeight() - 1, getWidth(), 1);
             g.dispose();
@@ -390,7 +391,7 @@ public final class ServersPage extends JPanel {
                     int hs = starsBox.contains(ev.getPoint()) ? 1 + Math.min(4, (ev.getX() - starsBox.x) / 16) : 0;
                     boolean overPlay = playBox.contains(ev.getPoint());
                     setCursor(hs > 0 || overPlay ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
-                    setToolTipText(overPlay ? playTip() : hs > 0 ? hs + " Sterne vergeben (nur für dich)" : null);
+                    setToolTipText(overPlay ? playTip() : hs > 0 ? Lang.plural("servers.stars", hs) : null);
                     if (hs != hoverStar) {
                         hoverStar = hs;
                         repaint();
@@ -415,7 +416,7 @@ public final class ServersPage extends JPanel {
             addMouseMotionListener(m);
             if (e.custom()) {
                 JPopupMenu menu = new JPopupMenu();
-                JMenuItem remove = new JMenuItem("Aus der Liste entfernen");
+                JMenuItem remove = new JMenuItem(Lang.t("servers.remove"));
                 remove.addActionListener(a -> {
                     host.ctx().config.customServers.remove(e.address());
                     host.saveConfig();
@@ -429,13 +430,13 @@ public final class ServersPage extends JPanel {
         private String playTip() {
             Live l = live(e.address());
             String profile = host.ctx().selectedProfile().displayName;
-            return "<html>Mit " + profile + " beitreten" + (l.version.isEmpty() ? "" : "<br>Server meldet: " + esc(l.version))
+            return "<html>" + Lang.t("servers.join_with", esc(profile)) + (l.version.isEmpty() ? "" : "<br>" + Lang.t("servers.reports", esc(l.version)))
                     + (l.state == State.ONLINE ? "<br>Ping " + l.ping + " ms" : "") + "</html>";
         }
 
         private void play() {
             if (host.gameRunning()) {
-                host.error("Minecraft läuft bereits", "Beende das laufende Spiel, um einem anderen Server beizutreten.");
+                host.error(Lang.t("play.already_running.title"), Lang.t("servers.join.game_running"));
                 return;
             }
             host.launch(new LaunchCommandBuilder.QuickPlay(LaunchCommandBuilder.QuickPlay.Kind.MULTIPLAYER, e.address()), false);
@@ -485,7 +486,7 @@ public final class ServersPage extends JPanel {
             g.drawString(fit(g, e.name(), nameW), c.name, cy - 2);
             g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
             g.setColor(Theme.MUTED);
-            g.drawString(fit(g, e.address() + (e.custom() ? "  · eigener Server" : ""), nameW), c.name, cy + 15);
+            g.drawString(fit(g, e.address() + (e.custom() ? "  · " + Lang.t("servers.own") : ""), nameW), c.name, cy + 15);
             // modes
             if (c.showModes) {
                 int x = c.modes;
@@ -517,7 +518,7 @@ public final class ServersPage extends JPanel {
             }
             g.setFont(Theme.font(Font.PLAIN, 11.5f));
             g.setColor(Theme.MUTED);
-            g.drawString(own > 0 ? "Deine Bewertung" : "Bewerten", c.rating, cy + 16);
+            g.drawString(own > 0 ? Lang.t("servers.rating.yours") : Lang.t("servers.rating.rate"), c.rating, cy + 16);
             // language
             g.setFont(Theme.font(Font.PLAIN, 12.5f));
             g.setColor(Theme.MUTED);
@@ -532,11 +533,11 @@ public final class ServersPage extends JPanel {
             Color oc;
             switch (l.state) {
                 case ONLINE -> {
-                    on = NumberFormat.getIntegerInstance(Locale.GERMANY).format(l.online);
+                    on = NumberFormat.getIntegerInstance(Lang.locale()).format(l.online);
                     oc = Theme.TEXT;
                 }
                 case OFFLINE -> {
-                    on = "Offline";
+                    on = Lang.t("presence.offline");
                     oc = Theme.FAIL;
                 }
                 default -> {
@@ -616,7 +617,7 @@ public final class ServersPage extends JPanel {
         if (points < 2) {
             g.setFont(Theme.font(Font.PLAIN, 11.5f));
             g.setColor(Theme.alpha(Theme.MUTED, 160));
-            g.drawString(points == 1 ? "erste Messung" : "–", x, y + h / 2 + 4);
+            g.drawString(points == 1 ? Lang.t("servers.first_measurement") : "–", x, y + h / 2 + 4);
             return;
         }
         double range = Math.max(1, max - min);

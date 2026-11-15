@@ -3,12 +3,14 @@ package dev.lumora.launcher.app.pages;
 import dev.lumora.launcher.app.ui.Autostart;
 import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
+import dev.lumora.launcher.app.ui.TabBar;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.ToggleSwitch;
 import dev.lumora.launcher.app.ui.Tray;
 import dev.lumora.launcher.app.ui.Ui;
 import dev.lumora.launcher.core.BuildInfo;
 import dev.lumora.launcher.core.config.LauncherConfig;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.social.Endpoint;
 
 import javax.swing.BorderFactory;
@@ -80,18 +82,19 @@ public final class SettingsPage extends JPanel {
 
     private StoragePanel storage;
 
-    private static final List<String> CATEGORIES = List.of("Allgemein", "Erscheinungsbild", "Spiel", "Speicher", "Chat",
-            "Integrationen", "Fehlersuche");
+    private static final List<String> CATEGORIES = List.of("general", "appearance", "game", "storage", "chat",
+            "integrations", "debug");
 
     private final PageHost host;
     private final Hooks hooks;
     private final LauncherConfig cfg;
     private final List<Setting> settings = new ArrayList<>();
     private final JPanel list = Ui.column();
-    private final JPanel categories = Ui.column();
+    private final TabBar categories = new TabBar(CATEGORIES, CATEGORIES.stream().map(SettingsPage::tabName).toList(), "general",
+            this::openCategory);
     private final JTextField search = new JTextField();
     private final ToggleSwitch advanced;
-    private String category = "Allgemein";
+    private String category = "general";
 
     public SettingsPage(PageHost host, Hooks hooks) {
         super(new BorderLayout(18, 0));
@@ -111,14 +114,16 @@ public final class SettingsPage extends JPanel {
         JPanel head = new JPanel(new BorderLayout());
         head.setOpaque(false);
         head.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
-        JLabel title = Ui.label("Einstellungen", 22, Font.BOLD, Theme.TEXT);
+        JLabel title = Ui.label(Lang.t("settings.title"), 22, Font.BOLD, Theme.TEXT);
         title.setFont(Theme.display(32f, Font.BOLD, 22f));
         head.add(title, BorderLayout.WEST);
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         right.setOpaque(false);
-        right.add(openDirLink());
+        JButton openDir = Ui.openFolderButton(() -> host.openFolder(host.ctx().paths.root()));
+        openDir.setToolTipText(host.ctx().paths.root().toString());
+        right.add(openDir);
         right.add(search);
-        right.add(Ui.label("Erweitert", 13, Font.PLAIN, Theme.MUTED));
+        right.add(Ui.label(Lang.t("settings.advanced"), 13, Font.PLAIN, Theme.MUTED));
         right.add(advanced);
         right.add(Ui.label("v" + BuildInfo.VERSION, 13, Font.PLAIN, Theme.MUTED));
         JPanel rightWrap = new JPanel(new java.awt.GridBagLayout());
@@ -129,9 +134,6 @@ public final class SettingsPage extends JPanel {
         // tab row: one tab per category, a line below
         JPanel tabRow = new JPanel(new BorderLayout(12, 0));
         tabRow.setOpaque(false);
-        categories.setLayout(new dev.lumora.launcher.app.ui.WrapLayout(FlowLayout.LEFT, 6, 6));
-        // WrapLayout starts with one gap: shift it back so the tabs line up with the content
-        categories.setBorder(BorderFactory.createEmptyBorder(-6, -6, -6, 0));
         tabRow.add(categories, BorderLayout.CENTER);
         JComponent line = new JComponent() {
             @Override
@@ -152,9 +154,9 @@ public final class SettingsPage extends JPanel {
         top.add(lineWrap, BorderLayout.SOUTH);
         add(top, BorderLayout.NORTH);
 
-        search.putClientProperty("JTextField.placeholderText", "Einstellungen suchen");
+        search.putClientProperty("JTextField.placeholderText", Lang.t("settings.search"));
         search.putClientProperty("JTextField.leadingIcon", Icons.of(Icons.Kind.SEARCH, 16, Theme.MUTED));
-        search.setPreferredSize(new Dimension(230, 34));
+        search.setPreferredSize(new Dimension(230, Ui.CONTROL_HEIGHT));
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -184,7 +186,7 @@ public final class SettingsPage extends JPanel {
         }
     }
 
-    /** Opens a category (for example "Erscheinungsbild"); unknown names are ignored. */
+    /** Opens a category (for example "appearance"); unknown names are ignored. */
     public void showCategory(String name) {
         if (CATEGORIES.contains(name)) {
             category = name;
@@ -209,7 +211,7 @@ public final class SettingsPage extends JPanel {
     }
 
     private void restartHint() {
-        JOptionPane.showMessageDialog(host.frame(), "Wirkt nach einem Neustart des Launchers.", "Erscheinungsbild",
+        JOptionPane.showMessageDialog(host.frame(), Lang.t("common.restart_hint"), Lang.t("settings.category.appearance"),
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -272,7 +274,7 @@ public final class SettingsPage extends JPanel {
                 Theme.fillRound(g, 10, (getHeight() - 26) / 2, 26, 26, Theme.arc(6), Theme.arc(6));
                 g.setFont(Theme.font(Font.BOLD, 13f));
                 g.setColor(Theme.TEXT);
-                g.drawString("Eigene", 46, getHeight() / 2 - 2);
+                g.drawString(Lang.t("settings.accent.custom"), 46, getHeight() / 2 - 2);
                 g.setFont(Theme.font(Font.PLAIN, 11.5f));
                 g.setColor(Theme.MUTED);
                 g.drawString(cfg.accentColor == null ? "" : cfg.accentColor.toUpperCase(Locale.ROOT), 46, getHeight() / 2 + 13);
@@ -280,12 +282,12 @@ public final class SettingsPage extends JPanel {
             }
         };
         own.setPreferredSize(new Dimension(132, 46));
-        own.setToolTipText("Eigene Farbe wählen");
+        own.setToolTipText(Lang.t("settings.accent.custom_tip"));
         own.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         own.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                Color chosen = javax.swing.JColorChooser.showDialog(host.frame(), "Akzentfarbe", Theme.parse(cfg.accentColor));
+                Color chosen = javax.swing.JColorChooser.showDialog(host.frame(), Lang.t("settings.appearance.accent.title"), Theme.parse(cfg.accentColor));
                 if (chosen != null) {
                     setAccent(String.format("#%02X%02X%02X", chosen.getRed(), chosen.getGreen(), chosen.getBlue()), p);
                 }
@@ -312,14 +314,14 @@ public final class SettingsPage extends JPanel {
     private void editEnvironment(JTextField summary) {
         javax.swing.JTextArea area = new javax.swing.JTextArea(String.join("\n", cfg.environmentVariables), 8, 40);
         area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-        if (JOptionPane.showConfirmDialog(host.frame(), new javax.swing.JScrollPane(area), "Umgebungsvariablen (KEY=VALUE pro Zeile)",
+        if (JOptionPane.showConfirmDialog(host.frame(), new javax.swing.JScrollPane(area), Lang.t("settings.game.env.dialog"),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
         List<String> parsed = dev.lumora.launcher.core.launch.LaunchOptions.parseEnvironment(area.getText());
         List<String> bad = parsed.stream().filter(v -> !LauncherConfig.isValidEnvironmentVariable(v)).toList();
         if (!bad.isEmpty()) {
-            host.error("Umgebungsvariablen", "Ungültig (Format KEY=VALUE, Name aus Buchstaben, Ziffern und _):\n" + String.join("\n", bad));
+            host.error(Lang.t("settings.game.env.title"), Lang.t("settings.game.env.invalid") + String.join("\n", bad));
             return;
         }
         cfg.environmentVariables = new ArrayList<>(parsed);
@@ -331,7 +333,7 @@ public final class SettingsPage extends JPanel {
     private void editJvm(JTextField field) {
         javax.swing.JTextArea area = new javax.swing.JTextArea(String.join("\n", cfg.extraJvmArgs), 8, 40);
         area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-        if (JOptionPane.showConfirmDialog(host.frame(), new javax.swing.JScrollPane(area), "JVM-Argumente (eins pro Zeile)",
+        if (JOptionPane.showConfirmDialog(host.frame(), new javax.swing.JScrollPane(area), Lang.t("settings.game.jvm.dialog"),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION) {
             String s = area.getText().strip();
             cfg.extraJvmArgs = s.isBlank() ? new ArrayList<>() : new ArrayList<>(List.of(s.split("\\s+")));
@@ -362,8 +364,13 @@ public final class SettingsPage extends JPanel {
         for (var p : all) {
             boolean on = cfg.visibleProfiles == null || cfg.visibleProfiles.isEmpty() || cfg.visibleProfiles.contains(p.id);
             javax.swing.JToggleButton b = new javax.swing.JToggleButton(p.minecraftVersion, on);
-            b.setFont(Theme.font(Font.BOLD, 12f));
+            // same look and height as the other choice buttons (Ui.segmented)
+            b.setFont(Theme.font(Font.BOLD, 13f));
             b.setFocusable(false);
+            if (!Theme.pixelStyle) {
+                b.putClientProperty("JButton.buttonType", "roundRect");
+            }
+            Ui.controlHeight(b);
             b.addActionListener(e -> {
                 if (buttons.stream().noneMatch(javax.swing.AbstractButton::isSelected)) {
                     b.setSelected(true); // keep at least one version
@@ -374,7 +381,7 @@ public final class SettingsPage extends JPanel {
             buttons.add(b);
             chips.add(b);
         }
-        JButton allButton = button("Alle");
+        JButton allButton = button(Lang.t("common.all"));
         allButton.addActionListener(e -> {
             buttons.forEach(b -> b.setSelected(true));
             store.run();
@@ -396,6 +403,7 @@ public final class SettingsPage extends JPanel {
         JTextField f = new JTextField(value == null ? "" : value, columns);
         f.putClientProperty("JTextField.placeholderText", placeholder);
         f.setFont(Theme.font(Font.PLAIN, 13.5f));
+        Ui.controlHeight(f);
         return f;
     }
 
@@ -411,12 +419,7 @@ public final class SettingsPage extends JPanel {
     }
 
     private static JButton button(String text) {
-        JButton b = new JButton(text);
-        b.setFocusable(false);
-        if (!Theme.pixelStyle) {
-            b.putClientProperty("JButton.buttonType", "roundRect");
-        }
-        return b;
+        return Ui.button(text, null, null);
     }
 
     private static JPanel row(JComponent... parts) {
@@ -432,9 +435,9 @@ public final class SettingsPage extends JPanel {
         // --- Allgemein
         JTextField dir = field(cfg.installDir != null ? cfg.installDir : host.ctx().paths.root().toString(), "", 22);
         dir.setEditable(false);
-        JButton open = button("Öffnen");
+        JButton open = button(Lang.t("common.open"));
         open.addActionListener(e -> host.openFolder(host.ctx().paths.root()));
-        JButton change = button("Verzeichnis ändern");
+        JButton change = button(Lang.t("settings.change_dir"));
         change.addActionListener(e -> {
             JFileChooser fc = new JFileChooser(dir.getText());
             fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -443,19 +446,17 @@ public final class SettingsPage extends JPanel {
                 cfg.installDir = p.equals(host.ctx().defaultRoot) ? null : p.toString();
                 dir.setText(p.toString());
                 save();
-                JOptionPane.showMessageDialog(host.frame(), "Der neue Datenordner wird nach einem Neustart des Launchers verwendet.\n"
-                        + "Vorhandene Daten werden nicht verschoben.", "Datenordner", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(host.frame(), Lang.t("settings.general.data_dir.moved"), Lang.t("settings.general.data_dir.title"), JOptionPane.INFORMATION_MESSAGE);
             }
         });
-        add("Allgemein", Icons.Kind.FOLDER, "Datenordner", "Lumora-Daten: Bibliotheken, Java, Lumora-Einstellungen, eigene Instanzen und Logs. "
-                        + "Eine Änderung wirkt nach einem Neustart.",
+        add("general", Icons.Kind.FOLDER, Lang.t("settings.general.data_dir.title"), Lang.t("settings.general.data_dir.desc"),
                 false, row(dir, open, change));
         java.util.function.Supplier<Path> standardDir = () -> dev.lumora.launcher.core.InstanceLayout.standardGameDir(cfg);
         JTextField std = field(standardDir.get().toString(), "", 22);
         std.setEditable(false);
-        JButton stdOpen = button("Öffnen");
+        JButton stdOpen = button(Lang.t("common.open"));
         stdOpen.addActionListener(e -> host.openFolder(standardDir.get()));
-        JButton stdChange = button("Ändern");
+        JButton stdChange = button(Lang.t("common.change"));
         stdChange.addActionListener(e -> {
             JFileChooser fc = new JFileChooser(std.getText());
             fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -466,26 +467,21 @@ public final class SettingsPage extends JPanel {
                 save();
             }
         });
-        add("Allgemein", Icons.Kind.FOLDER, "Standard-Spielordner", "Hier spielen alle Versionen ohne eigene Instanz, wie Minecraft selbst "
-                        + "(.minecraft): Welten, Ressourcenpakete, Screenshots und Optionen teilen sie sich mit Vanilla. Eine eigene "
-                        + "Instanz wählst du im Versionsmenü neben „Spiel starten“.",
+        add("general", Icons.Kind.FOLDER, Lang.t("settings.general.game_dir.title"), Lang.t("settings.general.game_dir.desc"),
                 false, row(std, stdOpen, stdChange));
-        JButton launcherUpdate = button("Nach Update suchen");
+        JButton launcherUpdate = button(Lang.t("settings.general.update.check"));
         launcherUpdate.addActionListener(e -> hooks.checkLauncherUpdate());
-        add("Allgemein", Icons.Kind.ROCKET, "Launcher-Version " + BuildInfo.VERSION, "Neue Versionen kommen von github.com/"
-                + dev.lumora.launcher.core.update.LauncherUpdate.REPOSITORY + " und werden nur mit gültiger Signatur installiert.", false,
+        add("general", Icons.Kind.ROCKET, Lang.t("settings.general.version.title", BuildInfo.VERSION), Lang.t("settings.general.version.desc", "github.com/"
+                + dev.lumora.launcher.core.update.LauncherUpdate.REPOSITORY), false,
                 row(launcherUpdate));
-        add("Allgemein", Icons.Kind.BOLT, "Update auch beim direkten Start",
-                "Startest du den Launcher über ein angeheftetes Taskleisten-Symbol oder eine eigene Verknüpfung, aktualisiert er "
-                        + "sich trotzdem selbst. Neu angeheftete Symbole starten LumoraClient.exe. Aus: Nur ein Start über "
-                        + "LumoraClient.exe aktualisiert, sonst kommt nur der Hinweis auf die Release-Seite. Wirkt nach einem Neustart.",
+        add("general", Icons.Kind.BOLT, Lang.t("settings.general.update_direct.title"),
+                Lang.t("settings.general.update_direct.desc"),
                 false, toggle(cfg.portableSelfUpdate, on -> cfg.portableSelfUpdate = on));
-        add("Allgemein", Icons.Kind.REFRESH, "Automatische Update-Prüfung",
-                "Sucht beim Start nach neuen Versionen des Launchers und der Ressourcenpakete und fragt vor jeder Änderung.", false,
+        add("general", Icons.Kind.REFRESH, Lang.t("settings.general.update_auto.title"),
+                Lang.t("settings.general.update_auto.desc"), false,
                 toggle(cfg.checkForUpdates, on -> cfg.checkForUpdates = on));
-        add("Allgemein", Icons.Kind.BOLT, "Update-Kanal", "„Stabil“ ist für fast alle die richtige Wahl. „Vorab“ bietet auch Vorabversionen "
-                        + "des Launchers an, sobald es welche gibt (ebenfalls nur mit gültiger Signatur).", true,
-                Ui.segmented(List.of("stable", "pre"), List.of("Stabil", "Vorab"), cfg.prereleases ? "pre" : "stable", v -> {
+        add("general", Icons.Kind.BOLT, Lang.t("settings.general.channel.title"), Lang.t("settings.general.channel.desc"), true,
+                Ui.segmented(List.of("stable", "pre"), List.of(Lang.t("settings.general.channel.stable"), Lang.t("settings.general.channel.pre")), cfg.prereleases ? "pre" : "stable", v -> {
                     cfg.prereleases = v.equals("pre");
                     save();
                 }));
@@ -493,23 +489,22 @@ public final class SettingsPage extends JPanel {
         autostart.setEnabled(Autostart.supported());
         autostart.onChange(on -> {
             if (!Autostart.set(on)) {
-                host.error("Autostart", "Der Autostart konnte nicht " + (on ? "eingerichtet" : "entfernt") + " werden.");
+                host.error(Lang.t("settings.general.autostart.short"), Lang.t(on ? "settings.general.autostart.failed_on" : "settings.general.autostart.failed_off"));
             }
         });
-        add("Allgemein", Icons.Kind.PLAY, "Mit Windows starten", "Startet den Launcher beim Anmelden im Tray, damit Freunde dich im Chat erreichen, "
-                + "solange du am Rechner bist." + (Autostart.supported() ? "" : " Nur mit der installierten LumoraLauncher.exe verfügbar."),
+        add("general", Icons.Kind.PLAY, Lang.t("settings.general.autostart.title"), Lang.t("settings.general.autostart.desc") + (Autostart.supported() ? "" : Lang.t("settings.general.autostart.installed_only")),
                 false, autostart);
         ToggleSwitch tray = toggle(cfg.minimizeToTray, on -> cfg.minimizeToTray = on);
         tray.onChange(on -> hooks.trayChanged());
         tray.setEnabled(Tray.supported());
-        add("Allgemein", Icons.Kind.ARCHIVE, "Beim Schließen im Tray bleiben",
-                "Das Fenster zu schließen lässt den Launcher im Infobereich weiterlaufen. Beenden kannst du ihn über das Tray-Symbol.",
+        add("general", Icons.Kind.ARCHIVE, Lang.t("settings.general.tray.title"),
+                Lang.t("settings.general.tray.desc"),
                 false, tray);
         JSlider dl = new JSlider(1, 16, cfg.parallelDownloads);
         dl.setOpaque(false);
         dl.setPreferredSize(new Dimension(150, 24));
         JSpinner dlSpin = new JSpinner(new SpinnerNumberModel(cfg.parallelDownloads, 1, 16, 1));
-        dlSpin.setPreferredSize(new Dimension(64, 32));
+        dlSpin.setPreferredSize(new Dimension(64, Ui.CONTROL_HEIGHT));
         dl.addChangeListener(e -> {
             dlSpin.setValue(dl.getValue());
             if (!dl.getValueIsAdjusting()) {
@@ -518,61 +513,53 @@ public final class SettingsPage extends JPanel {
             }
         });
         dlSpin.addChangeListener(e -> dl.setValue((Integer) dlSpin.getValue()));
-        add("Allgemein", Icons.Kind.ARCHIVE, "Limit gleichzeitiger Downloads",
-                "Maximale Anzahl an Dateien, die gleichzeitig heruntergeladen werden. Höhere Werte können Downloads beschleunigen, "
-                        + "brauchen aber mehr Bandbreite. Wirkt nach einem Neustart.", true, row(dl, dlSpin));
-        JButton ingame = button("Anpassen");
+        add("general", Icons.Kind.ARCHIVE, Lang.t("settings.general.downloads.title"),
+                Lang.t("settings.general.downloads.desc"), true, row(dl, dlSpin));
+        JButton ingame = button(Lang.t("settings.general.ingame.button"));
         ingame.addActionListener(e -> ingameExperience());
-        add("Allgemein", Icons.Kind.PALETTE, "Ingame-Erlebnis anpassen", "Wählt das Design der Menüs im Spiel: Lumora oder klassisch "
-                + "im Minecraft-Stil (wie im Installer). Gilt beim nächsten Start jeder Version.", false, row(ingame));
+        add("general", Icons.Kind.PALETTE, Lang.t("settings.general.ingame.title"), Lang.t("settings.general.ingame.desc"), false, row(ingame));
 
         // --- Erscheinungsbild
-        JComboBox<String> start = new JComboBox<>(new String[]{"Spielen", "Neuigkeiten", "Server", "Freunde"});
+        JComboBox<String> start = new JComboBox<>(new String[]{Lang.t("nav.home_page"), Lang.t("nav.news"), Lang.t("nav.servers"), Lang.t("nav.social")});
+        Ui.controlHeight(start);
         List<String> startIds = List.of("home", "news", "servers", "social");
         start.setSelectedIndex(Math.max(0, startIds.indexOf(cfg.startPage)));
         start.addActionListener(e -> {
             cfg.startPage = startIds.get(start.getSelectedIndex());
             save();
         });
-        add("Erscheinungsbild", Icons.Kind.MONITOR, "Startseite", "Diese Seite zeigt der Launcher nach dem Öffnen.", false, start);
-        navMode = Ui.segmented(List.of("text", "icons"), List.of("Mit Text", "Nur Icons"), cfg.navIconsOnly ? "icons" : "text", v -> {
+        add("appearance", Icons.Kind.MONITOR, Lang.t("settings.appearance.start_page.title"), Lang.t("settings.appearance.start_page.desc"), false, start);
+        navMode = Ui.segmented(List.of("text", "icons"), List.of(Lang.t("settings.appearance.sidebar.text"), Lang.t("settings.appearance.sidebar.icons")), cfg.navIconsOnly ? "icons" : "text", v -> {
             cfg.navIconsOnly = v.equals("icons");
             save();
             hooks.navChanged();
         });
-        add("Erscheinungsbild", Icons.Kind.LIBRARY, "Seitenleiste", "Seiten links mit Text oder nur als Icons. Auch über den Knopf unten in der Leiste.",
+        add("appearance", Icons.Kind.LIBRARY, Lang.t("settings.appearance.sidebar.title"), Lang.t("settings.appearance.sidebar.desc"),
                 false, navMode);
-        add("Erscheinungsbild", Icons.Kind.LIBRARY, "Minecraft-Snapshots im Changelog",
-                "Zeigt unter „Neuigkeiten → Changelog“ auch die wöchentlichen Snapshots, nicht nur Releases.", false,
+        add("appearance", Icons.Kind.LIBRARY, Lang.t("settings.appearance.snapshots.title"),
+                Lang.t("settings.appearance.snapshots.desc"), false,
                 toggle(cfg.showSnapshots, on -> cfg.showSnapshots = on));
         ToggleSwitch quick = toggle(cfg.quickPlay, on -> cfg.quickPlay = on);
         quick.onChange(on -> hooks.homeChanged());
-        add("Erscheinungsbild", Icons.Kind.SERVER, "Quick Play", "Zeigt unter „Spiel starten“ die ersten fünf Server aus der Serverliste "
-                + "der gewählten Version. Ein Klick startet das Spiel direkt auf dem Server.", false, quick);
-        add("Erscheinungsbild", Icons.Kind.PALETTE, "Akzentfarbe", "Farbe für Knöpfe, Auswahl und Hervorhebungen in der gesamten "
-                + "Launcher-Oberfläche. Wirkt nach einem Neustart.", false, accentPicker(), true);
+        add("appearance", Icons.Kind.SERVER, Lang.t("settings.appearance.quick_play.title"), Lang.t("settings.appearance.quick_play.desc"), false, quick);
+        add("appearance", Icons.Kind.PALETTE, Lang.t("settings.appearance.accent.title"), Lang.t("settings.appearance.accent.desc"), false, accentPicker(), true);
         ToggleSwitch pixel = toggle(cfg.pixelStyle, on -> cfg.pixelStyle = on);
         pixel.onChange(on -> restartHint());
-        add("Erscheinungsbild", Icons.Kind.CUBE, "Lumora-Pixel-Design", "Wie die Lumora-Menüs im Spiel: Pixelschrift für Titel, "
-                + "Navigation und Knöpfe, Karten und Knöpfe mit Pixelkanten. Aus: modernes Design mit runden Ecken. Wirkt nach einem Neustart.",
+        add("appearance", Icons.Kind.CUBE, Lang.t("settings.appearance.pixel.title"), Lang.t("settings.appearance.pixel.desc"),
                 false, pixel);
-        add("Erscheinungsbild", Icons.Kind.PULSE, "Reduziere Bewegungen", "Keine automatischen Animationen (drehende Skin-Vorschau, "
-                + "Lade-Kreisel). Wechsel zwischen Seiten bleiben sofort.", false, toggle(cfg.reduceMotion, on -> {
+        add("appearance", Icons.Kind.PULSE, Lang.t("settings.appearance.motion.title"), Lang.t("settings.appearance.motion.desc"), false, toggle(cfg.reduceMotion, on -> {
                     cfg.reduceMotion = on;
                     Theme.reduceMotion = on;
                 }));
         ToggleSwitch hw = toggle(cfg.hardwareAcceleration, on -> cfg.hardwareAcceleration = on);
         hw.onChange(on -> restartHint());
-        add("Erscheinungsbild", Icons.Kind.CHIP, "Hardwarebeschleunigung", "Zeichnet die Launcher-Oberfläche mit der Grafikkarte "
-                + "(Direct3D). Ausschalten hilft bei Grafikfehlern durch Treiber. Wirkt nach einem Neustart.", true, hw);
+        add("appearance", Icons.Kind.CHIP, Lang.t("settings.appearance.hw.title"), Lang.t("settings.appearance.hw.desc"), true, hw);
 
         // --- Spiel
-        add("Spiel", Icons.Kind.CUBE, "Versionen im Launcher", "Welche Minecraft-Versionen das Versionsmenü zeigt (wie im "
-                + "Installer). Ausgeblendete Versionen behalten ihre Welten und Einstellungen.", false, versionChooser(), true);
-        add("Spiel", Icons.Kind.ARCHIVE, "Mehrere Instanzen", "Mehrere Minecraft-Versionen gleichzeitig starten. Jede Version "
-                + "(Lumora, Vanilla) läuft trotzdem nur einmal.", false, toggle(cfg.multipleInstances, on -> cfg.multipleInstances = on));
-        add("Spiel", Icons.Kind.ROCKET, "Aktion nach dem Start", "Was der Launcher macht, sobald Minecraft läuft.", false,
-                Ui.segmented(List.of("keep", "hide", "close"), List.of("Offen lassen", "Verstecken", "Schließen"), cfg.afterLaunch, v -> {
+        add("game", Icons.Kind.CUBE, Lang.t("settings.game.versions.title"), Lang.t("settings.game.versions.desc"), false, versionChooser(), true);
+        add("game", Icons.Kind.ARCHIVE, Lang.t("settings.game.instances.title"), Lang.t("settings.game.instances.desc"), false, toggle(cfg.multipleInstances, on -> cfg.multipleInstances = on));
+        add("game", Icons.Kind.ROCKET, Lang.t("settings.game.after_launch.title"), Lang.t("settings.game.after_launch.desc"), false,
+                Ui.segmented(List.of("keep", "hide", "close"), List.of(Lang.t("settings.game.after_launch.keep"), Lang.t("settings.game.after_launch.hide"), Lang.t("settings.game.after_launch.close")), cfg.afterLaunch, v -> {
                     cfg.afterLaunch = v;
                     save();
                 }));
@@ -582,7 +569,7 @@ public final class SettingsPage extends JPanel {
         mem.setOpaque(false);
         mem.setPreferredSize(new Dimension(220, 24));
         JLabel memValue = Ui.label("", 14, Font.BOLD, Theme.TEXT);
-        Runnable memText = () -> memValue.setText(String.format(Locale.GERMANY, "%.1f GB", mem.getValue() / 1024.0));
+        Runnable memText = () -> memValue.setText(String.format(Lang.locale(), "%.1f GB", mem.getValue() / 1024.0));
         memText.run();
         mem.addChangeListener(e -> {
             memText.run();
@@ -593,10 +580,9 @@ public final class SettingsPage extends JPanel {
                 hooks.memoryChanged();
             }
         });
-        add("Spiel", Icons.Kind.MEMORY, "Zugewiesener Arbeitsspeicher", "Mit Vorsicht ändern: Weniger ist oft mehr, zu wenig ist schlecht. "
-                + "Mehr als 6 GB bringen selten etwas. Dein System hat " + totalRam / 1024 + " GB.", false, row(memValue, mem));
-        JTextField w = field(cfg.windowWidth == null ? "" : cfg.windowWidth.toString(), "Breite", 6);
-        JTextField h = field(cfg.windowHeight == null ? "" : cfg.windowHeight.toString(), "Höhe", 6);
+        add("game", Icons.Kind.MEMORY, Lang.t("settings.game.memory.title"), Lang.t("settings.game.memory.desc", totalRam / 1024), false, row(memValue, mem));
+        JTextField w = field(cfg.windowWidth == null ? "" : cfg.windowWidth.toString(), Lang.t("settings.game.resolution.width"), 6);
+        JTextField h = field(cfg.windowHeight == null ? "" : cfg.windowHeight.toString(), Lang.t("settings.game.resolution.height"), 6);
         Consumer<String> sizeCommit = s -> {
             cfg.windowWidth = parse(w.getText(), 640, 16384);
             cfg.windowHeight = parse(h.getText(), 480, 16384);
@@ -604,7 +590,7 @@ public final class SettingsPage extends JPanel {
         };
         onCommit(w, sizeCommit);
         onCommit(h, sizeCommit);
-        JButton nativeRes = button("Nativ verwenden");
+        JButton nativeRes = button(Lang.t("settings.game.resolution.native"));
         nativeRes.addActionListener(e -> {
             java.awt.DisplayMode m = host.frame().getGraphicsConfiguration().getDevice().getDisplayMode();
             w.setText(Integer.toString(m.getWidth()));
@@ -612,67 +598,62 @@ public final class SettingsPage extends JPanel {
             sizeCommit.accept("");
         });
         JButton resetRes = new JButton(Icons.of(Icons.Kind.REFRESH, 14, Theme.TEXT));
-        resetRes.setToolTipText("Standard von Minecraft");
+        resetRes.setToolTipText(Lang.t("settings.game.resolution.default"));
         resetRes.setFocusable(false);
         resetRes.addActionListener(e -> {
             w.setText("");
             h.setText("");
             sizeCommit.accept("");
         });
-        add("Spiel", Icons.Kind.MONITOR, "Fensterauflösung", "Anfängliche Minecraft-Fenstergröße in Pixeln. Leer = Standard von Minecraft.", false,
+        add("game", Icons.Kind.MONITOR, Lang.t("settings.game.resolution.title"), Lang.t("settings.game.resolution.desc"), false,
                 row(w, Ui.label("×", 14, Font.PLAIN, Theme.MUTED), h, nativeRes, resetRes));
-        add("Spiel", Icons.Kind.MONITOR, "Vollbild erzwingen", "Minecraft immer im Vollbild starten. Wenn aus, bleibt deine Ingame-Auswahl erhalten.",
+        add("game", Icons.Kind.MONITOR, Lang.t("settings.game.fullscreen.title"), Lang.t("settings.game.fullscreen.desc"),
                 false, toggle(cfg.forceFullscreen, on -> cfg.forceFullscreen = on));
-        add("Spiel", Icons.Kind.BOLT, "Performance-Verbesserungen", "Optimierter Garbage Collector (G1 mit kurzen Pausen) gegen Ruckler. "
-                + "Wird übersprungen, wenn eigene JVM-Argumente einen anderen Collector wählen.", false,
+        add("game", Icons.Kind.BOLT, Lang.t("settings.game.perf.title"), Lang.t("settings.game.perf.desc"), false,
                 toggle(cfg.performanceFlags, on -> cfg.performanceFlags = on));
-        JComboBox<String> backend = new JComboBox<>(new String[]{"Standard", "Vulkan", "OpenGL"});
+        JComboBox<String> backend = new JComboBox<>(new String[]{Lang.t("common.default"), "Vulkan", "OpenGL"});
         backend.setSelectedIndex(Math.max(0, dev.lumora.launcher.core.launch.GraphicsBackend.VALUES.indexOf(cfg.graphicsBackend)));
-        backend.setPreferredSize(new Dimension(150, 34));
+        backend.setPreferredSize(new Dimension(150, Ui.CONTROL_HEIGHT));
         backend.addActionListener(e -> {
             cfg.graphicsBackend = dev.lumora.launcher.core.launch.GraphicsBackend.VALUES.get(backend.getSelectedIndex());
             save();
         });
-        add("Spiel", Icons.Kind.MONITOR, "Grafik-Backend", "Womit Minecraft 26.2 und neuer zeichnet. „Standard“ lässt Minecraft entscheiden "
-                + "(und deine Ingame-Auswahl in Ruhe), Vulkan oder OpenGL wird bei jedem Start gesetzt. Ältere Versionen nutzen immer "
-                + "ihren Standard.", false, backend);
-        add("Spiel", Icons.Kind.CUBE, "Ausgewählten Patch merken", "Merkt sich pro Hauptversion die zuletzt gewählte Unterversion "
-                + "(z. B. 1.21.8 bei 1.21), auch nach einem Neustart. Ein Klick auf die Karte wählt sie dann wieder.", false,
+        add("game", Icons.Kind.MONITOR, Lang.t("settings.game.backend.title"), Lang.t("settings.game.backend.desc"), false, backend);
+        add("game", Icons.Kind.CUBE, Lang.t("settings.game.patch.title"), Lang.t("settings.game.patch.desc"), false,
                 toggle(cfg.rememberPatch, on -> cfg.rememberPatch = on));
-        JTextField jvm = field(String.join(" ", cfg.extraJvmArgs), "z. B. -XX:+UseZGC", 13);
+        JTextField jvm = field(String.join(" ", cfg.extraJvmArgs), Lang.t("settings.game.jvm.placeholder"), 13);
         onCommit(jvm, s -> {
             cfg.extraJvmArgs = s.isBlank() ? new ArrayList<>() : new ArrayList<>(List.of(s.split("\\s+")));
             save();
         });
-        JButton jvmEdit = new JButton("Bearbeiten", Icons.of(Icons.Kind.EDIT, 14, Theme.TEXT));
+        JButton jvmEdit = new JButton(Lang.t("common.edit"), Icons.of(Icons.Kind.EDIT, 14, Theme.TEXT));
         jvmEdit.setFocusable(false);
         jvmEdit.addActionListener(e -> editJvm(jvm));
-        add("Spiel", Icons.Kind.TERMINAL, "Benutzerdefinierte JVM-Argumente", "Standardargumente, die beim Start an Java übergeben werden.",
+        add("game", Icons.Kind.TERMINAL, Lang.t("settings.game.jvm.title"), Lang.t("settings.game.jvm.desc"),
                 true, row(jvm, jvmEdit));
         JTextField env = field(String.join(", ", cfg.environmentVariables), "KEY=VALUE", 13);
         env.setEditable(false);
-        JButton envEdit = new JButton("Bearbeiten", Icons.of(Icons.Kind.EDIT, 14, Theme.TEXT));
+        JButton envEdit = new JButton(Lang.t("common.edit"), Icons.of(Icons.Kind.EDIT, 14, Theme.TEXT));
         envEdit.setFocusable(false);
         envEdit.addActionListener(e -> editEnvironment(env));
-        add("Spiel", Icons.Kind.TERMINAL, "Umgebungsvariablen", "Variablen für den Spielprozess, ein KEY=VALUE pro Zeile oder durch Kommas getrennt.",
+        add("game", Icons.Kind.TERMINAL, Lang.t("settings.game.env.title"), Lang.t("settings.game.env.desc"),
                 true, row(env, envEdit));
-        JTextField javaField = field(cfg.javaPath, "leer = Laufzeit von Mojang", 14);
+        JTextField javaField = field(cfg.javaPath, Lang.t("settings.game.java.placeholder"), 14);
         onCommit(javaField, s -> {
             cfg.javaPath = s.isEmpty() ? null : s;
             save();
         });
-        JButton javaPick = button("Verzeichnis ändern");
+        JButton javaPick = button(Lang.t("settings.change_dir"));
         javaPick.addActionListener(e -> {
             JFileChooser fc = new JFileChooser(cfg.javaPath);
-            fc.setDialogTitle("java.exe oder javaw.exe auswählen");
+            fc.setDialogTitle(Lang.t("settings.game.java.choose"));
             if (fc.showOpenDialog(host.frame()) == JFileChooser.APPROVE_OPTION) {
                 cfg.javaPath = fc.getSelectedFile().toPath().toAbsolutePath().toString();
                 javaField.setText(cfg.javaPath);
                 save();
             }
         });
-        add("Spiel", Icons.Kind.CHIP, "Eigene JRE", "Pfad zu einer eigenen Java-Installation statt der offiziellen Laufzeit von Mojang. "
-                + "Nur ändern, wenn du weißt, was du tust.", true, row(javaField, javaPick));
+        add("game", Icons.Kind.CHIP, Lang.t("settings.game.java.title"), Lang.t("settings.game.java.desc"), true, row(javaField, javaPick));
 
         // --- Speicher: overview with bar and categories
         storage = new StoragePanel(host, java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
@@ -680,13 +661,13 @@ public final class SettingsPage extends JPanel {
             t.setDaemon(true);
             return t;
         }));
-        settings.add(new Setting("Speicher", Icons.Kind.HARDDRIVE, "Speicherbelegung",
-                "Java, Download-Cache, Bibliotheken, Welten, Mods, Logs", false, storage, true));
+        settings.add(new Setting("storage", Icons.Kind.HARDDRIVE, Lang.t("settings.storage.usage.title"),
+                Lang.t("settings.storage.usage.desc"), false, storage, true));
         JSlider cache = new JSlider(0, 32, Math.min(32, cfg.downloadCacheGb));
         cache.setOpaque(false);
         cache.setPreferredSize(new Dimension(150, 24));
         JSpinner cacheSpin = new JSpinner(new SpinnerNumberModel(cfg.downloadCacheGb, 0, 256, 1));
-        cacheSpin.setPreferredSize(new Dimension(64, 32));
+        cacheSpin.setPreferredSize(new Dimension(64, Ui.CONTROL_HEIGHT));
         cache.addChangeListener(e -> {
             cacheSpin.setValue(cache.getValue());
             if (!cache.getValueIsAdjusting()) {
@@ -702,24 +683,21 @@ public final class SettingsPage extends JPanel {
             cfg.downloadCacheGb = v;
             save();
         });
-        add("Speicher", Icons.Kind.HARDDRIVE, "Grenze des Download-Caches (GB)", "Heruntergeladene Lumora-Dateien werden einmal "
-                + "zwischengespeichert. Wird die Grenze überschritten, löscht der Launcher beim Start die ältesten (sie werden bei Bedarf "
-                + "neu geladen). 0 = keine Grenze.", false, row(cache, cacheSpin));
-        JComboBox<String> logKeep = new JComboBox<>(new String[]{"Immer behalten", "3 Tage", "7 Tage", "14 Tage", "30 Tage"});
+        add("storage", Icons.Kind.HARDDRIVE, Lang.t("settings.storage.cache.title"), Lang.t("settings.storage.cache.desc"), false, row(cache, cacheSpin));
+        JComboBox<String> logKeep = new JComboBox<>(new String[]{Lang.t("settings.storage.logs.keep"), Lang.t("settings.storage.logs.days3"), Lang.t("settings.storage.logs.days7"), Lang.t("settings.storage.logs.days14"), Lang.t("settings.storage.logs.days30")});
         List<Integer> logDays = List.of(0, 3, 7, 14, 30);
         logKeep.setSelectedIndex(Math.max(0, logDays.indexOf(cfg.logRetentionDays)));
-        logKeep.setPreferredSize(new Dimension(170, 34));
+        logKeep.setPreferredSize(new Dimension(170, Ui.CONTROL_HEIGHT));
         logKeep.addActionListener(e -> {
             cfg.logRetentionDays = logDays.get(logKeep.getSelectedIndex());
             save();
         });
-        add("Speicher", Icons.Kind.TERMINAL, "Spiel-Logs aufbewahren für", "Ältere Spiel-Logs eigener Instanzen löscht der Launcher beim Start "
-                + "von selbst (latest.log bleibt). Den Standard-Ordner .minecraft lässt er unverändert.", false, logKeep);
+        add("storage", Icons.Kind.TERMINAL, Lang.t("settings.storage.logs.title"), Lang.t("settings.storage.logs.desc"), false, logKeep);
 
         // --- Chat (Lumora Social)
         JTextField social = field(cfg.socialServer == null ? "" : Endpoint.display(java.net.URI.create(cfg.socialServer)),
-                "z. B. chat.meinserver.de", 20);
-        JButton apply = button("Übernehmen");
+                Lang.t("settings.chat.server.placeholder"), 20);
+        JButton apply = button(Lang.t("common.apply"));
         apply.addActionListener(e -> {
             String s = social.getText().strip();
             try {
@@ -727,65 +705,55 @@ public final class SettingsPage extends JPanel {
                 save();
                 hooks.socialChanged();
             } catch (IllegalArgumentException ex) {
-                host.error("Lumora-Social-Server", ex.getMessage());
+                host.error(Lang.t("settings.chat.server.title"), ex.getMessage());
             }
         });
-        add("Chat", Icons.Kind.USERS, "Lumora-Social-Server", "Server für Freunde, Gruppen und Chat (siehe SOCIAL.md). Leer = aus. "
-                + "Im Internet nur mit wss:// (TLS).", false, row(social, apply));
-        add("Chat", Icons.Kind.SERVER, "Server-Adresse für Freunde sichtbar",
-                "Freunde sehen, auf welchem Server du spielst. Ausgeschaltet sehen sie nur „Mehrspieler“. Wirkt beim nächsten Spielstart.",
+        add("chat", Icons.Kind.USERS, Lang.t("settings.chat.server.title"), Lang.t("settings.chat.server.desc"), false, row(social, apply));
+        add("chat", Icons.Kind.SERVER, Lang.t("settings.chat.share_server.title"),
+                Lang.t("settings.chat.share_server.desc"),
                 false, toggle(cfg.socialShareServer, on -> cfg.socialShareServer = on));
         ToggleSwitch badge = toggle(cfg.unreadBadge, on -> cfg.unreadBadge = on);
         badge.onChange(on -> hooks.socialChanged());
-        add("Chat", Icons.Kind.BELL, "Ungelesen-Zähler", "Zeigt die Zahl der ungelesenen Chats und Anfragen in der Seitenleiste und am Tray-Symbol.",
+        add("chat", Icons.Kind.BELL, Lang.t("settings.chat.badge.title"), Lang.t("settings.chat.badge.desc"),
                 false, badge);
-        JComboBox<String> level = new JComboBox<>(new String[]{"Alles", "Nur Nachrichten", "Aus"});
+        JComboBox<String> level = new JComboBox<>(new String[]{Lang.t("settings.chat.notify.all"), Lang.t("settings.chat.notify.messages"), Lang.t("common.off")});
         List<String> levelIds = List.of("all", "messages", "none");
         level.setSelectedIndex(Math.max(0, levelIds.indexOf(cfg.notificationLevel)));
-        level.setPreferredSize(new Dimension(190, 34));
+        level.setPreferredSize(new Dimension(190, Ui.CONTROL_HEIGHT));
         level.addActionListener(e -> {
             cfg.notificationLevel = levelIds.get(level.getSelectedIndex());
             cfg.socialNotifications = !cfg.notificationLevel.equals("none");
             save();
             hooks.trayChanged();
         });
-        add("Chat", Icons.Kind.CHAT, "Benachrichtigungen", "Worüber dich der Launcher benachrichtigt, während sein Fenster im Hintergrund ist: "
-                + "Nachrichten, Anfragen und Hinweise oder nur Nachrichten.", false, level);
+        add("chat", Icons.Kind.CHAT, Lang.t("settings.chat.notify.title"), Lang.t("settings.chat.notify.desc"), false, level);
 
         // --- Integrationen (Discord Rich Presence is always on with Lumora's own application ID, see AppIds)
         ToggleSwitch discordServer = toggle(cfg.discordShowServer, on -> cfg.discordShowServer = on);
         discordServer.onChange(on -> hooks.discordChanged());
-        add("Integrationen", Icons.Kind.DISCORD, "Server in Discord zeigen", "Discord zeigt über die Discord-App auf diesem PC, ob du "
-                + "im Launcher bist oder was du spielst, z. B. „Lumora 26.3 auf eineip.de“. Ausgeschaltet steht dort statt der "
-                + "Serveradresse nur „Mehrspieler“.", false, discordServer);
-        add("Integrationen", Icons.Kind.CHART, "Anonyme Launcherstatistiken", "Würde anonyme Angaben wie Betriebssystem und Version teilen. "
-                + "Es gibt noch keinen Lumora-Statistikserver: Auch eingeschaltet wird nichts gesendet.", false,
+        add("integrations", Icons.Kind.DISCORD, Lang.t("settings.integrations.discord.title"), Lang.t("settings.integrations.discord.desc"), false, discordServer);
+        add("integrations", Icons.Kind.CHART, Lang.t("settings.integrations.stats.title"), Lang.t("settings.integrations.stats.desc"), false,
                 toggle(cfg.anonymousStats, on -> cfg.anonymousStats = on));
-        add("Integrationen", Icons.Kind.GLOBE, "Minecraft-Neuigkeiten", "News und Patch Notes kommen von Mojangs Launcher-Inhalten "
-                + "(launchercontent.mojang.com), Spielerzahlen der Server-Liste direkt von den Servern. Es werden keine Daten über dich gesendet.",
+        add("integrations", Icons.Kind.GLOBE, Lang.t("settings.integrations.news.title"), Lang.t("settings.integrations.news.desc"),
                 false, Ui.label("", 1, Font.PLAIN, Theme.MUTED));
 
         // --- Fehlersuche
-        JButton logs = button("Logs ansehen");
+        JButton logs = button(Lang.t("settings.debug.logs.view"));
         logs.addActionListener(e -> host.showPage("logs"));
-        JButton logsDir = button("Ordner öffnen");
-        logsDir.addActionListener(e -> host.openFolder(host.ctx().paths.root().resolve("logs")));
-        add("Fehlersuche", Icons.Kind.TERMINAL, "Logs", "Launcher- und Spielprotokolle. Zugangsdaten werden nie geschrieben.", false, row(logs, logsDir));
-        JButton diag = button("Diagnose öffnen");
+        JButton logsDir = Ui.openFolderButton(() -> host.openFolder(host.ctx().paths.root().resolve("logs")));
+        add("debug", Icons.Kind.TERMINAL, Lang.t("settings.debug.logs.title"), Lang.t("settings.debug.logs.desc"), false, row(logs, logsDir));
+        JButton diag = button(Lang.t("settings.debug.diag.open"));
         diag.addActionListener(e -> host.showPage("diagnostics"));
-        add("Fehlersuche", Icons.Kind.PULSE, "Diagnose", "Systemprüfung: Java, Grafik, Speicher, Netzwerk und Spieldateien.", false, row(diag));
-        JButton crashes = button("Absturzberichte");
+        add("debug", Icons.Kind.PULSE, Lang.t("settings.debug.diag.title"), Lang.t("settings.debug.diag.desc"), false, row(diag));
+        JButton crashes = button(Lang.t("settings.debug.crashes.open"));
         crashes.addActionListener(e -> host.showPage("crashes"));
-        add("Fehlersuche", Icons.Kind.ALERT, "Abstürze", "Absturzberichte aller Versionen mit wahrscheinlicher Ursache und Lösungen.", false, row(crashes));
-        add("Fehlersuche", Icons.Kind.MEMORY, "Heap-Dump bei Speichermangel", "Schreibt einen Abzug des Spielspeichers in den Diagnose-Ordner, "
-                + "wenn der Speicher ausgeht. Nützlich für Speicherlecks, die Dateien können aber mehrere Gigabyte groß sein.", true,
+        add("debug", Icons.Kind.ALERT, Lang.t("settings.debug.crashes.title"), Lang.t("settings.debug.crashes.desc"), false, row(crashes));
+        add("debug", Icons.Kind.MEMORY, Lang.t("settings.debug.heap.title"), Lang.t("settings.debug.heap.desc"), true,
                 toggle(cfg.heapDumpOnOom, on -> cfg.heapDumpOnOom = on));
-        add("Fehlersuche", Icons.Kind.CHIP, "Thread-Dump bei Hänger", "Reagiert das Spiel 30 Sekunden lang nicht, schreibt Lumora die "
-                + "Stacktraces aller Spiel-Threads als Bericht (Abstürze). Kostet nur wenige Kilobyte Text. Gilt ab dem nächsten Start.", true,
+        add("debug", Icons.Kind.CHIP, Lang.t("settings.debug.threads.title"), Lang.t("settings.debug.threads.desc"), true,
                 toggle(cfg.hangDump, on -> cfg.hangDump = on));
-        add("Fehlersuche", Icons.Kind.BUG, "Debug-Modus", "JVM-Debugging für den Minecraft-Prozess. „Lauschen“ wartet beim Start auf einen "
-                + "Debugger, „Anhängen“ verbindet sich mit einem bereits laufenden Debugger.", true,
-                Ui.segmented(List.of("off", "listen", "attach"), List.of("Aus", "Lauschen", "Anhängen"), cfg.debugMode, v -> {
+        add("debug", Icons.Kind.BUG, Lang.t("settings.debug.mode.title"), Lang.t("settings.debug.mode.desc"), true,
+                Ui.segmented(List.of("off", "listen", "attach"), List.of(Lang.t("common.off"), Lang.t("settings.debug.mode.listen"), Lang.t("settings.debug.mode.attach")), cfg.debugMode, v -> {
                     cfg.debugMode = v;
                     save();
                 }));
@@ -795,34 +763,31 @@ public final class SettingsPage extends JPanel {
                 cfg.debugAddress = s;
                 save();
             } else {
-                host.error("Debug-Adresse", "Nur dieser PC ist erlaubt: localhost, 127.0.0.1 oder [::1] mit Port, z. B. localhost:5005.");
+                host.error(Lang.t("settings.debug.address.title"), Lang.t("settings.debug.address.invalid"));
                 debugAddr.setText(cfg.debugAddress);
             }
         });
-        JButton debugReset = button("Zurücksetzen");
+        JButton debugReset = button(Lang.t("common.reset"));
         debugReset.addActionListener(e -> {
             cfg.debugAddress = "127.0.0.1:5005";
             debugAddr.setText(cfg.debugAddress);
             save();
         });
-        add("Fehlersuche", Icons.Kind.BUG, "Debug-Adresse", "Host und Port für das JVM-Debugging, nur auf diesem PC (z. B. localhost:5005).", true,
+        add("debug", Icons.Kind.BUG, Lang.t("settings.debug.address.title"), Lang.t("settings.debug.address.desc"), true,
                 row(debugAddr, debugReset));
-        JButton clientReset = button("Zurücksetzen");
+        JButton clientReset = button(Lang.t("common.reset"));
         clientReset.setForeground(Theme.FAIL);
         clientReset.addActionListener(e -> resetClientSettings());
-        add("Fehlersuche", Icons.Kind.REFRESH, "Lumora-Client-Einstellungen zurücksetzen", "Setzt alle Einstellungen des Lumora Clients im "
-                + "Spiel (Module, HUD, Addons, Design) auf Standard. Die bisherigen bleiben als Sicherung (config.backup-…) liegen.", true,
+        add("debug", Icons.Kind.REFRESH, Lang.t("settings.debug.client_reset.title"), Lang.t("settings.debug.client_reset.desc"), true,
                 row(clientReset));
-        JButton restore = button("Wiederherstellen");
+        JButton restore = button(Lang.t("settings.debug.restore.button"));
         restore.addActionListener(e -> restoreInstances());
-        add("Fehlersuche", Icons.Kind.ARCHIVE, "Instanzen von Festplatte wiederherstellen", "Trägt Instanz-Ordner unter instances, die "
-                + "der Launcher nicht mehr kennt, wieder als eigene Instanzen ein. Bestehende bleiben, es wird nichts gelöscht.", true,
+        add("debug", Icons.Kind.ARCHIVE, Lang.t("settings.debug.restore.title"), Lang.t("settings.debug.restore.desc"), true,
                 row(restore));
-        JButton reset = button("Zurücksetzen");
+        JButton reset = button(Lang.t("common.reset"));
         reset.setForeground(Theme.FAIL);
         reset.addActionListener(e -> {
-            if (JOptionPane.showConfirmDialog(host.frame(), "Alle Launcher-Einstellungen auf Standard setzen?\n"
-                    + "Konten, Spielordner, Welten und der Lumora-Social-Server bleiben erhalten.", "Einstellungen zurücksetzen",
+            if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("settings.debug.reset.confirm"), Lang.t("settings.debug.reset.title"),
                     JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
                 LauncherConfig d = new LauncherConfig();
                 cfg.maxMemoryMb = d.maxMemoryMb;
@@ -861,21 +826,18 @@ public final class SettingsPage extends JPanel {
                 cfg.logRetentionDays = d.logRetentionDays;
                 cfg.hangDump = d.hangDump;
                 save();
-                JOptionPane.showMessageDialog(host.frame(), "Zurückgesetzt. Die Anzeige aktualisiert sich nach einem Neustart des Launchers.");
+                JOptionPane.showMessageDialog(host.frame(), Lang.t("settings.debug.reset.done"));
             }
         });
-        add("Fehlersuche", Icons.Kind.REFRESH, "Einstellungen zurücksetzen", "Setzt Speicher, Java, Fenster, Downloads und Anzeige auf Standard.",
+        add("debug", Icons.Kind.REFRESH, Lang.t("settings.debug.reset.title"), Lang.t("settings.debug.reset.desc"),
                 true, row(reset));
     }
 
     /** "Ingame-Erlebnis anpassen": the menu design in the game, applied once per version at its next start (GameThemeSeeder). */
     private void ingameExperience() {
-        Object[] options = {"Lumora-Design", "Minecraft-Stil", "Abbrechen"};
-        int pick = JOptionPane.showOptionDialog(host.frame(), "Wie sollen die Menüs im Spiel aussehen?\n\n"
-                        + "Lumora-Design: Lumoras eigene Menüs, Knöpfe und Farben.\n"
-                        + "Minecraft-Stil: Minecrafts eigene Menüs und Knöpfe, der Lumora-Hub bleibt.\n\n"
-                        + "Gilt beim nächsten Start jeder Version; im Spiel unter Hub › Themes jederzeit änderbar.",
-                "Ingame-Erlebnis anpassen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        Object[] options = {Lang.t("settings.ingame.lumora"), Lang.t("settings.ingame.minecraft"), Lang.t("common.cancel")};
+        int pick = JOptionPane.showOptionDialog(host.frame(), Lang.t("settings.ingame.question"),
+                Lang.t("settings.general.ingame.title"), JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
         if (pick != 0 && pick != 1) {
             return;
         }
@@ -888,21 +850,18 @@ public final class SettingsPage extends JPanel {
     /** "Lumora-Client-Einstellungen zurücksetzen": renames the Lumora settings folders (kept as a backup). */
     private void resetClientSettings() {
         if (host.ctx().play.runningGame().isPresent()) {
-            host.error("Lumora-Client-Einstellungen", "Minecraft läuft gerade. Beende das Spiel, dann setze die Einstellungen zurück.");
+            host.error(Lang.t("settings.debug.client_reset.short"), Lang.t("settings.debug.client_reset.running"));
             return;
         }
-        if (JOptionPane.showConfirmDialog(host.frame(), "Alle Einstellungen des Lumora Clients im Spiel (Module, HUD, Addons, Design) "
-                        + "auf Standard setzen?\n\nDie bisherigen bleiben als Sicherung „config.backup-…“ in den Instanz-Ordnern liegen.\n"
-                        + "Welten, Optionen und Addon-Dateien bleiben unverändert.", "Lumora-Client-Einstellungen zurücksetzen",
+        if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("settings.debug.client_reset.confirm"), Lang.t("settings.debug.client_reset.title"),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
         try {
             List<Path> kept = dev.lumora.launcher.core.InstanceLayout.resetLumoraSettings(host.ctx().paths, java.time.Instant.now());
-            JOptionPane.showMessageDialog(host.frame(), kept.isEmpty() ? "Es gab noch keine Lumora-Einstellungen." : "Zurückgesetzt ("
-                    + kept.size() + (kept.size() == 1 ? " Ordner" : " Ordner") + " gesichert). Beim nächsten Spielstart gelten die Standards.");
+            JOptionPane.showMessageDialog(host.frame(), kept.isEmpty() ? Lang.t("settings.debug.client_reset.none") : Lang.plural("settings.debug.client_reset.done", kept.size()));
         } catch (java.io.IOException ex) {
-            host.error("Lumora-Client-Einstellungen", "Zurücksetzen fehlgeschlagen: " + ex.getMessage());
+            host.error(Lang.t("settings.debug.client_reset.short"), Lang.t("settings.debug.client_reset.failed", ex.getMessage()));
         }
     }
 
@@ -914,10 +873,10 @@ public final class SettingsPage extends JPanel {
                 save();
                 hooks.homeChanged();
             }
-            JOptionPane.showMessageDialog(host.frame(), added.isEmpty() ? "Alle Instanz-Ordner sind bereits bekannt."
-                    : "Wiederhergestellt: " + String.join(", ", added));
+            JOptionPane.showMessageDialog(host.frame(), added.isEmpty() ? Lang.t("settings.debug.restore.none")
+                    : Lang.t("settings.debug.restore.done", String.join(", ", added)));
         } catch (java.io.IOException ex) {
-            host.error("Instanzen wiederherstellen", ex.getMessage());
+            host.error(Lang.t("settings.debug.restore.title_short"), ex.getMessage());
         }
     }
 
@@ -941,25 +900,18 @@ public final class SettingsPage extends JPanel {
 
     // ------------------------------------------------------------------ layout
 
-    /** "Ordner öffnen" as an accent link (opens the data folder). */
-    private JComponent openDirLink() {
-        JLabel openDir = caps("Ordner öffnen", 11.5f, Theme.ACCENT_HOVER);
-        openDir.setIcon(Icons.of(Icons.Kind.FOLDER, 14, Theme.ACCENT_HOVER));
-        openDir.setIconTextGap(7);
-        openDir.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        openDir.setToolTipText(host.ctx().paths.root().toString());
-        openDir.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                host.openFolder(host.ctx().paths.root());
-            }
-        });
-        return openDir;
-    }
-
     /** Tab label of a category. */
     private static String tabName(String category) {
-        return category.equals("Chat") ? "Freunde & Chat" : category;
+        return Lang.t("settings.category." + category);
+    }
+
+    private void openCategory(String name) {
+        category = name;
+        search.setText("");
+        rebuild();
+        if (name.equals("storage")) {
+            refreshStorage();
+        }
     }
 
     /**
@@ -969,12 +921,8 @@ public final class SettingsPage extends JPanel {
     private void rebuild() {
         String q = search.getText().strip().toLowerCase(Locale.ROOT);
         boolean adv = cfg.advancedSettings;
-        categories.removeAll();
-        for (String c : CATEGORIES) {
-            categories.add(new CategoryTab(c));
-        }
-        categories.revalidate();
-        categories.repaint();
+        categories.select(category);
+        categories.setMarked(q.isEmpty());
         list.removeAll();
         int shown = 0;
         for (String cat : CATEGORIES) {
@@ -1020,13 +968,13 @@ public final class SettingsPage extends JPanel {
             }
         }
         if (shown == 0) {
-            JLabel none = Ui.label(q.isEmpty() ? "Keine Einstellungen in dieser Kategorie." : "Keine Einstellung passt zu „" + search.getText().strip() + "“.",
+            JLabel none = Ui.label(q.isEmpty() ? Lang.t("settings.search.empty_category") : Lang.t("settings.search.no_match", search.getText().strip()),
                     14, Font.PLAIN, Theme.MUTED);
             list.add(none);
         }
         long hidden = settings.stream().filter(s -> s.advanced && (q.isEmpty() ? s.category.equals(category) : true)).count();
         if (!adv && hidden > 0) {
-            JLabel hint = Ui.label(hidden + " weitere im erweiterten Modus", 12.5f, Font.PLAIN, Theme.MUTED);
+            JLabel hint = Ui.label(Lang.plural("settings.hidden_advanced", hidden), 12.5f, Font.PLAIN, Theme.MUTED);
             hint.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
             list.add(hint);
         }
@@ -1036,7 +984,7 @@ public final class SettingsPage extends JPanel {
 
     /** Upper-case title with a little letter spacing, like the reference launcher. */
     private static JLabel caps(String text, float size, Color color) {
-        JLabel l = new JLabel(text.toUpperCase(Locale.GERMANY));
+        JLabel l = new JLabel(Theme.pixelSafe(text).toUpperCase(Lang.locale()));
         l.setFont(Theme.pixelStyle ? Theme.display(16f, Font.BOLD, size)
                 : Theme.font(Font.BOLD, size).deriveFont(java.util.Map.of(java.awt.font.TextAttribute.TRACKING, 0.08f)));
         l.setForeground(color);
@@ -1046,7 +994,7 @@ public final class SettingsPage extends JPanel {
 
     /** A setting with its own control: icon and title, description, the control below. */
     private JComponent section(Setting s) {
-        if (s.wide && s.category.equals("Speicher")) {
+        if (s.wide && s.category.equals("storage")) {
             // the storage overview brings its own heading
             Card c = new Card(new BorderLayout()).calm().padding(18, 20, 14, 18);
             c.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1060,7 +1008,7 @@ public final class SettingsPage extends JPanel {
         title.add(new JLabel(Icons.of(s.icon, 17, Theme.TEXT)));
         title.add(caps(s.title, 13.5f, Theme.TEXT));
         if (s.advanced) {
-            title.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
+            title.add(Ui.chip(Lang.t("settings.advanced"), Theme.MUTED, Theme.TEXT));
         }
         p.add(title);
         if (s.description != null) {
@@ -1106,7 +1054,7 @@ public final class SettingsPage extends JPanel {
         JLabel l = Ui.label(s.title, 14, Font.PLAIN, Theme.TEXT);
         name.add(l);
         if (s.advanced) {
-            name.add(Ui.chip("Erweitert", Theme.MUTED, Theme.TEXT));
+            name.add(Ui.chip(Lang.t("settings.advanced"), Theme.MUTED, Theme.TEXT));
         }
         if (s.description != null) {
             String tip = "<html><body style='width:280px'>" + s.description.replace("&", "&amp;").replace("<", "&lt;") + "</body></html>";
@@ -1125,68 +1073,5 @@ public final class SettingsPage extends JPanel {
         sw.add(s.control);
         box.add(sw, BorderLayout.EAST);
         return box;
-    }
-
-    /** Outlined tab of a category; the chosen one gets the accent. */
-    private final class CategoryTab extends JComponent {
-        private final String name;
-        private boolean hover;
-
-        CategoryTab(String name) {
-            this.name = name;
-            setFont(Theme.font(Font.BOLD, 11.5f).deriveFont(java.util.Map.of(java.awt.font.TextAttribute.TRACKING, 0.1f)));
-            java.awt.FontMetrics fm = getFontMetrics(getFont());
-            setPreferredSize(new Dimension(fm.stringWidth(label()) + 24, 36));
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    category = name;
-                    search.setText("");
-                    rebuild();
-                    if (name.equals("Speicher")) {
-                        refreshStorage();
-                    }
-                }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    hover = true;
-                    repaint();
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    hover = false;
-                    repaint();
-                }
-            });
-        }
-
-        private String label() {
-            return tabName(name).toUpperCase(Locale.GERMANY);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g0) {
-            Graphics2D g = (Graphics2D) g0.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-            boolean sel = name.equals(category) && search.getText().isBlank();
-            int w = getWidth();
-            int h = getHeight();
-            int arc = Theme.arc(8);
-            g.setColor(sel ? Theme.alpha(Theme.ACCENT, 40) : hover ? Theme.alpha(Theme.TEXT, 12) : Theme.SURFACE);
-            Theme.fillRound(g, 0, 0, w - 1, h - 1, arc, arc);
-            g.setColor(sel ? Theme.ACCENT_HOVER : Theme.BORDER);
-            g.setStroke(new java.awt.BasicStroke(sel ? 1.5f : 1f));
-            Theme.drawRound(g, 0, 0, w - 1, h - 1, arc, arc);
-            g.setFont(getFont());
-            java.awt.FontMetrics fm = g.getFontMetrics();
-            String t = label();
-            g.setColor(sel || hover ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.35));
-            g.drawString(t, (w - fm.stringWidth(t)) / 2, (h - fm.getHeight()) / 2 + fm.getAscent());
-            g.dispose();
-        }
     }
 }

@@ -2,6 +2,7 @@ package dev.lumora.launcher.app.pages;
 
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.news.Article;
 import dev.lumora.launcher.core.news.NewsFeed;
 
@@ -46,7 +47,6 @@ import java.awt.geom.RoundRectangle2D;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
@@ -60,7 +60,7 @@ final class ArticleView extends JComponent {
         Image get(String url, Runnable loaded);
     }
 
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(Lang.t("format.date_long"), Lang.locale());
     /** Width of the text column (like a news site). */
     private static final int COLUMN = 800;
     private static final int MARGIN = 18;
@@ -95,7 +95,7 @@ final class ArticleView extends JComponent {
         bar.setOpaque(false);
         bar.setBorder(BorderFactory.createEmptyBorder(12, 12, 4, 12));
         if (a.link() != null) {
-            JButton web = new JButton("Im Browser öffnen", Icons.of(Icons.Kind.GLOBE, 15, Theme.TEXT));
+            JButton web = new JButton(Lang.t("article.open_browser"), Icons.of(Icons.Kind.GLOBE, 15, Theme.TEXT));
             web.setFocusable(false);
             web.setToolTipText(a.link());
             web.addActionListener(e -> browse.accept(a.link()));
@@ -103,7 +103,7 @@ final class ArticleView extends JComponent {
         }
         JButton close = new JButton(Icons.of(Icons.Kind.X, 15, Theme.TEXT));
         close.setFocusable(false);
-        close.setToolTipText("Schließen (Esc)");
+        close.setToolTipText(Lang.t("article.close"));
         close.addActionListener(e -> close());
         bar.add(close);
         card.add(bar, BorderLayout.NORTH);
@@ -239,7 +239,7 @@ final class ArticleView extends JComponent {
             }
         }
         if (a.link() != null) {
-            JButton more = new JButton("Ganzen Artikel auf minecraft.net lesen", Icons.of(Icons.Kind.GLOBE, 15, Theme.TEXT));
+            JButton more = new JButton(Lang.t("article.read_more"), Icons.of(Icons.Kind.GLOBE, 15, Theme.TEXT));
             more.setFocusable(false);
             more.addActionListener(e -> browse.accept(a.link()));
             body.add(new ButtonRow(more));
@@ -624,7 +624,7 @@ final class ArticleView extends JComponent {
         private final String text;
 
         SectionHeader(String text) {
-            this.text = text.toUpperCase(Locale.GERMANY);
+            this.text = text.toUpperCase(Lang.locale());
         }
 
         @Override

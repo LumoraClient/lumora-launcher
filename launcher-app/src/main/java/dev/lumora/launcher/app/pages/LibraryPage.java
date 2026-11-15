@@ -4,6 +4,7 @@ import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.library.InstanceLibrary;
 import dev.lumora.launcher.core.launch.LaunchCommandBuilder;
 import dev.lumora.launcher.core.library.ServerPing;
@@ -36,7 +37,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -45,12 +45,12 @@ import java.util.concurrent.ExecutorService;
  */
 public final class LibraryPage extends JPanel {
     private static final int SHOTS = 12;
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm", Locale.GERMANY)
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(Lang.t("format.date_time"), Lang.locale())
             .withZone(ZoneId.systemDefault());
 
     private final PageHost host;
     private final ExecutorService io;
-    private final JPanel versionBar = Ui.row(0);
+    private final JPanel versionBar = Ui.row(8);
     private final JPanel content = Ui.column();
     private int generation;
 
@@ -67,17 +67,15 @@ public final class LibraryPage extends JPanel {
         JPanel titleRow = new JPanel(new BorderLayout());
         titleRow.setOpaque(false);
         titleRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        titleRow.add(Ui.pageTitle("Bibliothek", "Deine Welten, Server, Screenshots und Ressourcenpakete – getrennt nach Version."), BorderLayout.WEST);
+        titleRow.add(Ui.pageTitle(Lang.t("nav.library"), Lang.t("library.subtitle")), BorderLayout.WEST);
         JPanel aw = new JPanel(new BorderLayout());
         aw.setOpaque(false);
-        JButton reload = new JButton("Aktualisieren", Icons.of(Icons.Kind.REFRESH, 16, Theme.TEXT));
-        reload.setFocusable(false);
-        reload.addActionListener(e -> refresh());
-        aw.add(reload, BorderLayout.SOUTH);
+        JPanel actions = Ui.row(8);
+        actions.add(versionBar);
+        actions.add(Ui.button(Lang.t("common.refresh"), Icons.Kind.REFRESH, this::refresh));
+        aw.add(actions, BorderLayout.SOUTH);
         titleRow.add(aw, BorderLayout.EAST);
         head.add(titleRow);
-        head.add(Box.createVerticalStrut(14));
-        head.add(versionBar);
         add(head, BorderLayout.NORTH);
         content.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(Ui.scroll(content), BorderLayout.CENTER);
@@ -90,7 +88,8 @@ public final class LibraryPage extends JPanel {
     public void refresh() {
         versionBar.removeAll();
         List<ProfileCatalog.Profile> ps = host.ctx().catalog.profiles();
-        versionBar.add(Ui.segmented(ps.stream().map(p -> p.id).toList(),
+        versionBar.add(Ui.label(Lang.t("common.version"), 13, Font.PLAIN, Theme.MUTED));
+        versionBar.add(Ui.choice(ps.stream().map(p -> p.id).toList(),
                 ps.stream().map(p -> "Minecraft " + p.minecraftVersion).toList(), profile().id, id -> {
                     host.selectProfile(id);
                     refresh();
@@ -116,38 +115,37 @@ public final class LibraryPage extends JPanel {
         JPanel stats = new JPanel(new GridLayout(1, 4, 14, 0));
         stats.setOpaque(false);
         stats.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stats.add(stat(Icons.Kind.CLOCK, "Spielzeit", PlayStats.format(d.stats().playTime())));
-        stats.add(stat(Icons.Kind.PLAY, "Starts", Long.toString(d.stats().launches)));
-        stats.add(stat(Icons.Kind.REFRESH, "Zuletzt gespielt", PlayStats.ago(d.stats().lastPlayedInstant(), Instant.now())));
-        stats.add(stat(Icons.Kind.CUBE, "Welten", Integer.toString(d.worlds().size())));
+        stats.add(stat(Icons.Kind.CLOCK, Lang.t("library.stat.playtime"), PlayStats.format(d.stats().playTime())));
+        stats.add(stat(Icons.Kind.PLAY, Lang.t("library.stat.launches"), Long.toString(d.stats().launches)));
+        stats.add(stat(Icons.Kind.REFRESH, Lang.t("library.stat.last_played"), PlayStats.ago(d.stats().lastPlayedInstant(), Instant.now())));
+        stats.add(stat(Icons.Kind.CUBE, Lang.t("library.stat.worlds"), Integer.toString(d.worlds().size())));
         stats.setMaximumSize(new Dimension(Integer.MAX_VALUE, 84));
         content.add(stats);
         content.add(Box.createVerticalStrut(22));
 
         // --- performance (F9 benchmark)
-        content.add(header("Leistung", d.benchmarks().isEmpty() ? null : d.benchmarks().size() + " Benchmark-Läufe mit F9", null));
+        content.add(header(Lang.t("library.performance"), d.benchmarks().isEmpty() ? null : Lang.plural("library.bench.runs", d.benchmarks().size()), null));
         if (d.benchmarks().isEmpty()) {
-            content.add(empty("Noch keine Messungen. Drücke im Spiel F9: Lumora misst 30 Sekunden lang die Bildrate (Durchschnitt, 1 %-Lows, "
-                    + "Frametimes) und zeigt den Verlauf hier als Diagramm."));
+            content.add(empty(Lang.t("library.bench.empty")));
         } else {
             Card chartCard = new Card(new BorderLayout(0, 8));
             chartCard.padding(14, 16, 12, 16);
             chartCard.setAlignmentX(Component.LEFT_ALIGNMENT);
             dev.lumora.launcher.app.ui.LineChart chart = new dev.lumora.launcher.app.ui.LineChart();
             java.util.List<BenchmarkHistory.Run> runs = d.benchmarks();
-            DateTimeFormatter shortDate = DateTimeFormatter.ofPattern("dd.MM. HH:mm", Locale.GERMANY).withZone(ZoneId.systemDefault());
+            DateTimeFormatter shortDate = DateTimeFormatter.ofPattern(Lang.t("format.date_time_short"), Lang.locale()).withZone(ZoneId.systemDefault());
             chart.setData(runs.stream().map(r -> shortDate.format(r.time())).toList(), java.util.List.of(
-                    new dev.lumora.launcher.app.ui.LineChart.Series("Ø FPS", Theme.ACCENT, runs.stream().mapToDouble(BenchmarkHistory.Run::avgFps).toArray()),
-                    new dev.lumora.launcher.app.ui.LineChart.Series("1 %-Low", new Color(0xF2A541), runs.stream().mapToDouble(BenchmarkHistory.Run::onePercentLowFps).toArray())), "FPS");
+                    new dev.lumora.launcher.app.ui.LineChart.Series(Lang.t("library.bench.avg_fps"), Theme.ACCENT, runs.stream().mapToDouble(BenchmarkHistory.Run::avgFps).toArray()),
+                    new dev.lumora.launcher.app.ui.LineChart.Series(Lang.t("library.bench.low"), new Color(0xF2A541), runs.stream().mapToDouble(BenchmarkHistory.Run::onePercentLowFps).toArray())), "FPS");
             chartCard.add(chart, BorderLayout.CENTER);
             BenchmarkHistory.Run last = runs.getLast();
             String trend = "";
             if (runs.size() > 1) {
                 double prev = runs.get(runs.size() - 2).avgFps();
                 double diff = prev > 0 ? (last.avgFps() - prev) / prev * 100 : 0;
-                trend = String.format(Locale.GERMANY, "  ·  %+.0f %% zum Lauf davor", diff);
+                trend = "  ·  " + String.format(Lang.locale(), Lang.t("library.bench.trend_fmt"), diff);
             }
-            chartCard.add(Ui.label(String.format(Locale.GERMANY, "Letzter Lauf %s: Ø %.0f FPS, 1 %%-Low %.0f FPS, p99 %.1f ms%s%s",
+            chartCard.add(Ui.label(String.format(Lang.locale(), Lang.t("library.bench.last_fmt"),
                     DATE.format(last.time()), last.avgFps(), last.onePercentLowFps(), last.p99Ms(), trend,
                     last.renderer() != null ? "  ·  " + last.renderer() : ""), 12.5f, Font.PLAIN, Theme.MUTED), BorderLayout.SOUTH);
             content.add(chartCard);
@@ -155,9 +153,9 @@ public final class LibraryPage extends JPanel {
         content.add(Box.createVerticalStrut(22));
 
         // --- worlds
-        content.add(header("Welten", d.worlds().isEmpty() ? null : d.worlds().size() + " gespeichert", instance.resolve("saves")));
+        content.add(header(Lang.t("library.stat.worlds"), d.worlds().isEmpty() ? null : Lang.t("library.worlds.saved", d.worlds().size()), instance.resolve("saves")));
         if (d.worlds().isEmpty()) {
-            content.add(empty("Noch keine Welten in Minecraft " + p.minecraftVersion + ". Starte das Spiel und lege im Einzelspieler eine an."));
+            content.add(empty(Lang.t("library.worlds.empty", p.minecraftVersion)));
         }
         for (InstanceLibrary.World w : d.worlds()) {
             content.add(worldRow(w));
@@ -166,9 +164,9 @@ public final class LibraryPage extends JPanel {
         content.add(Box.createVerticalStrut(14));
 
         // --- servers
-        content.add(header("Server", d.servers().isEmpty() ? null : "Live-Status wie im Mehrspieler-Menü", null));
+        content.add(header(Lang.t("nav.servers"), d.servers().isEmpty() ? null : Lang.t("library.servers.hint"), null));
         if (d.servers().isEmpty()) {
-            content.add(empty("Keine Server gespeichert. Server, die du im Spiel unter „Mehrspieler“ hinzufügst, erscheinen hier mit Spielerzahl und Ping."));
+            content.add(empty(Lang.t("library.servers.empty")));
         }
         for (InstanceLibrary.Server s : d.servers()) {
             content.add(serverRow(s, gen));
@@ -177,10 +175,10 @@ public final class LibraryPage extends JPanel {
         content.add(Box.createVerticalStrut(14));
 
         // --- screenshots
-        content.add(header("Screenshots", d.shots().isEmpty() ? null
-                : d.shots().size() + " gesamt" + (d.shots().size() > SHOTS ? ", die neuesten " + SHOTS : ""), instance.resolve("screenshots")));
+        content.add(header(Lang.t("library.screenshots"), d.shots().isEmpty() ? null
+                : (d.shots().size() > SHOTS ? Lang.t("library.shots.total_newest", d.shots().size(), SHOTS) : Lang.t("library.shots.total", d.shots().size())), instance.resolve("screenshots")));
         if (d.shots().isEmpty()) {
-            content.add(empty("Noch keine Screenshots. Im Spiel mit F2 aufnehmen."));
+            content.add(empty(Lang.t("library.shots.empty")));
         } else {
             JPanel grid = new JPanel(new GridLayout(0, 4, 12, 12));
             grid.setOpaque(false);
@@ -193,15 +191,15 @@ public final class LibraryPage extends JPanel {
         content.add(Box.createVerticalStrut(22));
 
         // --- resource packs
-        content.add(header("Ressourcenpakete", d.packs().isEmpty() ? null : d.packs().size() + " installiert", instance.resolve("resourcepacks")));
+        content.add(header(Lang.t("library.packs"), d.packs().isEmpty() ? null : Lang.t("library.packs.installed", d.packs().size()), instance.resolve("resourcepacks")));
         if (d.packs().isEmpty()) {
-            content.add(empty("Keine eigenen Ressourcenpakete. Das eingebaute „Lumora Theme“ ist immer dabei."));
+            content.add(empty(Lang.t("library.packs.empty")));
         } else {
             JPanel chips = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 8));
             chips.setOpaque(false);
             chips.setAlignmentX(Component.LEFT_ALIGNMENT);
             for (InstanceLibrary.ResourcePack r : d.packs()) {
-                chips.add(Ui.chip(r.name() + (r.folder() ? "  (Ordner)" : "")));
+                chips.add(Ui.chip(r.name() + (r.folder() ? "  (" + Lang.t("library.packs.folder") + ")" : "")));
             }
             content.add(chips);
         }
@@ -213,16 +211,26 @@ public final class LibraryPage extends JPanel {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(false);
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(Ui.sectionTitle(title, hint), BorderLayout.WEST);
-        if (folder != null) {
-            JLabel open = Ui.label("Ordner öffnen", 12.5f, Font.BOLD, Theme.ACCENT_HOVER);
-            open.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            open.addMouseListener(click(() -> host.openFolder(folder)));
-            open.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-            row.add(open, BorderLayout.EAST);
+        JComponent t = Ui.sectionTitle(title, hint);
+        if (folder == null) {
+            row.add(t, BorderLayout.WEST);
+            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+            return row;
         }
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        // title and "open folder" button centered on one line, the gap below moves from the title to the row
+        t.setBorder(BorderFactory.createEmptyBorder());
+        row.add(centered(t), BorderLayout.WEST);
+        row.add(centered(Ui.openFolderButton(() -> host.openFolder(folder))), BorderLayout.EAST);
+        row.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, Ui.CONTROL_HEIGHT + 10));
         return row;
+    }
+
+    private static JComponent centered(JComponent c) {
+        JPanel p = new JPanel(new java.awt.GridBagLayout());
+        p.setOpaque(false);
+        p.add(c);
+        return p;
     }
 
     private static JComponent empty(String text) {
@@ -240,7 +248,7 @@ public final class LibraryPage extends JPanel {
         i.setVerticalAlignment(JLabel.TOP);
         c.add(i, BorderLayout.WEST);
         JPanel t = Ui.column();
-        t.add(Ui.label(title.toUpperCase(Locale.GERMANY), 11, Font.BOLD, Theme.MUTED));
+        t.add(Ui.label(title.toUpperCase(Lang.locale()), 11, Font.BOLD, Theme.MUTED));
         t.add(Box.createVerticalStrut(4));
         t.add(Ui.label(value, 15, Font.BOLD, Theme.TEXT));
         c.add(t, BorderLayout.CENTER);
@@ -257,11 +265,11 @@ public final class LibraryPage extends JPanel {
         JPanel head = Ui.row(8);
         head.add(Ui.label(w.name(), 15, Font.BOLD, Theme.TEXT));
         head.add(Ui.chip(switch (w.mode()) {
-            case SURVIVAL -> "Überleben";
-            case CREATIVE -> "Kreativ";
-            case ADVENTURE -> "Abenteuer";
-            case SPECTATOR -> "Zuschauer";
-            case UNKNOWN -> "Welt";
+            case SURVIVAL -> Lang.t("gamemode.survival");
+            case CREATIVE -> Lang.t("gamemode.creative");
+            case ADVENTURE -> Lang.t("gamemode.adventure");
+            case SPECTATOR -> Lang.t("gamemode.spectator");
+            case UNKNOWN -> Lang.t("gamemode.unknown");
         }));
         if (w.hardcore()) {
             head.add(Ui.chip("Hardcore", Theme.FAIL, new Color(0xFF9EA1)));
@@ -269,25 +277,25 @@ public final class LibraryPage extends JPanel {
         head.setMaximumSize(new Dimension(Integer.MAX_VALUE, head.getPreferredSize().height));
         t.add(head);
         t.add(Box.createVerticalStrut(3));
-        t.add(Ui.label("Zuletzt gespielt " + (w.lastPlayed() != null ? DATE.format(w.lastPlayed())
-                + " (" + PlayStats.ago(w.lastPlayed(), Instant.now()) + ")" : "unbekannt") + "  ·  Ordner „" + w.folder() + "“",
+        t.add(Ui.label(Lang.t("library.world.last_played", (w.lastPlayed() != null ? DATE.format(w.lastPlayed())
+                + " (" + PlayStats.ago(w.lastPlayed(), Instant.now()) + ")" : Lang.t("common.unknown")), w.folder()),
                 12.5f, Font.PLAIN, Theme.MUTED));
         c.add(t, BorderLayout.CENTER);
         JButton open = new JButton(Icons.of(Icons.Kind.FOLDER, 16, Theme.TEXT));
-        open.setToolTipText("Weltordner öffnen");
+        open.setToolTipText(Lang.t("library.world.open_tip"));
         open.setFocusable(false);
         open.addActionListener(e -> host.openFolder(w.dir()));
-        JButton backup = new JButton("Backup", Icons.of(Icons.Kind.ARCHIVE, 15, Theme.TEXT));
-        backup.setToolTipText("Welt als ZIP sichern (Ordner „backups“ dieser Version)");
+        JButton backup = new JButton(Lang.t("library.world.backup"), Icons.of(Icons.Kind.ARCHIVE, 15, Theme.TEXT));
+        backup.setToolTipText(Lang.t("library.world.backup_tip"));
         backup.setFocusable(false);
         backup.addActionListener(e -> backup(w, backup));
-        JButton play = new JButton("Spielen", Icons.of(Icons.Kind.PLAY, 15, Color.WHITE));
+        JButton play = new JButton(Lang.t("play.play"), Icons.of(Icons.Kind.PLAY, 15, Color.WHITE));
         if (!Theme.pixelStyle) {
             play.putClientProperty("JButton.buttonType", "roundRect");
         }
         play.setBackground(Theme.ACCENT_PRESSED);
         play.setForeground(Color.WHITE);
-        play.setToolTipText("Minecraft starten und diese Welt direkt öffnen");
+        play.setToolTipText(Lang.t("library.world.play_tip"));
         play.setFocusable(false);
         play.addActionListener(e -> host.launch(new LaunchCommandBuilder.QuickPlay(LaunchCommandBuilder.QuickPlay.Kind.SINGLEPLAYER, w.folder()), false));
         JPanel ow = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
@@ -317,15 +325,15 @@ public final class LibraryPage extends JPanel {
         JLabel motd = Ui.label(s.address(), 12.5f, Font.PLAIN, Theme.MUTED);
         t.add(motd);
         c.add(t, BorderLayout.CENTER);
-        JLabel status = Ui.label("● prüfe…", 13, Font.BOLD, Theme.MUTED);
+        JLabel status = Ui.label(Lang.t("library.server.checking"), 13, Font.BOLD, Theme.MUTED);
         status.setHorizontalAlignment(JLabel.RIGHT);
-        JButton join = new JButton("Beitreten", Icons.of(Icons.Kind.PLAY, 15, Color.WHITE));
+        JButton join = new JButton(Lang.t("library.server.join"), Icons.of(Icons.Kind.PLAY, 15, Color.WHITE));
         if (!Theme.pixelStyle) {
             join.putClientProperty("JButton.buttonType", "roundRect");
         }
         join.setBackground(Theme.ACCENT_PRESSED);
         join.setForeground(Color.WHITE);
-        join.setToolTipText("Minecraft starten und direkt mit " + s.address() + " verbinden");
+        join.setToolTipText(Lang.t("library.server.join_tip", s.address()));
         join.setFocusable(false);
         join.addActionListener(e -> host.launch(new LaunchCommandBuilder.QuickPlay(LaunchCommandBuilder.QuickPlay.Kind.MULTIPLAYER, s.address()), false));
         JPanel sw = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
@@ -354,12 +362,12 @@ public final class LibraryPage extends JPanel {
                     return;
                 }
                 if (result == null) {
-                    status.setText("● nicht erreichbar");
+                    status.setText(Lang.t("library.server.unreachable"));
                     status.setForeground(Theme.FAIL);
                     status.setToolTipText(error);
                     return;
                 }
-                status.setText("● " + (result.online() >= 0 ? result.online() + " / " + result.max() + " Spieler" : "online")
+                status.setText("● " + (result.online() >= 0 ? Lang.t("library.server.players", result.online(), result.max()) : Lang.t("library.server.online"))
                         + "  ·  " + result.pingMs() + " ms");
                 status.setForeground(result.pingMs() < 150 ? Theme.OK : Theme.WARN);
                 String m = result.motd().replaceAll("\\s+", " ");
@@ -378,26 +386,26 @@ public final class LibraryPage extends JPanel {
 
     private void backup(InstanceLibrary.World w, JButton button) {
         if (host.gameRunning()) {
-            host.error("Backup nicht möglich", "Minecraft läuft gerade. Beende das Spiel, damit die Welt vollständig gespeichert ist.");
+            host.error(Lang.t("library.backup.impossible"), Lang.t("library.backup.game_running"));
             return;
         }
         button.setEnabled(false);
-        button.setText("Sichere…");
+        button.setText(Lang.t("library.backup.saving"));
         Path backups = WorldBackup.backupsDir(host.ctx().gameDir(profile().id));
         io.submit(() -> {
             try {
                 Path zip = WorldBackup.backup(w.dir(), backups, Instant.now());
                 SwingUtilities.invokeLater(() -> {
-                    button.setText("Gesichert ✓");
-                    javax.swing.JOptionPane.showMessageDialog(host.frame(), "„" + w.name() + "“ gesichert:\n" + zip.getFileName()
-                            + " (" + Ui.size(zip.toFile().length()) + ")\n\nOrdner: " + backups, "Backup erstellt",
+                    button.setText(Lang.t("library.backup.saved"));
+                    javax.swing.JOptionPane.showMessageDialog(host.frame(), Lang.t("library.backup.done", w.name(), zip.getFileName()
+                            , Ui.size(zip.toFile().length()), backups), Lang.t("library.backup.created"),
                             javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 });
             } catch (IOException e) {
                 SwingUtilities.invokeLater(() -> {
                     button.setEnabled(true);
-                    button.setText("Backup");
-                    host.error("Backup fehlgeschlagen", e.getMessage());
+                    button.setText(Lang.t("library.world.backup"));
+                    host.error(Lang.t("library.backup.failed"), e.getMessage());
                 });
             }
         });
@@ -415,7 +423,7 @@ public final class LibraryPage extends JPanel {
             try {
                 Desktop.getDesktop().open(s.file().toFile());
             } catch (IOException | UnsupportedOperationException e) {
-                host.error("Screenshot kann nicht geöffnet werden", s.file() + "\n" + e.getMessage());
+                host.error(Lang.t("library.screenshot.open_failed"), s.file() + "\n" + e.getMessage());
             }
         }));
         JLabel date = Ui.label(DATE.format(s.taken()), 11.5f, Font.PLAIN, Theme.MUTED);

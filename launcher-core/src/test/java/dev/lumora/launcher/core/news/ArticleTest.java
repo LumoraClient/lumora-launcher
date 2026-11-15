@@ -129,7 +129,7 @@ class ArticleTest {
         Article a = NewsFeed.article(c24);
         assertEquals("Lumora 0.3.24", a.badge());
         assertEquals(Article.Block.section("Changelog · Lumora 0.3.24"), a.blocks().get(0));
-        assertTrue(a.subtitle().startsWith("2 Änderungen – Im Spiel, Hub"), a.subtitle());
+        assertTrue(a.subtitle().startsWith("2 changes – Im Spiel, Hub"), a.subtitle());
     }
 
     @Test

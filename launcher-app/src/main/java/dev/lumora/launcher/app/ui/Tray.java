@@ -1,4 +1,5 @@
 package dev.lumora.launcher.app.ui;
+import dev.lumora.launcher.core.i18n.Lang;
 
 import javax.swing.JFrame;
 import java.awt.AWTException;
@@ -45,9 +46,9 @@ public final class Tray {
             return;
         }
         PopupMenu menu = new PopupMenu();
-        MenuItem open = new MenuItem("Lumora öffnen");
+        MenuItem open = new MenuItem(Lang.t("tray.open"));
         open.addActionListener(e -> show());
-        MenuItem exit = new MenuItem("Beenden");
+        MenuItem exit = new MenuItem(Lang.t("play.stop"));
         exit.addActionListener(e -> javax.swing.SwingUtilities.invokeLater(quit));
         menu.add(open);
         menu.addSeparator();

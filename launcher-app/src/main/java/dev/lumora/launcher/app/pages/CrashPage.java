@@ -8,6 +8,7 @@ import dev.lumora.launcher.core.crash.CrashReport;
 import dev.lumora.launcher.core.crash.CrashReports;
 import dev.lumora.launcher.core.diagnostics.CrashAnalyzer;
 import dev.lumora.launcher.core.diagnostics.SystemCheck;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.mods.ModInventory;
 import dev.lumora.launcher.core.profile.ProfileCatalog;
 import dev.lumora.launcher.core.stats.PlayStats;
@@ -40,7 +41,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -51,13 +51,13 @@ import java.util.concurrent.ExecutorService;
  * getting help: open the report, copy an anonymized version, save a diagnostics zip, start again.
  */
 public final class CrashPage extends JPanel {
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm", Locale.GERMANY)
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(Lang.t("format.date_time"), Lang.locale())
             .withZone(ZoneId.systemDefault());
     private static final String ALL = "*";
 
     private final PageHost host;
     private final ExecutorService io;
-    private final JPanel filterBar = Ui.row(0);
+    private final JPanel filterBar = Ui.row(8);
     private final JLabel summary = Ui.label(" ", 13, Font.PLAIN, Theme.MUTED);
     private final JPanel list = Ui.column();
     private String filter = ALL;
@@ -72,17 +72,16 @@ public final class CrashPage extends JPanel {
         JPanel titleRow = new JPanel(new BorderLayout());
         titleRow.setOpaque(false);
         titleRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        titleRow.add(Ui.pageTitle("Abstürze", "Crash-Reports aller Versionen – mit wahrscheinlicher Ursache, Hilfe und Diagnosepaket."), BorderLayout.WEST);
+        titleRow.add(Ui.pageTitle(Lang.t("nav.crashes"), Lang.t("crash.subtitle")), BorderLayout.WEST);
         JPanel actions = Ui.row(8);
-        actions.add(button("Aktualisieren", Icons.Kind.REFRESH, this::refresh));
+        actions.add(filterBar);
+        actions.add(button(Lang.t("common.refresh"), Icons.Kind.REFRESH, this::refresh));
         JPanel aw = new JPanel(new BorderLayout());
         aw.setOpaque(false);
         aw.add(actions, BorderLayout.SOUTH);
         titleRow.add(aw, BorderLayout.EAST);
         head.add(titleRow);
         head.add(Box.createVerticalStrut(14));
-        head.add(filterBar);
-        head.add(Box.createVerticalStrut(10));
         summary.setAlignmentX(Component.LEFT_ALIGNMENT);
         head.add(summary);
         add(head, BorderLayout.NORTH);
@@ -94,7 +93,7 @@ public final class CrashPage extends JPanel {
         rebuildFilter();
         int gen = ++generation;
         List<String> ids = host.ctx().catalog.profiles().stream().map(p -> p.id).filter(id -> filter.equals(ALL) || id.equals(filter)).toList();
-        summary.setText("Suche Crash-Reports…");
+        summary.setText(Lang.t("crash.searching"));
         io.submit(() -> {
             List<CrashReport> found = CrashReports.list(host.ctx()::gameDir, ids);
             SwingUtilities.invokeLater(() -> {
@@ -108,12 +107,13 @@ public final class CrashPage extends JPanel {
     private void rebuildFilter() {
         filterBar.removeAll();
         List<String> ids = new ArrayList<>(List.of(ALL));
-        List<String> labels = new ArrayList<>(List.of("Alle Versionen"));
+        List<String> labels = new ArrayList<>(List.of(Lang.t("crash.all_versions")));
         for (ProfileCatalog.Profile p : host.ctx().catalog.profiles()) {
             ids.add(p.id);
             labels.add("Minecraft " + p.minecraftVersion);
         }
-        filterBar.add(Ui.segmented(ids, labels, filter, id -> {
+        filterBar.add(Ui.label(Lang.t("common.version"), 13, Font.PLAIN, Theme.MUTED));
+        filterBar.add(Ui.choice(ids, labels, filter, id -> {
             filter = id;
             refresh();
         }));
@@ -125,18 +125,17 @@ public final class CrashPage extends JPanel {
         list.removeAll();
         Instant now = Instant.now();
         long week = reports.stream().filter(r -> r.time().isAfter(now.minusSeconds(7 * 86400))).count();
-        summary.setText(reports.isEmpty() ? " " : reports.size() + (reports.size() == 1 ? " Absturz" : " Abstürze")
-                + "  ·  " + week + " in den letzten 7 Tagen" + "  ·  zuletzt " + PlayStats.ago(reports.getFirst().time(), now));
+        summary.setText(reports.isEmpty() ? " " : Lang.plural("crash.summary.count", reports.size())
+                + "  ·  " + Lang.t("crash.summary.recent", week, PlayStats.ago(reports.getFirst().time(), now)));
         if (reports.isEmpty()) {
             Card c = new Card(new BorderLayout(14, 0));
             c.padding(18, 18, 18, 18);
             c.setAlignmentX(Component.LEFT_ALIGNMENT);
             c.add(new JLabel(Icons.of(Icons.Kind.CHECK, 26, Theme.OK)), BorderLayout.WEST);
             JPanel t = Ui.column();
-            t.add(Ui.label("Keine Abstürze – alles stabil", 16, Font.BOLD, Theme.TEXT));
+            t.add(Ui.label(Lang.t("crash.none"), 16, Font.BOLD, Theme.TEXT));
             t.add(Box.createVerticalStrut(3));
-            t.add(Ui.wrapText("Stürzt Minecraft ab, erscheint der Bericht hier automatisch: mit der wahrscheinlich verantwortlichen Mod, "
-                    + "Lösungshinweisen und einem anonymisierten Diagnosepaket für den Support.", 13f, Theme.MUTED));
+            t.add(Ui.wrapText(Lang.t("crash.none.text"), 13f, Theme.MUTED));
             c.add(t, BorderLayout.CENTER);
             list.add(c);
         }
@@ -163,9 +162,9 @@ public final class CrashPage extends JPanel {
         JPanel head = Ui.row(8);
         head.add(Ui.label(r.description(), 15.5f, Font.BOLD, Theme.TEXT));
         head.add(Ui.chip("Minecraft " + host.ctx().catalog.profile(r.profileId()).map(p -> p.minecraftVersion).orElse(r.profileId())));
-        head.add(Ui.chip(r.source() == CrashReport.Source.MINECRAFT ? "Crash-Report" : "Launcher-Protokoll", Theme.MUTED, Theme.MUTED));
+        head.add(Ui.chip(r.source() == CrashReport.Source.MINECRAFT ? Lang.t("crash.chip.report") : Lang.t("crash.chip.launcher_log"), Theme.MUTED, Theme.MUTED));
         if (r.exitCode() != null) {
-            head.add(Ui.chip("Code " + r.exitCode(), Theme.FAIL, new Color(0xFF9EA1)));
+            head.add(Ui.chip(Lang.t("crash.chip.code", r.exitCode()), Theme.FAIL, new Color(0xFF9EA1)));
         }
         head.setMaximumSize(new Dimension(Integer.MAX_VALUE, head.getPreferredSize().height));
         body.add(head);
@@ -181,7 +180,7 @@ public final class CrashPage extends JPanel {
         // culprit
         body.add(Box.createVerticalStrut(10));
         if (r.suspects().isEmpty()) {
-            body.add(Ui.label("Keine eindeutige Ursache in den Mods gefunden – eher Minecraft, Treiber oder Einstellungen.", 13, Font.PLAIN, Theme.MUTED));
+            body.add(Ui.label(Lang.t("crash.no_culprit"), 13, Font.PLAIN, Theme.MUTED));
         } else {
             for (CrashReport.Suspect s : r.suspects()) {
                 body.add(suspectRow(r, s));
@@ -190,7 +189,7 @@ public final class CrashPage extends JPanel {
         }
         for (CrashAnalyzer.Hint h : r.hints()) {
             body.add(Box.createVerticalStrut(4));
-            JTextArea t = Ui.wrapText("Tipp – " + h.title() + ": " + h.advice(), 13f, Theme.WARN);
+            JTextArea t = Ui.wrapText(Lang.t("crash.tip", h.title(), h.advice()), 13f, Theme.WARN);
             body.add(t);
         }
         // details
@@ -208,21 +207,21 @@ public final class CrashPage extends JPanel {
 
         body.add(Box.createVerticalStrut(12));
         JPanel buttons = Ui.row(8);
-        JButton toggle = button(expanded ? "Bericht ausblenden" : "Bericht anzeigen", Icons.Kind.TERMINAL, null);
+        JButton toggle = button(expanded ? Lang.t("crash.report.hide") : Lang.t("crash.report.show"), Icons.Kind.TERMINAL, null);
         toggle.addActionListener(e -> {
             boolean show = !detailScroll.isVisible();
             if (show && details.getText().isEmpty()) {
                 loadDetails(r, details);
             }
             detailScroll.setVisible(show);
-            toggle.setText(show ? "Bericht ausblenden" : "Bericht anzeigen");
+            toggle.setText(show ? Lang.t("crash.report.hide") : Lang.t("crash.report.show"));
             body.revalidate();
         });
         buttons.add(toggle);
-        buttons.add(button("Für Support kopieren", Icons.Kind.COPY, () -> copy(r)));
-        buttons.add(button("Diagnosepaket…", Icons.Kind.ARCHIVE, () -> saveZip(r)));
-        buttons.add(button("Datei öffnen", Icons.Kind.FOLDER, () -> openFile(r.file())));
-        buttons.add(button("Erneut starten", Icons.Kind.PLAY, () -> {
+        buttons.add(button(Lang.t("crash.copy_support"), Icons.Kind.COPY, () -> copy(r)));
+        buttons.add(button(Lang.t("crash.zip.button"), Icons.Kind.ARCHIVE, () -> saveZip(r)));
+        buttons.add(button(Lang.t("crash.open_file"), Icons.Kind.FOLDER, () -> openFile(r.file())));
+        buttons.add(button(Lang.t("crash.dialog.restart"), Icons.Kind.PLAY, () -> {
             host.selectProfile(r.profileId());
             host.launch(null, false);
         }));
@@ -244,20 +243,20 @@ public final class CrashPage extends JPanel {
         Kind kind = kindOf(r.profileId(), s);
         JPanel text = Ui.column();
         JPanel line = Ui.row(8);
-        line.add(Ui.label("Wahrscheinliche Ursache:", 13, Font.PLAIN, Theme.MUTED));
+        line.add(Ui.label(Lang.t("crash.likely_cause"), 13, Font.PLAIN, Theme.MUTED));
         line.add(Ui.label(s.name(), 13.5f, Font.BOLD, Theme.TEXT));
         line.add(Ui.chip(switch (kind.type) {
-            case CORE, DEPENDENCY, RESOURCE_PACK -> "Kern-Mod";
-            case EXTENSION -> "Erweiterung";
-            case USER -> "eigene Mod";
+            case CORE, DEPENDENCY, RESOURCE_PACK -> Lang.t("crash.kind.core");
+            case EXTENSION -> Lang.t("crash.kind.extension");
+            case USER -> Lang.t("crash.kind.user");
         }, Theme.WARN, Theme.WARN));
         text.add(line);
         text.add(Ui.label(s.reason(), 12, Font.PLAIN, new Color(0x7D8794)));
         row.add(text, BorderLayout.CENTER);
         JButton action = switch (kind.type) {
-            case USER -> button("Mod deaktivieren", Icons.Kind.LOCK, () -> disableUserMod(s));
-            case EXTENSION -> button("Erweiterung ausschalten", Icons.Kind.LOCK, () -> disableExtension(kind.key));
-            case CORE, DEPENDENCY, RESOURCE_PACK -> button("Reparieren & starten", Icons.Kind.REFRESH, () -> {
+            case USER -> button(Lang.t("crash.disable_mod"), Icons.Kind.LOCK, () -> disableUserMod(s));
+            case EXTENSION -> button(Lang.t("crash.disable_extension"), Icons.Kind.LOCK, () -> disableExtension(kind.key));
+            case CORE, DEPENDENCY, RESOURCE_PACK -> button(Lang.t("crash.repair_start"), Icons.Kind.REFRESH, () -> {
                 host.selectProfile(r.profileId());
                 host.launch(null, true);
             });
@@ -291,21 +290,21 @@ public final class CrashPage extends JPanel {
         if (s.file() == null) {
             return;
         }
-        if (JOptionPane.showConfirmDialog(host.frame(), s.name() + " wird deaktiviert (die Datei wird in „"
-                        + s.file().getFileName() + ".disabled“ umbenannt, nichts wird gelöscht). Fortfahren?",
-                "Mod deaktivieren", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(host.frame(), Lang.t("crash.disable.confirm", s.name(),
+                        s.file().getFileName() + ".disabled"),
+                Lang.t("crash.disable_mod"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
         io.submit(() -> {
             try {
                 ModInventory.setUserModEnabled(s.file(), false);
                 SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(host.frame(), s.name() + " ist deaktiviert. Unter „Mods“ kannst du sie wieder einschalten.",
-                            "Mod deaktiviert", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(host.frame(), Lang.t("crash.disable.done", s.name()),
+                            Lang.t("crash.disabled"), JOptionPane.INFORMATION_MESSAGE);
                     refresh();
                 });
             } catch (IOException e) {
-                SwingUtilities.invokeLater(() -> host.error("Mod konnte nicht deaktiviert werden", e.getMessage() + "\nLäuft Minecraft noch?"));
+                SwingUtilities.invokeLater(() -> host.error(Lang.t("crash.disable.failed"), e.getMessage() + "\n" + Lang.t("crash.disable.still_running")));
             }
         });
     }
@@ -314,13 +313,13 @@ public final class CrashPage extends JPanel {
         host.ctx().config.enabledExtensions.remove(key);
         host.saveConfig();
         host.extensionsChanged();
-        JOptionPane.showMessageDialog(host.frame(), "Die Erweiterung ist ausgeschaltet (für alle Versionen). Unter „Mods“ kannst du sie wieder einschalten.",
-                "Erweiterung ausgeschaltet", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(host.frame(), Lang.t("crash.extension_off.done"),
+                Lang.t("crash.extension_off"), JOptionPane.INFORMATION_MESSAGE);
         refresh();
     }
 
     private void loadDetails(CrashReport r, JTextArea target) {
-        target.setText("Lade…");
+        target.setText(Lang.t("common.loading"));
         io.submit(() -> {
             String text;
             try {
@@ -342,12 +341,11 @@ public final class CrashPage extends JPanel {
                 String text = CrashReports.shareText(r);
                 SwingUtilities.invokeLater(() -> {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
-                    JOptionPane.showMessageDialog(host.frame(), "Der Bericht ist in der Zwischenablage – ohne Tokens, Benutzerordner "
-                            + "und Windows-Benutzernamen. Du kannst ihn jetzt z. B. in einen Support-Chat einfügen.",
-                            "Kopiert", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(host.frame(), Lang.t("crash.copied.text"),
+                            Lang.t("crash.copied"), JOptionPane.INFORMATION_MESSAGE);
                 });
             } catch (IOException e) {
-                SwingUtilities.invokeLater(() -> host.error("Kopieren fehlgeschlagen", e.getMessage()));
+                SwingUtilities.invokeLater(() -> host.error(Lang.t("crash.copy.failed"), e.getMessage()));
             }
         });
     }
@@ -371,13 +369,12 @@ public final class CrashPage extends JPanel {
                     }
                     extra.put("Mods", mods.toString());
                 });
-                extra.put("Systemprüfung", SystemCheck.run(host.ctx().os, host.ctx().paths).render());
+                extra.put(Lang.t("diag.system_check"), SystemCheck.run(host.ctx().os, host.ctx().paths).render());
                 CrashReports.writeDiagnosticsZip(host.ctx().paths, host.ctx().gameDir(r.profileId()), r, extra, target);
-                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(host.frame(), "Gespeichert: " + target
-                                + "\n\nEnthält Crash-Report, Spiel- und Launcher-Log, Modliste und Systemprüfung – anonymisiert.",
-                        "Diagnosepaket", JOptionPane.INFORMATION_MESSAGE));
+                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(host.frame(), Lang.t("crash.zip.saved", target),
+                        Lang.t("crash.zip"), JOptionPane.INFORMATION_MESSAGE));
             } catch (IOException | RuntimeException e) {
-                SwingUtilities.invokeLater(() -> host.error("Diagnosepaket fehlgeschlagen", e.getMessage()));
+                SwingUtilities.invokeLater(() -> host.error(Lang.t("crash.zip.failed"), e.getMessage()));
             }
         });
     }
@@ -391,11 +388,6 @@ public final class CrashPage extends JPanel {
     }
 
     private static JButton button(String text, Icons.Kind icon, Runnable action) {
-        JButton b = new JButton(text, Icons.of(icon, 15, Theme.TEXT));
-        b.setFocusable(false);
-        if (action != null) {
-            b.addActionListener(e -> action.run());
-        }
-        return b;
+        return Ui.button(text, icon, action);
     }
 }

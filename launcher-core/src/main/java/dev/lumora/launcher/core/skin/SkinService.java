@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import dev.lumora.launcher.core.download.Downloader;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.util.FileUtil;
 import dev.lumora.launcher.core.util.Json;
 
@@ -47,12 +48,12 @@ public final class SkinService {
 
     public Skin byName(String name) throws IOException {
         if (name == null || !NAME.matcher(name.strip()).matches()) {
-            throw new IOException("Ungültiger Spielername");
+            throw new IOException(Lang.t("skin.error.bad_name"));
         }
         String body = downloader.fetchString(URI.create("https://api.mojang.com/users/profiles/minecraft/" + name.strip()));
         JsonObject o = Json.GSON.fromJson(body, JsonObject.class);
         if (o == null || !o.has("id")) {
-            throw new IOException("Spieler „" + name + "“ nicht gefunden");
+            throw new IOException(Lang.t("skin.error.player_not_found", name));
         }
         return byUuid(o.get("id").getAsString());
     }
@@ -60,7 +61,7 @@ public final class SkinService {
     public Skin byUuid(String uuid) throws IOException {
         String id = uuid.replace("-", "").toLowerCase(Locale.ROOT);
         if (!UUID.matcher(id).matches()) {
-            throw new IOException("Ungültige UUID");
+            throw new IOException(Lang.t("skin.error.bad_uuid"));
         }
         Path png = FileUtil.resolveInside(cacheDir, id + ".png");
         Path meta = FileUtil.resolveInside(cacheDir, id + ".json");
@@ -119,7 +120,7 @@ public final class SkinService {
             }
             return new Textures(name, null, false);
         } catch (JsonParseException | IllegalStateException | NullPointerException | IllegalArgumentException | UnsupportedOperationException e) {
-            throw new IOException("Unerwartete Profil-Antwort: " + e.getMessage(), e);
+            throw new IOException(Lang.t("skin.error.profile", e.getMessage()), e);
         }
     }
 

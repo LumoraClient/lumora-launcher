@@ -2,8 +2,10 @@ package dev.lumora.launcher.app.pages;
 
 import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
+import dev.lumora.launcher.app.ui.TabBar;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.news.NewsFeed;
 
 import javax.imageio.ImageIO;
@@ -38,7 +40,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +49,7 @@ import java.util.concurrent.ExecutorService;
  * Minecraft: Java Edition news and patch notes come from Mojang's launcher content service (see {@link NewsFeed}).
  */
 public final class NewsPage extends JPanel {
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(Lang.t("format.date_long"), Lang.locale());
 
     private final PageHost host;
     private final ExecutorService io;
@@ -61,7 +62,7 @@ public final class NewsPage extends JPanel {
         t.setDaemon(true);
         return t;
     });
-    private final JCheckBox snapshots = new JCheckBox("Snapshots anzeigen");
+    private final JCheckBox snapshots = new JCheckBox(Lang.t("news.show_snapshots"));
     private String view = "news";
     private String filter = "all";
     private List<NewsFeed.Item> mcNews;
@@ -79,7 +80,7 @@ public final class NewsPage extends JPanel {
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
         left.setBorder(BorderFactory.createEmptyBorder(0, -12, 0, 0));
-        left.add(Ui.segmented(List.of("news", "changelog"), List.of("News", "Changelog"), view, v -> {
+        left.add(new TabBar(List.of("news", "changelog"), List.of(Lang.t("nav.news"), Lang.t("news.changelog")), view, v -> {
             view = v;
             snapshots.setVisible(v.equals("changelog"));
             rebuild();
@@ -93,7 +94,7 @@ public final class NewsPage extends JPanel {
         };
         sep.setPreferredSize(new Dimension(9, 30));
         left.add(sep);
-        left.add(Ui.segmented(List.of("all", "lumora", "minecraft"), List.of("Alle", "Lumora", "Minecraft"), filter, f -> {
+        left.add(Ui.segmented(List.of("all", "lumora", "minecraft"), List.of(Lang.t("common.all"), "Lumora", "Minecraft"), filter, f -> {
             filter = f;
             rebuild();
         }));
@@ -188,12 +189,12 @@ public final class NewsPage extends JPanel {
     private void note(boolean empty) {
         String t = null;
         if (!filter.equals("lumora") && mcNews == null) {
-            t = loading ? "Lade Minecraft-Neuigkeiten…" : null;
+            t = loading ? Lang.t("news.loading") : null;
         } else if (!filter.equals("lumora") && mcNews != null && mcNews.isEmpty() && empty) {
-            t = "Minecraft-Neuigkeiten sind gerade nicht erreichbar.";
+            t = Lang.t("news.unreachable");
         }
         if (empty && t == null) {
-            t = "Keine Einträge.";
+            t = Lang.t("news.empty");
         }
         if (t != null) {
             JLabel l = Ui.label(t, 13.5f, Font.PLAIN, Theme.MUTED);
@@ -302,12 +303,12 @@ public final class NewsPage extends JPanel {
     private static String meta(NewsFeed.Item it) {
         String d = it.date() == null ? "" : dayText(it.date());
         String a = it.author() == null || it.author().isBlank() ? "" : it.author();
-        return (d + (a.isEmpty() ? "" : "  ·  " + a)).toUpperCase(Locale.GERMANY);
+        return (d + (a.isEmpty() ? "" : "  ·  " + a)).toUpperCase(Lang.locale());
     }
 
     private static String dayText(LocalDate d) {
         LocalDate today = LocalDate.now();
-        return d.equals(today) ? "Heute" : d.equals(today.minusDays(1)) ? "Gestern" : DATE.format(d);
+        return d.equals(today) ? Lang.t("chat.today") : d.equals(today.minusDays(1)) ? Lang.t("chat.yesterday") : DATE.format(d);
     }
 
     /** Opens the article of a news card over the launcher (Lumora: text, screenshots and the full changelog). */
@@ -525,7 +526,7 @@ public final class NewsPage extends JPanel {
         boolean lumora = c.source() == NewsFeed.Source.LUMORA;
         if (lumora || c.contentUrl() != null) {
             text.add(Box.createVerticalStrut(6));
-            text.add(Ui.label(lumora ? "Ganzen Changelog anzeigen" : "Patch Notes anzeigen", 13, Font.PLAIN, Theme.ACCENT_HOVER));
+            text.add(Ui.label(lumora ? Lang.t("news.full_changelog") : Lang.t("news.patch_notes"), 13, Font.PLAIN, Theme.ACCENT_HOVER));
             card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             card.addMouseListener(new MouseAdapter() {
                 @Override

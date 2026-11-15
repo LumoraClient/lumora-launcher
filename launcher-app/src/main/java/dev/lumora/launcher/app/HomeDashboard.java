@@ -178,7 +178,8 @@ final class HomeDashboard {
         JPanel h = new JPanel(new BorderLayout());
         h.setOpaque(false);
         JLabel t = Ui.label(title, 18, Font.BOLD, Theme.TEXT);
-        t.setIcon(Icons.of(icon, 22, Theme.ACCENT_HOVER));
+        // like the design: an orange flame for "Recently played", the other headings in the text colour
+        t.setIcon(icon == Icons.Kind.FLAME ? Icons.of(icon, 24, new Color(0xFF6A2A)) : Icons.of(icon, 22, Theme.TEXT));
         t.setIconTextGap(12);
         h.add(t, BorderLayout.WEST);
         if (all != null) {
@@ -219,7 +220,7 @@ final class HomeDashboard {
 
     private JComponent recentCard() {
         Card card = card();
-        card.add(header(Icons.Kind.BOLT, Lang.t("home.recent.title"), () -> host.showPage("library")), BorderLayout.NORTH);
+        card.add(header(Icons.Kind.FLAME, Lang.t("home.recent.title"), () -> host.showPage("library")), BorderLayout.NORTH);
         JPanel body = new JPanel(new BorderLayout(22, 0));
         body.setOpaque(false);
         body.add(cover, BorderLayout.WEST);

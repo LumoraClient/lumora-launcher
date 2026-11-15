@@ -16,7 +16,7 @@ public final class Icons {
     public enum Kind { PLAY, PUZZLE, SLIDERS, PULSE, TERMINAL, FOLDER, REFRESH, USER, CHECK, CHIP, MEMORY, GLOBE, MONITOR,
         LIBRARY, IMAGE, SERVER, CLOCK, LOCK, PLUS, SEARCH, CUBE, ALERT, COPY, ARCHIVE,
         USERS, USER_PLUS, NEWS, CHAT, SEND, INFO, BELL, BELL_OFF, MORE, X, TRASH, EDIT, LOGOUT,
-        HOME, GEAR, BOLT, PALETTE, BUG, CHEVRON_DOWN, CHART, DISCORD, BROOM, HARDDRIVE, ROCKET, SHIRT, DOWNLOAD, CALENDAR, TIMER,
+        HOME, GEAR, BOLT, PALETTE, BUG, CHEVRON_DOWN, CHART, DISCORD, BROOM, HARDDRIVE, ROCKET, SHIRT, DOWNLOAD, CALENDAR, TIMER, COMPASS, FLAME,
         // role and group symbols (filled), keys as in dev.lumora.social.Rules.ICONS
         R_CIRCLE, R_CROWN, R_SHIELD, R_SWORD, R_STAR, R_BOW, R_PICKAXE, R_HEART, R_FLAME, R_BOLT, R_GEM, R_FLAG }
 
@@ -254,6 +254,97 @@ public final class Icons {
         };
     }
 
+    /**
+     * Solid variant (navigation rail): filled shapes for home, compass, chart, puzzle, user and gear; every other kind
+     * falls back to its outline.
+     */
+    public static Icon filled(Kind kind, int size, Color color) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g0, int x, int y) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+                g.translate(x, y);
+                g.scale(size / 24.0, size / 24.0);
+                g.setColor(color);
+                g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                if (!drawFilled(kind, g)) {
+                    draw(kind, g);
+                }
+                g.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return size;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return size;
+            }
+        };
+    }
+
+    /** Fills {@code s} and strokes its edge (rounded corners like the outline icons). */
+    private static void solid(Graphics2D g, java.awt.Shape s) {
+        g.fill(s);
+        g.draw(s);
+    }
+
+    private static boolean drawFilled(Kind kind, Graphics2D g) {
+        switch (kind) {
+            case HOME -> {
+                java.awt.geom.Area a = new java.awt.geom.Area(poly(3.5, 11, 12, 4, 20.5, 11, 20.5, 20, 3.5, 20));
+                java.awt.geom.Area body = new java.awt.geom.Area(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+                        .createStrokedShape(poly(3.5, 11, 12, 4, 20.5, 11, 20.5, 20, 3.5, 20)));
+                a.add(body);
+                a.subtract(new java.awt.geom.Area(new RoundRectangle2D.Double(9.8, 14, 4.4, 7.5, 1.5, 1.5)));
+                g.fill(a);
+            }
+            case COMPASS -> {
+                g.draw(new Ellipse2D.Double(3.5, 3.5, 17, 17));
+                g.fill(poly(16, 8, 13.5, 13.5, 8, 16, 10.5, 10.5));
+            }
+            case CHART -> {
+                solid(g, new RoundRectangle2D.Double(4.5, 12, 3.5, 8, 1, 1));
+                solid(g, new RoundRectangle2D.Double(10.25, 7, 3.5, 13, 1, 1));
+                solid(g, new RoundRectangle2D.Double(16, 4, 3.5, 16, 1, 1));
+            }
+            case PUZZLE -> {
+                // classic jigsaw piece: body with a knob on top and one on the right, a notch on the left
+                java.awt.geom.Area a = new java.awt.geom.Area(new RoundRectangle2D.Double(3, 7.5, 13.5, 13.5, 3.5, 3.5));
+                a.add(new java.awt.geom.Area(new Ellipse2D.Double(6.75, 2, 6, 6)));
+                a.add(new java.awt.geom.Area(new Ellipse2D.Double(15, 11.25, 6, 6)));
+                a.subtract(new java.awt.geom.Area(new Ellipse2D.Double(0.5, 12.25, 5, 4)));
+                g.fill(a);
+            }
+            case USER -> {
+                g.fill(new Ellipse2D.Double(7.5, 3, 9, 9));
+                Path2D p = new Path2D.Double();
+                p.moveTo(3.5, 21);
+                p.curveTo(3.5, 16, 7, 13.5, 12, 13.5);
+                p.curveTo(17, 13.5, 20.5, 16, 20.5, 21);
+                p.closePath();
+                solid(g, p);
+            }
+            case GEAR -> {
+                java.awt.geom.Area a = new java.awt.geom.Area(new Ellipse2D.Double(5, 5, 14, 14));
+                for (int i = 0; i < 8; i++) {
+                    java.awt.geom.AffineTransform t = java.awt.geom.AffineTransform.getRotateInstance(Math.PI / 4 * i, 12, 12);
+                    a.add(new java.awt.geom.Area(t.createTransformedShape(new RoundRectangle2D.Double(10.2, 2, 3.6, 5, 1.2, 1.2))));
+                }
+                a.subtract(new java.awt.geom.Area(new Ellipse2D.Double(9, 9, 6, 6)));
+                g.fill(a);
+            }
+            default -> {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static void draw(Kind kind, Graphics2D g) {
         if (drawSocial(kind, g)) {
             return;
@@ -346,6 +437,31 @@ public final class Icons {
                 g.draw(poly(9, 12.5, 6, 15.5, 6.5, 18.5, 9, 16));
                 g.draw(poly(15, 12.5, 18, 15.5, 17.5, 18.5, 15, 16));
                 line(g, 12, 18, 12, 21);
+            }
+            case COMPASS -> {
+                g.draw(new Ellipse2D.Double(3.5, 3.5, 17, 17));
+                g.fill(poly(16, 8, 13.5, 13.5, 8, 16, 10.5, 10.5));
+            }
+            case FLAME -> {
+                Path2D p = new Path2D.Double();
+                p.moveTo(12, 2.5);
+                p.curveTo(13, 6.5, 18.5, 9, 18.5, 14.5);
+                p.curveTo(18.5, 18.5, 15.5, 21.5, 12, 21.5);
+                p.curveTo(8.5, 21.5, 5.5, 18.5, 5.5, 14.5);
+                p.curveTo(5.5, 11.5, 7.5, 9.5, 8.5, 8);
+                p.curveTo(9, 10, 10, 11, 11, 11.5);
+                p.curveTo(10.5, 8, 11, 5, 12, 2.5);
+                p.closePath();
+                g.fill(p);
+                Path2D in = new Path2D.Double();
+                in.moveTo(12, 12);
+                in.curveTo(13, 14, 15, 15, 15, 17.5);
+                in.curveTo(15, 19.3, 13.6, 20.5, 12, 20.5);
+                in.curveTo(10.4, 20.5, 9, 19.3, 9, 17.5);
+                in.curveTo(9, 15.8, 10.5, 14.5, 12, 12);
+                in.closePath();
+                g.setColor(Theme.mix(g.getColor(), new Color(0xFFE08A), 0.75));
+                g.fill(in);
             }
             case DOWNLOAD -> {
                 line(g, 12, 4, 12, 15);

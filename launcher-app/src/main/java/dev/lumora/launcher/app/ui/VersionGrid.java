@@ -34,7 +34,8 @@ import java.util.stream.Stream;
 
 /**
  * Version selection as a grid of major versions (26.3, 26.2, 26.1, 1.21, 1.20 …), three per row. A card shows the
- * family's own pixel-art background (or the player's newest screenshot of that version), the major version large and,
+ * picture of that update (Mojang patch notes), else the player's newest screenshot of that version or the family's own
+ * pixel-art background, the major version large and,
  * when there are several, the sub-versions as chips. Clicking the card picks the version last chosen in that family
  * (else the newest), clicking a chip picks that version.
  */
@@ -53,6 +54,8 @@ public final class VersionGrid extends JPanel {
     private final Consumer<String> onSelect;
     private final List<Card> cards = new ArrayList<>();
     private String selected;
+    /** Update picture per family (Mojang patch notes), may return null; repaints via the Runnable once loaded. */
+    private java.util.function.BiFunction<String, Runnable, Image> art = (f, r) -> null;
 
     /**
      * @param versions     newest first
@@ -111,6 +114,12 @@ public final class VersionGrid extends JPanel {
                 lastInFamily.put(f.getKey(), id);
             }
         }
+        cards.forEach(Component::repaint);
+    }
+
+    /** Pictures of the updates as card backgrounds (before the player's screenshots and the own pixel art). */
+    public void setArt(java.util.function.BiFunction<String, Runnable, Image> art) {
+        this.art = art == null ? (f, r) -> null : art;
         cards.forEach(Component::repaint);
     }
 
@@ -241,7 +250,8 @@ public final class VersionGrid extends JPanel {
             RoundRectangle2D shape = new RoundRectangle2D.Double(0, 0, w - 1, h - 1, 14, 14);
             java.awt.Shape clip0 = g.getClip();
             g.clip(shape);
-            Image shot = shots.get(family);
+            Image update = art.apply(family, this::repaint);
+            Image shot = update != null ? update : shots.get(family);
             if (shot != null) {
                 g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                 cover(g, shot, w, h);

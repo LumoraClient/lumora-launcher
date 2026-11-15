@@ -345,6 +345,29 @@ public final class NewsFeed {
         return out;
     }
 
+    /**
+     * Picture URL of a major update ("1.21", "26.1" …) in the patch notes: the release of exactly that version, else
+     * the oldest release patch of it ("1.21.1"); null if there is none (snapshots and entries without picture do not
+     * count).
+     */
+    public static String updatePicture(List<Change> notes, String family) {
+        String oldestPatch = null;
+        LocalDate oldestDate = null;
+        for (Change c : notes) {
+            if (!"release".equals(c.type()) || c.image() == null || c.version() == null) {
+                continue;
+            }
+            if (c.version().equals(family)) {
+                return c.image();
+            }
+            if (c.version().startsWith(family + ".") && (oldestDate == null || (c.date() != null && c.date().isBefore(oldestDate)))) {
+                oldestPatch = c.image();
+                oldestDate = c.date();
+            }
+        }
+        return oldestPatch;
+    }
+
     /** HTML body of a patch note (from the content host only). */
     public String patchNotesHtml(Change c) throws IOException {
         if (c.contentUrl() == null) {

@@ -154,6 +154,17 @@ public final class NewsPage extends JPanel {
         return image(url, loaded);
     }
 
+    /**
+     * Mojang's picture of a major update ("1.21", "26.1" …) from the Java patch notes: the release of that exact
+     * version, else its oldest patch. Null while the patch notes or the picture are loading ({@code loaded} runs once it
+     * is there) and for versions without patch notes (before 1.13).
+     */
+    public Image updateArt(String family, Runnable loaded) {
+        List<NewsFeed.Change> notes = mcNotes;
+        String url = notes == null ? null : NewsFeed.updatePicture(notes, family);
+        return url == null ? null : image(url, loaded);
+    }
+
     /** Opens the article of a news item over the launcher. */
     public void openItem(NewsFeed.Item it) {
         open(it);

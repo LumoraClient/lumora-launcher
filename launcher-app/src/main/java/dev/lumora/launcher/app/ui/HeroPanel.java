@@ -14,10 +14,11 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
- * Hero banner with a procedurally generated voxel night scene in the accent colour (own artwork, no third-party
- * assets): snow-capped mountain ranges under a full moon with a pine forest in front. The scene is rendered once per
- * size into a cached image; on top of it an aurora of soft light drifts slowly and a few stars twinkle (animated while
- * visible, off with reduce motion). Children (logo, title, buttons) lie above.
+ * Hero banner with a procedurally generated voxel night scene in the accent colour: snow-capped mountain ranges under
+ * a full moon with a pine forest in front, and the dragon picture from the start page design (bundled
+ * hero-dragon.png) on the right. The scene is rendered once per size into a cached image; on top of it an aurora of
+ * soft light drifts slowly and a few stars twinkle (animated while visible, off with reduce motion). Children (logo,
+ * title, buttons) lie above.
  */
 public final class HeroPanel extends JPanel {
     private BufferedImage cache;
@@ -148,6 +149,7 @@ public final class HeroPanel extends JPanel {
         mountains(g, rnd, w, h, Math.max(8, h / 34));
 
         if (!hero) {
+            dragon(g, w, h);
             g.dispose();
             return img;
         }
@@ -155,6 +157,8 @@ public final class HeroPanel extends JPanel {
         g.setPaint(new RadialGradientPaint(new Point2D.Float(w / 2f, h * 0.45f), Math.max(w, h) * 0.42f,
                 new float[]{0f, 1f}, new Color[]{new Color(4, 8, 20, 150), new Color(4, 8, 20, 0)}));
         g.fillRect(0, 0, w, h);
+        // the dragon after the centre vignette (keeps its colours), before the fade at the bottom
+        dragon(g, w, h);
         Color bg = Theme.BG;
         g.setPaint(new GradientPaint(0, h * 0.62f, Theme.alpha(bg, 0), 0, h, Theme.alpha(bg, 235)));
         g.fillRect(0, 0, w, h);
@@ -217,10 +221,39 @@ public final class HeroPanel extends JPanel {
         }
     }
 
+    private static volatile BufferedImage dragonImage;
+
+    /** The dragon picture (bundled, transparent background), null if missing. */
+    private static BufferedImage dragonImage() {
+        BufferedImage d = dragonImage;
+        if (d == null) {
+            try (java.io.InputStream in = HeroPanel.class.getResourceAsStream("/lumora/hero-dragon.png")) {
+                d = in == null ? null : javax.imageio.ImageIO.read(in);
+            } catch (java.io.IOException e) {
+                d = null;
+            }
+            dragonImage = d;
+        }
+        return d;
+    }
+
+    /** The dragon on the right, as high as the banner, its right edge on the banner's edge. */
+    private static void dragon(Graphics2D g, int w, int h) {
+        BufferedImage d = dragonImage();
+        if (d == null) {
+            return;
+        }
+        int dh = h;
+        int dw = d.getWidth() * dh / d.getHeight();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.drawImage(d, w - dw, 0, dw, dh, null);
+    }
+
     /** Moon, two mountain ranges, a hill line and pines (fewer in the middle, where the text is). */
     private static void mountains(Graphics2D g, Random rnd, int w, int h, int b) {
         Color accent = Theme.ACCENT;
-        moon(g, (int) (w * 0.80), (int) (h * 0.24), Math.max(18, h / 9), b);
+        moon(g, (int) (w * 0.17), (int) (h * 0.24), Math.max(18, h / 9), b);
         Color far = Theme.mix(new Color(0x10213F), accent, 0.30);
         peaks(g, rnd, w, h, b, far, Theme.mix(far, Color.WHITE, 0.35), 0.66, 0.40, 6);
         Color mid = Theme.mix(new Color(0x0A162E), accent, 0.18);

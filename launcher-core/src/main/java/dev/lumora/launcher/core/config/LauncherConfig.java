@@ -112,8 +112,6 @@ public final class LauncherConfig {
      * corners (default since schema 3, 0.3.43); off: the modern design with Inter and round corners. Applies after a restart.
      */
     public boolean pixelStyle = true;
-    /** Side navigation with icons only (labels as tooltips) instead of icons with text. */
-    public boolean navIconsOnly = false;
     /** No sliding/fading animations. */
     public boolean reduceMotion = false;
     /** Java2D hardware acceleration (Direct3D on Windows); off helps with driver problems. Applies after a restart. */

@@ -71,8 +71,6 @@ public final class SettingsPage extends JPanel {
         /** Looks for a new launcher version on GitHub Releases (shows the result). */
         void checkLauncherUpdate();
 
-        /** Side navigation switched between text and icons only. */
-        void navChanged();
     }
 
     /** @param wide the control fills the whole card (storage overview) instead of sitting on the right */
@@ -175,15 +173,6 @@ public final class SettingsPage extends JPanel {
         });
         add(Ui.scroll(list), BorderLayout.CENTER);
         rebuild();
-    }
-
-    private JPanel navMode;
-
-    /** Marks the current side navigation mode (after it was switched in the rail itself). */
-    public void syncNav() {
-        if (navMode != null && navMode.getComponent(cfg.navIconsOnly ? 1 : 0) instanceof javax.swing.AbstractButton b) {
-            b.setSelected(true);
-        }
     }
 
     /** Opens a category (for example "appearance"); unknown names are ignored. */
@@ -529,13 +518,6 @@ public final class SettingsPage extends JPanel {
             save();
         });
         add("appearance", Icons.Kind.MONITOR, Lang.t("settings.appearance.start_page.title"), Lang.t("settings.appearance.start_page.desc"), false, start);
-        navMode = Ui.segmented(List.of("text", "icons"), List.of(Lang.t("settings.appearance.sidebar.text"), Lang.t("settings.appearance.sidebar.icons")), cfg.navIconsOnly ? "icons" : "text", v -> {
-            cfg.navIconsOnly = v.equals("icons");
-            save();
-            hooks.navChanged();
-        });
-        add("appearance", Icons.Kind.LIBRARY, Lang.t("settings.appearance.sidebar.title"), Lang.t("settings.appearance.sidebar.desc"),
-                false, navMode);
         add("appearance", Icons.Kind.LIBRARY, Lang.t("settings.appearance.snapshots.title"),
                 Lang.t("settings.appearance.snapshots.desc"), false,
                 toggle(cfg.showSnapshots, on -> cfg.showSnapshots = on));

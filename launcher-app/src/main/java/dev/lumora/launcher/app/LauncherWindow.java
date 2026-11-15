@@ -325,11 +325,6 @@ final class LauncherWindow implements PageHost {
                 // shown on the performance page
             }
 
-            @Override
-            public void navChanged() {
-                nav.setIconsOnly(ctx.config.navIconsOnly);
-            }
-
         });
         pageHost.add(settingsPage, "settings");
         // reachable from Einstellungen → Fehlersuche (no own navigation item)
@@ -361,7 +356,7 @@ final class LauncherWindow implements PageHost {
             }
         });
         nav.addItem("home", Lang.t("nav.home_page"), Icons.Kind.HOME);
-        nav.addItem("browser", Lang.t("nav.browser"), Icons.Kind.SEARCH);
+        nav.addItem("browser", Lang.t("nav.browser"), Icons.Kind.COMPASS);
         nav.addItem("performance", Lang.t("nav.performance"), Icons.Kind.CHART);
         nav.addItem("library", Lang.t("nav.library"), Icons.Kind.PUZZLE);
         nav.addItem("account", Lang.t("nav.account"), Icons.Kind.USER);
@@ -370,14 +365,8 @@ final class LauncherWindow implements PageHost {
         nav.addItem("social", Lang.t("nav.social"), Icons.Kind.USERS);
         nav.addItem("servers", Lang.t("nav.servers"), Icons.Kind.GLOBE);
         nav.addGlue();
-        nav.addItem("news", Lang.t("nav.notifications"), Icons.Kind.BELL);
+        nav.addItem("news", Lang.t("nav.news"), Icons.Kind.BELL);
         nav.addItem("crashes", Lang.t("nav.crashes"), Icons.Kind.ALERT);
-        nav.addModeToggle(on -> {
-            ctx.config.navIconsOnly = on;
-            saveConfigQuietly();
-            settingsPage.syncNav();
-        });
-        nav.setIconsOnly(ctx.config.navIconsOnly);
         social.addListener(e -> {
             updateSocialBadge();
             notifySocial(e);
@@ -728,7 +717,7 @@ final class LauncherWindow implements PageHost {
         body.add(instanceChooser(syncInstance));
         body.add(Box.createVerticalStrut(12));
 
-        // versions by major version: the same cards as the old version grid (pixel art or newest screenshot)
+        // versions by major version: cards with the update picture (else newest screenshot or own pixel art)
         List<VersionGrid.Version> list = new ArrayList<>();
         for (ProfileCatalog.Profile p : ctx.visibleProfiles()) {
             boolean recommended = p.id.equals(ctx.catalog.defaultProfile());
@@ -746,6 +735,8 @@ final class LauncherWindow implements PageHost {
         }
         grid.setSelected(ctx.selectedProfile().id);
         grid.setPlayInfo(playInfo);
+        // Mojang's update pictures as backgrounds (patch notes, loaded with the news at start, cached on disk)
+        grid.setArt(newsPage::updateArt);
         grid.setPreferredSize(new Dimension(3 * 228 + 2 * 8, grid.getMaximumSize().height));
         body.add(grid);
 

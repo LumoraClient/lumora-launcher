@@ -67,6 +67,23 @@ class NewsAndServersTest {
     }
 
     @Test
+    void updatePicturePrefersTheMajorReleaseThenItsOldestPatch() {
+        List<NewsFeed.Change> l = NewsFeed.parsePatchNotes("""
+                {"version":1,"entries":[
+                 {"title":"1.21.2","version":"1.21.2","type":"release","image":{"url":"/v2/images/1212.jpg"},"id":"a","date":"2024-10-22"},
+                 {"title":"1.21.1","version":"1.21.1","type":"release","image":{"url":"/v2/images/1211.jpg"},"id":"b","date":"2024-08-08"},
+                 {"title":"1.21","version":"1.21","type":"release","image":{"url":"/v2/images/121.jpg"},"id":"c","date":"2024-06-13"},
+                 {"title":"1.20.6","version":"1.20.6","type":"release","image":{"url":"/v2/images/1206.jpg"},"id":"d","date":"2024-04-29"},
+                 {"title":"1.20.5","version":"1.20.5","type":"release","image":{"url":"/v2/images/1205.jpg"},"id":"e","date":"2024-04-23"},
+                 {"title":"1.2 Snapshot","version":"1.2","type":"snapshot","image":{"url":"/v2/images/s.jpg"},"id":"f","date":"2011-01-01"}
+                ]}""");
+        assertEquals("https://launchercontent.mojang.com/v2/images/121.jpg", NewsFeed.updatePicture(l, "1.21"));
+        assertEquals("https://launchercontent.mojang.com/v2/images/1205.jpg", NewsFeed.updatePicture(l, "1.20"), "oldest patch");
+        assertNull(NewsFeed.updatePicture(l, "1.2"), "snapshots do not count");
+        assertNull(NewsFeed.updatePicture(l, "1.12"));
+    }
+
+    @Test
     void bundledLumoraNewsAndChangelogLoad() {
         assertFalse(NewsFeed.lumoraNews().isEmpty());
         assertTrue(NewsFeed.lumoraNews().get(0).image().startsWith("bundled:"));

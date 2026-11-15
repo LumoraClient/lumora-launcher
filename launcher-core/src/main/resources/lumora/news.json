@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-offhand-both-hands",
+      "date": "2026-11-15",
+      "author": "Lumora",
+      "version": "0.3.53",
+      "title": "Beide Hände anzeigen",
+      "text": "Off Hand zeigt jetzt auch die leere Zweithand, auf der richtigen Seite für Rechts- und Linkshänder.",
+      "image": "news-both-hands.png",
+      "body": [
+        {"p": "Im Modul „Off Hand“ gibt es die neue Einstellung „Beide Hände anzeigen“. Damit siehst du in der Ego-Ansicht auch die leere Zweithand, nicht nur die Haupthand."},
+        {"list": [
+          "Die Zweithand sitzt immer gegenüber deiner Haupthand",
+          "Rechts oder links nimmt Lumora aus Optionen › Skin-Anpassung › Haupthand",
+          "Unsichtbar oder mit Fernrohr bleibt sie weg wie die Haupthand",
+          "Schild und Totem ausblenden funktioniert weiter wie gewohnt"
+        ]},
+        {"p": "Die Einstellung ist an, sobald du das Modul im Hub unter Spieler einschaltest. In allen Versionen von 1.12.2 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-offhand",
       "date": "2026-11-15",
       "author": "Lumora",

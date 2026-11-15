@@ -66,6 +66,11 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.53 (2026-11-15):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 616 Unit-Tests ohne Fehler (1 übersprungen). Neu: Off Hand „Beide Hände anzeigen“ (1 Test: Standard an, aus bei ausgeschalteter Einstellung, ausgeblendeter Zweithand oder Modul aus; Schalter nur sichtbar, solange die Zweithand angezeigt wird). `check-mixins.pl`: `OffHandMixin` mit dem neuen `renderPlayerArm`-Aufruf in 1.12.2, 1.16.5, 1.21.8, 1.21.11, 26.2 und 26.3 OK.
+- **Smoke-Test mit dem fertigen 0.3.53-Build:** 26.3, 1.21.11, 1.16.5 und 1.12.2 bestanden, Schritt „off-hand“ um beide leeren Hände erweitert: die leere Zweithand wurde gezeichnet (9–42 Bilder), Screenshots zeigen beide Arme; in 26.3 zusätzlich mit Haupthand links (Arme auf beiden Seiten). Schild und Haupthand ausblenden weiter OK.
+- **Nicht geprüft:** Beide Hände in den übrigen 11 Versionen im Spiel (nur kompiliert), Haupthand links außer in 26.3, Fernrohr und Unsichtbarkeit, ein Selbst-Update von 0.3.52 auf 0.3.53.
+
 **0.3.52 (2026-11-15):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 615 Unit-Tests ohne Fehler (1 übersprungen). Neu: Modul „Off Hand“ (5 Tests: Standard blendet nichts aus, ausgeblendete Hand samt leerem Arm und jedem Gegenstand, Schild und Totem je Hand getrennt, Schalter für Schild/Totem nur sichtbar solange die Hand angezeigt wird, Modul aus blendet nichts aus). `check-mixins.pl`: neue `OffHandMixin` in allen 15 Versionen ab 1.12.2 OK (`renderArmWithItem` 1.16.5–26.1.2, `submitArmWithItem` 26.2/26.3, `method_12329` 1.12.2).
 - **Smoke-Test mit dem fertigen 0.3.52-Build:** 26.3, 1.21.11, 1.16.5 und 1.12.2 bestanden, neuer Schritt „off-hand“ (Schwert in der Haupthand, Schild in der Zweithand): mit den Standardeinstellungen nichts ausgeblendet, dann der Schild in der Zweithand (9–35 Bilder übersprungen), dann die ganze Haupthand (9–35 Bilder). Screenshots zeigen beide Hände, ohne Schild und ohne Haupthand.

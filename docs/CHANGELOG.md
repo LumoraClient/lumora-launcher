@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.53 (2026-11-15)
+
+### Im Spiel
+- **Off Hand: „Beide Hände anzeigen“** (anfangs an): zeigt in der Ego-Ansicht auch die leere Zweithand, nicht nur die Haupthand. Sie sitzt immer auf der anderen Seite als die Haupthand, die in Minecraft unter Optionen › Skin-Anpassung › Haupthand eingestellt ist (rechts oder links). Unsichtbar oder mit Fernrohr bleibt sie weg wie die Haupthand.
+
 ## 0.3.52 (2026-11-15)
 
 ### Im Spiel

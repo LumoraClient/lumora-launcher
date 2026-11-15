@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.55 (2026-11-15):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 617 Unit-Tests ohne Fehler (1 übersprungen). Launcher-Texte aus `lumora/lang/en_us.json` (Klasse `Lang`), 7 Testdateien auf die englischen Texte angepasst. Nur Launcher geändert, Client und Mixins unverändert.
+- **Oberfläche:** Alle Seiten des fertigen Builds per `--ui-shot` geprüft (19 Ansichten): nur englische Texte, keine fehlenden Schlüssel, Tabs/Knöpfe/Felder/Dropdowns gleich hoch. Ein Skript prüft, dass jeder im Code benutzte Schlüssel in `en_us.json` steht.
+- **Smoke-Test mit dem fertigen 0.3.55-Build:** 26.3 bestanden (Installations- und Startmeldungen jetzt englisch).
+- **Nicht geprüft:** Dropdowns und Tabs per Klick im laufenden Launcher, das moderne Design ohne Pixel-Schrift (nur Pixel-Design per Screenshot), die übrigen Versionen im Spiel, ein Selbst-Update von 0.3.54 auf 0.3.55.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.54 (2026-11-15):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 617 Unit-Tests ohne Fehler (1 übersprungen). Off Hand: Schalter „Haupthand anzeigen“ entfernt (neuer Test: die Haupthand lässt sich nicht ausschalten, nur Schild/Totem darin; die Tests zur Zweithand angepasst). Mixins unverändert.
 - **Smoke-Test mit dem fertigen 0.3.54-Build:** 26.3, 1.21.11, 1.16.5 und 1.12.2 bestanden, Schritt „off-hand“: Schild ausgeblendet, dann die ganze Zweithand (Screenshots: Schwert in der Haupthand bleibt sichtbar), dann beide leeren Hände (9–42 Bilder je Schritt); in 26.3 auch Haupthand links.

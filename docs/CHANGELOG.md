@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.3.55 (2026-11-15)
+
+### Launcher
+- **Oberfläche auf Englisch:** Alle Texte des Launchers kommen jetzt aus einer Sprachdatei (`lumora/lang/en_us.json`) statt aus dem Code, auch Meldungen bei Anmeldung, Installation, Spielstart und Abstürzen. Weitere Sprachen lassen sich als eigene Datei ergänzen und fallen bei fehlenden Texten auf Englisch zurück.
+- **Ein Tab-Stil:** Einstellungen, Konto und News nutzen dieselben Tabs.
+- **Versionsauswahl als Dropdown:** In Bibliothek und Abstürze wählst du die Version jetzt aus einer Liste, statt Tabs, die rechts abgeschnitten waren.
+- **„Open folder“** ist überall derselbe Knopf mit Ordner-Symbol.
+- **Gleiche Höhen:** Tabs, Knöpfe, Eingabefelder und Auswahllisten sind gleich hoch, auch die Versionsknöpfe unter Einstellungen › Game und die Leiste auf der Speicher-Seite.
+- **Pixel-Schrift:** In Titeln steht „and“ statt „&“, weil die Pixel-Schrift das Zeichen wie ein „$“ zeichnet.
+
 ## 0.3.54 (2026-11-15)
 
 ### Im Spiel

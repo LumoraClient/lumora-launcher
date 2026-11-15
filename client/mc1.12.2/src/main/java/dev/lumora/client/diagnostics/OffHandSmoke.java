@@ -11,7 +11,8 @@ import java.util.List;
 /**
  * Smoke step "off-hand" (module "Off Hand"): a sword in the main hand and a shield in the off hand; with the default
  * settings nothing is hidden, then the shield in the off hand and then the whole main hand are skipped by the first
- * person hand hook (screenshot each time).
+ * person hand hook; at last both hands are empty and the module draws the empty off hand next to the main hand
+ * (screenshot each time).
  */
 final class OffHandSmoke {
     private static int before;
@@ -20,20 +21,25 @@ final class OffHandSmoke {
     }
 
     static void start(MinecraftClient mc) {
-        var server = mc.getServer();
-        if (server != null && mc.player != null) {
-            var uuid = mc.player.getUuid();
-            server.submit(() -> {
-                var p = server.getPlayerManager().getPlayer(uuid);
-                if (p != null) {
-                    p.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
-                    p.equipStack(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-                }
-            });
-        }
+        give(mc, new ItemStack(Items.DIAMOND_SWORD), new ItemStack(Items.SHIELD));
         ApiSmoke.core().addonManager().setWanted(OffHandModule.ID, true);
         OffHandModule m = OffHandModule.active();
         before = m == null ? 0 : m.hiddenCount();
+    }
+
+    private static void give(MinecraftClient mc, ItemStack main, ItemStack off) {
+        var server = mc.getServer();
+        if (server == null || mc.player == null) {
+            return;
+        }
+        var uuid = mc.player.getUuid();
+        server.submit(() -> {
+            var p = server.getPlayerManager().getPlayer(uuid);
+            if (p != null) {
+                p.equipStack(EquipmentSlot.MAINHAND, main);
+                p.equipStack(EquipmentSlot.OFFHAND, off);
+            }
+        });
     }
 
     /** Both hands drawn so far; now the shield in the off hand is hidden. */
@@ -66,7 +72,8 @@ final class OffHandSmoke {
         before = m.hiddenCount();
     }
 
-    static void stop(List<String> problems) {
+    /** The main hand was skipped; now both hands are empty and both arms are drawn ("both hands"). */
+    static void bothArms(MinecraftClient mc, List<String> problems) {
         OffHandModule m = OffHandModule.active();
         if (m == null) {
             return;
@@ -77,6 +84,21 @@ final class OffHandSmoke {
             problems.add("off hand: the main hand was still drawn");
         }
         m.set("mainhand_show", true);
+        m.set("both_hands", true);
+        give(mc, ItemStack.EMPTY, ItemStack.EMPTY);
+        before = m.emptyDrawnCount();
+    }
+
+    static void stop(List<String> problems) {
+        OffHandModule m = OffHandModule.active();
+        if (m == null) {
+            return;
+        }
+        int empty = m.emptyDrawnCount() - before;
+        dev.lumora.client.LumoraClient.LOG.info("LUMORA_OFFHAND empty off hand drawn {} times", empty);
+        if (empty <= 0) {
+            problems.add("off hand: the empty off hand was not drawn");
+        }
         ApiSmoke.core().addonManager().setWanted(OffHandModule.ID, false);
     }
 }

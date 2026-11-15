@@ -72,6 +72,22 @@ class OffHandModuleTest {
     }
 
     @Test
+    void emptyOffHandDrawnWithBothHandsOnly() {
+        assertTrue(module.bothHands.get(), "both hands is the default");
+        assertTrue(OffHandModule.showEmptyOffHand());
+        module.set("both_hands", false);
+        assertFalse(OffHandModule.showEmptyOffHand());
+        module.set("both_hands", true);
+        module.set("offhand_show", false);
+        assertFalse(OffHandModule.showEmptyOffHand(), "a hidden off hand is not drawn empty either");
+        assertFalse(module.bothHands.isVisible());
+        assertEquals(1, module.emptyDrawnCount());
+        module.setActive(false);
+        module.set("offhand_show", true);
+        assertFalse(OffHandModule.showEmptyOffHand(), "module off: vanilla");
+    }
+
+    @Test
     void offModuleHidesNothing() {
         module.set("offhand_show", false);
         module.setActive(false);

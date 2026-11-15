@@ -6,7 +6,9 @@ import dev.lumora.api.config.BooleanSetting;
 import dev.lumora.api.config.SettingsGroup;
 
 /**
- * Built-in module "Off Hand": hides the off hand or the main hand in first person, or only a shield or a totem in it.
+ * Built-in module "Off Hand": shows the empty off hand next to the main hand in first person (on the side opposite
+ * the main hand set in Minecraft, right or left), or hides the off hand or the main hand, or only a shield or a totem
+ * in it.
  * Only this client's own view changes; what other players see stays the same.
  * <p>
  * The version adapters ask {@link #hide} once per hand and frame, right before Minecraft draws that hand with its item
@@ -21,6 +23,7 @@ public final class OffHandModule implements LumoraAddon {
 
     private static volatile OffHandModule active;
 
+    BooleanSetting bothHands;
     BooleanSetting offShow;
     BooleanSetting offShield;
     BooleanSetting offTotem;
@@ -29,6 +32,8 @@ public final class OffHandModule implements LumoraAddon {
     BooleanSetting mainTotem;
     /** Hands skipped so far (diagnostics, smoke test; render thread only). */
     private int hidden;
+    /** Empty off hands drawn so far (diagnostics, smoke test; render thread only). */
+    private int drawnEmpty;
 
     /** The running module, {@code null} while switched off. */
     public static OffHandModule active() {
@@ -59,6 +64,24 @@ public final class OffHandModule implements LumoraAddon {
         return shield && (offHand ? offShield : mainShield).get() || totem && (offHand ? offTotem : mainTotem).get();
     }
 
+    /**
+     * Whether the version adapter draws the empty off hand (bare arm) in first person, like the main hand. Vanilla only
+     * draws the off hand while it holds something.
+     */
+    public static boolean showEmptyOffHand() {
+        OffHandModule m = active;
+        if (m == null || !m.bothHands.get() || !m.offShow.get()) {
+            return false;
+        }
+        m.drawnEmpty++;
+        return true;
+    }
+
+    /** Empty off hands drawn so far (smoke test). */
+    public int emptyDrawnCount() {
+        return drawnEmpty;
+    }
+
     /** Hands skipped so far (smoke test). */
     public int hiddenCount() {
         return hidden;
@@ -67,6 +90,7 @@ public final class OffHandModule implements LumoraAddon {
     /** Sets one setting by its key (smoke test). */
     public void set(String key, boolean value) {
         BooleanSetting s = switch (key) {
+            case "both_hands" -> bothHands;
             case "offhand_show" -> offShow;
             case "offhand_shield" -> offShield;
             case "offhand_totem" -> offTotem;
@@ -84,6 +108,9 @@ public final class OffHandModule implements LumoraAddon {
     }
 
     void settings(SettingsGroup s) {
+        bothHands = s.toggle("both_hands", true).name(K + "setting.both_hands")
+                .description(K + "setting.both_hands.description").section(K + "section.general")
+                .visibleWhen(() -> offShow.get());
         offShow = s.toggle("offhand_show", true).name(K + "setting.offhand_show")
                 .description(K + "setting.offhand_show.description").section(K + "section.offhand");
         offShield = s.toggle("offhand_shield", false).name(K + "setting.offhand_shield")

@@ -11,9 +11,9 @@ import java.util.List;
 
 /**
  * Smoke step "off-hand" (module "Off Hand"): a sword in the main hand and a shield in the off hand; with the default
- * settings nothing is hidden, then the shield in the off hand and then the whole main hand are skipped by the first
- * person hand hook; at last both hands are empty and the module draws the empty off hand next to the main hand
- * (screenshot each time).
+ * settings nothing is hidden, then the shield in the off hand and then the whole off hand are skipped by the first
+ * person hand hook (the main hand is always drawn); at last both hands are empty and the module draws the empty off
+ * hand next to the main hand (screenshot each time).
  */
 final class OffHandSmoke {
     private static int before;
@@ -58,8 +58,8 @@ final class OffHandSmoke {
         before = m.hiddenCount();
     }
 
-    /** The shield was skipped; now the whole main hand is hidden instead. */
-    static void hideMainHand(List<String> problems) {
+    /** The shield was skipped; now the whole off hand is hidden. */
+    static void hideOffHand(List<String> problems) {
         OffHandModule m = OffHandModule.active();
         if (m == null) {
             return;
@@ -70,22 +70,22 @@ final class OffHandSmoke {
             problems.add("off hand: the shield in the off hand was still drawn");
         }
         m.set("offhand_shield", false);
-        m.set("mainhand_show", false);
+        m.set("offhand_show", false);
         before = m.hiddenCount();
     }
 
-    /** The main hand was skipped; now both hands are empty and both arms are drawn ("both hands"). */
+    /** The off hand was skipped; now both hands are empty and both arms are drawn ("both hands"). */
     static void bothArms(Minecraft mc, List<String> problems) {
         OffHandModule m = OffHandModule.active();
         if (m == null) {
             return;
         }
-        int main = m.hiddenCount() - before;
-        dev.lumora.client.LumoraClient.LOG.info("LUMORA_OFFHAND main hand hidden {} times", main);
-        if (main <= 0) {
-            problems.add("off hand: the main hand was still drawn");
+        int off = m.hiddenCount() - before;
+        dev.lumora.client.LumoraClient.LOG.info("LUMORA_OFFHAND off hand hidden {} times", off);
+        if (off <= 0) {
+            problems.add("off hand: the hidden off hand was still drawn");
         }
-        m.set("mainhand_show", true);
+        m.set("offhand_show", true);
         m.set("both_hands", true);
         give(mc, ItemStack.EMPTY, ItemStack.EMPTY);
         before = m.emptyDrawnCount();

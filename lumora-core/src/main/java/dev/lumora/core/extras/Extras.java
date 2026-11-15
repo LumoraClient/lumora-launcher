@@ -82,7 +82,7 @@ public final class Extras {
                         ElytraTrailsModule::new),
                 // the off hand exists since 1.9: on older versions the hub shows the module locked with the reason
                 AddonCandidate.of(LumoraCore.builtInDescriptor(OffHandModule.ID, "Off Hand",
-                        "Hide the off hand or the main hand in first person, or only a shield or a totem in it",
+                        "Show both hands in first person, hide the off hand or hide a shield or a totem",
                         OffHandModule.class, dev.lumora.core.addon.VersionSupport.atLeast(OffHandModule.MIN_MINECRAFT,
                                 platform.minecraftVersion())),
                         OffHandModule::new),

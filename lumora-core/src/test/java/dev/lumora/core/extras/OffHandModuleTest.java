@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OffHandModuleTest {
@@ -36,15 +37,14 @@ class OffHandModuleTest {
     }
 
     @Test
-    void hiddenHandHidesEveryItemAndTheEmptyHand() {
+    void hiddenOffHandHidesEveryItemAndTheEmptyHand() {
         module.set("offhand_show", false);
         assertTrue(OffHandModule.hide(true, false, false));
         assertTrue(OffHandModule.hide(true, true, false));
         assertTrue(OffHandModule.hide(true, false, true));
         assertFalse(OffHandModule.hide(false, false, false), "main hand stays");
-        module.set("mainhand_show", false);
-        assertTrue(OffHandModule.hide(false, false, false));
-        assertEquals(4, module.hiddenCount());
+        assertFalse(OffHandModule.hide(false, true, true), "main hand stays with any item");
+        assertEquals(3, module.hiddenCount());
     }
 
     @Test
@@ -67,8 +67,7 @@ class OffHandModuleTest {
         assertFalse(module.offShield.isVisible());
         assertFalse(module.offTotem.isVisible());
         assertTrue(module.mainShield.isVisible(), "main hand settings are independent");
-        module.set("mainhand_show", false);
-        assertFalse(module.mainTotem.isVisible());
+        assertTrue(module.mainTotem.isVisible());
     }
 
     @Test
@@ -85,6 +84,14 @@ class OffHandModuleTest {
         module.setActive(false);
         module.set("offhand_show", true);
         assertFalse(OffHandModule.showEmptyOffHand(), "module off: vanilla");
+    }
+
+    @Test
+    void mainHandCannotBeSwitchedOff() {
+        assertThrows(IllegalArgumentException.class, () -> module.set("mainhand_show", false));
+        for (boolean shield : new boolean[]{true, false}) {
+            assertFalse(OffHandModule.hide(false, shield, !shield), "only the item settings hide something there");
+        }
     }
 
     @Test

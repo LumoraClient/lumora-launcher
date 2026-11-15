@@ -7,8 +7,8 @@ import dev.lumora.api.config.SettingsGroup;
 
 /**
  * Built-in module "Off Hand": shows the empty off hand next to the main hand in first person (on the side opposite
- * the main hand set in Minecraft, right or left), or hides the off hand or the main hand, or only a shield or a totem
- * in it.
+ * the main hand set in Minecraft, right or left), or hides the off hand, or only a shield or a totem in either hand.
+ * The main hand itself is always drawn.
  * Only this client's own view changes; what other players see stays the same.
  * <p>
  * The version adapters ask {@link #hide} once per hand and frame, right before Minecraft draws that hand with its item
@@ -27,7 +27,6 @@ public final class OffHandModule implements LumoraAddon {
     BooleanSetting offShow;
     BooleanSetting offShield;
     BooleanSetting offTotem;
-    BooleanSetting mainShow;
     BooleanSetting mainShield;
     BooleanSetting mainTotem;
     /** Hands skipped so far (diagnostics, smoke test; render thread only). */
@@ -57,9 +56,8 @@ public final class OffHandModule implements LumoraAddon {
     }
 
     boolean hides(boolean offHand, boolean shield, boolean totem) {
-        BooleanSetting show = offHand ? offShow : mainShow;
-        if (!show.get()) {
-            return true; // the whole hand is off: the item settings do not matter
+        if (offHand && !offShow.get()) {
+            return true; // the whole off hand is off: the item settings do not matter (the main hand is always drawn)
         }
         return shield && (offHand ? offShield : mainShield).get() || totem && (offHand ? offTotem : mainTotem).get();
     }
@@ -94,7 +92,6 @@ public final class OffHandModule implements LumoraAddon {
             case "offhand_show" -> offShow;
             case "offhand_shield" -> offShield;
             case "offhand_totem" -> offTotem;
-            case "mainhand_show" -> mainShow;
             case "mainhand_shield" -> mainShield;
             case "mainhand_totem" -> mainTotem;
             default -> throw new IllegalArgumentException(key);
@@ -117,12 +114,10 @@ public final class OffHandModule implements LumoraAddon {
                 .description(K + "setting.offhand_shield.description").visibleWhen(() -> offShow.get());
         offTotem = s.toggle("offhand_totem", false).name(K + "setting.offhand_totem")
                 .description(K + "setting.offhand_totem.description").visibleWhen(() -> offShow.get());
-        mainShow = s.toggle("mainhand_show", true).name(K + "setting.mainhand_show")
-                .description(K + "setting.mainhand_show.description").section(K + "section.mainhand");
         mainShield = s.toggle("mainhand_shield", false).name(K + "setting.mainhand_shield")
-                .description(K + "setting.mainhand_shield.description").visibleWhen(() -> mainShow.get());
+                .description(K + "setting.mainhand_shield.description").section(K + "section.mainhand");
         mainTotem = s.toggle("mainhand_totem", false).name(K + "setting.mainhand_totem")
-                .description(K + "setting.mainhand_totem.description").visibleWhen(() -> mainShow.get());
+                .description(K + "setting.mainhand_totem.description");
     }
 
     @Override

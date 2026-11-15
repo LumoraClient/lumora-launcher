@@ -68,6 +68,7 @@ public final class NewsPage extends JPanel {
     private List<NewsFeed.Item> mcNews;
     private List<NewsFeed.Change> mcNotes;
     private boolean loading;
+    private final List<Runnable> listeners = new ArrayList<>();
 
     public NewsPage(PageHost host, ExecutorService io) {
         super(new BorderLayout(0, 14));
@@ -128,8 +129,39 @@ public final class NewsPage extends JPanel {
                 mcNotes = c;
                 loading = false;
                 rebuild();
+                listeners.forEach(Runnable::run);
             });
         });
+    }
+
+    /** Runs {@code r} (Swing thread) whenever the Minecraft feeds have been loaded. */
+    public void onUpdate(Runnable r) {
+        listeners.add(r);
+    }
+
+    /** The newest {@code n} news (Lumora and, once loaded, Minecraft), newest first: for the start page. */
+    public List<NewsFeed.Item> latest(int n) {
+        List<NewsFeed.Item> items = new ArrayList<>(NewsFeed.lumoraNews());
+        if (mcNews != null) {
+            items.addAll(mcNews.subList(0, Math.min(10, mcNews.size())));
+        }
+        items.sort(Comparator.comparing(NewsFeed.Item::date, Comparator.nullsLast(Comparator.reverseOrder())));
+        return items.subList(0, Math.min(n, items.size()));
+    }
+
+    /** News picture (cached; {@code loaded} runs once it is available), null while loading or without picture. */
+    public Image picture(String url, Runnable loaded) {
+        return image(url, loaded);
+    }
+
+    /** Opens the article of a news item over the launcher. */
+    public void openItem(NewsFeed.Item it) {
+        open(it);
+    }
+
+    /** "Lumora" / "Minecraft" for the source chip. */
+    public static String sourceLabel(NewsFeed.Source s) {
+        return label(s);
     }
 
     private boolean wants(NewsFeed.Source s) {

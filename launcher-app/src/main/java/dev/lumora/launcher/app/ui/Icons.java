@@ -16,7 +16,7 @@ public final class Icons {
     public enum Kind { PLAY, PUZZLE, SLIDERS, PULSE, TERMINAL, FOLDER, REFRESH, USER, CHECK, CHIP, MEMORY, GLOBE, MONITOR,
         LIBRARY, IMAGE, SERVER, CLOCK, LOCK, PLUS, SEARCH, CUBE, ALERT, COPY, ARCHIVE,
         USERS, USER_PLUS, NEWS, CHAT, SEND, INFO, BELL, BELL_OFF, MORE, X, TRASH, EDIT, LOGOUT,
-        HOME, GEAR, BOLT, PALETTE, BUG, CHEVRON_DOWN, CHART, DISCORD, BROOM, HARDDRIVE, ROCKET, SHIRT,
+        HOME, GEAR, BOLT, PALETTE, BUG, CHEVRON_DOWN, CHART, DISCORD, BROOM, HARDDRIVE, ROCKET, SHIRT, DOWNLOAD, CALENDAR, TIMER,
         // role and group symbols (filled), keys as in dev.lumora.social.Rules.ICONS
         R_CIRCLE, R_CROWN, R_SHIELD, R_SWORD, R_STAR, R_BOW, R_PICKAXE, R_HEART, R_FLAME, R_BOLT, R_GEM, R_FLAG }
 
@@ -346,6 +346,29 @@ public final class Icons {
                 g.draw(poly(9, 12.5, 6, 15.5, 6.5, 18.5, 9, 16));
                 g.draw(poly(15, 12.5, 18, 15.5, 17.5, 18.5, 15, 16));
                 line(g, 12, 18, 12, 21);
+            }
+            case DOWNLOAD -> {
+                line(g, 12, 4, 12, 15);
+                line(g, 7.5, 10.5, 12, 15);
+                line(g, 12, 15, 16.5, 10.5);
+                line(g, 4, 15, 4, 20);
+                line(g, 4, 20, 20, 20);
+                line(g, 20, 20, 20, 15);
+            }
+            case CALENDAR -> {
+                g.draw(new RoundRectangle2D.Double(4, 5.5, 16, 15, 3, 3));
+                line(g, 4, 10, 20, 10);
+                line(g, 8.5, 3.5, 8.5, 7);
+                line(g, 15.5, 3.5, 15.5, 7);
+                g.fill(new java.awt.geom.Rectangle2D.Double(7.5, 13, 2.5, 2.5));
+                g.fill(new java.awt.geom.Rectangle2D.Double(11, 13, 2.5, 2.5));
+            }
+            case TIMER -> {
+                g.draw(new Ellipse2D.Double(4.5, 6, 15, 15));
+                line(g, 12, 13.5, 12, 9.5);
+                line(g, 10, 3, 14, 3);
+                line(g, 12, 3, 12, 6);
+                line(g, 18, 6.5, 19.5, 5);
             }
             case SHIRT -> g.draw(poly(8.5, 4, 4, 6.5, 3, 11, 6.5, 11.5, 6.5, 20, 17.5, 20, 17.5, 11.5, 21, 11, 20, 6.5, 15.5, 4, 12, 6.5));
             case ALERT -> {

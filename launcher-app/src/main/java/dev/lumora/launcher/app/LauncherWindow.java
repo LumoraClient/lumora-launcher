@@ -152,16 +152,11 @@ final class LauncherWindow implements PageHost {
     private Map<String, String> playInfo = Map.of();
     private boolean syncingProfile;
 
-    private JLabel statGpu;
-    private JLabel statVersion;
+    private HomeDashboard dashboard;
     private JLabel heroOverline;
-    private JPanel heroChips;
     private JPanel quickPlayBar;
     private HeroPanel heroPanel;
     private int quickPlayGeneration;
-    private JLabel statRam;
-    private JLabel statExtensions;
-    private JLabel statUpdates;
 
     private final JTextArea logArea = new JTextArea();
     private final JPanel diagList = new JPanel();
@@ -280,6 +275,7 @@ final class LauncherWindow implements PageHost {
         frame.getRootPane().putClientProperty("JRootPane.titleBarForeground", Theme.MUTED);
 
         pageHost.setOpaque(false);
+        newsPage = new NewsPage(this, pageIo);
         pageHost.add(scroll((JComponent) homePage()), "home");
         libraryPage = new LibraryPage(this, pageIo);
         pageHost.add(libraryPage, "library");
@@ -291,7 +287,6 @@ final class LauncherWindow implements PageHost {
         pageHost.add(crashPage, "crashes");
         socialPage = new dev.lumora.launcher.app.social.SocialPage(this, social);
         pageHost.add(socialPage, "social");
-        newsPage = new NewsPage(this, pageIo);
         pageHost.add(newsPage, "news");
         serversPage = new ServersPage(this);
         pageHost.add(serversPage, "servers");
@@ -327,7 +322,7 @@ final class LauncherWindow implements PageHost {
 
             @Override
             public void memoryChanged() {
-                statRam.setText(Lang.t("home.stat.ram_value", String.format(Lang.locale(), "%.1f", ctx.config.maxMemoryMb / 1024.0)));
+                // shown on the performance page
             }
 
             @Override
@@ -368,14 +363,14 @@ final class LauncherWindow implements PageHost {
         nav.addItem("home", Lang.t("nav.home_page"), Icons.Kind.HOME);
         nav.addItem("browser", Lang.t("nav.browser"), Icons.Kind.SEARCH);
         nav.addItem("performance", Lang.t("nav.performance"), Icons.Kind.CHART);
-        nav.addItem("library", Lang.t("nav.library"), Icons.Kind.LIBRARY);
+        nav.addItem("library", Lang.t("nav.library"), Icons.Kind.PUZZLE);
         nav.addItem("account", Lang.t("nav.account"), Icons.Kind.USER);
         nav.addItem("settings", Lang.t("settings.title"), Icons.Kind.GEAR);
         nav.addSeparator();
         nav.addItem("social", Lang.t("nav.social"), Icons.Kind.USERS);
         nav.addItem("servers", Lang.t("nav.servers"), Icons.Kind.GLOBE);
-        nav.addItem("news", Lang.t("nav.news"), Icons.Kind.NEWS);
         nav.addGlue();
+        nav.addItem("news", Lang.t("nav.notifications"), Icons.Kind.BELL);
         nav.addItem("crashes", Lang.t("nav.crashes"), Icons.Kind.ALERT);
         nav.addModeToggle(on -> {
             ctx.config.navIconsOnly = on;
@@ -428,35 +423,55 @@ final class LauncherWindow implements PageHost {
         JPanel page = column();
 
         page.add(hero());
+        page.add(Box.createVerticalStrut(16));
+        dashboard = new HomeDashboard(new HomeDashboard.Host() {
+            @Override
+            public AppContext ctx() {
+                return ctx;
+            }
 
-        page.add(Box.createVerticalStrut(22));
-        page.add(sectionTitle(Lang.t("home.system"), null));
-        JPanel stats = new JPanel(new GridBagLayout());
-        stats.setOpaque(false);
-        statGpu = new JLabel("…");
-        statVersion = new JLabel("…");
-        statRam = new JLabel("…");
-        statExtensions = new JLabel("…");
-        statUpdates = new JLabel(" ");
-        GridBagConstraints sc = new GridBagConstraints();
-        sc.fill = GridBagConstraints.BOTH;
-        sc.weighty = 1;
-        Object[][] tiles4 = {
-                {statTile(Icons.Kind.MONITOR, Lang.t("home.stat.gpu"), statGpu, null), 1.6},
-                {statTile(Icons.Kind.CHIP, "Minecraft", statVersion, null), 1.0},
-                {statTile(Icons.Kind.MEMORY, Lang.t("home.stat.ram"), statRam, null), 1.15},
-                {statTile(Icons.Kind.PUZZLE, Lang.t("home.stat.extensions"), statExtensions, statUpdates), 1.15}};
-        for (int i = 0; i < tiles4.length; i++) {
-            sc.gridx = i;
-            sc.weightx = (Double) tiles4[i][1];
-            sc.insets = new Insets(0, i == 0 ? 0 : 14, 0, 0);
-            stats.add((Component) tiles4[i][0], sc);
-        }
-        stats.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stats.setMaximumSize(new Dimension(Integer.MAX_VALUE, 96));
-        page.add(stats);
+            @Override
+            public dev.lumora.launcher.core.profile.Flavor flavor() {
+                return currentFlavor();
+            }
+
+            @Override
+            public void play(String profileId, LaunchCommandBuilder.QuickPlay quickPlay) {
+                if (!profileId.equals(ctx.config.selectedProfile)) {
+                    selectProfile(profileId);
+                }
+                startPlay(false, quickPlay);
+            }
+
+            @Override
+            public void showPage(String id) {
+                LauncherWindow.this.showPage(id);
+            }
+
+            @Override
+            public void openFolder(Path dir) {
+                open(dir);
+            }
+
+            @Override
+            public void repair() {
+                startPlay(true);
+            }
+
+            @Override
+            public void checkUpdates() {
+                LauncherWindow.this.checkUpdates();
+            }
+
+            @Override
+            public javax.swing.JPopupMenu moreMenu() {
+                return LauncherWindow.this.moreMenu();
+            }
+        }, newsPage, pageIo);
+        page.add(dashboard.build());
         page.add(Box.createVerticalGlue());
-        updateExtensionStat();
+        // Minecraft news for the news card (cached copies offline)
+        newsPage.refresh();
         return page;
     }
 
@@ -467,7 +482,7 @@ final class LauncherWindow implements PageHost {
     private JComponent hero() {
         HeroPanel hero = new HeroPanel(null);
         hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-        hero.setBorder(BorderFactory.createEmptyBorder(26, 24, 22, 24));
+        hero.setBorder(BorderFactory.createEmptyBorder(18, 24, 14, 24));
         hero.setAlignmentX(Component.LEFT_ALIGNMENT);
         List<Image> ic = icons();
         Image logoImg = ic.isEmpty() ? null : ic.getLast();
@@ -488,15 +503,15 @@ final class LauncherWindow implements PageHost {
                 g.dispose();
             }
         };
-        logo.setPreferredSize(new Dimension(104, 104));
-        logo.setMaximumSize(new Dimension(104, 104));
+        logo.setPreferredSize(new Dimension(64, 64));
+        logo.setMaximumSize(new Dimension(64, 64));
         JComponent wordmark = new JComponent() {
             @Override
             protected void paintComponent(java.awt.Graphics g0) {
                 java.awt.Graphics2D g = (java.awt.Graphics2D) g0.create();
                 g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                g.setFont(Theme.display(64f, Font.BOLD | Font.ITALIC, 58f));
+                g.setFont(Theme.display(52f, Font.BOLD | Font.ITALIC, 48f));
                 java.awt.FontMetrics fm = g.getFontMetrics();
                 String t = "LUMORA";
                 int x = (getWidth() - fm.stringWidth(t)) / 2;
@@ -520,18 +535,14 @@ final class LauncherWindow implements PageHost {
                 g.dispose();
             }
         };
-        int wordmarkHeight = Theme.pixelStyle ? 80 : 66;
+        int wordmarkHeight = Theme.pixelStyle ? 70 : 58;
         wordmark.setPreferredSize(new Dimension(420, wordmarkHeight));
         wordmark.setMaximumSize(new Dimension(Integer.MAX_VALUE, wordmarkHeight));
-        JLabel slogan = label(Lang.t("home.slogan"), 18, Font.PLAIN, new Color(0xDCE7FA));
-        slogan.setHorizontalAlignment(SwingConstants.CENTER);
-        for (JComponent c : List.of(logo, wordmark, slogan)) {
+        for (JComponent c : List.of(logo, wordmark)) {
             c.setAlignmentX(Component.CENTER_ALIGNMENT);
             hero.add(c);
         }
-        hero.add(Box.createVerticalStrut(20));
-
-        hero.add(Box.createVerticalStrut(6));
+        hero.add(Box.createVerticalStrut(12));
 
         // start controls
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -547,12 +558,6 @@ final class LauncherWindow implements PageHost {
         split.add(heroPlay, BorderLayout.CENTER);
         split.add(heroArrow, BorderLayout.EAST);
         controls.add(split);
-        controls.add(heroButton(Icons.Kind.FOLDER, Lang.t("home.open_game_dir"),
-                () -> open(ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id)))));
-        controls.add(heroButton(Icons.Kind.GEAR, Lang.t("settings.title"), () -> showPage("settings")));
-        JButton[] more = new JButton[1];
-        more[0] = heroButton(Icons.Kind.MORE, Lang.t("common.more"), () -> moreMenu().show(more[0], 0, more[0].getHeight()));
-        controls.add(more[0]);
         controls.setAlignmentX(Component.CENTER_ALIGNMENT);
         controls.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
         hero.add(controls);
@@ -562,9 +567,6 @@ final class LauncherWindow implements PageHost {
         info.setOpaque(false);
         heroOverline = label(" ", 12, Font.BOLD, Theme.ACCENT_TEXT);
         info.add(heroOverline);
-        heroChips = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
-        heroChips.setOpaque(false);
-        info.add(heroChips);
         info.setAlignmentX(Component.CENTER_ALIGNMENT);
         info.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         hero.add(info);
@@ -587,7 +589,7 @@ final class LauncherWindow implements PageHost {
         quickPlayRow.setOpaque(false);
         quickPlayRow.add(quickPlayBar);
         quickPlayRow.setAlignmentX(Component.CENTER_ALIGNMENT);
-        hero.add(Box.createVerticalStrut(12));
+        hero.add(Box.createVerticalStrut(10));
         hero.add(quickPlayRow);
         heroPanel = hero;
         hero.setMaximumSize(new Dimension(Integer.MAX_VALUE, hero.getPreferredSize().height));
@@ -655,16 +657,6 @@ final class LauncherWindow implements PageHost {
                 heroPanel.repaint();
             });
         });
-    }
-
-    private JButton heroButton(Icons.Kind icon, String tip, Runnable action) {
-        JButton b = new JButton(Icons.of(icon, 20, Theme.TEXT));
-        b.setToolTipText(tip);
-        b.setFocusable(false);
-        b.setPreferredSize(new Dimension(52, 52));
-        b.setBackground(Theme.alpha(Theme.SURFACE_2, 230));
-        b.addActionListener(e -> action.run());
-        return b;
     }
 
     /**
@@ -905,7 +897,7 @@ final class LauncherWindow implements PageHost {
             try {
                 List<String> ids = dev.lumora.launcher.core.news.NewsFeed.lumoraNews().stream().map(dev.lumora.launcher.core.news.NewsFeed.Item::id).toList();
                 long unseen = ids.stream().filter(id -> !ctx.config.seenNews.contains(id)).count();
-                SwingUtilities.invokeLater(() -> nav.setBadge("news", (int) unseen));
+                SwingUtilities.invokeLater(() -> nav.setDot("news", unseen > 0));
             } catch (RuntimeException e) {
                 Log.warn("News badge: " + e.getMessage());
             }
@@ -921,7 +913,7 @@ final class LauncherWindow implements PageHost {
                         ctx.config.seenNews = new ArrayList<>(ids);
                         saveConfigQuietly();
                     }
-                    nav.setBadge("news", 0);
+                    nav.setDot("news", false);
                 });
             } catch (RuntimeException e) {
                 Log.warn("News seen: " + e.getMessage());
@@ -964,10 +956,6 @@ final class LauncherWindow implements PageHost {
     }
 
     /** True if the profile ships the Lumora client mod (Lumora menus, HUD editor, addons). */
-    private boolean hasLumoraUi(ProfileCatalog.Profile p) {
-        return ctx.catalog.profileArtifact(p, "lumora-client").isPresent();
-    }
-
     private void refreshVersionInfo(ProfileCatalog.Profile p) {
         dev.lumora.launcher.core.profile.Flavor fl = currentFlavor();
         if (heroOverline != null) {
@@ -976,21 +964,8 @@ final class LauncherWindow implements PageHost {
                 case VANILLA -> "VANILLA";
             });
         }
-        if (heroChips != null) {
-            heroChips.removeAll();
-            if (fl == dev.lumora.launcher.core.profile.Flavor.LUMORA) {
-                heroChips.add(chip("Lumora Loader"));
-                if (hasLumoraUi(p)) {
-                    heroChips.add(chip("Lumora-UI"));
-                }
-            } else {
-                heroChips.add(chip(ctx.layout(fl.instanceId(p.id)).own() ? Lang.t("instance.own.chip") : Lang.t("instance.default")));
-            }
-            heroChips.revalidate();
-            heroChips.repaint();
-        }
-        if (statVersion != null) {
-            statVersion.setText(p.minecraftVersion);
+        if (dashboard != null && !dashboard.downloading()) {
+            dashboard.idle();
         }
         refreshQuickPlay();
     }
@@ -1020,38 +995,6 @@ final class LauncherWindow implements PageHost {
             }
         } finally {
             syncingProfile = false;
-        }
-    }
-
-    private Card statTile(Icons.Kind icon, String title, JLabel value, JLabel sub) {
-        Card c = new Card(new BorderLayout(12, 0));
-        c.padding(14, 16, 14, 16);
-        JLabel i = new JLabel(Icons.of(icon, 22, Theme.ACCENT_HOVER));
-        i.setVerticalAlignment(SwingConstants.TOP);
-        c.add(i, BorderLayout.WEST);
-        JPanel t = column();
-        JLabel tl = label(title.toUpperCase(), 11, Font.BOLD, Theme.MUTED);
-        tl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        t.add(tl);
-        t.add(Box.createVerticalStrut(4));
-        value.setFont(Theme.font(Font.BOLD, 15f));
-        value.setForeground(Theme.TEXT);
-        value.setAlignmentX(Component.LEFT_ALIGNMENT);
-        t.add(value);
-        if (sub != null) {
-            sub.setFont(Theme.font(Font.PLAIN, 12f));
-            sub.setForeground(Theme.MUTED);
-            sub.setAlignmentX(Component.LEFT_ALIGNMENT);
-            t.add(sub);
-        }
-        c.add(t, BorderLayout.CENTER);
-        return c;
-    }
-
-    private void updateExtensionStat() {
-        if (statExtensions != null) {
-            int n = ctx.config.enabledExtensions.size();
-            statExtensions.setText(n == 0 ? Lang.t("home.stat.extensions_none") : Lang.t("home.stat.extensions_active", n));
         }
     }
 
@@ -1294,9 +1237,15 @@ final class LauncherWindow implements PageHost {
                 SwingUtilities.invokeLater(() -> {
                     statusLabel.setText(message);
                     switch (state) {
-                        case INSTALLING -> setPlay(Lang.t("play.installing"), false);
+                        case INSTALLING -> {
+                            setPlay(Lang.t("play.installing"), false);
+                            dashboard.download(message, -1);
+                        }
                         case LOGGING_IN -> setPlay(Lang.t("play.signing_in"), false);
-                        case LAUNCHING -> setPlay(Lang.t("play.launching"), false);
+                        case LAUNCHING -> {
+                            setPlay(Lang.t("play.launching"), false);
+                            dashboard.idle();
+                        }
                         case PLAYING -> {
                             setPlay(ctx.config.multipleInstances ? Lang.t("play.play") : Lang.t("play.running"), ctx.config.multipleInstances);
                             setButtonProgress(-1);
@@ -1304,7 +1253,10 @@ final class LauncherWindow implements PageHost {
                             stopButton.setVisible(true);
                             gameStarted = java.time.Instant.now().getEpochSecond();
                         }
-                        case IDLE, ERROR -> resetPlayButton();
+                        case IDLE, ERROR -> {
+                            resetPlayButton();
+                            dashboard.idle();
+                        }
                     }
                     updateDiscord();
                 });
@@ -1318,6 +1270,7 @@ final class LauncherWindow implements PageHost {
             @Override
             public void gameExited(GameProcess.Exit exit, List<CrashAnalyzer.Hint> hints) {
                 SwingUtilities.invokeLater(LauncherWindow.this::refreshPlayTimes);
+                SwingUtilities.invokeLater(dashboard::refreshRecent);
                 // servers added in the game appear in Quick Play
                 SwingUtilities.invokeLater(LauncherWindow.this::refreshQuickPlay);
                 if (!exit.crashed()) {
@@ -1344,6 +1297,9 @@ final class LauncherWindow implements PageHost {
                     }
                     if (detail != null && !detail.isEmpty()) {
                         statusLabel.setText(detail);
+                    }
+                    if (dashboard.downloading()) {
+                        dashboard.download(detail != null && !detail.isEmpty() ? detail : statusLabel.getText(), fraction);
                     }
                 });
             }
@@ -1418,7 +1374,7 @@ final class LauncherWindow implements PageHost {
 
     @Override
     public void extensionsChanged() {
-        updateExtensionStat();
+        // extensions are listed in the library and the settings
     }
 
     /**
@@ -1480,7 +1436,7 @@ final class LauncherWindow implements PageHost {
         for (ProfileCatalog.Profile p : ctx.catalog.profiles()) {
             PlayStats.Entry s = ctx.play.stats().get(p.id);
             if (s.launches > 0) {
-                info.put(p.id, PlayStats.format(s.playTime()) + " gespielt");
+                info.put(p.id, Lang.t("home.recent.played", PlayStats.format(s.playTime())));
             }
         }
         playInfo = info;
@@ -1609,7 +1565,7 @@ final class LauncherWindow implements PageHost {
 
     private void backgroundUpdateCheck() {
         List<UpdateChecker.Update> updates = new UpdateChecker(ctx.downloader).check(ctx.catalog, ctx.selectedProfile());
-        SwingUtilities.invokeLater(() -> statUpdates.setText(updates.isEmpty() ? Lang.t("home.stat.up_to_date") : Lang.plural("home.stat.updates", updates.size())));
+        SwingUtilities.invokeLater(() -> dashboard.updates(updates.size()));
     }
 
     private void interactiveUpdateCheck() {
@@ -1692,8 +1648,6 @@ final class LauncherWindow implements PageHost {
                 }
                 diagList.revalidate();
                 diagList.repaint();
-                statGpu.setText(r.gpus().isEmpty() ? Lang.t("common.unknown") : r.gpus().getFirst().replaceAll(" \\(driver.*", ""));
-                statRam.setText(Lang.t("home.stat.ram_of", String.format(Lang.locale(), "%.1f", ctx.config.maxMemoryMb / 1024.0), Math.round(r.totalRamMb() / 1024.0)));
             });
         });
     }
@@ -1806,24 +1760,6 @@ final class LauncherWindow implements PageHost {
         p.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         return p;
-    }
-
-    private static JComponent chip(String text) {
-        JLabel l = new JLabel(text) {
-            @Override
-            protected void paintComponent(java.awt.Graphics g0) {
-                java.awt.Graphics2D g = (java.awt.Graphics2D) g0.create();
-                g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-                g.setColor(Theme.alpha(Theme.ACCENT, 50));
-                Theme.fillRound(g, 0, 0, getWidth(), getHeight(), Theme.arc(getHeight()), Theme.arc(getHeight()));
-                g.dispose();
-                super.paintComponent(g0);
-            }
-        };
-        l.setFont(Theme.font(Font.BOLD, 11.5f));
-        l.setForeground(Theme.ACCENT_TEXT);
-        l.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
-        return l;
     }
 
     private static JTextField field(String value, String placeholder) {

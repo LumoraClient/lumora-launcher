@@ -251,6 +251,16 @@ public final class NavRail extends JPanel {
         }
     }
 
+    /** Small red dot on an entry (e.g. the bell: news not opened yet). */
+    public void setDot(String id, boolean on) {
+        for (Item it : items) {
+            if (it.id.equals(id) && it.dot != on) {
+                it.dot = on;
+                it.repaint();
+            }
+        }
+    }
+
     public void select(String id) {
         selected = id;
         Item target = items.stream().filter(i -> i.id.equals(id)).findFirst().orElse(null);
@@ -316,6 +326,7 @@ public final class NavRail extends JPanel {
         private boolean hover;
         private int badge;
         private boolean online;
+        private boolean dot;
 
         Item(String id, String label, Icons.Kind icon) {
             this.id = id;
@@ -341,6 +352,13 @@ public final class NavRail extends JPanel {
                     repaint();
                 }
             });
+        }
+
+        private void paintDot(Graphics2D g, int x, int y) {
+            g.setColor(Theme.SURFACE);
+            g.fillOval(x - 2, y - 2, 12, 12);
+            g.setColor(Theme.FAIL);
+            g.fillOval(x, y, 8, 8);
         }
 
         void applySize() {
@@ -371,6 +389,9 @@ public final class NavRail extends JPanel {
                 int ix = (w - s) / 2;
                 int iy = (h - s) / 2;
                 Icons.of(icon, s, ic).paintIcon(this, g, ix, iy);
+                if (dot) {
+                    paintDot(g, ix + s - 5, iy - 2);
+                }
                 if (badge > 0) {
                     // small counter at the top right of the icon
                     String t = badge > 99 ? "99+" : Integer.toString(badge);
@@ -388,6 +409,9 @@ public final class NavRail extends JPanel {
                 return;
             }
             Icons.of(icon, 20, ic).paintIcon(this, g, 14, (h - 20) / 2);
+            if (dot) {
+                paintDot(g, 14 + 20 - 5, (h - 20) / 2 - 2);
+            }
             g.setFont(Theme.display(16f, sel ? Font.BOLD : Font.PLAIN, 14.5f));
             FontMetrics fm = g.getFontMetrics();
             g.setColor(sel ? Theme.TEXT : hover ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, 0.3));

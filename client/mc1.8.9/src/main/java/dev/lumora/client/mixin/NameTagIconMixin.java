@@ -44,11 +44,11 @@ public abstract class NameTagIconMixin {
         // lines above and below the name
         String above = NameTagIcons.above();
         if (above != null) {
-            font.draw(above, -font.getStringWidth(above) / 2, y - (int) NameTagIcons.LINE, color);
+            font.draw(above, -NameTagIcons.width(font, above) / 2, y - (int) NameTagIcons.LINE, color);
         }
         String below = NameTagIcons.below();
         if (below != null) {
-            font.draw(below, -font.getStringWidth(below) / 2, y + (int) NameTagIcons.LINE, color);
+            font.draw(below, -NameTagIcons.width(font, below) / 2, y + (int) NameTagIcons.LINE, color);
         }
         return result;
     }

@@ -267,6 +267,19 @@ final class McPlatform implements Platform {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
 
+    /** Clouds included: this version builds the fancy clouds vertex by vertex in every frame. */
+    @Override
+    public java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {
+        return java.util.EnumSet.of(dev.lumora.core.perf.Optimization.ENTITY_CULLING, dev.lumora.core.perf.Optimization.RENDERING,
+                dev.lumora.core.perf.Optimization.SMART_HUD, dev.lumora.core.perf.Optimization.FRAME,
+                dev.lumora.core.perf.Optimization.STARTUP, dev.lumora.core.perf.Optimization.CLOUDS);
+    }
+
+    @Override
+    public String optimizationNote(dev.lumora.core.perf.Optimization optimization) {
+        return null;
+    }
+
     @Override
     public boolean uploadTexture(String path, int width, int height, int[] argb) {
         java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);

@@ -4,6 +4,11 @@ import dev.lumora.api.render.NameTags;
 import dev.lumora.client.LumoraClient;
 import dev.lumora.client.api.LumoraRuntime;
 
+import dev.lumora.client.perf.FrameCounter;
+import dev.lumora.core.perf.PerformanceEngine;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +20,74 @@ public final class NameTagIcons {
     private static final int[] COLORS = {0x000000, 0x0000AA, 0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
             0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF};
     private static boolean logged;
+    private static final int CACHE = 256;
+    /** With "Optimized Rendering": the coloured icon text per icon, the width per text, the addons' answers per frame. */
+    private static final Map<NameTags.Icon, String> GLYPHS = lru();
+    private static final Map<String, Integer> WIDTHS = lru();
+    private static UUID memoPlayer;
+    private static int memoFrame = -1;
+    private static Optional<NameTags.Icon> memoIcon = Optional.empty();
+    private static NameTags.Lines memoLines;
+
+    private static <K, V> Map<K, V> lru() {
+        return new LinkedHashMap<>(64, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                return size() > CACHE;
+            }
+        };
+    }
+
+    /** Resources were reloaded (font): texts are measured again. */
+    public static void clearCaches() {
+        GLYPHS.clear();
+        WIDTHS.clear();
+        memoFrame = -1;
+    }
+
+    /** Width of a text drawn above players (kept with "Optimized Rendering"). */
+    public static int width(net.minecraft.client.font.TextRenderer font, String text) {
+        if (!PerformanceEngine.rendering) {
+            return font.getStringWidth(text);
+        }
+        Integer w = WIDTHS.get(text);
+        if (w == null) {
+            w = font.getStringWidth(text);
+            WIDTHS.put(text, w);
+        }
+        return w;
+    }
+
+    /** Asks the addons once per player and frame (fast path). */
+    private static void memo(UUID player) {
+        int frame = FrameCounter.current();
+        if (frame == memoFrame && player.equals(memoPlayer)) {
+            return;
+        }
+        var core = LumoraRuntime.core();
+        boolean active = core != null && core.nameTags().active();
+        memoIcon = active ? core.nameTags().icon(player, NameTags.Place.WORLD) : Optional.empty();
+        memoLines = active ? core.nameTags().lines(player).orElse(null) : null;
+        memoPlayer = player;
+        memoFrame = frame;
+    }
+
+    /** The coloured icon text of an icon (fast path, kept). */
+    private static String glyphText(NameTags.Icon icon) {
+        if (icon.fallback().isEmpty()) {
+            return null;
+        }
+        String g = GLYPHS.get(icon);
+        if (g == null) {
+            g = code(icon.color()) + icon.fallback() + "§r";
+            GLYPHS.put(icon, g);
+        }
+        if (!logged) {
+            logged = true;
+            LumoraClient.LOG.info("LUMORA_NAMETAG_ICON first icon drawn (fallback text, {})", NameTags.Place.WORLD);
+        }
+        return g;
+    }
 
     private NameTagIcons() {
     }
@@ -70,6 +143,14 @@ public final class NameTagIcons {
 
     /** Right before a player's name tag is drawn: remembers the icon for {@link #current()}. */
     public static void begin(UUID player) {
+        if (PerformanceEngine.rendering) {
+            memo(player);
+            current = memoIcon.map(NameTagIcons::glyphText).orElse(null);
+            NameTags.Lines l = memoLines;
+            above = l == null || l.above().isEmpty() ? null : l.above();
+            below = l == null || l.below().isEmpty() ? null : l.below();
+            return;
+        }
         current = glyph(player, NameTags.Place.WORLD).orElse(null);
         var lines = lines(player);
         above = lines == null || lines.above().isEmpty() ? null : lines.above();

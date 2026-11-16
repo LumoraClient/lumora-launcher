@@ -46,7 +46,14 @@
     "platform.LegacyHudMixin",
     "platform.LegacyKeysMixin",
     "platform.LegacyPayloadMixin",
-    "platform.LegacyLangMixin"],
+    "platform.LegacyLangMixin",
+    "perf.EntityCullableMixin",
+    "perf.BlockEntityCullableMixin",
+    "perf.EntityCullingMixin",
+    "perf.BlockEntityCullingMixin",
+    "perf.LevelExtractFrameMixin",
+    "perf.SectionDirtyMixin",
+    "perf.CloudListMixin"],
   "injectors": {
     "defaultRequire": 1
   },

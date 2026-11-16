@@ -75,6 +75,7 @@ public final class LumoraClient implements ClientEntrypoint {
         LumoraZoom.init(Hooks.registerKey(new KeyBinding("key.lumora.zoom", Keyboard.KEY_C, category)));
 
         Hooks.onStarted(mc -> {
+            LOG.info("Lumora Loader: {}", dev.lumora.loader.api.LumoraLoader.classLoadingStats());
             if (config.writeDiagnosticsOnStart) {
                 Diagnostics.write("game-" + Diagnostics.profile() + "-latest.json", Diagnostics.collect());
             }

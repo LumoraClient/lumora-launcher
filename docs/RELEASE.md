@@ -66,6 +66,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.64 (2026-11-16):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 638 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **Messszene** (stumm, Test-Home, FPS-Limit aus, Villager ohne KI statt Husks) für 1.12.2 und 1.8.9 bestanden: hinter der Wand Ø FPS alles aus → nur Culling etwa 75 bis 81 → 540 (1.12.2) und etwa 73 bis 80 → 208 (1.8.9), nahezu alle Ziele verdeckt. Je Version 240 Ein/Aus-Prüfungen ohne Fehler. Ein erster 1.8.9-Durchlauf scheiterte an der Szene (Wand fehlte); die Wiederholung bestand.
+- **Wolken (1.12.2, 1.8.9):** Display-List etwa 97-mal in 8 s neu kompiliert statt in jedem Frame neu gezeichnet; Ø FPS ohne → mit Optimierung 588/566 → 687/755 (1.12.2) und 242/240 → 265/243 (1.8.9, im Rauschen). Screenshot-Vergleich: Wolken gleich bis auf einzelne Randpixel.
+- **Smoke-Test** (normal, stumm) für 1.12.2 und 1.8.9 bestanden, Namensschild-Icons in 1.8.9 gezeichnet.
+- **Nicht geprüft:** ein Selbst-Update von 0.3.63.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.63 (2026-11-16):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 638 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
 - **Messszene** (stumm, Test-Home, FPS-Limit aus) für 1.20.6, 1.20.4, 1.20.1, 1.19.4, 1.18.2, 1.17.1 und 1.16.5 bestanden: hinter der Wand Ø FPS alles aus → nur Culling 178 → 297, 142 → 228, 158 → 205, 98 → 210, 134 → 228, 170 → 340, 134 → 316 (342 bis 380 Ziele, nahezu alle verdeckt). Hub und offene Sicht im Rauschen; diese Messreihe schwankte stark (Läufe gleicher Einstellung bis etwa 25 % auseinander). Je Version 240 Ein/Aus-Prüfungen ohne Fehler. Ein erster Durchlauf scheiterte an der Szene (Zombies verbrannten ohne /tick freeze, in 1.20.4 fehlte die Wand); nach der Korrektur (Husks, Wand-Prüfung) bestanden.

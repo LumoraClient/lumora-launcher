@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.64 (2026-11-16)
+
+### Client
+- **Performance für 1.12.2 und 1.8.9:** Entity Culling, optimiertes Rendering der Namensschilder und die Frame-Optimierung gibt es jetzt auch in den Legacy-Versionen. Damit hat die Performance-Engine alle 16 Minecraft-Versionen erreicht.
+- **Wolken-Optimierung (1.12.2, 1.8.9):** Die schöne Wolkendarstellung wird nicht mehr in jedem Frame Stück für Stück neu gezeichnet, sondern aus einer zwischengespeicherten Display-List; sie wird nur bei Bedarf neu gebaut.
+
 ## 0.3.63 (2026-11-16)
 
 ### Client

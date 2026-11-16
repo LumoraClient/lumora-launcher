@@ -55,7 +55,14 @@
     "platform.ClientPackSourceMixin",
     "platform.PackRepositoryMixin",
     "platform.GameRendererScreenMixin",
-    "platform.LegacyCustomPayloadMixin"],
+    "platform.LegacyCustomPayloadMixin",
+    "perf.EntityCullableMixin",
+    "perf.BlockEntityCullableMixin",
+    "perf.EntityCullingMixin",
+    "perf.BlockEntityCullingMixin",
+    "perf.LevelExtractFrameMixin",
+    "perf.SectionDirtyMixin",
+    "perf.CloudColorMixin"],
   "injectors": {
     "defaultRequire": 1
   },

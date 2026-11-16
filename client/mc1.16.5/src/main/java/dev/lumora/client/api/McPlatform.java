@@ -264,6 +264,19 @@ final class McPlatform implements Platform {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
 
+    /** Clouds are left out: 1.16 draws them with the fixed-function pipeline, where a colour cannot be applied on top of the vertex colours. */
+    @Override
+    public java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {
+        return java.util.EnumSet.of(dev.lumora.core.perf.Optimization.ENTITY_CULLING, dev.lumora.core.perf.Optimization.RENDERING,
+                dev.lumora.core.perf.Optimization.SMART_HUD, dev.lumora.core.perf.Optimization.FRAME,
+                dev.lumora.core.perf.Optimization.STARTUP);
+    }
+
+    @Override
+    public String optimizationNote(dev.lumora.core.perf.Optimization optimization) {
+        return null;
+    }
+
     @Override
     public boolean uploadTexture(String path, int width, int height, int[] argb) {
         com.mojang.blaze3d.platform.NativeImage img = new com.mojang.blaze3d.platform.NativeImage(width, height, false);

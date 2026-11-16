@@ -21,19 +21,19 @@ public abstract class NameTagBesideMixin {
             target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I"))
     private int lumora$drawBeside(Font font, Component text, float x, float y, int color, boolean shadow, Matrix4f pose, MultiBufferSource buffers, boolean seeThrough, int background, int light) {
         int result = font.drawInBatch(text, x, y, color, shadow, pose, buffers, seeThrough, background, light);
-        Component icon = NameTagIcons.current();
+        NameTagIcons.Text icon = NameTagIcons.current();
         if (icon != null) {
             // the name starts at -width/2, so its end is at -x
-            font.drawInBatch(icon, -x + NameTagIcons.GAP, y, color, shadow, pose, buffers, seeThrough, 0, light);
+            font.drawInBatch(icon.order(), -x + NameTagIcons.GAP, y, color, shadow, pose, buffers, seeThrough, 0, light);
         }
         // lines above and below the name: like the name itself, with its box
-        Component above = NameTagIcons.above();
+        NameTagIcons.Text above = NameTagIcons.above();
         if (above != null) {
-            font.drawInBatch(above, -font.width(above) / 2f, y - NameTagIcons.LINE, color, shadow, pose, buffers, seeThrough, background, light);
+            font.drawInBatch(above.order(), -above.width(font) / 2f, y - NameTagIcons.LINE, color, shadow, pose, buffers, seeThrough, background, light);
         }
-        Component below = NameTagIcons.below();
+        NameTagIcons.Text below = NameTagIcons.below();
         if (below != null) {
-            font.drawInBatch(below, -font.width(below) / 2f, y + NameTagIcons.LINE, color, shadow, pose, buffers, seeThrough, background, light);
+            font.drawInBatch(below.order(), -below.width(font) / 2f, y + NameTagIcons.LINE, color, shadow, pose, buffers, seeThrough, background, light);
         }
         return result;
     }

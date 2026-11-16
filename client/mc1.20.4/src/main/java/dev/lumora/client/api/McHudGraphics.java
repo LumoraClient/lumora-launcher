@@ -51,6 +51,16 @@ public final class McHudGraphics implements HudGraphics {
         g.fill(x1, y1, x2, y2, color);
     }
 
+    /** Frame optimization on: same pixels with cached corner shapes and fewer rectangles. */
+    @Override
+    public void roundedRect(int x, int y, int width, int height, int radius, int color) {
+        if (dev.lumora.core.perf.PerformanceEngine.frame) {
+            dev.lumora.core.perf.FastShapes.roundedRect(this, x, y, width, height, radius, color);
+        } else {
+            HudGraphics.super.roundedRect(x, y, width, height, radius, color);
+        }
+    }
+
     @Override
     public void texture(TextureRef texture, int x, int y, int width, int height, float u, float v, int regionWidth, int regionHeight,
                         int textureWidth, int textureHeight) {

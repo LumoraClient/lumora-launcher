@@ -54,7 +54,14 @@
     "platform.BuiltInPackSourceMixin",
     "platform.PackRepositoryMixin",
     "platform.DiscardedPayloadMixin",
-    "platform.ClientCustomPayloadMixin"],
+    "platform.ClientCustomPayloadMixin",
+    "perf.EntityCullableMixin",
+    "perf.BlockEntityCullableMixin",
+    "perf.EntityCullingMixin",
+    "perf.BlockEntityCullingMixin",
+    "perf.LevelExtractFrameMixin",
+    "perf.SectionDirtyMixin",
+    "perf.CloudColorMixin"],
   "injectors": {
     "defaultRequire": 1
   },

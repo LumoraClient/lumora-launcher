@@ -61,6 +61,8 @@ public final class SmokeTest {
     private static final int WORLD_SETTLE_TICKS = 100;
 
     private String worldResult = "not run";
+    /** Performance comparison instead of the menu screenshots and the world steps ({@code -Dlumora.perfBench=true}). */
+    private PerfBench perfBench;
     private int worldStep;
     /** Lumora's world loading screen was captured once. */
     private boolean loadingShot;
@@ -116,6 +118,20 @@ public final class SmokeTest {
             case RECORDING -> {
                 if (FrameStats.INSTANCE.isFinished()) {
                     summary = FrameStats.INSTANCE.finish();
+                    if ("startup".equals(System.getProperty("lumora.perfBench"))) {
+                        // startup comparison only: the main menu was reached, done
+                        worldResult = "skipped: startup measurement";
+                        phase = Phase.DONE;
+                        finish(mc);
+                        return;
+                    }
+                    if (Boolean.getBoolean("lumora.perfBench")) {
+                        // only the performance comparison: straight into the world
+                        perfBench = new PerfBench(report.getFileName().toString().replace(".json", ""));
+                        phase = Phase.SHOTS;
+                        ticks = 0;
+                        return;
+                    }
                     pending.add(new Shot("menu", parent -> null));
                     pending.add(new Shot("hub", LumoraHubScreen::create));
                     pending.add(new Shot("options", parent -> new OptionsScreen(parent, mc.options)));
@@ -295,7 +311,19 @@ public final class SmokeTest {
                 ticks = 0;
                 worldStep = 0;
             }
-            case IN_WORLD -> inWorld(mc);
+            case IN_WORLD -> {
+                if (perfBench == null) {
+                    inWorld(mc);
+                } else {
+                    perfBench.tick(mc);
+                    if (perfBench.done()) {
+                        worldResult = "PERF: " + perfBench.results();
+                        extraProblems.addAll(perfBench.problems());
+                        phase = Phase.DONE;
+                        finish(mc);
+                    }
+                }
+            }
             case DONE -> { }
         }
     }
@@ -522,6 +550,9 @@ public final class SmokeTest {
         data.put("titleScreenFrameStats", summary == null ? null : summary.format());
         data.put("screenshots", screenshots);
         data.put("inWorld", worldResult);
+        if (perfBench != null) {
+            data.put("perfBench", perfBench.results());
+        }
         data.put("social", dev.lumora.core.social.SocialSmoke.result(ApiSmoke.core().social()));
         System.setProperty("lumora.diagnosticsDir", report.toAbsolutePath().getParent().toString());
         Diagnostics.write(report.getFileName().toString(), data);

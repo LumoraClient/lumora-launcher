@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.60 (2026-11-16)
+
+### Client
+- **Baublase mit eigenem Icon:** Das Baublase-Addon zeigt im Hub jetzt das pinke „B“ mit Bausteinen und Blasen statt des Münzstapels.
+
 ## 0.3.59 (2026-11-16)
 
 ### Client

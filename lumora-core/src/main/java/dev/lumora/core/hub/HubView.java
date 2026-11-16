@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,7 +65,7 @@ public final class HubView implements AddonView {
     /** Built-in addons whose widgets get their own cards (the addon itself has no card). */
     private static final Set<String> WIDGET_CONTAINERS = Set.of("lumora", "lumora-info");
     /** Category and icon of the built-in modules. */
-    private static final Map<String, String[]> BUILT_IN = Map.ofEntries(
+    static final Map<String, String[]> BUILT_IN = Map.ofEntries(
             Map.entry("lumora-crosshair", new String[]{WidgetCategory.COMBAT, "crosshair"}),
             Map.entry("lumora-attackindicator", new String[]{WidgetCategory.COMBAT, "attackindicator"}),
             Map.entry("lumora-blockoverlay", new String[]{WidgetCategory.WORLD, "blockoverlay"}),
@@ -83,7 +82,7 @@ public final class HubView implements AddonView {
             Map.entry("lumora-lightoverlay", new String[]{WidgetCategory.WORLD, "lightoverlay"}),
             Map.entry("lumora-offhand", new String[]{WidgetCategory.PLAYER, "offhand"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
-    private static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
+    static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",
             "togglesprint");
     private static final List<String> CATEGORY_ORDER = List.of(WidgetCategory.GENERAL, WidgetCategory.PLAYER,
@@ -133,7 +132,6 @@ public final class HubView implements AddonView {
     private final HubHost host;
     private final boolean de;
     private final List<Hit> hits = new ArrayList<>();
-    private final Map<String, TextureRef> icons = new LinkedHashMap<>();
     private long openedAt;
     private String search = "";
     private boolean searchFocused;
@@ -199,10 +197,6 @@ public final class HubView implements AddonView {
     /** The cards marked with the heart (tests). */
     Favorites favorites() {
         return favorites;
-    }
-
-    private TextureRef icon(String name) {
-        return icons.computeIfAbsent(name, n -> new TextureRef("lumora", "textures/gui/hub/" + n + ".png"));
     }
 
     private boolean bool(String option) {
@@ -301,7 +295,7 @@ public final class HubView implements AddonView {
                 toggle = () -> toast(why);
             }
             out.add(new Card("addon:" + a.id(), moduleName(a), moduleDescription(a),
-                    builtIn != null ? builtIn[0] : ADDONS, builtIn != null ? builtIn[1] : "addon",
+                    builtIn != null ? builtIn[0] : ADDONS, builtIn != null ? builtIn[1] : HubIcons.forAddon(a.id()),
                     a.wanted() && !failed, failed ? a.error().orElse(t("Fehler beim Laden", "Failed to load")) : null,
                     toggle, unavailable != null ? null : settings, menu,
                     builtIn == null && !a.descriptor().builtIn() ? a.descriptor().source() : null,
@@ -325,7 +319,7 @@ public final class HubView implements AddonView {
             String widgetName = name;
             String widgetDesc = desc;
             String icon = WIDGET_ICONS.contains(w.widget().id()) && (WIDGET_CONTAINERS.contains(w.addonId())
-                    || w.addonId().startsWith("lumora-")) ? w.widget().id() : "widget";
+                    || w.addonId().startsWith("lumora-")) ? w.widget().id() : HubIcons.forAddon(w.addonId());
             out.add(new Card("widget:" + w.id(), name, desc, w.category(), icon, w.isEnabled(), w.failure().orElse(null),
                     () -> w.setEnabled(!w.isEnabled()),
                     hasSettings ? () -> host.openSettings(widgetName, widgetDesc, w.widget().settings(), List.of(), null, true) : null,
@@ -831,7 +825,7 @@ public final class HubView implements AddonView {
 
         int iconY = y + (compact ? 5 : 8);
         boolean locked = c.unavailable() != null;
-        g.texture(icon(c.icon()), x + (w - 32) / 2, iconY, 32, 32, 32, 32);
+        HubIcons.draw(g, c.icon(), x + (w - 32) / 2, iconY, 32);
         if (locked) {
             // greyed out: the icon behind a veil, a lock on top
             g.fill(x + (w - 32) / 2, iconY, x + (w + 32) / 2, iconY + 32, LumoraTheme.alpha(hover ? CARD_HOVER : CARD, 0xA8));
@@ -1640,7 +1634,7 @@ public final class HubView implements AddonView {
         boolean hover = visible && in(mx, my, x, y, w, h);
         g.roundedRect(x, y, w, h, 5, hover ? 0xFF344150 : BORDER);
         g.roundedRect(x + 1, y + 1, w - 2, h - 2, 4, hover ? CARD_HOVER : CARD);
-        g.texture(icon("addon"), x + 8, y + 8, 32, 32, 32, 32);
+        HubIcons.draw(g, HubIcons.forAddon(e.id()), x + 8, y + 8, 32);
         int tx = x + 48;
         int tw = w - 56;
         g.text(trim(g, "§l" + e.name(), tw), tx, y + 7, TEXT, false);

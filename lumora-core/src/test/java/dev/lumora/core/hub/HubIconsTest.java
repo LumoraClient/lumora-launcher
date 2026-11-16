@@ -50,6 +50,19 @@ class HubIconsTest {
     }
 
     @Test
+    void ownImagesExistInTheirSize() throws IOException {
+        for (var e : HubIcons.IMAGES.entrySet()) {
+            try (InputStream in = HubIconsTest.class.getResourceAsStream("/assets/lumora/" + e.getValue().path())) {
+                assertNotNull(in, e.getKey() + " image missing");
+                BufferedImage img = ImageIO.read(in);
+                assertEquals(HubIcons.IMAGE_SIZE, img.getWidth(), e.getKey());
+                assertEquals(HubIcons.IMAGE_SIZE, img.getHeight(), e.getKey());
+            }
+            assertTrue(!HubIcons.NAMES.contains(e.getKey()), e.getKey() + " is in the sheet and has an image");
+        }
+    }
+
+    @Test
     void builtInModulesAndWidgetsHaveTheirOwnIcon() {
         for (String[] module : HubView.BUILT_IN.values()) {
             assertTrue(HubIcons.has(module[1]), module[1]);

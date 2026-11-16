@@ -240,11 +240,6 @@ public final class HubIconGen {
                 "................", "......eEEEEEE...", "......EEEEEEF...", "......E.....F...",
                 "......E.....F...", "......E.....F...", "......E.....F...", "......E.....F...",
                 "...eEEE..eEEF...", "..eEEEF.eEEEF...", "..EEEFF.EEEFF...", "...FFF...FFF....");
-        outline("baublase",
-                "................", "................", "................", "..yYYO..........",
-                ".yYyYYO.........", ".OOOOOo.........", ".YYYYYO.........", ".OOOOOo..yYYO...",
-                ".YYYYYO.yYyYYO..", ".OOOOOo.OOOOOo..", ".YYYYYO.YYYYYO..", ".OOOOOo.OOOOOo..",
-                "..oooo...oooo...");
     }
 
     static BufferedImage render(String name, Icon icon) {

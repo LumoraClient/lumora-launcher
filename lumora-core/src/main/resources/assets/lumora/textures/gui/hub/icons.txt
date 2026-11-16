@@ -34,4 +34,3 @@ buttons
 browser
 voice
 music
-baublase

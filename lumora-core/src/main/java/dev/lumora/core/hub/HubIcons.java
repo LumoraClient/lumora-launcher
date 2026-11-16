@@ -25,7 +25,12 @@ final class HubIcons {
             "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs",
             "combo", "togglesprint", "crosshair", "attackindicator", "blockoverlay", "connection", "fullbright", "chat",
             "tab", "elytratrails", "hotbar", "emojichat", "freelook", "lightoverlay", "offhand", "zoom",
-            "buttons", "browser", "voice", "music", "baublase");
+            "buttons", "browser", "voice", "music");
+
+    /** Icons with their own image instead of a cell ({@link #IMAGE_SIZE} square, drawn smaller). */
+    static final Map<String, TextureRef> IMAGES = Map.of(
+            "baublase", new TextureRef("lumora", "textures/gui/hub/addons/baublase.png"));
+    static final int IMAGE_SIZE = 128;
 
     /** Icons of known addons by addon id. */
     private static final Map<String, String> ADDONS = Map.of(
@@ -42,11 +47,16 @@ final class HubIcons {
     }
 
     static boolean has(String name) {
-        return NAMES.contains(name);
+        return NAMES.contains(name) || IMAGES.containsKey(name);
     }
 
     /** Draws the icon in a square of the given size; unknown names get the Lumora logo. */
     static void draw(HudGraphics g, String name, int x, int y, int size) {
+        TextureRef image = IMAGES.get(name);
+        if (image != null) {
+            g.texture(image, x, y, size, size, IMAGE_SIZE, IMAGE_SIZE);
+            return;
+        }
         int i = NAMES.indexOf(name);
         if (i < 0) {
             g.texture(HubView.LOGO, x, y, size, size, 128, 128);

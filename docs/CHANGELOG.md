@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.62 (2026-11-16)
+
+### Client
+- **Performance für 1.21.x:** Entity Culling, optimiertes Rendering der Namensschilder und die Frame-Optimierung gibt es jetzt auch in 1.21.11, 1.21.8, 1.21.4 und 1.21.
+- **Wolken-Optimierung (1.21):** Minecraft 1.21 baut die Wolken bei jeder Farbänderung neu (Sonnenauf- und -untergang, Regen). Mit der Optimierung wird nur noch die Farbe angepasst; die Wolken sehen gleich aus (Rundung höchstens eine von 255 Farbstufen). Ab 1.21.4 baut Minecraft die Wolken schon selbst nur bei Bedarf neu.
+
 ## 0.3.61 (2026-11-16)
 
 ### Client

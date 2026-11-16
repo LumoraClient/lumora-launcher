@@ -66,6 +66,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.62 (2026-11-16):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 638 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **Messszene** (stumm, Test-Home, FPS-Limit aus) für 1.21.11, 1.21.8, 1.21.4 und 1.21: hinter der Wand Ø FPS aus → nur Culling 225 → 604, 319 → 836, 302 → 597, 236 → 365 (Wiederholung 260 → 408); Hub ≈ +15 bis 25 %; offene Sicht im Rauschen. Je Version 240 Ein/Aus-Prüfungen ohne Fehler. Ein erster 1.21-Lauf mit unvollständig aufgebauter Szene (232 statt etwa 345 Ziele) hid nur 6; in zwei Wiederholungen 345 und 347 von 347.
+- **Wolken (1.21):** bei 10-fach beschleunigtem Sonnenuntergang 61 und 63 Neuaufbauten in 8 s ohne, 0 mit Optimierung; FPS-Unterschied im Rauschen. Screenshots 2 Ticks auseinander: Wolkenpixel weichen um höchstens 1 von 255 Stufen ab, zwei Aufnahmen ohne Optimierung sind gleich.
+- **Smoke-Test** (normal, stumm) für 1.21.11 (mit Namensschild-Icons) und 1.21 bestanden.
+- **Nicht geprüft:** Namensschild-Icons in 1.21.8, 1.21.4 und 1.21 im Spiel; ein Selbst-Update von 0.3.61.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.61 (2026-11-16):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 638 Unit-Tests ohne Fehler (1 übersprungen). Neu: 11 Tests für den Occlusion-Culler (Wand, Fenster, Nähe, Kamera im Block, veraltete Ergebnisse, Block-Änderungen, Ein/Aus), ein Pixel-Vergleich der schnellen abgerundeten Flächen über 10.000 Größen, ein Test für den Hub-Karten-Cache, 2 Loader-Tests (Schalter aus den Einstellungen, gleiche Klasse und gleiche CodeSource mit schnellem Start). `integrationTest` enthält weiterhin keine Tests.
 - **Messszene** (`-Dlumora.perfBench=true`, stumm, Test-Home, FPS-Limit aus) für 26.3, 26.2 und 26.1.2 bestanden: hinter einer Wand mit 225 Zombies und Truhen Ø FPS alles aus → nur Culling 229 → 551 (26.3), 269 → 801 (26.2), 252 → 1115 (26.1.2); Hub offen ≈ 119 → 133 / 126 → 159 / 119 → 135; offene Sicht ohne Verdecktes im Rauschen (Läufe gleicher Einstellung schwanken bis etwa 13 %, Culling-Hooks laut Profiler etwa 1,5 % der Render-Thread-Zeit). Screenshots Culling aus/an (offene Sicht, Fenster in der Wand) unterscheiden sich nur in wechselnden HUD-Werten. Je Version 240 Ein/Aus-Prüfungen von Modul und Schaltern ohne Fehler.

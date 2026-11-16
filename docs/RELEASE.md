@@ -66,6 +66,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.61 (2026-11-16):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 638 Unit-Tests ohne Fehler (1 übersprungen). Neu: 11 Tests für den Occlusion-Culler (Wand, Fenster, Nähe, Kamera im Block, veraltete Ergebnisse, Block-Änderungen, Ein/Aus), ein Pixel-Vergleich der schnellen abgerundeten Flächen über 10.000 Größen, ein Test für den Hub-Karten-Cache, 2 Loader-Tests (Schalter aus den Einstellungen, gleiche Klasse und gleiche CodeSource mit schnellem Start). `integrationTest` enthält weiterhin keine Tests.
+- **Messszene** (`-Dlumora.perfBench=true`, stumm, Test-Home, FPS-Limit aus) für 26.3, 26.2 und 26.1.2 bestanden: hinter einer Wand mit 225 Zombies und Truhen Ø FPS alles aus → nur Culling 229 → 551 (26.3), 269 → 801 (26.2), 252 → 1115 (26.1.2); Hub offen ≈ 119 → 133 / 126 → 159 / 119 → 135; offene Sicht ohne Verdecktes im Rauschen (Läufe gleicher Einstellung schwanken bis etwa 13 %, Culling-Hooks laut Profiler etwa 1,5 % der Render-Thread-Zeit). Screenshots Culling aus/an (offene Sicht, Fenster in der Wand) unterscheiden sich nur in wechselnden HUD-Werten. Je Version 240 Ein/Aus-Prüfungen von Modul und Schaltern ohne Fehler.
+- **Start** (26.3, je 3 Starts, `-Dlumora.perfBench=startup`): Klassen lesen etwa 400 statt 670 ms, insgesamt etwa 0,3 bis 0,4 s weniger CPU-Zeit beim Laden; Zeit bis zum Hauptmenü (etwa 12 s) auf die Sekunde gemessen unverändert.
+- **Smoke-Test** (normal, stumm, Test-Home) für 26.3 und 1.8.9 bestanden, Namensschild-Icons gezeichnet, Modul „Performance“ im Hub (36 Module).
+- **Nicht geprüft:** die übrigen 12 Minecraft-Versionen im Spiel (dort nur Smart Menüs und schnellerer Start), ein Selbst-Update von 0.3.60.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.60 (2026-11-16):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 623 Unit-Tests ohne Fehler (1 übersprungen). Neu: Test, dass Icons mit eigenem Bild (Baublase) als 128×128-PNG vorhanden und nicht zusätzlich im Sprite-Sheet sind. `integrationTest` enthält weiterhin keine Tests.
 - **Smoke-Test** (stumm, Test-Home) für 26.3 bestanden. Hub › Module auf dem Screenshot geprüft: Baublase zeigt das „B“-Icon.

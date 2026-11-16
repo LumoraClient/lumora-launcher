@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.3.61 (2026-11-16)
+
+### Client
+- **Neues Modul „Performance“:** eine zentrale Performance-Engine mit einem Schalter pro Optimierung, alle standardmäßig an. „Status“ zeigt, was in der laufenden Minecraft-Version an, aus oder nicht verfügbar ist (mit Grund).
+- **Entity Culling (26.3, 26.2, 26.1.2):** Entities und Block-Entities, die vollständig hinter undurchsichtigen Blöcken liegen, werden nicht gezeichnet. Spieler, sichtbare Namensschilder, leuchtende und geleinte Entities, Angelhaken, Leuchtfeuer-Strahlen und alles in der Nähe werden immer gezeichnet.
+- **Optimiertes Rendering (26.x):** Namensschild-Icons und Lumora-Texte über Spielern werden nicht mehr in jedem Frame neu gebaut.
+- **Smart HUD & Menüs (alle Versionen):** Das Hub baut seine Karten nur noch neu, wenn sich etwas daran geändert hat.
+- **Frame-Optimierung (26.x):** Abgerundete Flächen und Buttons zeichnen dieselben Pixel mit weniger Aufwand.
+- **Schnellerer Start (alle Versionen):** Der Lumora Loader liest die Spielklassen direkt aus den Jars (wirkt ab dem nächsten Start).
+- **Wolken:** In 26.x nicht nötig, weil Minecraft die Wolken dort schon nur bei Bedarf neu baut. Ältere Versionen folgen.
+
 ## 0.3.60 (2026-11-16)
 
 ### Client

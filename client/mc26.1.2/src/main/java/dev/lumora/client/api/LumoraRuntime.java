@@ -44,6 +44,7 @@ public final class LumoraRuntime {
 
     /** Called from the mod initializer: creates the core and registers the hooks. */
     public static void init() {
+        dev.lumora.client.perf.Culling.init();
         platform = new McPlatform();
         core = new LumoraCore(platform);
         core.installGlobal();
@@ -139,6 +140,7 @@ public final class LumoraRuntime {
     }
 
     public static void resourcesReloaded() {
+        dev.lumora.client.render.NameTagIcons.clearCaches();
         if (core != null) {
             core.resourcesReloaded();
         }

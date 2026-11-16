@@ -25,7 +25,7 @@ final class HubIcons {
             "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs",
             "combo", "togglesprint", "crosshair", "attackindicator", "blockoverlay", "connection", "fullbright", "chat",
             "tab", "elytratrails", "hotbar", "emojichat", "freelook", "lightoverlay", "offhand", "zoom",
-            "buttons", "browser", "voice", "music");
+            "buttons", "browser", "voice", "music", "performance");
 
     /** Icons with their own image instead of a cell ({@link #IMAGE_SIZE} square, drawn smaller). */
     static final Map<String, TextureRef> IMAGES = Map.of(

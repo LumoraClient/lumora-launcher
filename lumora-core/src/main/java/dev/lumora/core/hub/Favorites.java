@@ -19,6 +19,8 @@ public final class Favorites {
     private final Path file;
     private final Executor io;
     private final Set<String> ids = new LinkedHashSet<>();
+    /** Counts the changes (the hub rebuilds its cards only when this or something else they show changed). */
+    private volatile int version;
 
     /**
      * @param file null keeps the favorites in memory only
@@ -38,6 +40,10 @@ public final class Favorites {
         return Set.copyOf(ids);
     }
 
+    public int version() {
+        return version;
+    }
+
     public synchronized boolean isEmpty() {
         return ids.isEmpty();
     }
@@ -48,6 +54,7 @@ public final class Favorites {
         String json;
         synchronized (this) {
             now = ids.add(id) || !ids.remove(id);
+            version++;
             JsonArray a = new JsonArray();
             ids.forEach(s -> a.add(new JsonPrimitive(s)));
             json = a.toString();

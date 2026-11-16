@@ -12,6 +12,11 @@ import java.security.ProtectionDomain;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * Class loader of the game: the Minecraft client jar and the Lumora client jar. Classes found in these jars are loaded
@@ -43,9 +48,42 @@ public final class GameClassLoader extends URLClassLoader {
 
     private volatile Transformer transformer;
     private final Map<URL, ProtectionDomain> domains = new ConcurrentHashMap<>();
+    // faster startup: the game jars by the prefix of their class URLs, with their protection domain and an open JarFile
+    private final String[] jarPrefixes;
+    private final URL[] jarUrls;
+    private final JarFile[] jarFiles;
+    private final ProtectionDomain[] jarDomains;
+    private volatile boolean fast;
+    // class loading statistics (startup comparison)
+    private final AtomicInteger classes = new AtomicInteger();
+    private final AtomicLong readNanos = new AtomicLong();
+    private final AtomicLong transformNanos = new AtomicLong();
+    private final AtomicLong defineNanos = new AtomicLong();
 
     public GameClassLoader(URL[] jars, ClassLoader parent) {
         super("lumora-game", jars, parent);
+        jarUrls = jars.clone();
+        jarPrefixes = new String[jars.length];
+        jarFiles = new JarFile[jars.length];
+        jarDomains = new ProtectionDomain[jars.length];
+        for (int i = 0; i < jars.length; i++) {
+            jarPrefixes[i] = jars[i].toExternalForm() + "!/";
+        }
+    }
+
+    /**
+     * Faster startup (Lumora performance module): class bytes come straight from the already known jars instead of a
+     * new {@code jar:} URL connection per class, and the protection domain of the jar is looked up without opening a
+     * second connection. Same bytes, same code source.
+     */
+    void fast(boolean on) {
+        this.fast = on;
+    }
+
+    /** Classes defined so far and the time spent reading, transforming and defining them (startup comparison). */
+    public String stats() {
+        return classes.get() + " classes, read " + readNanos.get() / 1_000_000 + " ms, transform " + transformNanos.get() / 1_000_000
+                + " ms, define " + defineNanos.get() / 1_000_000 + " ms, fast " + fast;
     }
 
     void transformer(Transformer t) {
@@ -91,16 +129,23 @@ public final class GameClassLoader extends URLClassLoader {
     }
 
     private Class<?> define(String name, URL url) throws ClassNotFoundException {
-        byte[] bytes;
-        try (InputStream in = url.openStream()) {
-            bytes = in.readAllBytes();
-        } catch (IOException e) {
-            throw new ClassNotFoundException(name + ": " + e.getMessage(), e);
+        long t0 = System.nanoTime();
+        int jar = fast ? jarIndex(url) : -1;
+        byte[] bytes = jar >= 0 ? readFromJar(jar, name) : null;
+        if (bytes == null) {
+            jar = -1;
+            try (InputStream in = url.openStream()) {
+                bytes = in.readAllBytes();
+            } catch (IOException e) {
+                throw new ClassNotFoundException(name + ": " + e.getMessage(), e);
+            }
         }
+        long t1 = System.nanoTime();
         Transformer t = transformer;
         if (t != null) {
             bytes = t.transform(name, bytes);
         }
+        long t2 = System.nanoTime();
         int dot = name.lastIndexOf('.');
         if (dot > 0) {
             String pkg = name.substring(0, dot);
@@ -112,7 +157,71 @@ public final class GameClassLoader extends URLClassLoader {
                 }
             }
         }
-        return defineClass(name, bytes, 0, bytes.length, domain(url));
+        Class<?> c = defineClass(name, bytes, 0, bytes.length, jar >= 0 ? jarDomain(jar) : domain(url));
+        long t3 = System.nanoTime();
+        classes.incrementAndGet();
+        readNanos.addAndGet(t1 - t0);
+        transformNanos.addAndGet(t2 - t1);
+        defineNanos.addAndGet(t3 - t2);
+        return c;
+    }
+
+    /** Which game jar a class URL points into ({@code jar:<jar url>!/<path>}), or -1. */
+    private int jarIndex(URL url) {
+        if (!"jar".equals(url.getProtocol())) {
+            return -1;
+        }
+        String file = url.getFile();
+        for (int i = 0; i < jarPrefixes.length; i++) {
+            if (file.startsWith(jarPrefixes[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** The class bytes from the open jar, or null (then the URL is read as before). */
+    private byte[] readFromJar(int jar, String name) {
+        try {
+            JarFile f = jarFile(jar);
+            ZipEntry e = f.getJarEntry(name.replace('.', '/') + ".class");
+            if (e == null) {
+                return null;
+            }
+            try (InputStream in = f.getInputStream(e)) {
+                return in.readAllBytes();
+            }
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    private JarFile jarFile(int jar) throws IOException {
+        JarFile f = jarFiles[jar];
+        if (f == null) {
+            synchronized (jarFiles) {
+                f = jarFiles[jar];
+                if (f == null) {
+                    try {
+                        f = new JarFile(new java.io.File(jarUrls[jar].toURI()), false, ZipFile.OPEN_READ, JarFile.runtimeVersion());
+                    } catch (java.net.URISyntaxException e) {
+                        throw new IOException(e);
+                    }
+                    jarFiles[jar] = f;
+                }
+            }
+        }
+        return f;
+    }
+
+    /** Same protection domain {@link #domain} gives classes of this jar (one per jar, the jar as code source). */
+    private ProtectionDomain jarDomain(int jar) {
+        ProtectionDomain d = jarDomains[jar];
+        if (d == null) {
+            d = domains.computeIfAbsent(jarUrls[jar], u -> new ProtectionDomain(new CodeSource(u, (CodeSigner[]) null), null, this, null));
+            jarDomains[jar] = d;
+        }
+        return d;
     }
 
     /** One protection domain per jar, with the jar as code source (Minecraft looks up its own jar that way). */
@@ -142,6 +251,19 @@ public final class GameClassLoader extends URLClassLoader {
         }
         try (InputStream s = in) {
             return s.readAllBytes();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        synchronized (jarFiles) {
+            for (int i = 0; i < jarFiles.length; i++) {
+                if (jarFiles[i] != null) {
+                    jarFiles[i].close();
+                    jarFiles[i] = null;
+                }
+            }
         }
     }
 

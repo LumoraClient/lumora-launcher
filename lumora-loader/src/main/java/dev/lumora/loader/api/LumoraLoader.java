@@ -38,6 +38,18 @@ public final class LumoraLoader {
     }
 
     /** {@code .minecraft} of this instance (Minecraft's {@code --gameDir}). */
+    private static volatile java.util.function.Supplier<String> classLoadingStats = () -> "";
+
+    /** Set by the loader: number of game classes and time spent loading them (startup comparison). */
+    public static void classLoadingStats(java.util.function.Supplier<String> stats) {
+        classLoadingStats = stats;
+    }
+
+    /** Game classes loaded so far and the time spent reading, transforming and defining them. */
+    public static String classLoadingStats() {
+        return classLoadingStats.get();
+    }
+
     public static Path gameDir() {
         return gameDir;
     }

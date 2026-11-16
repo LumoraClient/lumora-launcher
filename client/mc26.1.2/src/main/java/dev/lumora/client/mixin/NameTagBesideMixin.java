@@ -3,7 +3,6 @@ package dev.lumora.client.mixin;
 import dev.lumora.client.render.NameTagIcons;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;
-import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -20,23 +19,23 @@ public abstract class NameTagBesideMixin {
     @Redirect(method = "add", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))
     private boolean lumora$addBeside(List<Object> list, Object submit) {
         boolean added = list.add(submit);
-        Component icon = NameTagIcons.current();
+        NameTagIcons.Text icon = NameTagIcons.current();
         if (icon != null && submit instanceof SubmitNodeStorage.NameTagSubmit name) {
             // the name starts at -width/2, so its end is at -x
-            list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -name.x() + NameTagIcons.GAP, name.y(), icon, name.lightCoords(),
+            list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -name.x() + NameTagIcons.GAP, name.y(), icon.component, name.lightCoords(),
                     name.color(), 0, name.distanceToCameraSq()));
         }
         if (submit instanceof SubmitNodeStorage.NameTagSubmit name) {
             // lines above and below the name: like the name itself, with its box
             var font = net.minecraft.client.Minecraft.getInstance().font;
-            Component above = NameTagIcons.above();
+            NameTagIcons.Text above = NameTagIcons.above();
             if (above != null) {
-                list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -font.width(above) / 2f, name.y() - NameTagIcons.LINE, above,
+                list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -above.width(font) / 2f, name.y() - NameTagIcons.LINE, above.component,
                         name.lightCoords(), name.color(), name.backgroundColor(), name.distanceToCameraSq()));
             }
-            Component below = NameTagIcons.below();
+            NameTagIcons.Text below = NameTagIcons.below();
             if (below != null) {
-                list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -font.width(below) / 2f, name.y() + NameTagIcons.LINE, below,
+                list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -below.width(font) / 2f, name.y() + NameTagIcons.LINE, below.component,
                         name.lightCoords(), name.color(), name.backgroundColor(), name.distanceToCameraSq()));
             }
         }

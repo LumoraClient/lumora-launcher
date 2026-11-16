@@ -75,6 +75,9 @@ public final class Boot {
         GameClassLoader loader = new GameClassLoader(urls.toArray(URL[]::new), Boot.class.getClassLoader());
         Thread.currentThread().setContextClassLoader(loader);
         LumoraLoader.init(gameDir, minecraft, loaded);
+        boolean fast = fastStartup(LumoraLoader.configDir());
+        loader.fast(fast);
+        LumoraLoader.classLoadingStats(loader::stats);
 
         // Mixin: service = LumoraMixinService (META-INF/services), configs from the jars, then INIT -> DEFAULT
         LumoraMixinService.loader(loader);
@@ -150,6 +153,28 @@ public final class Boot {
             }
         }
         return fallback;
+    }
+
+    /**
+     * Whether the Lumora performance module's "Faster Startup" is on: read from its saved settings (on unless the
+     * module or the switch was turned off; when the files cannot be read, the old way is used).
+     */
+    static boolean fastStartup(Path config) {
+        try {
+            Path addons = config.resolve("lumora/addons.json");
+            if (java.nio.file.Files.isRegularFile(addons)) {
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"disabled\"\\s*:\\s*\\[([^\\]]*)\\]")
+                        .matcher(java.nio.file.Files.readString(addons));
+                if (m.find() && m.group(1).contains("\"lumora-performance\"")) {
+                    return false;
+                }
+            }
+            Path settings = config.resolve("lumora/addons/lumora-performance.json");
+            return !java.nio.file.Files.isRegularFile(settings) || !java.util.regex.Pattern.compile("\"startup\"\\s*:\\s*\"?false")
+                    .matcher(java.nio.file.Files.readString(settings)).find();
+        } catch (IOException | RuntimeException e) {
+            return false;
+        }
     }
 
     private static String require(String property) {

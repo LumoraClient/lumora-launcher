@@ -80,7 +80,8 @@ public final class HubView implements AddonView {
             Map.entry("lumora-emojichat", new String[]{WidgetCategory.SERVER, "emojichat"}),
             Map.entry("lumora-freelook", new String[]{WidgetCategory.PLAYER, "freelook"}),
             Map.entry("lumora-lightoverlay", new String[]{WidgetCategory.WORLD, "lightoverlay"}),
-            Map.entry("lumora-offhand", new String[]{WidgetCategory.PLAYER, "offhand"}));
+            Map.entry("lumora-offhand", new String[]{WidgetCategory.PLAYER, "offhand"}),
+            Map.entry(dev.lumora.core.perf.PerformanceModule.ID, new String[]{WidgetCategory.GENERAL, "performance"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",
             "keystrokes", "armor", "blockinfo", "potions", "items", "compass", "memory", "day", "packs", "combo",
@@ -244,10 +245,76 @@ public final class HubView implements AddonView {
     }
 
     /**
-     * All cards: zoom, built-in modules and addons (with their own HUD widgets as sections of their settings), and
-     * the widgets of Lumora's widget collections.
+     * All cards. With "Smart HUD &amp; Menus" ({@link dev.lumora.core.perf.PerformanceEngine#smartHud}) the list is
+     * kept and only built again when something it shows changed (an addon's state, a widget switched, a favourite, the
+     * zoom option), which is checked every frame against the values the list was built from.
      */
     List<Card> cards() {
+        if (!dev.lumora.core.perf.PerformanceEngine.smartHud) {
+            cachedCards = null;
+            return buildCards();
+        }
+        if (cardInputsChanged() || cachedCards == null) {
+            cachedCards = buildCards();
+        }
+        return cachedCards;
+    }
+
+    private List<Card> cachedCards;
+    private Object[] cardInputs = new Object[64];
+    private int cardInputCount;
+    private boolean cardInputsDiffer;
+    private int cardInputIndex;
+
+    /** Compares what the cards are built from with the values of the last build (and remembers the new ones). */
+    private boolean cardInputsChanged() {
+        cardInputIndex = 0;
+        cardInputsDiffer = false;
+        boolean zoom = host.has("zoomEnabled");
+        cardInput(zoom ? bool("zoomEnabled") ? 2 : 1 : 0);
+        cardInput(zoom ? host.zoomKey() : null);
+        cardInput(favorites.version());
+        for (AddonInfo a : core.addons()) {
+            cardInput(a);
+            cardInput(a.wanted());
+            cardInput(a.state());
+            cardInput(a.error().orElse(null));
+        }
+        for (WidgetInfo w : core.widgets()) {
+            cardInput(w);
+            cardInput(w.isEnabled());
+            cardInput(w.failure().orElse(null));
+        }
+        if (cardInputIndex != cardInputCount) {
+            cardInputsDiffer = true;
+            java.util.Arrays.fill(cardInputs, cardInputIndex, Math.max(cardInputIndex, cardInputCount), null);
+            cardInputCount = cardInputIndex;
+        }
+        return cardInputsDiffer;
+    }
+
+    private void cardInput(Object value) {
+        int i = cardInputIndex++;
+        if (i == cardInputs.length) {
+            cardInputs = java.util.Arrays.copyOf(cardInputs, i * 2);
+        }
+        if (i >= cardInputCount || !java.util.Objects.equals(cardInputs[i], value)) {
+            cardInputs[i] = value;
+            cardInputsDiffer = true;
+        }
+    }
+
+    private void cardInput(int value) {
+        cardInput((Object) Integer.valueOf(value));
+    }
+
+    private void cardInput(boolean value) {
+        cardInput((Object) Boolean.valueOf(value));
+    }
+
+    /** The cards built from the current state: zoom, built-in modules and addons (with their own HUD widgets as
+     * sections of their settings), and the widgets of Lumora's widget collections. */
+    private List<Card> buildCards() {
         List<Card> out = new ArrayList<>();
         if (host.has("zoomEnabled")) {
             String zoom = lang("lumora.module.zoom", "Zoom");

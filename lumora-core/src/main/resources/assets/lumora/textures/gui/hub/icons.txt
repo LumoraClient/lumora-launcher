@@ -34,3 +34,4 @@ buttons
 browser
 voice
 music
+performance

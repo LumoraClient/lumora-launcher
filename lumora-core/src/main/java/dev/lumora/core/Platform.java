@@ -85,6 +85,22 @@ public interface Platform {
         return dev.lumora.core.screen.ViewManager.Platform.NONE;
     }
 
+    /**
+     * The performance optimizations this version adapter implements. The default covers the ones that live in the core
+     * or the Lumora Loader and therefore work on every version (menus without needless rebuilds, faster startup).
+     */
+    default java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {
+        return java.util.EnumSet.of(dev.lumora.core.perf.Optimization.SMART_HUD, dev.lumora.core.perf.Optimization.STARTUP);
+    }
+
+    /**
+     * Translation key that says why an optimization is not available in this version (e.g. Minecraft already does it),
+     * or null for the general "not supported in this version".
+     */
+    default String optimizationNote(dev.lumora.core.perf.Optimization optimization) {
+        return null;
+    }
+
     /** Whether a Fabric mod with this id is installed. */
     default boolean modLoaded(String modId) {
         return false;

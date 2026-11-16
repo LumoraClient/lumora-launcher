@@ -266,6 +266,19 @@ final class McPlatform implements Platform {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
 
+    /** Clouds are left out: since 1.21.2 Minecraft rebuilds them only when the cloud cell or mode changes. */
+    @Override
+    public java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {
+        return java.util.EnumSet.of(dev.lumora.core.perf.Optimization.ENTITY_CULLING, dev.lumora.core.perf.Optimization.RENDERING,
+                dev.lumora.core.perf.Optimization.SMART_HUD, dev.lumora.core.perf.Optimization.FRAME,
+                dev.lumora.core.perf.Optimization.STARTUP);
+    }
+
+    @Override
+    public String optimizationNote(dev.lumora.core.perf.Optimization optimization) {
+        return optimization == dev.lumora.core.perf.Optimization.CLOUDS ? "lumora.performance.note.clouds_vanilla" : null;
+    }
+
     @Override
     public boolean uploadTexture(String path, int width, int height, int[] argb) {
         com.mojang.blaze3d.platform.NativeImage img = new com.mojang.blaze3d.platform.NativeImage(width, height, false);

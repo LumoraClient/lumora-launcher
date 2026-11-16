@@ -7,7 +7,6 @@ import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
-import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -47,19 +46,19 @@ public abstract class NameTagBesideMixin {
 
     /** The lines above and below the name (Lumora API 1.7 NameTags.Lines): like the name itself, with its box. */
     private static java.util.List<NameTagFeatureRenderer.Submit> lumora$lines(Object submit) {
-        Component above = NameTagIcons.above();
-        Component below = NameTagIcons.below();
+        NameTagIcons.Text above = NameTagIcons.above();
+        NameTagIcons.Text below = NameTagIcons.below();
         if ((above == null && below == null) || !(submit instanceof NameTagFeatureRenderer.Submit name)) {
             return java.util.List.of();
         }
         var font = net.minecraft.client.Minecraft.getInstance().font;
         var lines = new java.util.ArrayList<NameTagFeatureRenderer.Submit>(2);
         if (above != null) {
-            lines.add(new NameTagFeatureRenderer.Submit(name.pose(), -font.width(above) / 2f, name.y() - NameTagIcons.LINE, above, name.lightCoords(),
+            lines.add(new NameTagFeatureRenderer.Submit(name.pose(), -above.width(font) / 2f, name.y() - NameTagIcons.LINE, above.component, name.lightCoords(),
                     name.color(), name.backgroundColor(), name.displayMode()));
         }
         if (below != null) {
-            lines.add(new NameTagFeatureRenderer.Submit(name.pose(), -font.width(below) / 2f, name.y() + NameTagIcons.LINE, below, name.lightCoords(),
+            lines.add(new NameTagFeatureRenderer.Submit(name.pose(), -below.width(font) / 2f, name.y() + NameTagIcons.LINE, below.component, name.lightCoords(),
                     name.color(), name.backgroundColor(), name.displayMode()));
         }
         return lines;
@@ -67,12 +66,12 @@ public abstract class NameTagBesideMixin {
 
     /** The icon right of the name's box, or {@code null} when no icon is pending. */
     private static NameTagFeatureRenderer.Submit lumora$beside(Object submit) {
-        Component icon = NameTagIcons.current();
+        NameTagIcons.Text icon = NameTagIcons.current();
         if (icon == null || !(submit instanceof NameTagFeatureRenderer.Submit name)) {
             return null;
         }
         // the name starts at -width/2, so its end is at -x
-        return new NameTagFeatureRenderer.Submit(name.pose(), -name.x() + NameTagIcons.GAP, name.y(), icon, name.lightCoords(), name.color(), 0,
+        return new NameTagFeatureRenderer.Submit(name.pose(), -name.x() + NameTagIcons.GAP, name.y(), icon.component, name.lightCoords(), name.color(), 0,
                 name.displayMode());
     }
 }

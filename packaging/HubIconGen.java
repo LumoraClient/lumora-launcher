@@ -240,6 +240,11 @@ public final class HubIconGen {
                 "................", "......eEEEEEE...", "......EEEEEEF...", "......E.....F...",
                 "......E.....F...", "......E.....F...", "......E.....F...", "......E.....F...",
                 "...eEEE..eEEF...", "..eEEEF.eEEEF...", "..EEEFF.EEEFF...", "...FFF...FFF....");
+        // ---- engine
+        outline("performance",
+                "................", ".........YYY....", "........yYYO....", ".......yYYO.....",
+                "......yYYO......", ".....yYYYYYYO...", "....yYYYYYYO....", "........YYO.....",
+                ".......YYO......", "......YYO.......", ".....YO.........", "....O...........");
     }
 
     static BufferedImage render(String name, Icon icon) {

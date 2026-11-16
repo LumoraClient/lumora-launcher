@@ -80,6 +80,27 @@ class HubViewTest {
         @Override public void close() { }
     }
 
+    @Test
+    void smartMenusKeepTheCardsUntilSomethingTheyShowChanges() {
+        LumoraCore core = core();
+        dev.lumora.core.perf.PerformanceEngine.declareSupported(java.util.EnumSet.of(dev.lumora.core.perf.Optimization.SMART_HUD));
+        dev.lumora.core.perf.PerformanceEngine.set(dev.lumora.core.perf.Optimization.SMART_HUD, true);
+        HubView view = new HubView(core, new FakeHost());
+        List<HubView.Card> first = view.cards();
+        assertTrue(first == view.cards(), "nothing changed: same list");
+        boolean armorBefore = first.stream().filter(c -> c.id().equals("addon:lumora-armor")).findFirst().orElseThrow().enabled();
+        assertTrue(core.addonManager().setWanted("lumora-armor", !armorBefore).isEmpty());
+        List<HubView.Card> afterToggle = view.cards();
+        assertFalse(first == afterToggle, "an addon was switched: rebuilt");
+        assertEquals(!armorBefore, afterToggle.stream().filter(c -> c.id().equals("addon:lumora-armor")).findFirst().orElseThrow().enabled());
+        view.favorites().toggle("addon:lumora-armor");
+        List<HubView.Card> afterFavorite = view.cards();
+        assertFalse(afterToggle == afterFavorite, "a favourite changed the order: rebuilt");
+        assertEquals("addon:lumora-armor", afterFavorite.get(0).id());
+        dev.lumora.core.perf.PerformanceEngine.set(dev.lumora.core.perf.Optimization.SMART_HUD, false);
+        assertFalse(view.cards() == view.cards(), "off: built every time like before");
+    }
+
     private LumoraCore core() {
         FakePlatform platform = new FakePlatform(dir);
         LumoraCore core = new LumoraCore(platform);
@@ -91,6 +112,7 @@ class HubViewTest {
     void resetAccent() {
         LumoraTheme.setAccent("purple");
         HubView.select(0);
+        dev.lumora.core.perf.PerformanceEngine.allOff();
     }
 
     @Test

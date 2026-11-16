@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.59 (2026-11-16):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 622 Unit-Tests ohne Fehler (1 übersprungen). Neu: 4 Tests für das Icon-Pack (Namen passen zu `icons.txt`, jedes Feld hat Pixel, eingebaute Module und Widgets haben ein eigenes Icon, bekannte Addons ihr Icon, andere das Logo). Hinweis: `integrationTest` enthält seit `1abd043` keine Tests mehr und läuft leer durch.
+- **Smoke-Test** (stumm, Test-Home) für 26.3 und 1.8.9 bestanden. Hub › Module und Hub › Addons auf den Screenshots geprüft: neue Icons in beiden Versionen, Baublase mit Münz-Icon, LumoraVoice mit Mikrofon, das Beispiel-Addon „Session Timer“ mit dem Lumora-Logo.
+- **Nicht geprüft:** die übrigen 14 Minecraft-Versionen im Spiel, das Spotify-Icon im Spiel (Addon nicht im Test-Home).
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.58 (2026-11-15):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 618 Unit-Tests ohne Fehler (1 übersprungen). Neu: Test für `NewsFeed.updatePicture` (Release der Hauptversion, sonst ältester Patch, Snapshots zählen nicht). Nur Launcher geändert, Client und Mixins unverändert.
 - **Oberfläche:** Startseite und Einstellungen › Appearance per `--ui-shot` geprüft: Drache rechts im Kopfbereich, schmale Seitenleiste mit Namen unter den Symbolen, Einstellung „Sidebar“ entfernt. Versionsraster mit den echten Update-Bildern aus den Patchnotes gerendert (26.3 bis 1.16 mit Bild, 1.12 und 1.8 mit eigenem Pixel-Bild).

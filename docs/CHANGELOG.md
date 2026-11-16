@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.59 (2026-11-16)
+
+### Client
+- **Neues Icon-Pack im Hub:** Alle Module und HUD-Widgets haben neue, selbst gezeichnete Pixel-Icons mit dunkler Kontur und mehreren Farbstufen. LumoraVoice zeigt ein Mikrofon, Spotify eine Musiknote und Baublase einen Münzstapel. Addons und Widgets anderer Autoren zeigen das Lumora-Logo.
+- **Ein Sprite-Sheet statt Einzelbilder:** Die Icons liegen gemeinsam in `icons.png` in Lumora Core und gelten für alle Minecraft-Versionen. Bisher lagen 32 Einzelbilder in jedem der 16 Versionsordner.
+
 ## 0.3.58 (2026-11-15)
 
 ### Launcher

@@ -228,10 +228,16 @@ public final class WidgetDesign {
         if (l == null) {
             return false;
         }
-        box(g, l, 0, 0, w, h);
-        if (l.accentBar) {
-            int r = Math.min(l.radius, h / 2);
-            g.fill(0, r, 2, h - r, l.accent());
+        // background, border and stripe are rectangles only: one draw call where the version supports it
+        boolean batch = dev.lumora.core.perf.FillBatch.begin(g);
+        try {
+            box(g, l, 0, 0, w, h);
+            if (l.accentBar) {
+                int r = Math.min(l.radius, h / 2);
+                g.fill(0, r, 2, h - r, l.accent());
+            }
+        } finally {
+            dev.lumora.core.perf.FillBatch.end(g, batch);
         }
         return true;
     }
@@ -270,16 +276,25 @@ public final class WidgetDesign {
     }
 
     private static void box(HudGraphics g, Look l, int x, int y, int w, int h) {
-        if (l.background) {
-            g.roundedRect(x, y, w, h, l.radius, l.backgroundColor);
-        }
-        if (l.border) {
-            outline(g, x, y, w, h, l.radius, l.borderNow());
+        boolean batch = dev.lumora.core.perf.FillBatch.begin(g);
+        try {
+            if (l.background) {
+                g.roundedRect(x, y, w, h, l.radius, l.backgroundColor);
+            }
+            if (l.border) {
+                outline(g, x, y, w, h, l.radius, l.borderNow());
+            }
+        } finally {
+            dev.lumora.core.perf.FillBatch.end(g, batch);
         }
     }
 
     /** A one pixel border with rounded corners (the inside stays free, so a translucent background stays even). */
     static void outline(HudGraphics g, int x, int y, int w, int h, int radius, int color) {
+        if (dev.lumora.core.perf.PerformanceEngine.frame) {
+            dev.lumora.core.perf.FastShapes.roundedOutline(g, x, y, w, h, radius, color);
+            return;
+        }
         if (w <= 0 || h <= 0) {
             return;
         }
@@ -303,13 +318,41 @@ public final class WidgetDesign {
 
     // ------------------------------------------------------------------ label and value
 
+    private static Look labelsOf;
+    private static final java.util.Map<String, String> LABELS = new java.util.HashMap<>();
+
+    /**
+     * The label as drawn ({@link Look#label(String)}). With "Smart HUD &amp; Menus" kept per look instead of being
+     * built again (capitals, colon, brackets) for every line of every widget in every frame.
+     */
+    static String drawnLabel(Look l, String label) {
+        if (!dev.lumora.core.perf.PerformanceEngine.smartHud || label == null) {
+            return l.label(label);
+        }
+        if (l != labelsOf) {
+            if (!l.equals(labelsOf)) {
+                LABELS.clear();
+            }
+            labelsOf = l;
+        }
+        String d = LABELS.get(label);
+        if (d == null) {
+            if (LABELS.size() >= 256) {
+                LABELS.clear();
+            }
+            d = l.label(label);
+            LABELS.put(label, d);
+        }
+        return d;
+    }
+
     /** Width of one line of label and value as {@link #line} draws it ({@code width}: the font's text width). */
     public static int lineWidth(ToIntFunction<String> width, String label, String value) {
         Look l = look();
         if (l == null) {
             return label.isEmpty() ? width.applyAsInt(value) : width.applyAsInt(label) + GAP + width.applyAsInt(value);
         }
-        String lb = l.label(label);
+        String lb = drawnLabel(l, label);
         return lb.isEmpty() ? width.applyAsInt(value) : width.applyAsInt(lb) + GAP + width.applyAsInt(value);
     }
 
@@ -329,7 +372,7 @@ public final class WidgetDesign {
             g.text(value, x, y, valueColor, shadow);
             return;
         }
-        String lb = l.label(label);
+        String lb = drawnLabel(l, label);
         int vc = fixedValue ? valueColor : l.value();
         if (lb.isEmpty()) {
             g.text(value, x, y, vc, l.shadow);

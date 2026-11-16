@@ -33,6 +33,8 @@ final class PerfBench {
     }
 
     private final List<Step> steps = new ArrayList<>();
+    // busy HUD for the HUD steps (all widgets, Widget-Design), put back before the hub steps
+    private dev.lumora.core.perf.HudBench hud;
     private final Map<String, String> results = new LinkedHashMap<>();
     private final List<String> problems = new ArrayList<>();
     private final String shotPrefix;
@@ -141,7 +143,19 @@ final class PerfBench {
         steps.add(new Step("wall/frame", mc -> only(Optimization.FRAME)));
         steps.add(new Step("wall/smart_hud", mc -> only(Optimization.SMART_HUD)));
         steps.add(new Step("wall/all-off-again", mc -> module(false)));
+        steps.add(new Step("hud/all-off", mc -> {
+            module(false);
+            hud = new dev.lumora.core.perf.HudBench(LumoraRuntime.core());
+            hud.showAll();
+        }));
+        steps.add(new Step("hud/smart_hud", mc -> only(Optimization.SMART_HUD)));
+        steps.add(new Step("hud/frame", mc -> only(Optimization.FRAME)));
+        steps.add(new Step("hud/smart_hud+frame", mc -> only(Optimization.SMART_HUD, Optimization.FRAME)));
+        steps.add(new Step("hud/all-off-again", mc -> module(false)));
         steps.add(new Step("hub/all-off", mc -> {
+            if (hud != null) {
+                hud.restore();
+            }
             module(false);
             mc.setScreen(LumoraHubScreen.withTab(null, 0));
         }));
@@ -161,6 +175,10 @@ final class PerfBench {
         if (done || mc.player == null) {
             return;
         }
+        // a screen that pauses the game (demo intro on a new demo world) would stop the scene commands and hide the scene
+        if (mc.screen != null && index < steps.size() && (index < 0 || !steps.get(index).name().startsWith("hub/"))) {
+            mc.setScreen(null);
+        }
         ticks++;
         if (index == -1) {
             if (ticks == 1) {
@@ -175,6 +193,9 @@ final class PerfBench {
         if (index < steps.size()) {
             if (!recording && ticks >= WARMUP_TICKS) {
                 FrameStats.INSTANCE.start(SECONDS);
+                if (hud != null) {
+                    hud.restart();
+                }
                 recording = true;
             } else if (recording && FrameStats.INSTANCE.isFinished()) {
                 FrameStats.Summary s = FrameStats.INSTANCE.finish();
@@ -183,8 +204,12 @@ final class PerfBench {
                 if (c != null && PerformanceEngine.entityCulling) {
                     culling = String.format(" | culled %d of %d, pass %.2f ms", c.lastHidden(), c.lastChecked(), c.lastPassNanos() / 1e6);
                 }
-                String line = (s == null ? "no frames" : s.format()) + culling;
+                String line = (s == null ? "no frames" : s.format()) + culling
+                        + (steps.get(index).name().startsWith("hud/") && hud != null ? String.format(java.util.Locale.ROOT, " | hud %.1f us", hud.micros()) : "");
                 results.put(steps.get(index).name(), line);
+                if (steps.get(index).name().equals("hud/all-off") || steps.get(index).name().equals("hud/smart_hud+frame")) {
+                    shot(mc, steps.get(index).name().equals("hud/all-off") ? "hud-off" : "hud-on"); // same widgets, same look
+                }
                 LumoraClient.LOG.info("LUMORA_PERF {} {}", steps.get(index).name(), line);
                 if (steps.get(index).name().equals("wall/entity_culling") && (c == null || c.lastHidden() < 200)) {
                     problems.add("entity culling hid only " + (c == null ? 0 : c.lastHidden()) + " targets behind the wall");

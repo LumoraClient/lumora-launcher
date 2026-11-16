@@ -17,13 +17,16 @@ import java.util.Optional;
  * {@link HudGraphics} on top of the 26.1 GuiGraphics. One instance is reused for every frame
  * ({@link #with}); texture ids are cached, so drawing allocates nothing.
  */
-public final class McHudGraphics implements HudGraphics {
+public final class McHudGraphics implements HudGraphics, dev.lumora.core.perf.FillBatch {
     private static final int MAX_CACHED_TEXTURES = 512;
     private final Map<TextureRef, ResourceLocation> textures = new HashMap<>();
     private GuiGraphics g;
 
     public McHudGraphics with(GuiGraphics graphics) {
         this.g = graphics;
+        if (dev.lumora.core.perf.PerformanceEngine.smartHud) {
+            dev.lumora.core.perf.TextWidths.validate(fontState()); // font switched without a resource reload
+        }
         return this;
     }
 
@@ -33,7 +36,30 @@ public final class McHudGraphics implements HudGraphics {
 
     @Override
     public int textWidth(String text) {
-        return font().width(text);
+        if (!dev.lumora.core.perf.PerformanceEngine.smartHud) {
+            return font().width(text);
+        }
+        int w = dev.lumora.core.perf.TextWidths.get(text);
+        if (w < 0) {
+            w = font().width(text);
+            dev.lumora.core.perf.TextWidths.put(text, w);
+        }
+        return w;
+    }
+
+    @Override
+    public void beginFills() {
+        g.beginFills();
+    }
+
+    @Override
+    public void endFills() {
+        g.endFills();
+    }
+
+    /** What decides a text's width besides the text: the font options that change the font without a resource reload. */
+    public static int fontState() {
+        return Minecraft.getInstance().options.forceUnicodeFont ? 1 : 0;
     }
 
     @Override

@@ -57,6 +57,7 @@
     "platform.BuiltInPackSourceMixin",
     "platform.PackRepositoryMixin",
     "platform.LegacyCustomPayloadMixin",
+    "perf.GuiGraphicsManagedAccessor",
     "perf.EntityCullableMixin",
     "perf.BlockEntityCullableMixin",
     "perf.EntityCullingMixin",

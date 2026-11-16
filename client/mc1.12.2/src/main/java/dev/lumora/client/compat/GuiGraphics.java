@@ -49,8 +49,74 @@ public final class GuiGraphics {
     }
 
     public void fill(int x1, int y1, int x2, int y2, int color) {
+        if (fillRuns > 0) {
+            fillQuad(x1, y1, x2, y2, color);
+            return;
+        }
         DrawableHelper.fill(x1, y1, x2, y2, color);
         // fill leaves the colour of the last quad as current GL colour; texts and textures expect white
+        GlStateManager.color(1f, 1f, 1f, 1f);
+    }
+
+    // Frame Optimization: rectangles of one colour in a run share one draw call. Same vertices and GL state as
+    // DrawableHelper.fill (which sets the colour with glColor), drawn in the same order.
+    private int fillRuns;
+    private boolean fillOpen;
+    private int fillColor;
+
+    public void beginFills() {
+        fillRuns++;
+    }
+
+    public void endFills() {
+        if (fillRuns > 0 && --fillRuns == 0) {
+            drawFills();
+        }
+    }
+
+    private void fillQuad(int x1, int y1, int x2, int y2, int color) {
+        if (fillOpen && color != fillColor) {
+            drawFills();
+        }
+        if (x1 < x2) {
+            int t = x1;
+            x1 = x2;
+            x2 = t;
+        }
+        if (y1 < y2) {
+            int t = y1;
+            y1 = y2;
+            y2 = t;
+        }
+        var buffer = net.minecraft.client.render.Tessellator.getInstance().getBuffer();
+        if (!fillOpen) {
+            buffer.begin(7, net.minecraft.client.render.VertexFormats.POSITION);
+            fillOpen = true;
+            fillColor = color;
+        }
+        buffer.vertex(x1, y2, 0.0).next();
+        buffer.vertex(x2, y2, 0.0).next();
+        buffer.vertex(x2, y1, 0.0).next();
+        buffer.vertex(x1, y1, 0.0).next();
+    }
+
+    private void drawFills() {
+        if (!fillOpen) {
+            return;
+        }
+        fillOpen = false;
+        int color = fillColor;
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+        GlStateManager.enableBlend();
+        GlStateManager.disableTexture();
+        GlStateManager.blendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(r, g, b, a);
+        net.minecraft.client.render.Tessellator.getInstance().draw();
+        GlStateManager.enableTexture();
+        GlStateManager.disableBlend();
         GlStateManager.color(1f, 1f, 1f, 1f);
     }
 

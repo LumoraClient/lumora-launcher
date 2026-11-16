@@ -139,6 +139,7 @@ public final class LumoraRuntime {
     }
 
     public static void resourcesReloaded() {
+        dev.lumora.core.perf.TextWidths.clear();
         dev.lumora.client.render.NameTagIcons.clearCaches();
         if (core != null) {
             core.resourcesReloaded();

@@ -90,12 +90,17 @@ public final class BuiltInWidgets {
             if (WidgetDesign.panel(g, w, h)) {
                 return;
             }
-            if (background.get()) {
-                g.fill(0, 0, w, h, Colors.withAlpha(LumoraUi.BG, 0x9C));
-                g.fill(0, 0, w, 1, Colors.withAlpha(0xFFFFFFFF, 0x10));
-            }
-            if (accent.get()) {
-                g.fill(0, 0, 2, h, LumoraUi.ACCENT);
+            boolean batch = dev.lumora.core.perf.FillBatch.begin(g); // rectangles only: one draw call where supported
+            try {
+                if (background.get()) {
+                    g.fill(0, 0, w, h, Colors.withAlpha(LumoraUi.BG, 0x9C));
+                    g.fill(0, 0, w, 1, Colors.withAlpha(0xFFFFFFFF, 0x10));
+                }
+                if (accent.get()) {
+                    g.fill(0, 0, 2, h, LumoraUi.ACCENT);
+                }
+            } finally {
+                dev.lumora.core.perf.FillBatch.end(g, batch);
             }
         }
     }

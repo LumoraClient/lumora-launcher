@@ -67,6 +67,7 @@ public final class NameTagIcons {
     // answers of the addons for one player in the current frame (render thread)
     private static UUID memoPlayer;
     private static int memoFrame = -1;
+    private static int fontEpoch;
     private static Optional<NameTags.Icon> memoIcon = Optional.empty();
     private static NameTags.Lines memoLines;
 
@@ -84,15 +85,27 @@ public final class NameTagIcons {
 
     /** Resources were reloaded (fonts, language): texts are measured and ordered again. */
     public static void clearCaches() {
+        clearTexts();
+        memoFrame = -1;
+    }
+
+    /** The font changed: texts are measured again. */
+    private static void clearTexts() {
         GLYPHS.clear();
         LINES.clear();
         SUBTITLES.clear();
-        memoFrame = -1;
     }
 
     /** Asks the addons once per player and frame (fast path). */
     private static void memo(UUID player) {
         int frame = FrameCounter.current();
+        if (frame != memoFrame) {
+            dev.lumora.core.perf.TextWidths.validate(dev.lumora.client.api.McHudGraphics.fontState());
+            if (fontEpoch != dev.lumora.core.perf.TextWidths.epoch()) {
+                fontEpoch = dev.lumora.core.perf.TextWidths.epoch();
+                clearTexts();
+            }
+        }
         if (frame == memoFrame && player.equals(memoPlayer)) {
             return;
         }

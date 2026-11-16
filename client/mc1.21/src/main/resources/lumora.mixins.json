@@ -55,6 +55,7 @@
     "platform.PackRepositoryMixin",
     "platform.DiscardedPayloadMixin",
     "platform.ClientCustomPayloadMixin",
+    "perf.GuiGraphicsManagedAccessor",
     "perf.EntityCullableMixin",
     "perf.BlockEntityCullableMixin",
     "perf.EntityCullingMixin",

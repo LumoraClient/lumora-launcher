@@ -17,13 +17,17 @@ import java.util.Optional;
  * {@link HudGraphics} on top of the 26.1 GuiGraphics. One instance is reused for every frame
  * ({@link #with}); texture ids are cached, so drawing allocates nothing.
  */
-public final class McHudGraphics implements HudGraphics {
+public final class McHudGraphics implements HudGraphics, dev.lumora.core.perf.FillBatch {
     private static final int MAX_CACHED_TEXTURES = 512;
     private final Map<TextureRef, ResourceLocation> textures = new HashMap<>();
     private GuiGraphics g;
 
     public McHudGraphics with(GuiGraphics graphics) {
         this.g = graphics;
+        fillRuns = 0;
+        if (dev.lumora.core.perf.PerformanceEngine.smartHud) {
+            dev.lumora.core.perf.TextWidths.validate(fontState()); // font switched without a resource reload
+        }
         return this;
     }
 
@@ -33,7 +37,44 @@ public final class McHudGraphics implements HudGraphics {
 
     @Override
     public int textWidth(String text) {
-        return font().width(text);
+        if (!dev.lumora.core.perf.PerformanceEngine.smartHud) {
+            return font().width(text);
+        }
+        int w = dev.lumora.core.perf.TextWidths.get(text);
+        if (w < 0) {
+            w = font().width(text);
+            dev.lumora.core.perf.TextWidths.put(text, w);
+        }
+        return w;
+    }
+
+    // Frame Optimization: open runs of rectangles (nested calls) and whether GuiGraphics was managed before
+    private int fillRuns;
+    private boolean wasManaged;
+
+    @Override
+    public void beginFills() {
+        if (fillRuns++ == 0) {
+            var managed = (dev.lumora.client.mixin.perf.GuiGraphicsManagedAccessor) g;
+            wasManaged = managed.lumora$managed();
+            if (!wasManaged) {
+                g.flush(); // what was drawn before stays below, like drawManaged
+                managed.lumora$managed(true);
+            }
+        }
+    }
+
+    @Override
+    public void endFills() {
+        if (fillRuns > 0 && --fillRuns == 0 && !wasManaged) {
+            ((dev.lumora.client.mixin.perf.GuiGraphicsManagedAccessor) g).lumora$managed(false);
+            g.flush(); // the collected rectangles in one draw call, in their order
+        }
+    }
+
+    /** What decides a text's width besides the text: the font options that change the font without a resource reload. */
+    public static int fontState() {
+        return Minecraft.getInstance().options.forceUnicodeFont().get() ? 1 : 0;
     }
 
     @Override

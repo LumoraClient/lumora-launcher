@@ -26,6 +26,7 @@ public final class NameTagIcons {
     private static final Map<String, Integer> WIDTHS = lru();
     private static UUID memoPlayer;
     private static int memoFrame = -1;
+    private static int fontEpoch;
     private static Optional<NameTags.Icon> memoIcon = Optional.empty();
     private static NameTags.Lines memoLines;
 
@@ -40,9 +41,14 @@ public final class NameTagIcons {
 
     /** Resources were reloaded (font): texts are measured again. */
     public static void clearCaches() {
+        clearTexts();
+        memoFrame = -1;
+    }
+
+    /** The font changed: texts are measured again. */
+    private static void clearTexts() {
         GLYPHS.clear();
         WIDTHS.clear();
-        memoFrame = -1;
     }
 
     /** Width of a text drawn above players (kept with "Optimized Rendering"). */
@@ -61,6 +67,13 @@ public final class NameTagIcons {
     /** Asks the addons once per player and frame (fast path). */
     private static void memo(UUID player) {
         int frame = FrameCounter.current();
+        if (frame != memoFrame) {
+            dev.lumora.core.perf.TextWidths.validate(dev.lumora.client.api.McHudGraphics.fontState());
+            if (fontEpoch != dev.lumora.core.perf.TextWidths.epoch()) {
+                fontEpoch = dev.lumora.core.perf.TextWidths.epoch();
+                clearTexts();
+            }
+        }
         if (frame == memoFrame && player.equals(memoPlayer)) {
             return;
         }

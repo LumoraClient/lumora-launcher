@@ -60,6 +60,8 @@ public final class KeystrokesView {
 
     /** Animation state per key: 0 released, 1 pressed (linear in time). */
     private final float[] glow = new float[Key.values().length];
+    /** Smart HUD: the click counter texts, built once instead of every frame. */
+    private static final String[] CPS_TEXTS = new String[100];
     private long lastFrame;
 
     /**
@@ -200,8 +202,8 @@ public final class KeystrokesView {
         int y = (k + gp) * 2;
         if (mouse.get()) {
             int half = (full - gp) / 2;
-            key(g, 0, y, half, k, "LMB", cps.get() ? in.cps(true) + " CPS" : null, Key.ATTACK, background, text, now);
-            key(g, half + gp, y, full - half - gp, k, "RMB", cps.get() ? in.cps(false) + " CPS" : null, Key.USE, background, text, now);
+            key(g, 0, y, half, k, "LMB", cps.get() ? cpsText(in.cps(true)) : null, Key.ATTACK, background, text, now);
+            key(g, half + gp, y, full - half - gp, k, "RMB", cps.get() ? cpsText(in.cps(false)) : null, Key.USE, background, text, now);
             y += k + gp;
         }
         if (space.get()) {
@@ -354,5 +356,17 @@ public final class KeystrokesView {
             out |= Math.round(ca + (cb - ca) * t) << shift;
         }
         return out;
+    }
+
+    static String cpsText(int cps) {
+        if (!dev.lumora.core.perf.PerformanceEngine.smartHud || cps < 0 || cps >= CPS_TEXTS.length) {
+            return cps + " CPS";
+        }
+        String s = CPS_TEXTS[cps];
+        if (s == null) {
+            s = cps + " CPS";
+            CPS_TEXTS[cps] = s;
+        }
+        return s;
     }
 }

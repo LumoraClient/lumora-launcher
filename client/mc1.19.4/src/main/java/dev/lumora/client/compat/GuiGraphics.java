@@ -43,7 +43,59 @@ public final class GuiGraphics {
     }
 
     public void fill(int x1, int y1, int x2, int y2, int color) {
+        if (fillRuns > 0) {
+            fillQuad(x1, y1, x2, y2, color);
+            return;
+        }
         GuiComponent.fill(pose, x1, y1, x2, y2, color);
+    }
+
+    // Frame Optimization: a run of rectangles drawn with one draw call. Same vertices, colours and GL state as
+    // GuiComponent.fill, in the same order, so overlapping translucent rectangles blend exactly as one by one.
+    private int fillRuns;
+    private com.mojang.blaze3d.vertex.BufferBuilder fillBuilder;
+
+    public void beginFills() {
+        fillRuns++;
+    }
+
+    public void endFills() {
+        if (fillRuns > 0 && --fillRuns == 0 && fillBuilder != null) {
+            var builder = fillBuilder;
+            fillBuilder = null;
+            RenderSystem.enableBlend();
+            RenderSystem.setShader(net.minecraft.client.renderer.GameRenderer::getPositionColorShader);
+            com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(builder.end());
+            RenderSystem.disableBlend();
+        }
+    }
+
+    private void fillQuad(int x1, int y1, int x2, int y2, int color) {
+        if (x1 < x2) {
+            int t = x1;
+            x1 = x2;
+            x2 = t;
+        }
+        if (y1 < y2) {
+            int t = y1;
+            y1 = y2;
+            y2 = t;
+        }
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+        var builder = fillBuilder;
+        if (builder == null) {
+            builder = com.mojang.blaze3d.vertex.Tesselator.getInstance().getBuilder();
+            builder.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
+            fillBuilder = builder;
+        }
+        var m = pose.last().pose();
+        builder.vertex(m, (float) x1, (float) y2, 0.0F).color(r, g, b, a).endVertex();
+        builder.vertex(m, (float) x2, (float) y2, 0.0F).color(r, g, b, a).endVertex();
+        builder.vertex(m, (float) x2, (float) y1, 0.0F).color(r, g, b, a).endVertex();
+        builder.vertex(m, (float) x1, (float) y1, 0.0F).color(r, g, b, a).endVertex();
     }
 
     // --- text: "shadow" selects drawShadow vs draw, the 1.20 overloads without it draw a shadow

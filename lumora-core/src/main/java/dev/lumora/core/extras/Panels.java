@@ -8,6 +8,8 @@ import dev.lumora.api.hud.RenderContext;
 import dev.lumora.api.render.Colors;
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.core.hud.WidgetDesign;
+import dev.lumora.core.perf.PerformanceEngine;
+import dev.lumora.core.perf.TextWidths;
 
 import java.util.List;
 
@@ -65,12 +67,17 @@ final class Panels {
             if (WidgetDesign.panel(g, w, h)) {
                 return;
             }
-            if (background.get()) {
-                g.fill(0, 0, w, h, Colors.withAlpha(Colors.BACKGROUND, 0x9C));
-                g.fill(0, 0, w, 1, Colors.withAlpha(0xFFFFFFFF, 0x10));
-            }
-            if (accent.get()) {
-                g.fill(0, 0, 2, h, Colors.ACCENT);
+            boolean batch = dev.lumora.core.perf.FillBatch.begin(g);
+            try {
+                if (background.get()) {
+                    g.fill(0, 0, w, h, Colors.withAlpha(Colors.BACKGROUND, 0x9C));
+                    g.fill(0, 0, w, 1, Colors.withAlpha(0xFFFFFFFF, 0x10));
+                }
+                if (accent.get()) {
+                    g.fill(0, 0, 2, h, Colors.ACCENT);
+                }
+            } finally {
+                dev.lumora.core.perf.FillBatch.end(g, batch);
             }
         }
     }
@@ -82,6 +89,11 @@ final class Panels {
     abstract static class Text extends Panel {
         private List<String[]> lines = List.of();
         private int width = 60;
+        // Smart HUD: what the width and the line colours were computed for (lines change 20x per second, frames more often)
+        private List<String[]> measured;
+        private WidgetDesign.Look measuredLook;
+        private int measuredEpoch;
+        private int[] fixedColors = new int[0];
 
         Text(String id) {
             super(id);
@@ -127,19 +139,37 @@ final class Panels {
         @Override
         public void render(HudGraphics g, RenderContext ctx) {
             List<String[]> l = lines;
-            int w = 0;
-            for (String[] line : l) {
-                w = Math.max(w, WidgetDesign.lineWidth(g::textWidth, line[0], line[1]));
+            WidgetDesign.Look look = WidgetDesign.look();
+            int epoch = TextWidths.epoch();
+            boolean smart = PerformanceEngine.smartHud;
+            if (!smart || l != measured || look != measuredLook || epoch != measuredEpoch) {
+                measure(g, l);
+                measured = smart ? l : null;
+                measuredLook = look;
+                measuredEpoch = epoch;
             }
-            width = Math.max(20, w + PAD * 2 + 2);
             panel(g, width, height(ctx));
             int y = PAD;
-            for (String[] line : l) {
+            for (int i = 0; i < l.size(); i++) {
+                String[] line = l.get(i);
                 boolean fixed = line.length > 2 && line[2] != null;
-                int color = fixed ? (int) Long.parseLong(line[2].substring(1), 16) : valueColor.argb();
+                int color = fixed ? fixedColors[i] : valueColor.argb();
                 WidgetDesign.line(g, PAD + 2, y, line[0], line[1], labelColor.argb(), color, true, fixed);
                 y += LINE;
             }
+        }
+
+        /** Width of the panel and the fixed line colours for these lines. */
+        private void measure(HudGraphics g, List<String[]> l) {
+            int w = 0;
+            int[] colors = fixedColors.length == l.size() ? fixedColors : new int[l.size()];
+            for (int i = 0; i < l.size(); i++) {
+                String[] line = l.get(i);
+                w = Math.max(w, WidgetDesign.lineWidth(g::textWidth, line[0], line[1]));
+                colors[i] = line.length > 2 && line[2] != null ? (int) Long.parseLong(line[2].substring(1), 16) : 0;
+            }
+            fixedColors = colors;
+            width = Math.max(20, w + PAD * 2 + 2);
         }
     }
 

@@ -18,6 +18,10 @@ public final class HudRenderer {
     private final SimpleEventBus events;
     private final WidgetRenderEvent widgetEvent = new WidgetRenderEvent();
     private final HudRenderEvent hudEvent = new HudRenderEvent();
+    // performance bench only: CPU time of the HUD pass (off in normal play, one field read per frame)
+    private static volatile boolean timing;
+    private static long timedNanos;
+    private static int timedFrames;
 
     public HudRenderer(WidgetRegistryImpl registry, SimpleEventBus events) {
         this.registry = registry;
@@ -26,6 +30,7 @@ public final class HudRenderer {
 
     /** In-game HUD pass (client thread). */
     public void render(HudGraphics g, RenderContext ctx) {
+        long start = timing ? System.nanoTime() : 0L;
         List<WidgetEntry> list = registry.entries();
         boolean listeners = events.hasListeners(WidgetRenderEvent.class);
         for (int i = 0; i < list.size(); i++) {
@@ -42,6 +47,23 @@ public final class HudRenderer {
         if (events.hasListeners(HudRenderEvent.class)) {
             events.post(hudEvent.set(g, ctx));
         }
+        if (timing) {
+            timedNanos += System.nanoTime() - start;
+            timedFrames++;
+        }
+    }
+
+    /** Performance bench: starts (true) or stops measuring the CPU time of the HUD pass, and clears what was measured. */
+    public static void timing(boolean on) {
+        timedNanos = 0;
+        timedFrames = 0;
+        timing = on;
+    }
+
+    /** Average CPU time of one HUD pass in microseconds since {@link #timing} was switched on, -1 without frames. */
+    public static double timedMicros() {
+        int f = timedFrames;
+        return f == 0 ? -1 : timedNanos / 1000.0 / f;
     }
 
     boolean visible(WidgetEntry e, RenderContext ctx) {

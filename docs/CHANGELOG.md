@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.63 (2026-11-16)
+
+### Client
+- **Performance für 1.20.6 bis 1.16.5:** Entity Culling, optimiertes Rendering der Namensschilder und die Frame-Optimierung gibt es jetzt auch in 1.20.6, 1.20.4, 1.20.1, 1.19.4, 1.18.2, 1.17.1 und 1.16.5.
+- **Wolken-Optimierung (1.20.6 bis 1.17.1):** Die Wolken werden bei Farbwechseln nicht mehr komplett neu gebaut (wie in 1.21). In 1.16.5 nicht unterstützt: Dort werden die Wolken mit der alten Fixed-Function-Pipeline gezeichnet.
+
 ## 0.3.62 (2026-11-16)
 
 ### Client

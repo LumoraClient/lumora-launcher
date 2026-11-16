@@ -84,6 +84,7 @@ public final class LumoraClient implements ClientEntrypoint {
                 InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category)));
 
         Hooks.onStarted(mc -> {
+            LOG.info("Lumora Loader: {}", dev.lumora.loader.api.LumoraLoader.classLoadingStats());
             RuntimeInfo.registerVfpLogging();
             if (config.writeDiagnosticsOnStart) {
                 Diagnostics.write("game-" + Diagnostics.profile() + "-latest.json", Diagnostics.collect());

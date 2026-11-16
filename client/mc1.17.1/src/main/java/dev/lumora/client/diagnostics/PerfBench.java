@@ -40,6 +40,7 @@ final class PerfBench {
     private int py;
     private int pz;
     private int index = -1;
+    private int rebuilds;
     private int ticks;
     private boolean recording;
     private boolean done;
@@ -106,7 +107,7 @@ final class PerfBench {
         int zombies = 0;
         for (int x = px + 12; x <= px + 40; x += 2) {
             for (int z = pz - 14; z <= pz + 14; z += 2) {
-                command(mc, String.format("summon zombie %d %d %d {NoAI:1b,Silent:1b,PersistenceRequired:1b}", x, py, z));
+                command(mc, String.format("summon husk %d %d %d {NoAI:1b,Silent:1b,PersistenceRequired:1b}", x, py, z));
                 zombies++;
             }
         }
@@ -117,7 +118,7 @@ final class PerfBench {
         }
         command(mc, String.format("tp @p %d %d %d -90 0", px + 2, py, pz));
         command(mc, "tick freeze");
-        results.put("scene", zombies + " zombies, chests every 3 blocks, wall 6 blocks in front of the camera");
+        results.put("scene", zombies + " husks, chests every 3 blocks, wall 6 blocks in front of the camera");
     }
 
     private void wall(Minecraft mc, boolean window) {
@@ -193,6 +194,16 @@ final class PerfBench {
                 build(mc);
                 plan();
             } else if (ticks >= 100) { // fills, entities and section meshes settle
+                if (mc.level.getBlockState(new net.minecraft.core.BlockPos(px + 8, py + 1, pz)).isAir() && rebuilds < 3) {
+                    rebuilds++;
+                    for (int x = px - 4; x <= px + 60; x += 8) {
+                        command(mc, String.format("fill %d %d %d %d %d %d stone", x, py - 1, pz - 20, x + 7, py - 1, pz + 20));
+                    }
+                    wall(mc, false);
+                    ticks = 40;
+                    return;
+                }
+                results.put("scene rebuilds", Integer.toString(rebuilds));
                 next(mc);
             }
             return;
@@ -217,9 +228,9 @@ final class PerfBench {
                 String line = (s == null ? "no frames" : s.format()) + culling + clouds;
                 results.put(steps.get(index).name(), line);
                 LumoraClient.LOG.info("LUMORA_PERF {} {}", steps.get(index).name(), line);
-                if (steps.get(index).name().equals("wall/entity_culling") && (c == null || c.lastHidden() < 200)) {
+                if (steps.get(index).name().equals("wall/entity_culling") && (c == null || c.lastHidden() < c.lastChecked() * 9 / 10 || c.lastChecked() < 150)) {
                     results.put("wall/debug", wallDebug(mc));
-                    problems.add("entity culling hid only " + (c == null ? 0 : c.lastHidden()) + " targets behind the wall");
+                    problems.add("entity culling hid only " + (c == null ? 0 : c.lastHidden() + " of " + c.lastChecked()) + " targets behind the wall");
                 }
                 if (steps.get(index).name().equals("open/entity_culling")) {
                     // nothing opaque between camera and targets except the floor: log what was hidden (the screenshots decide)

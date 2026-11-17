@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.69 (2026-11-18)
+
+### Launcher
+- **News:** neuer Artikel „Light Block Overlay: Lichtstufen“ zum Lichtstufen-Modus aus 0.3.68, mit zwei Bildern (Zahlen und Flächen um zwei Fackeln).
+
 ## 0.3.68 (2026-11-17)
 
 ### Client

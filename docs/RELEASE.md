@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.69 (2026-11-18):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 651 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **News:** Artikel „Light Block Overlay: Lichtstufen“. Bilder aus einem 26.1.2-Smoke-Lauf im Test-Home (Steinboden mit zwei Fackeln, Lichtstufe als Zahl und als Fläche, mit HUD wie im alten Light-Overlay-Bild). Dabei lief der Lichtstufen-Modus erstmals im Spiel: Farbverlauf und Zahlen sichtbar. Ein 26.3-Lauf mit den neuen Smoke-Aufnahmen hat ebenfalls bestanden. Weitere Tests auf Wunsch nicht ausgeführt; der Artikel ist im Launcher nicht angesehen.
+- **Smoke-Code:** `LightOverlaySmoke` schaltet zuerst auf „Spawn-Stellen“ (gleiche Prüfung wie vorher), 26.3 nimmt zusätzlich zwei Lichtstufen-Bilder auf, 26.1.2 hat einen neuen Schritt mit Fackel-Szene.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, News-Eintrag und beide Bilder im Launcher-Jar enthalten.
+
 **0.3.68 (2026-11-17):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 651 Unit-Tests ohne Fehler (1 übersprungen; `LightOverlayModuleTest` jetzt 11 Tests, neu: Lichtstufe als Standard auf jedem begehbaren Block, Moduswechsel liest die Welt neu, Blocklicht/Himmelslicht/beides und Farben dunkel–mittel–hell). Alle 16 Client-Versionen kompilieren mit der erweiterten `LightOverlayProbe`. `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** unverändert.

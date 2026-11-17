@@ -145,6 +145,11 @@ public final class LightOverlayModule implements LumoraAddon {
         mode.decode(value);
     }
 
+    /** Switches the style of the light level mode: "number", "tile" or "marker" (smoke test). */
+    public void setLightStyle(String value) {
+        lightStyle.decode(value);
+    }
+
     /** Whether the light level of every standable block is shown (else only spawn positions). */
     boolean lightMode() {
         return "light".equals(mode.get());

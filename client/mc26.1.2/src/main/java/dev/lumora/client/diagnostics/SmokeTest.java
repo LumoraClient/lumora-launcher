@@ -533,9 +533,44 @@ public final class SmokeTest {
                 ticks = 0;
             }
         } else if (worldStep == modes.length + 10) {
-            ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", false);
-            phase = Phase.DONE;
-            finish(mc);
+            var light = dev.lumora.core.extras.light.LightOverlayModule.active();
+            if (ticks == 1) {
+                ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", false);
+                // Light Block Overlay, light level mode: a stone floor with two torches seen from above (news picture);
+                // throwaway smoke world
+                PerfBench.command(mc, "execute at @p run fill ~-10 ~-1 ~-14 ~10 ~-1 ~4 stone");
+                PerfBench.command(mc, "execute at @p run fill ~-10 ~ ~-14 ~10 ~4 ~4 air");
+                PerfBench.command(mc, "execute at @p run setblock ~-3 ~ ~-4 torch");
+                PerfBench.command(mc, "execute at @p run setblock ~4 ~ ~-9 torch");
+                if (mc.player != null) {
+                    mc.player.setYRot(180f); // north, towards the torches
+                    mc.player.yRotO = 180f;
+                    mc.player.setXRot(38f);
+                    mc.player.xRotO = 38f;
+                }
+                ApiSmoke.core().addonManager().setWanted(dev.lumora.core.extras.light.LightOverlayModule.ID, true);
+            } else if (ticks == 3) {
+                if (light != null) {
+                    light.setMode("light");
+                    light.setLightStyle("number");
+                } else {
+                    extraProblems.add("light overlay: not active for the light level picture");
+                }
+            } else if (ticks == 40) {
+                screenshot(mc, "light-level-numbers");
+                if (light != null) {
+                    light.setLightStyle("tile");
+                }
+            } else if (ticks == 46) {
+                screenshot(mc, "light-level-tiles");
+                if (light != null) {
+                    LOG.info("LUMORA_LIGHT light level {}", light.stats());
+                    light.setLightStyle("number");
+                }
+                ApiSmoke.core().addonManager().setWanted(dev.lumora.core.extras.light.LightOverlayModule.ID, false);
+                phase = Phase.DONE;
+                finish(mc);
+            }
         }
     }
 

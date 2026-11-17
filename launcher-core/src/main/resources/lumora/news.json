@@ -1,6 +1,34 @@
 {
   "news": [
     {
+      "id": "lumora-light-level",
+      "date": "2026-11-18",
+      "author": "Lumora",
+      "version": "0.3.68",
+      "title": "Light Block Overlay: Lichtstufen",
+      "text": "Das Light Block Overlay zeigt jetzt auf jedem Block die Lichtstufe von 15 bis 0. Die Spawn-Stellen gibt es weiterhin als zweiten Modus.",
+      "image": "news-light-level.png",
+      "body": [
+        {"p": "Im Modul „Light Block Overlay“ (Hub, Welt) gibt es jetzt zwei Modi. Der neue Standard „Lichtstufe“ zeigt auf jedem Block, auf dem man stehen kann, wie hell es dort ist: 15 heißt voll ausgeleuchtet, 0 heißt kein Licht. So siehst du beim Bauen sofort, wo noch eine Fackel fehlt."},
+        {"list": [
+          "Darstellung als Zahl, Fläche oder Markierung",
+          "Farbe von dunkel (0) über mittel (7) bis hell (15), alle drei Farben einstellbar",
+          "Licht: nur Blocklicht (Fackeln, Lampen), nur Himmelslicht oder das hellere von beiden",
+          "Reichweite und Ein-/Ausblende-Taste wie bisher"
+        ]},
+        {"img": "news-light-level-tiles.png", "caption": "Dieselbe Stelle mit der Darstellung „Fläche“."},
+        {"h": "Spawn-Stellen bleiben"},
+        {"p": "Der bisherige Modus „Spawn-Stellen“ ist mit allen Einstellungen erhalten: rot, wo feindliche Mobs sofort spawnen können, gelb, wo nur nachts. Umschalten kannst du jederzeit in den Einstellungen des Moduls unter „Modus“."},
+        {"h": "Gut zu wissen"},
+        {"list": [
+          "Zahlen werden bis 16 Blöcke um dich gezeichnet, Flächen und Markierungen über die ganze Reichweite",
+          "Halbe Stufen, Treppen und Böden mit Teppich bekommen keine Anzeige, es zählen Blöcke mit voller Oberseite",
+          "Himmelslicht zeigt den Wert wie am Tag, wie im F3-Menü",
+          "In allen Versionen von 1.8.9 bis 26.3"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-hidden-armor",
       "date": "2026-11-17",
       "author": "Lumora",

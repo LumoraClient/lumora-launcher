@@ -645,6 +645,14 @@ public final class SmokeTest {
                 LightOverlaySmoke.style("number");
             } else if (ticks == 66) {
                 screenshot(mc, "light-overlay-number");
+                LightOverlaySmoke.mode("light"); // light level of every block, numbers by default
+                LightOverlaySmoke.lightStyle("number");
+            } else if (ticks == 74) {
+                screenshot(mc, "light-level");
+                LightOverlaySmoke.lightStyle("tile");
+            } else if (ticks == 80) {
+                screenshot(mc, "light-level-tile");
+                LightOverlaySmoke.lightStyle("number");
                 LightOverlaySmoke.stop();
                 if (mc.player != null) {
                     mc.player.setXRot(lightPitch);

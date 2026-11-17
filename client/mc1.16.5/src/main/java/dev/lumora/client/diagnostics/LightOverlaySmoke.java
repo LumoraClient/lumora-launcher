@@ -14,7 +14,16 @@ final class LightOverlaySmoke {
 
     static void start() {
         ApiSmoke.core().addonManager().setWanted(LightOverlayModule.ID, true);
+        mode("spawn"); // spawn positions first (the light level mode is the default)
         style("cross"); // a previous run may have left the numbers on
+    }
+
+    /** "spawn" or "light" (light level of every block). */
+    static void mode(String value) {
+        LightOverlayModule m = LightOverlayModule.active();
+        if (m != null) {
+            m.setMode(value);
+        }
     }
 
     static void check(List<String> problems) {

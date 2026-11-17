@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.67 (2026-11-17)
+
+### Client
+- **Neues Modul „Hidden Armor“:** Helm, Brustpanzer, Hose und Stiefel einzeln unsichtbar oder durchsichtig machen (0 bis 100 %), für dich allein oder für alle Spieler. Wirst du getroffen, ist die Rüstung für eine einstellbare Zeit wieder voll zu sehen und blendet danach auf Wunsch langsam aus. Nur deine Ansicht ändert sich; der Verzauberungsglanz erscheint nur bei 100 %. In allen Versionen von 1.8.9 bis 26.3, zu Beginn aus.
+- **Hub:** neues Icon für Hidden Armor.
+
 ## 0.3.66 (2026-11-17)
 
 ### Launcher

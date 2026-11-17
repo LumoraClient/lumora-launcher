@@ -66,6 +66,14 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.67 (2026-11-17):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 649 Unit-Tests ohne Fehler (1 übersprungen; neu: `HiddenArmorModuleTest` mit 7 Tests für Deckkraft pro Teil, „Gilt für“, Treffer-Anzeige, Ausblenden und „Alle Teile gleich“). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** alle Ziele mit `check-mixins.pl` gegen die Minecraft-Jars geprüft (1.16.5 bis 26.3). Ein erster 26.1.2-Lauf scheiterte, weil `EquipmentLayerRenderer.renderLayers` zwei Überladungen hat und ein reiner Name nur die erste trifft; jetzt mit voller Signatur.
+- **Smoke-Test** (normal, stumm, mit LumoraVoice 0.9.8) für alle 16 Versionen bestanden, jeweils mit „hidden armor“ und Namensschild-Icons. Drei Vorschau-Spieler in Diamantrüstung bei Helm 0 %, Brust 40 %, Hose 100 %, Stiefel 0 %, einer gerade getroffen; in jedem Screenshot angesehen: Helm und Stiefel fehlen, Brust durchscheinend, Hose voll, der getroffene Spieler trägt die ganze Rüstung. Zwei Testszenen-Fehler behoben (Spieler im Laub in 26.1.2, Blick in den Himmel in 1.12.2: Platz freiräumen, Blick geradeaus).
+- **News:** Artikel „Hidden Armor“ im fertigen Release-Launcher über `--ui-shot` angesehen.
+- **Nicht geprüft:** ein echter Treffer durch einen Mob oder Spieler (der Test setzt den Treffer-Zustand direkt), Rüstungsbesätze (Trims) bei Teiltransparenz im Spiel, ein Selbst-Update von 0.3.66.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.66 (2026-11-17):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 642 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
 - **News:** vier neue Einträge für 0.3.55 bis 0.3.65 mit sechs Bildern (echte Screenshots: Launcher über `--ui-shot` im Test-Home, Performance-Seite und HUD-Messszene aus dem 26.1.2-Smoke-Test, Hub mit Icon-Pack). Mit dem Launcher-Code geprüft: Karten, Artikel mit angehängten Changelog-Abschnitten und Changelog-Titel/Bilder für 0.3.54 bis 0.3.65; Screenshots der News-, Changelog- und Artikelseiten mit dem fertigen Release-Launcher angesehen.

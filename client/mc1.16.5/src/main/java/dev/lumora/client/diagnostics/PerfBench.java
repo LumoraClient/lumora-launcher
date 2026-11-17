@@ -63,7 +63,7 @@ final class PerfBench {
         return problems;
     }
 
-    private static void command(Minecraft mc, String cmd) {
+    static void command(Minecraft mc, String cmd) {
         var server = mc.getSingleplayerServer();
         if (server == null) {
             return;

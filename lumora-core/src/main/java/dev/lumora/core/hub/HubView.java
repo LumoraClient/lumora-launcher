@@ -81,6 +81,7 @@ public final class HubView implements AddonView {
             Map.entry("lumora-freelook", new String[]{WidgetCategory.PLAYER, "freelook"}),
             Map.entry("lumora-lightoverlay", new String[]{WidgetCategory.WORLD, "lightoverlay"}),
             Map.entry("lumora-offhand", new String[]{WidgetCategory.PLAYER, "offhand"}),
+            Map.entry(dev.lumora.core.extras.HiddenArmorModule.ID, new String[]{WidgetCategory.PLAYER, "hiddenarmor"}),
             Map.entry(dev.lumora.core.perf.PerformanceModule.ID, new String[]{WidgetCategory.GENERAL, "performance"}));
     /** Widgets with their own icon (id without addon); others use the addon icon. */
     static final Set<String> WIDGET_ICONS = Set.of("fps", "cps", "coords", "clock", "ping", "speed", "server",

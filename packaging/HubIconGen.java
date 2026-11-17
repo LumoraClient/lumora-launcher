@@ -245,6 +245,21 @@ public final class HubIconGen {
                 "................", ".........YYY....", "........yYYO....", ".......yYYO.....",
                 "......yYYO......", ".....yYYYYYYO...", "....yYYYYYYO....", "........YYO.....",
                 ".......YYO......", "......YYO.......", ".....YO.........", "....O...........");
+        // ---- modules added later (appended, so existing cells keep their place)
+        ghost("hiddenarmor", "armor");
+    }
+
+    /** A see-through variant of an icon: the left half as it is, the right half only as its mirrored outline, dashed. */
+    private static void ghost(String name, String base) {
+        String[] rows = ICONS.get(base).rows().clone();
+        for (int y = 0; y < 16; y++) {
+            char[] r = rows[y].toCharArray();
+            for (int x = 8; x < 16; x++) {
+                r[x] = r[15 - x] == 'K' ? ((x + y) % 2 == 0 ? 'G' : '.') : '.';
+            }
+            rows[y] = new String(r);
+        }
+        ICONS.put(name, new Icon(false, rows));
     }
 
     static BufferedImage render(String name, Icon icon) {

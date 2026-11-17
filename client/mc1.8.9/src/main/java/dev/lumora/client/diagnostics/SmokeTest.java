@@ -88,6 +88,14 @@ public final class SmokeTest {
             double side = (i - 1) * 2.2;
             remote.refreshPositionAndAngles(self.x + fx * 4.5 + rx * side, self.y, self.z + fz * 4.5 + rz * side, self.yaw + 180, 0);
             mc.world.addEntity(0x6F000001 + i, remote);
+            // diamond armor for Hidden Armor (armor slots 4 = helmet .. 1 = boots); the second one was "just hit"
+            remote.setArmorSlot(4, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_HELMET));
+            remote.setArmorSlot(3, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_CHESTPLATE));
+            remote.setArmorSlot(2, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_LEGGINGS));
+            remote.setArmorSlot(1, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_BOOTS));
+            if (i == 1) {
+                remote.hurtTime = 10;
+            }
             states.put(id, i);
         }
         return states;
@@ -428,14 +436,25 @@ public final class SmokeTest {
             mc.setScreen(null);
             // LabyVoice HUD on for the widget screenshot (singleplayer: nothing connects, no microphone)
             labyVoiceBefore = ApiSmoke.setLabyVoiceEnabled(true);
+            // look straight ahead: the preview players stand on the ground in front (the last session may have left the view tilted)
+            if (mc.player != null) {
+                mc.player.pitch = 0f;
+                mc.player.prevPitch = 0f;
+            }
+            // open space around the player so the preview players stand free (throwaway smoke world)
+            PerfBench.command(mc, "execute @p ~ ~ ~ fill ~-6 ~ ~-6 ~6 ~3 ~6 air");
+            // preview players in armor (Hidden Armor), with name tag icons when a voice addon is there
+            var previewPlayers = addPreviewPlayers(mc);
+            ApiSmoke.hiddenArmorPreview();
             if (ApiSmoke.voiceLoaded()) {
-                nameTagPreview = ApiSmoke.nameTagPreview(addPreviewPlayers(mc));
+                nameTagPreview = ApiSmoke.nameTagPreview(previewPlayers);
             }
             worldStep++;
             ticks = 0;
         } else if (worldStep == modes.length + 3 && ticks >= SCREEN_TICKS * 2) {
             screenshot(mc, "hud-ingame");
             ApiSmoke.restoreLabyVoice(labyVoiceBefore);
+            String armor = ApiSmoke.hiddenArmorDone(extraProblems);
             String icons = "";
             if (nameTagPreview != null) {
                 nameTagPreview.closeAll(dev.lumora.client.api.LumoraRuntime.core().logger(), "smoke");
@@ -444,7 +463,7 @@ public final class SmokeTest {
                     extraProblems.add("name tag icons were not drawn");
                 }
             }
-            worldResult = "PASSED: demo world, " + modes.length + " swing modes, pause menu, hub, HUD" + icons;
+            worldResult = "PASSED: demo world, " + modes.length + " swing modes, pause menu, hub, HUD" + icons + armor;
             // look at the ground for the Block-Overlay screenshot
             if (mc.player != null) {
                 mc.player.pitch = 70f;

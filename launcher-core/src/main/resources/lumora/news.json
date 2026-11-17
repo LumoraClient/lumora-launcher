@@ -1,6 +1,33 @@
 {
   "news": [
     {
+      "id": "lumora-hidden-armor",
+      "date": "2026-11-17",
+      "author": "Lumora",
+      "version": "0.3.67",
+      "title": "Hidden Armor",
+      "text": "Mach jedes Teil deiner Rüstung einzeln unsichtbar oder durchsichtig. Wirst du getroffen, ist sie für ein paar Sekunden wieder zu sehen.",
+      "image": "news-hidden-armor.png",
+      "body": [
+        {"p": "Das neue Modul „Hidden Armor“ findest du im Hub unter Spieler. Für Helm, Brustpanzer, Hose und Stiefel stellst du jeweils ein, wie deutlich das Teil zu sehen ist: 0 % unsichtbar, 100 % wie gewohnt, alles dazwischen durchsichtig. So zeigst du deinen Skin, ohne auf den Schutz zu verzichten."},
+        {"list": [
+          "Alle Teile gleich: ein Regler bewegt alle vier",
+          "Gilt für: nur deine eigene Rüstung oder die aller Spieler. Mobs und Rüstungsständer bleiben unverändert",
+          "Bei Treffer anzeigen: wirst du getroffen, ist die Rüstung für die eingestellte Zeit wieder voll zu sehen (Standard 3 Sekunden)",
+          "Langsam ausblenden: danach wird sie in einer einstellbaren Zeit wieder durchsichtig, statt sofort zu verschwinden"
+        ]},
+        {"img": "news-hidden-armor-settings.png", "caption": "Die Einstellungen von Hidden Armor im Hub."},
+        {"h": "Gut zu wissen"},
+        {"list": [
+          "Nur deine Ansicht ändert sich, andere Spieler sehen deine Rüstung weiter",
+          "Der Verzauberungsglanz erscheint nur bei 100 %, er lässt sich nicht abschwächen",
+          "In 1.8.9 und 1.12.2 ist ein Teil unter etwa 10 % ganz unsichtbar",
+          "In allen Versionen von 1.8.9 bis 26.3, das Modul ist zu Beginn ausgeschaltet"
+        ]},
+        {"p": "Im Bild oben: Helm und Stiefel auf 0 %, Brustpanzer auf 40 %, Hose auf 100 %. Der Spieler in der Mitte wurde gerade getroffen und zeigt seine ganze Rüstung."}
+      ]
+    },
+    {
       "id": "lumora-performance-engine",
       "date": "2026-11-17",
       "author": "Lumora",

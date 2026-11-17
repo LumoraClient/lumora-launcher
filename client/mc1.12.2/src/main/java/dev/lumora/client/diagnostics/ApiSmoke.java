@@ -225,4 +225,51 @@ final class ApiSmoke {
     private static String fmt(float v) {
         return String.format(Locale.ROOT, "%.3f", v);
     }
+
+    // ------------------------------------------------------------------ Hidden Armor
+
+    private static java.util.Map<String, String> armorSettingsBefore;
+    private static boolean armorWantedBefore;
+
+    /**
+     * Hidden Armor on for the preview players: helmet 0 %, chestplate 40 %, leggings 100 %, boots 0 %, for everyone
+     * (the second preview player was just hit and shows all of it). The previous state comes back in
+     * {@link #hiddenArmorDone}.
+     */
+    static void hiddenArmorPreview() {
+        var manager = core().addonManager();
+        armorWantedBefore = manager.record(dev.lumora.core.extras.HiddenArmorModule.ID).map(r -> r.wanted()).orElse(false);
+        manager.setWanted(dev.lumora.core.extras.HiddenArmorModule.ID, true);
+        armorSettingsBefore = new java.util.LinkedHashMap<>();
+        manager.record(dev.lumora.core.extras.HiddenArmorModule.ID).filter(r -> r.configuration() != null).ifPresent(r -> {
+            var s = r.configuration().settings();
+            for (var setting : s.all()) {
+                armorSettingsBefore.put(setting.key(), setting.encode());
+            }
+            for (String[] kv : new String[][]{{"same_for_all", "false"}, {"helmet", "0"}, {"chestplate", "40"},
+                    {"leggings", "100"}, {"boots", "0"}, {"applies_to", "everyone"}, {"show_on_hit", "true"}}) {
+                s.get(kv[0]).ifPresent(x -> x.decode(kv[1]));
+            }
+        });
+    }
+
+    /** ", hidden armor" when armor pieces were drawn hidden or translucent; puts the module back as it was. */
+    static String hiddenArmorDone(java.util.List<String> problems) {
+        var m = dev.lumora.core.extras.HiddenArmorModule.active();
+        int changed = m == null ? 0 : m.changedCount();
+        LOG.info("LUMORA_HIDDEN_ARMOR pieces drawn hidden or translucent: {}", changed);
+        var manager = core().addonManager();
+        manager.record(dev.lumora.core.extras.HiddenArmorModule.ID).filter(r -> r.configuration() != null).ifPresent(r -> {
+            var s = r.configuration().settings();
+            if (armorSettingsBefore != null) {
+                armorSettingsBefore.forEach((k, v) -> s.get(k).ifPresent(x -> x.decode(v)));
+            }
+        });
+        manager.setWanted(dev.lumora.core.extras.HiddenArmorModule.ID, armorWantedBefore);
+        if (changed == 0) {
+            problems.add("hidden armor drew no armor piece hidden or translucent");
+            return "";
+        }
+        return ", hidden armor";
+    }
 }

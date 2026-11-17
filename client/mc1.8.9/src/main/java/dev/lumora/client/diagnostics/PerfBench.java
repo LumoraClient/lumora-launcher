@@ -63,7 +63,7 @@ final class PerfBench {
         return problems;
     }
 
-    private static void command(MinecraftClient mc, String cmd) {
+    static void command(MinecraftClient mc, String cmd) {
         var server = mc.getServer();
         if (server == null) {
             return;

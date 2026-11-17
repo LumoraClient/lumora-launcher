@@ -16,7 +16,7 @@ public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
             "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign", "lumora-armor",
             dev.lumora.core.camera.FreelookModule.ID, dev.lumora.core.extras.light.LightOverlayModule.ID,
-            OffHandModule.ID);
+            OffHandModule.ID, HiddenArmorModule.ID);
 
     private Extras() {
     }
@@ -86,6 +86,10 @@ public final class Extras {
                         OffHandModule.class, dev.lumora.core.addon.VersionSupport.atLeast(OffHandModule.MIN_MINECRAFT,
                                 platform.minecraftVersion())),
                         OffHandModule::new),
+                AddonCandidate.of(LumoraCore.builtInDescriptor(HiddenArmorModule.ID, "Hidden Armor",
+                        "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
+                        HiddenArmorModule.class),
+                        HiddenArmorModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.perf.PerformanceModule.ID, "Performance",
                         "Entity culling, faster name tags, menus and startup; every optimization can be switched on its own",
                         dev.lumora.core.perf.PerformanceModule.class),

@@ -50,7 +50,7 @@ public final class LightOverlayProbe implements LightProbe {
     }
 
     @Override
-    public boolean scan(int chunkX, int chunkZ, int minY, int maxY, Sink sink) {
+    public boolean scan(int chunkX, int chunkZ, int minY, int maxY, boolean surfaces, Sink sink) {
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world == null) {
             return false;
@@ -75,7 +75,8 @@ public final class LightOverlayProbe implements LightProbe {
                 BlockState feet = chunk.method_9154(p.setPosition(wx, lo, wz));
                 for (int y = lo; y <= hi; y++) {
                     BlockState head = chunk.method_9154(p.setPosition(wx, y + 1, wz));
-                    if (below.getBlock() != Blocks.AIR && free(feet) && free(head)
+                    if (surfaces ? open(feet) && sturdy(below)
+                            : below.getBlock() != Blocks.AIR && free(feet) && free(head)
                             && MobSpawnerHelper.isSpawnable(MobEntity.Location.ON_GROUND, world, p.setPosition(wx, y, wz))) {
                         p.setPosition(wx, y, wz);
                         sink.mark(x, y, z, world.getLightAtPos(LightType.BLOCK, p), world.getLightAtPos(LightType.SKY, p));
@@ -86,6 +87,17 @@ public final class LightOverlayProbe implements LightProbe {
             }
         }
         return true;
+    }
+
+    /** Light level mode: you can stand in this block (nothing solid, no liquid). */
+    private static boolean open(BlockState s) {
+        return s.getBlock() == Blocks.AIR
+                || !s.getBlock().getMaterial().blocksMovement() && !s.getBlock().getMaterial().isFluid();
+    }
+
+    /** Light level mode: a full solid block to stand on. */
+    private static boolean sturdy(BlockState s) {
+        return s.getBlock() != Blocks.AIR && s.getBlock().getMaterial().blocksMovement() && s.getBlock().isFullCube();
     }
 
     /** Quick check before Minecraft's rule: no full block in the way. */

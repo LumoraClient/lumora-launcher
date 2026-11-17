@@ -14,7 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LightOverlayModuleTest {
-    /** A flat test world: three spawn positions in every chunk at y 64 (dark, sky-lit, bright). */
+    /**
+     * A flat test world: three spawn positions in every chunk at y 64 (dark, sky-lit, bright); in light level mode
+     * (every standable block) a fourth position, a bright block nothing spawns on.
+     */
     final class FakeProbe implements LightProbe {
         Object world = new Object();
         int[] player = {8, 64, 8, 2};
@@ -36,11 +39,14 @@ class LightOverlayModuleTest {
         }
 
         @Override
-        public boolean scan(int chunkX, int chunkZ, int minY, int maxY, Sink sink) {
-            scans.add(new long[]{chunkX, chunkZ, minY, maxY});
+        public boolean scan(int chunkX, int chunkZ, int minY, int maxY, boolean surfaces, Sink sink) {
+            scans.add(new long[]{chunkX, chunkZ, minY, maxY, surfaces ? 1 : 0});
             sink.mark(1, 64, 2, 0, 0);
             sink.mark(3, 64, 3, 0, skyOfSecond);
             sink.mark(5, 64, 5, 12, 15);
+            if (surfaces) {
+                sink.mark(7, 64, 7, 15, 4);
+            }
             return true;
         }
     }
@@ -56,6 +62,7 @@ class LightOverlayModuleTest {
         module = new LightOverlayModule(() -> probe, "26.3", () -> now += step);
         module.settings(new SettingsGroup("test."));
         module.horizontal.set(16); // one chunk around the player: 3 x 3 chunks
+        module.mode.decode("spawn"); // the spawn tests; light level mode below
         module.enable();
     }
 
@@ -194,6 +201,51 @@ class LightOverlayModuleTest {
         float dx = north.lines[3] - north.lines[0];
         assertEquals(0f, dx, 1e-5f, "upright: the stroke of the 1 runs along the view direction");
         assertTrue(Math.abs(dz) > 0.1f);
+    }
+
+    @Test
+    void lightLevelIsTheDefaultAndShowsEveryStandableBlock() {
+        LightOverlayModule fresh = new LightOverlayModule(() -> probe, "26.3");
+        fresh.settings(new SettingsGroup("fresh."));
+        assertEquals("light", fresh.mode.get(), "light levels by default, spawn positions as the second mode");
+        assertEquals("number", fresh.lightStyle.get());
+        assertEquals("block", fresh.lightType.get());
+
+        module.mode.decode("light");
+        module.lightStyle.decode("tile");
+        module.tick();
+        assertEquals(1, probe.scans.get(0)[4], "light level mode reads every standable block");
+        assertEquals(9 * 4, quads(), "a tile on every block, also the bright ones nothing spawns on");
+
+        module.mode.decode("spawn");
+        module.tick();
+        assertEquals(0, probe.scans.get(probe.scans.size() - 1)[4], "switching the mode reads the world again");
+        assertEquals(9 * 2 * 2, lines(), "spawn mode: crosses on the two spawn positions as before");
+    }
+
+    @Test
+    void lightLevelNumbersAndColoursGoFromDarkToBright() {
+        assertEquals(12, LightOverlayModule.lightValue("block", 12, 3));
+        assertEquals(3, LightOverlayModule.lightValue("sky", 12, 3));
+        assertEquals(12, LightOverlayModule.lightValue("combined", 12, 3));
+        assertEquals(15, LightOverlayModule.lightValue("combined", 2, 15));
+
+        module.colorDark.set(0xFF0000);
+        module.colorMedium.set(0xFFFF00);
+        module.colorBright.set(0x00FF00);
+        assertEquals(0xFFFF0000, module.lightColor(0));
+        assertEquals(0xFFFFFF00, module.lightColor(7));
+        assertEquals(0xFF00FF00, module.lightColor(15));
+
+        module.mode.decode("light");
+        module.lightStyle.decode("number");
+        module.tick();
+        // block light: "0", "0", "12", "15" on the four blocks of the 4 chunks within 16 blocks of the player
+        assertEquals(4 * (6 + 6 + 7 + 7), lines());
+        module.lightType.decode("sky");
+        module.tick();
+        // sky light: "0", "15", "15", "4"
+        assertEquals(4 * (6 + 7 + 7 + 4), lines());
     }
 
     @Test

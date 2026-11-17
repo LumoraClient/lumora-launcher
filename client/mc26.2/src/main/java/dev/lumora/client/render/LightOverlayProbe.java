@@ -47,7 +47,7 @@ public final class LightOverlayProbe implements LightProbe {
     }
 
     @Override
-    public boolean scan(int chunkX, int chunkZ, int minY, int maxY, Sink sink) {
+    public boolean scan(int chunkX, int chunkZ, int minY, int maxY, boolean surfaces, Sink sink) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
             return false;
@@ -67,7 +67,8 @@ public final class LightOverlayProbe implements LightProbe {
                 BlockState feet = chunk.getBlockState(p.set(wx, minY, wz));
                 for (int y = minY; y <= maxY; y++) {
                     BlockState head = chunk.getBlockState(p.set(wx, y + 1, wz));
-                    if (!below.isAir() && free(level, feet, wx, y, wz) && free(level, head, wx, y + 1, wz)
+                    if (surfaces ? !below.isAir() && open(level, feet, wx, y, wz) && sturdy(level, below, wx, y - 1, wz)
+                            : !below.isAir() && free(level, feet, wx, y, wz) && free(level, head, wx, y + 1, wz)
                             && below.isValidSpawn(level, p.set(wx, y - 1, wz), MOB)) {
                         p.set(wx, y, wz);
                         sink.mark(x, y, z, level.getBrightness(LightLayer.BLOCK, p), level.getBrightness(LightLayer.SKY, p));
@@ -78,6 +79,16 @@ public final class LightOverlayProbe implements LightProbe {
             }
         }
         return true;
+    }
+
+    /** Light level mode: you can stand in this block (no collision, no liquid). */
+    private boolean open(ClientLevel level, BlockState s, int x, int y, int z) {
+        return s.isAir() || s.getFluidState().isEmpty() && s.getCollisionShape(level, pos.set(x, y, z)).isEmpty();
+    }
+
+    /** Light level mode: the block has a full top to stand on (no slab, fence, glass pane, liquid). */
+    private boolean sturdy(ClientLevel level, BlockState s, int x, int y, int z) {
+        return s.isFaceSturdy(level, pos.set(x, y, z), net.minecraft.core.Direction.UP);
     }
 
     /** A mob fits into this block: Minecraft's rule (no full block, liquid, rail ...) and nothing to stand on in it (carpet). */

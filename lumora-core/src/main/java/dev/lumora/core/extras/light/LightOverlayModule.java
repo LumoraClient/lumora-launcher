@@ -22,9 +22,11 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /**
- * Built-in module "Light Block Overlay": marks every block in reach where hostile mobs can spawn, red where they can
- * spawn right now, yellow where only at night (enough sky light by day). Styles: cross, number (block light level, also
- * on safe blocks), tile and marker; optional colour gradient by sky light. A key shows and hides it.
+ * Built-in module "Light Block Overlay" with two modes. "Light level" shows the light of every block you can stand on,
+ * from 15 (fully lit) to 0 (no light), as a number, tile or marker in a colour from dark to bright (block light, sky
+ * light or both). "Spawn" marks every block in reach where hostile mobs can spawn, red where they can spawn right now,
+ * yellow where only at night (enough sky light by day); styles cross, number (block light level, also on safe blocks),
+ * tile and marker, optional colour gradient by sky light. A key shows and hides it.
  * <p>
  * Performance: the world is read on the client thread in whole chunk columns, nearest chunks first, within a time
  * budget per tick ({@link #BUDGET_NANOS}); a chunk is read again only every few ticks (nearby more often, so a new
@@ -51,7 +53,10 @@ public final class LightOverlayModule implements LumoraAddon {
     private final Supplier<LightProbe> probe;
     private final String minecraftVersion;
     private final LongSupplier nanos;
+    ChoiceSetting mode;
     ChoiceSetting style;
+    ChoiceSetting lightStyle;
+    ChoiceSetting lightType;
     IntegerSetting horizontal;
     IntegerSetting vertical;
     IntegerSetting lightLevel;
@@ -60,6 +65,9 @@ public final class LightOverlayModule implements LumoraAddon {
     ColorSetting colorNow;
     ColorSetting colorNight;
     ColorSetting colorSafe;
+    ColorSetting colorDark;
+    ColorSetting colorMedium;
+    ColorSetting colorBright;
     /** Shown or hidden with the key (the module itself stays switched on). */
     private boolean shown = true;
     private boolean enabled;
@@ -86,6 +94,8 @@ public final class LightOverlayModule implements LumoraAddon {
     private double avgChunkNanos = 300_000;
     /** Player position in steps of four blocks while numbers are shown (0 otherwise). */
     private int lastCell;
+    /** Whether the scanned chunks hold every standable block (light level mode) or only spawn positions. */
+    private boolean scannedSurfaces;
 
     public LightOverlayModule(Supplier<LightProbe> probe, String minecraftVersion) {
         this(probe, minecraftVersion, System::nanoTime);
@@ -125,9 +135,24 @@ public final class LightOverlayModule implements LumoraAddon {
                 + " ticksOverBudget=" + overBudget;
     }
 
-    /** Switches the style (smoke test: one screenshot per style). */
+    /** Switches the style of the spawn mode (smoke test: one screenshot per style). */
     public void setStyle(String value) {
         style.decode(value);
+    }
+
+    /** Switches the mode: "light" (light level of every block) or "spawn" (smoke test). */
+    public void setMode(String value) {
+        mode.decode(value);
+    }
+
+    /** Whether the light level of every standable block is shown (else only spawn positions). */
+    boolean lightMode() {
+        return "light".equals(mode.get());
+    }
+
+    /** The style drawn now: the light level style or the spawn style, by mode. */
+    String drawStyle() {
+        return lightMode() ? lightStyle.get() : style.get();
     }
 
     /** Horizontal reach in blocks (the renderer skips chunks farther away). */
@@ -141,24 +166,38 @@ public final class LightOverlayModule implements LumoraAddon {
     }
 
     void settings(SettingsGroup s) {
-        style =s.selection("style", "cross", "cross", "number", "tile", "marker").name(K + "setting.style")
-                .description(K + "setting.style.description").section(K + "section.general");
+        mode = s.selection("mode", "light", "light", "spawn").name(K + "setting.mode")
+                .description(K + "setting.mode.description").section(K + "section.general");
+        lightStyle = s.selection("light_style", "number", "number", "tile", "marker").name(K + "setting.light_style")
+                .description(K + "setting.light_style.description").visibleWhen(this::lightMode);
+        lightType = s.selection("light_type", "block", "block", "sky", "combined").name(K + "setting.light_type")
+                .description(K + "setting.light_type.description").visibleWhen(this::lightMode);
+        style = s.selection("style", "cross", "cross", "number", "tile", "marker").name(K + "setting.style")
+                .description(K + "setting.style.description").visibleWhen(() -> !lightMode());
         horizontal = s.slider("horizontal", 32, 8, 64).step(4).name(K + "setting.horizontal")
                 .description(K + "setting.horizontal.description");
         vertical = s.slider("vertical", 16, 4, 32).step(2).name(K + "setting.vertical")
                 .description(K + "setting.vertical.description");
+        colorDark = s.color("color_dark", 0xFFFF4040, false).name(K + "setting.color_dark")
+                .description(K + "setting.color_dark.description").section(K + "section.look").visibleWhen(this::lightMode);
+        colorMedium = s.color("color_medium", 0xFFFFD43B, false).name(K + "setting.color_medium")
+                .description(K + "setting.color_medium.description").visibleWhen(this::lightMode);
+        colorBright = s.color("color_bright", 0xFF4ADE80, false).name(K + "setting.color_bright")
+                .description(K + "setting.color_bright.description").visibleWhen(this::lightMode);
         gradient = s.toggle("gradient", false).name(K + "setting.gradient").description(K + "setting.gradient.description")
-                .section(K + "section.look");
-        colorNow = s.color("color_now", 0xFFFF4040, false).name(K + "setting.color_now").description(K + "setting.color_now.description");
+                .visibleWhen(() -> !lightMode());
+        colorNow = s.color("color_now", 0xFFFF4040, false).name(K + "setting.color_now").description(K + "setting.color_now.description")
+                .visibleWhen(() -> !lightMode());
         colorNight = s.color("color_night", 0xFFFFD43B, false).name(K + "setting.color_night")
-                .description(K + "setting.color_night.description");
+                .description(K + "setting.color_night.description").visibleWhen(() -> !lightMode());
         safeNumbers = s.toggle("safe_numbers", true).name(K + "setting.safe_numbers")
-                .description(K + "setting.safe_numbers.description").visibleWhen(() -> "number".equals(style.get()));
+                .description(K + "setting.safe_numbers.description").visibleWhen(() -> !lightMode() && "number".equals(style.get()));
         colorSafe = s.color("color_safe", 0xFF4ADE80, false).name(K + "setting.color_safe")
-                .visibleWhen(() -> "number".equals(style.get()));
+                .visibleWhen(() -> !lightMode() && "number".equals(style.get()));
         int defaultLevel = VersionSupport.compare(minecraftVersion, BLOCK_LIGHT_ZERO_SINCE) >= 0 ? 0 : 7;
         lightLevel = s.slider("light_level", defaultLevel, 0, 15).name(K + "setting.light_level")
-                .description(K + "setting.light_level.description").section(K + "section.advanced").advanced();
+                .description(K + "setting.light_level.description").section(K + "section.advanced").advanced()
+                .visibleWhen(() -> !lightMode());
     }
 
     @Override
@@ -227,6 +266,12 @@ public final class LightOverlayModule implements LumoraAddon {
             }
             return;
         }
+        boolean surfaces = lightMode();
+        if (surfaces != scannedSurfaces) {
+            // the other mode reads other positions: everything is read again
+            clear();
+            scannedSurfaces = surfaces;
+        }
         if (w != world) {
             clear();
             world = w;
@@ -241,7 +286,7 @@ public final class LightOverlayModule implements LumoraAddon {
         // a setting that only changes the look rebuilds the meshes, the scanned light stays valid
         int look = lookHash();
         // numbers are drawn only near the player: their meshes follow the player in steps of a few blocks
-        int cell = "number".equals(style.get()) ? (player[0] >> 2) * 92821 + (player[2] >> 2) : 0;
+        int cell = "number".equals(drawStyle()) ? (player[0] >> 2) * 92821 + (player[2] >> 2) : 0;
         if (look != lastLookHash || py != lastY || player[3] != lastFacing || cell != lastCell) {
             lastLookHash = look;
             lastY = py;
@@ -283,7 +328,7 @@ public final class LightOverlayModule implements LumoraAddon {
                 d = new ChunkData(cx, cz);
             }
             long t0 = nanos.getAsLong();
-            boolean ok = scan(p, d, minY - Y_MARGIN, maxY + Y_MARGIN);
+            boolean ok = scan(p, d, minY - Y_MARGIN, maxY + Y_MARGIN, surfaces);
             long took = nanos.getAsLong() - t0;
             scanNanos += took;
             avgChunkNanos = avgChunkNanos * 0.9 + took * 0.1;
@@ -324,9 +369,9 @@ public final class LightOverlayModule implements LumoraAddon {
         return dist <= 1 ? 10 : 20 + dist * 10;
     }
 
-    private boolean scan(LightProbe p, ChunkData d, int minY, int maxY) {
+    private boolean scan(LightProbe p, ChunkData d, int minY, int maxY, boolean surfaces) {
         d.count = 0;
-        boolean ok = p.scan(d.cx, d.cz, minY, maxY, d);
+        boolean ok = p.scan(d.cx, d.cz, minY, maxY, surfaces, d);
         if (ok) {
             d.minY = minY;
             d.maxY = maxY;
@@ -357,7 +402,13 @@ public final class LightOverlayModule implements LumoraAddon {
     }
 
     private int lookHash() {
-        int hsh = style.get().hashCode();
+        int hsh = mode.get().hashCode();
+        hsh = hsh * 31 + style.get().hashCode();
+        hsh = hsh * 31 + lightStyle.get().hashCode();
+        hsh = hsh * 31 + lightType.get().hashCode();
+        hsh = hsh * 31 + colorDark.get();
+        hsh = hsh * 31 + colorMedium.get();
+        hsh = hsh * 31 + colorBright.get();
         hsh = hsh * 31 + lightLevel.get();
         hsh = hsh * 31 + (gradient.get() ? 1 : 0);
         hsh = hsh * 31 + (safeNumbers.get() ? 1 : 0);
@@ -399,6 +450,22 @@ public final class LightOverlayModule implements LumoraAddon {
         return (kind == NOW ? colorNow.get() : colorNight.get()) | 0xFF000000;
     }
 
+    /** The light value shown in light level mode: block light, sky light (as by day) or the brighter of both. */
+    static int lightValue(String type, int blockLight, int skyLight) {
+        return switch (type) {
+            case "sky" -> skyLight;
+            case "combined" -> Math.max(blockLight, skyLight);
+            default -> blockLight;
+        };
+    }
+
+    /** Colour of a light level: dark (0) over medium (7) to bright (15). */
+    int lightColor(int value) {
+        int c = value <= 7 ? lerp(colorDark.get(), colorMedium.get(), value / 7f)
+                : lerp(colorMedium.get(), colorBright.get(), (value - 7) / 8f);
+        return c | 0xFF000000;
+    }
+
     static int lerp(int a, int b, float t) {
         t = Math.max(0f, Math.min(1f, t));
         int r = Math.round(((a >> 16) & 0xFF) + (((b >> 16) & 0xFF) - ((a >> 16) & 0xFF)) * t);
@@ -412,7 +479,9 @@ public final class LightOverlayModule implements LumoraAddon {
         LightMesh m = d.mesh;
         m.clear();
         d.builtFor = buildKey();
-        String st = style.get();
+        boolean light = lightMode();
+        String st = drawStyle();
+        String type = lightType.get();
         int level = lightLevel.get();
         boolean number = "number".equals(st);
         boolean showSafe = number && safeNumbers.get();
@@ -431,14 +500,21 @@ public final class LightOverlayModule implements LumoraAddon {
             if (number && (Math.abs(d.cx * 16 + x - player[0]) > NUMBER_REACH || Math.abs(d.cz * 16 + z - player[2]) > NUMBER_REACH)) {
                 continue;
             }
-            int kind = kind(bl, sky, level, showSafe);
-            if (kind < 0) {
-                continue;
+            int shown = bl;
+            int c;
+            if (light) {
+                shown = lightValue(type, bl, sky);
+                c = lightColor(shown);
+            } else {
+                int kind = kind(bl, sky, level, showSafe);
+                if (kind < 0) {
+                    continue;
+                }
+                c = color(kind, sky);
             }
-            int c = color(kind, sky);
             float fy = y + 0.02f;
             switch (st) {
-                case "number" -> number(m, x, fy, z, bl, c, lastFacing);
+                case "number" -> number(m, x, fy, z, shown, c, lastFacing);
                 case "tile" -> tile(m, x, fy, z, c);
                 case "marker" -> marker(m, x, y, z, c);
                 default -> {

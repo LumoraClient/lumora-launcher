@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.65 (2026-11-17)
+
+### Client
+- **Schnelleres HUD:** Hintergrund, Rahmen und Akzentstreifen eines Widgets werden mit der Frame-Optimierung in einem Zeichenaufruf statt Rechteck für Rechteck gezeichnet, Bild unverändert. In der Messszene mit allen Widgets braucht das Lumora-HUD in 1.16.5 bis 1.21 etwa 60 bis 75 % weniger Zeit pro Frame, in 1.8.9 etwa 25 %.
+- **Smart HUD & Menüs** gilt jetzt auch für die HUD-Widgets: Textbreiten, Beschriftungen und Panel-Maße werden nur neu berechnet, wenn sich der Inhalt ändert.
+- **Behoben:** Nach dem Umschalten auf „Unicode-Schrift erzwingen“ saßen Namensschild-Texte mit Icons bis zum nächsten Neuladen der Ressourcen leicht versetzt.
+
 ## 0.3.64 (2026-11-16)
 
 ### Client

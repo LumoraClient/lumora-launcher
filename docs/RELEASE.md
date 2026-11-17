@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.68 (2026-11-17):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 651 Unit-Tests ohne Fehler (1 übersprungen; `LightOverlayModuleTest` jetzt 11 Tests, neu: Lichtstufe als Standard auf jedem begehbaren Block, Moduswechsel liest die Welt neu, Blocklicht/Himmelslicht/beides und Farben dunkel–mittel–hell). Alle 16 Client-Versionen kompilieren mit der erweiterten `LightOverlayProbe`. `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** unverändert.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Der Lichtstufen-Modus ist im Spiel nicht angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, neuer Modus in allen 16 gebündelten Client-Jars enthalten.
+
 **0.3.67 (2026-11-17):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 649 Unit-Tests ohne Fehler (1 übersprungen; neu: `HiddenArmorModuleTest` mit 7 Tests für Deckkraft pro Teil, „Gilt für“, Treffer-Anzeige, Ausblenden und „Alle Teile gleich“). `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** alle Ziele mit `check-mixins.pl` gegen die Minecraft-Jars geprüft (1.16.5 bis 26.3). Ein erster 26.1.2-Lauf scheiterte, weil `EquipmentLayerRenderer.renderLayers` zwei Überladungen hat und ein reiner Name nur die erste trifft; jetzt mit voller Signatur.

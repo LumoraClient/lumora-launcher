@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.68 (2026-11-17)
+
+### Client
+- **Light Block Overlay mit zwei Modi:** Neu ist der Modus „Lichtstufe“, jetzt Standard. Er zeigt auf jedem Block, auf dem man stehen kann, die Lichtstufe von 15 (voll ausgeleuchtet) bis 0 (kein Licht): als Zahl, Fläche oder Markierung, in einer Farbe von dunkel über mittel bis hell (drei Farben einstellbar). Wählbar sind Blocklicht, Himmelslicht oder das hellere von beiden. Der bisherige Modus „Spawn-Stellen“ bleibt vollständig erhalten (rot sofort, gelb nur nachts, Kreuz/Zahl/Fläche/Markierung, Farbverlauf, Zahlen auf sicheren Blöcken, Lichtstufe für den Spawn) und ist in den Einstellungen mit einem Klick zurück. In allen Versionen von 1.8.9 bis 26.3.
+
 ## 0.3.67 (2026-11-17)
 
 ### Client

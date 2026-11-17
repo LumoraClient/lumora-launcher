@@ -1,6 +1,103 @@
 {
   "news": [
     {
+      "id": "lumora-performance-engine",
+      "date": "2026-11-17",
+      "author": "Lumora",
+      "version": ["0.3.61", "0.3.62", "0.3.63", "0.3.64", "0.3.65"],
+      "title": "Performance-Engine",
+      "text": "Das neue Modul „Performance“ bündelt alle Optimierungen von Lumora: in allen 16 Minecraft-Versionen, jede einzeln schaltbar, das Bild bleibt gleich.",
+      "image": "news-performance.png",
+      "body": [
+        {"p": "Im Hub findest du das Modul „Performance“ unter Anzeige. Alle Optimierungen, die deine Minecraft-Version unterstützt, sind von Anfang an eingeschaltet. Lumora erkennt die Version selbst und überspringt, was dort nicht passt. „Status“ zeigt, was gerade an, aus oder nicht verfügbar ist, und warum."},
+        {"h": "Die Optimierungen"},
+        {"list": [
+          "Entity Culling: Mobs, Tiere, Kisten und andere Block-Entities, die vollständig hinter undurchsichtigen Blöcken liegen, werden nicht gezeichnet. Spieler, sichtbare Namensschilder, leuchtende und geleinte Entities und alles in deiner Nähe werden immer gezeichnet",
+          "Optimiertes Rendering: Namensschild-Icons und Lumora-Texte über Spielern werden nicht mehr in jedem Frame neu gebaut",
+          "Smart HUD & Menüs: Das Hub und die HUD-Widgets berechnen Texte, Breiten und Inhalte nur neu, wenn sich etwas geändert hat",
+          "Frame-Optimierung: Abgerundete Flächen, Rahmen und Widget-Hintergründe brauchen weniger Zeichenaufrufe",
+          "Wolken-Optimierung: In 1.8.9, 1.12.2 und 1.17.1 bis 1.21 werden die Wolken nur noch bei Bedarf neu gebaut. Ab 1.21.4 macht Minecraft das schon selbst, in 1.16.5 ist es technisch nicht möglich",
+          "Schnellerer Start: Der Lumora Loader liest die Spielklassen direkt aus den Jars (wirkt ab dem nächsten Start)"
+        ]},
+        {"h": "Was es bringt"},
+        {"p": "Gemessen haben wir in einer Testwelt mit rund 350 Mobs und Kisten hinter einer Wand. Mit Entity Culling lagen die FPS je nach Version zwischen etwa 30 % höher (1.20.1) und dem Vier- bis Siebenfachen (26.1.2, 1.12.2). Wie viel du gewinnst, hängt von deiner Welt und deinem PC ab: Wo nichts verdeckt ist, bringt Culling nichts."},
+        {"img": "news-performance-hud.png", "caption": "Die Messszene fürs HUD: alle Widgets mit Widget-Design. Die Zeit, die das Lumora-HUD pro Frame braucht, sinkt in 1.16.5 bis 1.21 um etwa 60 bis 75 %, in 1.8.9 um etwa 25 %."},
+        {"h": "Gleiches Bild"},
+        {"p": "Jede Optimierung haben wir einzeln an- und ausgeschaltet und Screenshots Pixel für Pixel verglichen. Einzige Ausnahme sind die Wolken: Ihre Farbe kann in 1.17.1 bis 1.21 um höchstens eine von 255 Stufen abweichen, in 1.8.9 und 1.12.2 an einzelnen Randpixeln. Passt dir etwas nicht, schaltest du die Optimierung im Modul einfach einzeln aus."},
+        {"h": "Nach Versionen"},
+        {"list": [
+          "0.3.61: das Modul mit Entity Culling, Optimiertem Rendering und Frame-Optimierung für 26.x, Smart Menüs und Schnellerer Start für alle Versionen",
+          "0.3.62: 1.21.11, 1.21.8, 1.21.4 und 1.21, Wolken-Optimierung in 1.21",
+          "0.3.63: 1.20.6 bis 1.16.5, Wolken-Optimierung in 1.20.6 bis 1.17.1",
+          "0.3.64: 1.12.2 und 1.8.9, Wolken-Optimierung aus einer zwischengespeicherten Display-List",
+          "0.3.65: schnelleres HUD durch gebündelte Zeichenaufrufe, Smart HUD für die Widgets, Namensschilder nach „Unicode-Schrift erzwingen“ wieder richtig ausgerichtet"
+        ]}
+      ]
+    },
+    {
+      "id": "lumora-icon-pack",
+      "date": "2026-11-16",
+      "author": "Lumora",
+      "version": ["0.3.59", "0.3.60"],
+      "title": "Neues Icon-Pack im Hub",
+      "text": "Alle Module und HUD-Widgets haben neue Pixel-Icons, und das Baublase-Addon zeigt sein eigenes „B“.",
+      "image": "news-icon-pack.png",
+      "body": [
+        {"p": "Im Hub hat jedes Modul und jedes HUD-Widget ein neues, selbst gezeichnetes Pixel-Icon mit dunkler Kontur und mehreren Farbstufen, passend zum Pixel-Stil von Lumora."},
+        {"list": [
+          "LumoraVoice zeigt ein Mikrofon, Spotify eine Musiknote",
+          "Baublase hat seit 0.3.60 ein eigenes Icon: das pinke „B“ mit Bausteinen und Blasen",
+          "Addons und Widgets anderer Autoren zeigen das Lumora-Logo",
+          "Die Icons sehen in allen 16 Minecraft-Versionen gleich aus"
+        ]}
+      ]
+    },
+    {
+      "id": "lumora-launcher-home",
+      "date": "2026-11-15",
+      "author": "Lumora",
+      "version": ["0.3.56", "0.3.57", "0.3.58"],
+      "title": "Neue Startseite",
+      "text": "Die Startseite zeigt jetzt deine zuletzt gespielte Version, laufende Downloads und die neuesten News, unter verschneiten Bergen mit Drache.",
+      "image": "news-launcher-home.png",
+      "body": [
+        {"p": "Der Kopfbereich der Startseite ist kompakter: verschneite Berge im Mondlicht, rechts fliegt ein Drache. Darunter stehen drei Karten statt der System-Kacheln."},
+        {"list": [
+          "Recently played: die zuletzt gespielte Version mit deinem neuesten Screenshot, wann und wie lange du gespielt hast. „Continue playing“ startet direkt in die Welt der letzten Sitzung; über „…“ erreichst du Spielordner, Screenshots, Dateiprüfung und Einstellungen",
+          "Downloads: was gerade geladen wird und wie weit es ist, sonst ob die gewählte Version installiert ist und ob es Updates gibt",
+          "News: die zwei neuesten Meldungen von Lumora und Minecraft, ein Klick öffnet den Artikel"
+        ]},
+        {"h": "Seitenleiste und Versionsmenü"},
+        {"list": [
+          "Die Seiten stehen links als schmale Leiste mit Symbol und Namen darunter",
+          "Die Glocke „News“ zeigt mit einem roten Punkt, ob es ungelesene Meldungen gibt",
+          "Im Versionsmenü zeigt jede Version das offizielle Bild ihres Updates, etwa die Axolotl bei 1.17. 1.12 und 1.8 behalten ihr eigenes Pixel-Bild",
+          "Neue gefüllte Symbole, ein Kompass für „Discover“ und eine Flamme bei „Recently played“"
+        ]}
+      ]
+    },
+    {
+      "id": "lumora-launcher-english",
+      "date": "2026-11-15",
+      "author": "Lumora",
+      "version": "0.3.55",
+      "title": "Launcher auf Englisch",
+      "text": "Alle Texte des Launchers kommen jetzt aus einer Sprachdatei, und Tabs, Knöpfe und Listen sehen überall gleich aus.",
+      "image": "news-launcher-english.png",
+      "body": [
+        {"p": "Die Oberfläche des Launchers ist jetzt auf Englisch. Alle Texte stehen in einer Sprachdatei statt im Code, auch die Meldungen bei Anmeldung, Installation, Spielstart und Abstürzen. Weitere Sprachen lassen sich als eigene Datei ergänzen; fehlt dort ein Text, erscheint er auf Englisch."},
+        {"h": "Einheitliche Bedienung"},
+        {"list": [
+          "Einstellungen, Konto und News nutzen dieselben Tabs",
+          "In Bibliothek und Abstürze wählst du die Version aus einer Liste statt aus Tabs, die rechts abgeschnitten waren",
+          "„Open folder“ ist überall derselbe Knopf mit Ordner-Symbol",
+          "Tabs, Knöpfe, Eingabefelder und Auswahllisten sind gleich hoch",
+          "In Titeln steht „and“ statt „&“, weil die Pixel-Schrift das Zeichen wie ein „$“ zeichnet"
+        ]},
+        {"img": "news-launcher-library.png", "caption": "Die Bibliothek: Die Version wählst du jetzt oben rechts aus einer Liste."}
+      ]
+    },
+    {
       "id": "lumora-offhand-mainhand",
       "date": "2026-11-15",
       "author": "Lumora",

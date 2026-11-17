@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.66 (2026-11-17):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 642 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **News:** vier neue Einträge für 0.3.55 bis 0.3.65 mit sechs Bildern (echte Screenshots: Launcher über `--ui-shot` im Test-Home, Performance-Seite und HUD-Messszene aus dem 26.1.2-Smoke-Test, Hub mit Icon-Pack). Mit dem Launcher-Code geprüft: Karten, Artikel mit angehängten Changelog-Abschnitten und Changelog-Titel/Bilder für 0.3.54 bis 0.3.65; Screenshots der News-, Changelog- und Artikelseiten mit dem fertigen Release-Launcher angesehen.
+- **Smoke-Test** 26.1.2 (normal, stumm) mit dem neuen Bild der Performance-Seite bestanden.
+- **Nicht geprüft:** ein Selbst-Update von 0.3.65.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.65 (2026-11-17):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 642 Unit-Tests ohne Fehler (1 übersprungen; neu: `SmartHudTest` mit gleichen Rechtecken in gleicher Reihenfolge, gleichen Beschriftungen, nur Rechtecken in einem Zeichenlauf und verworfenen Breiten bei Schriftwechsel). `integrationTest` enthält weiterhin keine Tests.
 - **HUD-Messung** (stumm, Test-Home, alle Widgets, Widget-Design mit Ecken und Rahmen; CPU-Zeit des Lumora-HUD pro Frame, alles aus → Smart HUD + Frame): 1.20.1 2250 → 606 µs, 1.20.4 2406 → 673, 1.20.6 2269 → 564, 1.21 1640 → 377, 1.19.4 1762 → 547, 1.18.2 1316 → 514, 1.17.1 1275 → 478, 1.16.5 1355 → 549, 1.12.2 787 → 282, 1.21.11 1435 → 865, 26.1.2 1121 → 652, 1.8.9 1692 → 1144 bis 1312. Fast der ganze Gewinn kommt von der Frame-Optimierung; Smart HUD allein 0 bis 6 % (im Rauschen). Ein JFR-Profil (1.20.1) zeigte, dass die HUD-Zeit fast nur in OpenGL-Aufrufen liegt.

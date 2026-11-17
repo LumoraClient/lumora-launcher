@@ -216,6 +216,15 @@ public final class SmokeTest {
                                 .orElse(null)));
                     }
 
+                    // the performance module's page (switches and status), e.g. for the news picture
+                    pending.add(new Shot("settings-performance", parent -> ApiSmoke.core().addonManager()
+                            .record(dev.lumora.core.perf.PerformanceModule.ID).filter(r -> r.configuration() != null)
+                            .map(r -> (Screen) SettingsScreen.create(parent,
+                                    net.minecraft.client.resources.language.I18n.get("lumora.module.lumora-performance"),
+                                    net.minecraft.client.resources.language.I18n.get("lumora.module.lumora-performance.description"),
+                                    r.configuration().settings(), List.of(), null, false))
+                            .orElse(null)));
+
                     // crosshair editor above the crosshair settings, once per mode
                     for (String mode : new String[]{"shape", "preset", "custom"}) {
                         pending.add(new Shot("crosshair-" + mode, parent -> ApiSmoke.core().addonManager().record("lumora-crosshair")

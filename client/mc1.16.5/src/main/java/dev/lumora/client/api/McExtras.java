@@ -137,6 +137,20 @@ final class McExtras implements GameExtras {
     public void holdSneak(boolean down) {
         mc().options.keyShift.setDown(down);
     }
+
+    @Override
+    public void flyMomentum(float keep) {
+        var p = mc().player;
+        if (p == null || !p.abilities.flying) {
+            return;
+        }
+        var o = mc().options;
+        if (o.keyUp.isDown() || o.keyDown.isDown() || o.keyLeft.isDown() || o.keyRight.isDown()) {
+            return;
+        }
+        var v = p.getDeltaMovement();
+        p.setDeltaMovement(v.x * keep, v.y, v.z * keep);
+    }
     private net.minecraft.core.BlockPos targetPos() {
         return mc().level != null && mc().hitResult instanceof net.minecraft.world.phys.BlockHitResult b
                 && b.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK ? b.getBlockPos() : null;

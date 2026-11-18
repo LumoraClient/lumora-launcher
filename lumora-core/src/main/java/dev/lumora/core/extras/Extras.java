@@ -52,7 +52,7 @@ public final class Extras {
                         dev.lumora.core.connection.ConnectionModule.class),
                         () -> new dev.lumora.core.connection.ConnectionModule(platform)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-togglesprint", "Toggle Sprint",
-                        "Toggle sprinting and sneaking with a key press", ToggleSprintModule.class),
+                        "Toggle sprinting and sneaking with a key press, fly speed and momentum", ToggleSprintModule.class),
                         () -> new ToggleSprintModule(platform)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-fullbright", "Fullbright",
                         "Full brightness in caves and at night (only visible to you)", FullbrightModule.class),

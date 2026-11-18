@@ -149,6 +149,20 @@ final class McExtras implements GameExtras {
     public void holdSneak(boolean down) {
         KeyBinding.setKeyPressed(mc().options.sneakKey.getCode(), down);
     }
+
+    @Override
+    public void flyMomentum(float keep) {
+        ClientPlayerEntity p = mc().player;
+        if (p == null || !p.abilities.flying) {
+            return;
+        }
+        var o = mc().options;
+        if (o.forwardKey.isPressed() || o.backKey.isPressed() || o.leftKey.isPressed() || o.rightKey.isPressed()) {
+            return;
+        }
+        p.velocityX *= keep;
+        p.velocityZ *= keep;
+    }
     private net.minecraft.util.math.BlockPos targetPos() {
         net.minecraft.util.hit.BlockHitResult r = mc().result;
         return mc().world != null && r != null && r.type == net.minecraft.util.hit.BlockHitResult.Type.BLOCK ? r.getBlockPos() : null;

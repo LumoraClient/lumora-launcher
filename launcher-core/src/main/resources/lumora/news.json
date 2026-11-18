@@ -1,6 +1,29 @@
 {
   "news": [
     {
+      "id": "lumora-fly-speed",
+      "date": "2026-11-18",
+      "author": "Lumora",
+      "version": "0.3.70",
+      "title": "Toggle Sprint: schneller fliegen",
+      "text": "Toggle Sprint hat zwei neue Regler: Fluggeschwindigkeit bis 5x und Flug-Schwung, mit dem du beim Loslassen sofort anhältst oder weitergleitest.",
+      "image": "news-fly-speed.png",
+      "body": [
+        {"p": "Im Modul „Toggle Sprint“ (Hub, Spieler) gibt es den neuen Abschnitt „Fliegen“. Er wirkt überall, wo du fliegen darfst, also im Kreativ- und im Zuschauermodus."},
+        {"list": [
+          "Fluggeschwindigkeit: 1x bis 5x, waagerecht und beim Hoch- und Runterfliegen. 1x ist das normale Tempo",
+          "Flug-Schwung: 0 bis 100 %. Bei 100 % gleitest du wie gewohnt weiter, wenn du die Bewegungstasten loslässt, bei 0 % bleibst du sofort in der Luft stehen"
+        ]},
+        {"h": "Gut zu wissen"},
+        {"list": [
+          "Nur deine eigene Bewegung ändert sich, andere Spieler sind nicht betroffen",
+          "Manche Server werten schnelles Fliegen als Cheat oder setzen dich zurück; mehr als 5x lässt Lumora deshalb nicht zu",
+          "Ist das Modul aus oder stehen beide Regler auf dem Standard, fliegst du wie in Minecraft",
+          "In allen Versionen von 1.8.9 bis 26.3"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-light-level",
       "date": "2026-11-18",
       "author": "Lumora",

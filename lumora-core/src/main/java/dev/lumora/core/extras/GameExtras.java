@@ -56,6 +56,13 @@ public interface GameExtras {
     /** Holds the vanilla sneak key down (toggle sneak) or releases it. */
     void holdSneak(boolean down);
 
+    /**
+     * Fly momentum (toggle sprint): while the own player flies and no movement key (forward, back, left, right) is held,
+     * the horizontal speed is multiplied by {@code keep} (0..1) once per tick, on top of Minecraft's own slowing down.
+     */
+    default void flyMomentum(float keep) {
+    }
+
     /** Position of the block under the crosshair packed as x/y/z (any unique long), {@link Long#MIN_VALUE} if none. */
     default long targetBlockPos() {
         return Long.MIN_VALUE;

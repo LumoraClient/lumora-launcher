@@ -4,6 +4,7 @@ import dev.lumora.api.building.BlockHit;
 import dev.lumora.api.building.BlockInfo;
 import dev.lumora.api.building.ItemSpec;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -61,5 +62,20 @@ public interface BuildingPlatform {
     /** Right-click with the selected item at this hit, without asking the use handlers. */
     default boolean place(BlockHit hit) {
         return false;
+    }
+
+    /** Ids of all blocks with an item, sorted (API 1.11). */
+    default List<String> blockIds() {
+        return List.of();
+    }
+
+    /** Average texture colour, 0xAARRGGBB with alpha = opaque share; 0 if unknown (API 1.11). */
+    default int averageColor(String blockId) {
+        return 0;
+    }
+
+    /** Creative inventory items matching the search (API 1.11). */
+    default List<ItemSpec> creativeItems(String search, boolean blocksOnly) {
+        return List.of();
     }
 }

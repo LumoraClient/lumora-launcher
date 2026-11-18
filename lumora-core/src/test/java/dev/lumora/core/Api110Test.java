@@ -96,7 +96,7 @@ class Api110Test {
     void theBuildingToolsNeedTheirPermission() throws Exception {
         AddonContext ctx = start("plain", "\"hud\"");
         assertThrows(AddonPermissionException.class, ctx::building);
-        assertEquals("1.10.0", dev.lumora.api.LumoraAPI.API_VERSION);
+        assertTrue(dev.lumora.api.Version.parse(dev.lumora.api.LumoraAPI.API_VERSION).compareTo(dev.lumora.api.Version.parse("1.10.0")) >= 0);
     }
 
     @Test
@@ -145,6 +145,21 @@ class Api110Test {
         assertEquals(-1, api.breakDelay());
         assertFalse(api.hasUseHandlers());
         assertEquals(UseHandler.Decision.NORMAL, api.decideUse(HIT, ItemSpec.EMPTY));
+    }
+
+    @Test
+    void highlightsGoAwayWithTheirRegistrationAndTheAddon() throws Exception {
+        Building b = start("tools", "\"building\"").building();
+        var api = core.building();
+        var start = b.highlight(1, 64, 2, 0xFF00FF00);
+        b.highlight(5, 64, 9, 0xFFFF0000);
+        assertEquals(2, api.highlights().size());
+        start.unregister();
+        assertEquals(1, api.highlights().size());
+        assertEquals(5, api.highlights().get(0)[0]);
+        core.addonManager().setWanted("tools", false);
+        assertTrue(api.highlights().isEmpty());
+        assertTrue(new FakePlatform(dir).building().blockIds().isEmpty(), "versions without building tools: nothing");
     }
 
     @Test

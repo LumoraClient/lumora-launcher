@@ -1,6 +1,6 @@
 # Lumora API 1.10 – Building (Bauplan für das Addon „BuildingUtilities“)
 
-Stand: 2026-11-18. Stufe 1 umgesetzt (API, Client 26.1.2/26.2/26.3, Addon 1.0.0), noch nicht im Spiel getestet. Gilt nur für die Clients **26.1.2, 26.2 und 26.3**; auf älteren Versionen liefert
+Stand: 2026-11-18. Stufe 1 (API 1.10, Client 0.3.71, Addon 1.0.0) und Stufe 2 (API 1.11, Addon 1.1.0) umgesetzt, beide noch nicht im Spiel getestet. Gilt nur für die Clients **26.1.2, 26.2 und 26.3**; auf älteren Versionen liefert
 `context.building()` eine Schnittstelle, deren `available()` `false` ist.
 
 ## Ziel
@@ -72,8 +72,22 @@ public interface Building {
 ```
 
 Den Hotbar-Pool (Stufe 2) deckt `onUse` mit ab: der Handler wählt den Slot und antwortet `NORMAL`; Minecraft schickt
-den neuen Slot vor dem Klick. Spielmoduswechsel prüft das Addon pro Tick über `creative()`. Für Stufe 2 kommen
-`blockIds()`, `averageColor(...)`, `creativeItems(...)` und ein Welt-Overlay dazu (API 1.11).
+den neuen Slot vor dem Klick. Spielmoduswechsel prüft das Addon pro Tick über `creative()`.
+
+Stufe 2 (API 1.11, umgesetzt):
+- `Building#blockIds()`: alle Blöcke mit Item, sortiert.
+- `Building#averageColor(blockId)`: mittlere Farbe der Partikel-Textur (Accessor `SpriteContentsAccessor` auf das
+  Originalbild), Alpha = Anteil deckender Pixel; nach einem Ressourcen-Neuladen neu berechnet. Gefärbte Texturen
+  (Gras, Laub) zählen ungefärbt.
+- `Building#creativeItems(search, blocksOnly)`: alle aktivierten Items, Suche in Name und ID.
+- `Building#highlight(x, y, z, argb)`: Umrandung eines Blocks in der Welt (`BuildingOverlayRender`, eingehängt in den
+  Haken des Light Block Overlay), weg mit der Registrierung oder beim Ausschalten des Addons.
+- `HudGraphics#item(ItemSpec, x, y)`: Item-Bild in Addon-Fenstern (`GuiGraphicsExtractor#fakeItem`); auf Versionen
+  ohne Bauwerkzeuge zeichnet es nichts.
+
+Abweichungen von den Vorlagebildern: Im Hotbar-Pool bestimmen die Gewichte im Verlauf den Anteil jedes Blocks an der
+Strecke (statt verschiebbarer Griffe auf einer Leiste); die Item-Suche filtert „Nur Blöcke“ (eigene Items gibt es
+ohne Server-Plugin im Kreativ-Inventar nicht).
 
 Umsetzung je Version in `client/mc26.x/.../api/McBuilding.java` plus drei Mixins:
 - `BuildingUseMixin` (`MultiPlayerGameMode`): `useItemOn` HEAD/RETURN fragt die Addons; bei `AS_SNEAKING` bekommt der

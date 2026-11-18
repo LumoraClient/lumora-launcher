@@ -137,6 +137,14 @@ public final class McHudGraphics implements HudGraphics {
     }
 
     @Override
+    public void item(dev.lumora.api.building.ItemSpec item, int x, int y) {
+        net.minecraft.world.item.ItemStack stack = McBuilding.stack(item);
+        if (!stack.isEmpty()) {
+            g.fakeItem(stack, x, y);
+        }
+    }
+
+    @Override
     public <T> Optional<T> unwrap(Class<T> type) {
         return type.isInstance(g) ? Optional.of(type.cast(g)) : Optional.empty();
     }

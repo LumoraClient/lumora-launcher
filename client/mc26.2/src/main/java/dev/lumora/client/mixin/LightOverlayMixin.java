@@ -1,6 +1,7 @@
 package dev.lumora.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.lumora.client.render.BuildingOverlayRender;
 import dev.lumora.client.render.LightOverlayRender;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -16,5 +17,6 @@ public abstract class LightOverlayMixin {
     @Inject(method = "submitBlockOutline", at = @At("HEAD"))
     private void lumora$lightOverlay(PoseStack pose, SubmitNodeCollector collector, LevelRenderState state, CallbackInfo ci) {
         LightOverlayRender.submit(pose, collector, state);
+        BuildingOverlayRender.submit(pose, collector, state);
     }
 }

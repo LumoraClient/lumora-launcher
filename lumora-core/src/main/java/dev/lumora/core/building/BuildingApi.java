@@ -49,6 +49,8 @@ public final class BuildingApi {
     private final List<Owned<PickHandler>> pickHandlers = new CopyOnWriteArrayList<>();
     private final Map<String, Integer> useDelays = new ConcurrentHashMap<>();
     private final Map<String, Integer> breakDelays = new ConcurrentHashMap<>();
+    /** Outlined blocks of all addons: x, y, z, ARGB (API 1.11). */
+    private final List<int[]> highlights = new CopyOnWriteArrayList<>();
     /** Addons whose delays are removed again when they are disabled. */
     private final Set<String> delayOwners = ConcurrentHashMap.newKeySet();
     /** Handlers that threw once (logged once, then skipped). */
@@ -109,6 +111,11 @@ public final class BuildingApi {
     /** Shortest break delay any addon asked for, -1 if none (Minecraft's own). */
     public int breakDelay() {
         return shortest(breakDelays);
+    }
+
+    /** The outlined blocks to draw this frame (x, y, z, ARGB each); empty most of the time. */
+    public List<int[]> highlights() {
+        return highlights;
     }
 
     /** Whether any addon listens to right-clicks (the adapter skips building the hit otherwise). */
@@ -244,6 +251,32 @@ public final class BuildingApi {
                     useHandlers.remove(o);
                     broken.remove(o);
                 }));
+            }
+
+            @Override
+            public List<String> blockIds() {
+                guard.run();
+                return platform().blockIds();
+            }
+
+            @Override
+            public int averageColor(String blockId) {
+                guard.run();
+                return blockId == null ? 0 : platform().averageColor(blockId);
+            }
+
+            @Override
+            public List<ItemSpec> creativeItems(String search, boolean blocksOnly) {
+                guard.run();
+                return platform().creativeItems(search == null ? "" : search, blocksOnly);
+            }
+
+            @Override
+            public Registration highlight(int x, int y, int z, int argb) {
+                guard.run();
+                int[] box = {x, y, z, argb};
+                highlights.add(box);
+                return tracker.track(RegistrationTracker.of(() -> highlights.remove(box)));
             }
 
             @Override

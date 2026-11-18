@@ -263,6 +263,95 @@ public final class McBuilding implements BuildingPlatform {
         }
     }
 
+    // --- lists and colours (API 1.11)
+
+    /** Average texture colour per block id, computed once (the textures stay until a resource reload). */
+    private static final Map<String, Integer> COLORS = new ConcurrentHashMap<>();
+    private static volatile List<String> blockIds;
+
+    @Override
+    public List<String> blockIds() {
+        List<String> ids = blockIds;
+        if (ids == null) {
+            List<String> out = new ArrayList<>();
+            for (Block block : BuiltInRegistries.BLOCK) {
+                if (block.asItem() != net.minecraft.world.item.Items.AIR) {
+                    out.add(BuiltInRegistries.BLOCK.getKey(block).toString());
+                }
+            }
+            out.sort(null);
+            ids = List.copyOf(out);
+            blockIds = ids;
+        }
+        return ids;
+    }
+
+    @Override
+    public int averageColor(String blockId) {
+        return COLORS.computeIfAbsent(blockId, McBuilding::computeColor);
+    }
+
+    /** Forgets the colours (resource packs changed). */
+    public static void resourcesReloaded() {
+        COLORS.clear();
+    }
+
+    private static int computeColor(String id) {
+        Identifier rid = Identifier.tryParse(id);
+        if (rid == null || !BuiltInRegistries.BLOCK.containsKey(rid)) {
+            return 0;
+        }
+        try {
+            BlockState state = BuiltInRegistries.BLOCK.getValue(rid).defaultBlockState();
+            var sprite = mc().getModelManager().getBlockStateModelSet().getParticleMaterial(state).sprite();
+            var contents = sprite.contents();
+            var image = ((dev.lumora.client.mixin.SpriteContentsAccessor) contents).lumora$image();
+            long r = 0;
+            long g = 0;
+            long b = 0;
+            int opaque = 0;
+            int total = 0;
+            for (int y = 0; y < contents.height(); y++) {
+                for (int x = 0; x < contents.width(); x++) {
+                    int argb = image.getPixel(x, y);
+                    total++;
+                    if ((argb >>> 24) < 128) {
+                        continue;
+                    }
+                    opaque++;
+                    r += (argb >> 16) & 0xFF;
+                    g += (argb >> 8) & 0xFF;
+                    b += argb & 0xFF;
+                }
+            }
+            if (opaque == 0) {
+                return 0;
+            }
+            int alpha = Math.max(1, opaque * 255 / total);
+            return alpha << 24 | (int) (r / opaque) << 16 | (int) (g / opaque) << 8 | (int) (b / opaque);
+        } catch (RuntimeException e) {
+            return 0;
+        }
+    }
+
+    @Override
+    public List<ItemSpec> creativeItems(String search, boolean blocksOnly) {
+        String s = search.trim().toLowerCase(java.util.Locale.ROOT);
+        var features = mc().level == null ? null : mc().level.enabledFeatures();
+        List<ItemSpec> out = new ArrayList<>();
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item == net.minecraft.world.item.Items.AIR || (blocksOnly && !(item instanceof BlockItem))
+                    || (features != null && !item.isEnabled(features))) {
+                continue;
+            }
+            ItemSpec spec = spec(new ItemStack(item));
+            if (s.isEmpty() || spec.id().contains(s) || spec.name().toLowerCase(java.util.Locale.ROOT).contains(s)) {
+                out.add(spec);
+            }
+        }
+        return out;
+    }
+
     // --- hooks (called by the mixins)
 
     /** Asked at the start of {@code MultiPlayerGameMode#useItemOn}: what the addons want with this click. */

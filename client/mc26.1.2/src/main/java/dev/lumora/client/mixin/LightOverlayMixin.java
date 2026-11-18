@@ -1,6 +1,7 @@
 package dev.lumora.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.lumora.client.render.BuildingOverlayRender;
 import dev.lumora.client.render.LightOverlayRender;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -18,6 +19,7 @@ public abstract class LightOverlayMixin {
                                      LevelRenderState state, CallbackInfo ci) {
         if (!translucent && state.cameraRenderState != null) {
             LightOverlayRender.draw(pose, buffers, state.cameraRenderState.pos);
+            BuildingOverlayRender.draw(pose, buffers, state.cameraRenderState.pos);
         }
     }
 }

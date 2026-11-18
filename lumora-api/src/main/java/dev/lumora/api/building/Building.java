@@ -2,6 +2,7 @@ package dev.lumora.api.building;
 
 import dev.lumora.api.Registration;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -66,4 +67,32 @@ public interface Building {
 
     /** Asks the handler before every pick-block on a block. Removed when the addon is disabled. */
     Registration onPick(PickHandler handler);
+
+    // --- since 1.11.0; the defaults keep 1.10 implementations working
+
+    /** Ids of all blocks that can be held as an item ({@code minecraft:stone} …), sorted. @since 1.11.0 */
+    default List<String> blockIds() {
+        return List.of();
+    }
+
+    /**
+     * Average colour of a block as it looks (its main texture), {@code 0xRRGGBB} with the share of opaque pixels as
+     * alpha ({@code 0xFF} = fully opaque); 0 if unknown. Tinted textures (grass, leaves) count untinted. @since 1.11.0
+     */
+    default int averageColor(String blockId) {
+        return 0;
+    }
+
+    /**
+     * Items of the creative inventory whose name or id contains {@code search} (case-insensitive; empty = all),
+     * only block items with {@code blocksOnly}. @since 1.11.0
+     */
+    default List<ItemSpec> creativeItems(String search, boolean blocksOnly) {
+        return List.of();
+    }
+
+    /** Draws an outline around this block in the world (ARGB colour) until removed or the addon is disabled. @since 1.11.0 */
+    default Registration highlight(int x, int y, int z, int argb) {
+        throw new UnsupportedOperationException("requires Lumora API 1.11");
+    }
 }

@@ -105,6 +105,14 @@ public interface HudGraphics {
         scale(factor, factor);
     }
 
+    /**
+     * Draws an item icon (16 x 16) at this position; nothing on Minecraft versions without the building tools.
+     *
+     * @since 1.11.0
+     */
+    default void item(dev.lumora.api.building.ItemSpec item, int x, int y) {
+    }
+
     /** Limits drawing to the rectangle (current transformation applies). Calls can be nested. */
     void enableScissor(int x1, int y1, int x2, int y2);
 

@@ -176,6 +176,47 @@ class SettingsViewTest {
         assertEquals(1, saved.get());
     }
 
+    /** Choosing a key does not type its letter into the search; ESC (as key or as "close") clears the key to NONE. */
+    @Test
+    void choosingAKeyDoesNotSearchAndEscapeClearsIt() throws Exception {
+        LumoraCore core = new LumoraCore(new FakePlatform(dir));
+        SettingsGroup g = new SettingsGroup("test");
+        var key = g.keybind("key", Keys.R);
+        SettingsView view = new SettingsView(core, new Host(), "Test", "", g, List.of(), null, false);
+        render(view, 0, 0);
+        Thread.sleep(220); // typed text right after opening belongs to the key that opened the view
+        int px = -1;
+        int py = -1;
+        for (int y = 40; y < 470 && px < 0; y += 3) {
+            for (int x = 500; x < 840 && px < 0; x += 6) {
+                render(view, x, y);
+                view.mouseClicked(x, y, 0);
+                view.keyPressed(Keys.K, false, false);
+                view.charTyped('k'); // the character event of the same key press
+                if (key.get() == Keys.K) {
+                    px = x;
+                    py = y;
+                } else {
+                    view.closeRequested();
+                    view.closeRequested();
+                }
+            }
+        }
+        assertTrue(px >= 0, "the key pill was found");
+        assertTrue(view.closeRequested(), "nothing was typed into the search");
+        render(view, px, py);
+        view.mouseClicked(px, py, 0);
+        view.charTyped('x');
+        assertEquals(Keys.K, key.get(), "typing while waiting is not text");
+        view.keyPressed(Keys.ESCAPE, false, false);
+        assertEquals(Keys.UNBOUND, key.get(), "ESC: NONE");
+        key.set(Keys.K);
+        render(view, px, py);
+        view.mouseClicked(px, py, 0);
+        assertFalse(view.closeRequested(), "ESC as close while waiting only clears the key");
+        assertEquals(Keys.UNBOUND, key.get());
+    }
+
     @Test
     void colorHexIsEditable() throws Exception {
         LumoraCore core = new LumoraCore(new FakePlatform(dir));

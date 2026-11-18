@@ -156,6 +156,8 @@ public final class SettingsView implements AddonView {
     private String search = "";
     private IntConsumer capture;
     private String captureId;
+    /** A key was just chosen: its character event (sent right after the key) is dropped instead of starting a search. */
+    private boolean swallowChar;
     private float scroll;
     private float scrollTarget;
     private int maxScroll;
@@ -1396,15 +1398,15 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean keyPressed(int key, boolean ctrl, boolean shift) {
+        swallowChar = false;
         if (capture != null) {
             IntConsumer c = capture;
             capture = null;
             captureId = null;
-            if (key == Keys.BACKSPACE || key == Keys.DELETE) {
-                c.accept(Keys.UNBOUND);
-            } else if (key != Keys.ESCAPE) {
-                c.accept(key);
-            }
+            // ESC, Backspace and Delete clear the key (NONE); any other key is the new key
+            c.accept(key == Keys.ESCAPE || key == Keys.BACKSPACE || key == Keys.DELETE ? Keys.UNBOUND : key);
+            // the character of this key press comes as its own event right after: it must not land in the search
+            swallowChar = true;
             return true;
         }
         if (ctrl && key == Keys.F) {
@@ -1432,6 +1434,13 @@ public final class SettingsView implements AddonView {
 
     @Override
     public boolean charTyped(char ch) {
+        if (capture != null) {
+            return true; // waiting for a key: typing is the key, not text
+        }
+        if (swallowChar) {
+            swallowChar = false;
+            return true; // the character of the key just chosen
+        }
         if (ch < 32 || ch == 127 || Character.isISOControl(ch) || System.currentTimeMillis() - openedAt < 200) {
             return focus != null;
         }
@@ -1455,8 +1464,11 @@ public final class SettingsView implements AddonView {
             return false;
         }
         if (capture != null) {
+            // ESC while waiting for a key clears it (NONE), also where ESC arrives as "close" instead of a key
+            IntConsumer c = capture;
             capture = null;
             captureId = null;
+            c.accept(Keys.UNBOUND);
             return false;
         }
         if (focus != null) {

@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.74 (2026-11-18):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 661 Unit-Tests ohne Fehler (1 übersprungen; neu in `SettingsViewTest`: beim Festlegen einer Taste landet ihr Zeichen nicht in der Suche, Tippen während „Taste drücken…“ ist kein Text, ESC als Taste und als Schließen-Anfrage setzt die Taste auf keine). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** keine Änderung; die Änderung steckt nur in `lumora-core` (`SettingsView`).
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Tasten festlegen und ESC sind im Spiel nicht angesehen. Das News-Bild ist ein gezeichnetes Titelbild, kein Screenshot.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, neue `SettingsView` in den gebündelten Client-Jars (Stichprobe 1.8.9 und 26.3), News-Bild im Launcher-Jar.
+
 **0.3.73 (2026-11-18):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 660 Unit-Tests ohne Fehler (1 übersprungen; neu in `Api110Test`: NoClip gehört dem Addon, geht beim Zurücksetzen durch den Server und beim Ausschalten des Addons aus). Der erste Lauf scheiterte an `ArticleTest`/`NewsAndServersTest`, weil der News-Eintrag noch kein Bild hatte; mit Titelbild grün. `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** neue `NoClipMixin` (`Player#tick` nach dem Setzen von `noPhysics`), `NoClipViewMixin` (26.1.2 `LevelRenderer#update`, 26.2/26.3 `Camera#extractRenderState`, Aufruf `LocalPlayer#isSpectator`) und `NoClipServerMoveMixin` (`ClientPacketListener#handleMovePlayer` nach `ensureRunningOnSameThread`) mit `check-mixins.pl` in 26.1.2, 26.2 und 26.3 OK; die Server-Prüfung `noPhysics` in `ServerGamePacketListenerImpl` per `javap` nachgesehen.

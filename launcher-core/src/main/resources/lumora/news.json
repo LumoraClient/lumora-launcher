@@ -1,6 +1,29 @@
 {
   "news": [
     {
+      "id": "lumora-hotkey-escape",
+      "date": "2026-11-18",
+      "author": "Lumora",
+      "version": "0.3.74",
+      "title": "Tasten festlegen: ESC entfernt sie",
+      "text": "Beim Festlegen einer Taste landet der Buchstabe nicht mehr in der Suchleiste, und ESC entfernt die Taste ganz.",
+      "image": "news-hotkey-none.png",
+      "body": [
+        {"p": "In den Einstellungen jedes Moduls, Widgets und Addons im Hub legst du Tasten fest, indem du auf das Tastenfeld klickst und dann die gewünschte Taste drückst. Dabei gab es zwei Stolpersteine, die jetzt weg sind."},
+        {"list": [
+          "Der Buchstabe der neuen Taste wird nicht mehr zusätzlich in die Suchleiste oben getippt",
+          "ESC während „Taste drücken…“ entfernt die Taste: das Feld zeigt danach „Keine“, die Aktion hat keine Taste mehr",
+          "Backspace und Entf entfernen die Taste wie bisher",
+          "Das Einstellungsfenster bleibt bei ESC offen, ein zweites ESC schließt es"
+        ]},
+        {"h": "Gut zu wissen"},
+        {"list": [
+          "Gilt für alle Tasten-Einstellungen im Hub, auch für die Tasten von Addons wie BuildingUtilities",
+          "In allen Versionen von 1.8.9 bis 26.3"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-building-utilities-1-2",
       "date": "2026-11-18",
       "author": "Lumora",

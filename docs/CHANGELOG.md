@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.74 (2026-11-18)
+
+### Client
+- **Tasten in den Einstellungen:** Wer bei einem Modul, Widget oder Addon eine Taste festlegt, tippt den Buchstaben nicht mehr zusätzlich in die Suchleiste. Solange „Taste drücken…“ angezeigt wird, geht kein Text in die Suche.
+- **ESC entfernt die Taste:** ESC während „Taste drücken…“ setzt die Taste auf keine (Anzeige „Keine“), statt nur abzubrechen; das Einstellungsfenster bleibt offen. Backspace und Entf löschen sie wie bisher.
+
 ## 0.3.73 (2026-11-18)
 
 ### Client

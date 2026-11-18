@@ -64,7 +64,7 @@ class Api15Test {
         assertThrows(AddonPermissionException.class, () -> context.theme().addAccent("gold", "Gold", 0xFFD4A017));
         assertThrows(AddonPermissionException.class, () -> context.chat());
         assertThrows(AddonPermissionException.class, () -> context.social());
-        assertEquals("1.9.0", core.apiVersion());
+        assertEquals(dev.lumora.api.LumoraAPI.API_VERSION, core.apiVersion());
     }
 
     @Test

@@ -78,7 +78,7 @@ class Api11Test {
     void addonsForApi11LoadAndOldAddonsStillLoad() throws Exception {
         start("old", "", ctx -> { });
         start("new", ALL, ctx -> { });
-        assertEquals("1.9.0", core.apiVersion());
+        assertEquals(dev.lumora.api.LumoraAPI.API_VERSION, core.apiVersion());
     }
 
     @Test

@@ -265,6 +265,11 @@ final class McPlatform implements Platform {
     }
 
     @Override
+    public dev.lumora.core.building.BuildingPlatform building() {
+        return McBuilding.INSTANCE;
+    }
+
+    @Override
     public boolean modLoaded(String modId) {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }

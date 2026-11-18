@@ -106,6 +106,11 @@ public interface Platform {
         return false;
     }
 
+    /** Block, inventory and click access for the building tools of the Lumora API 1.10 (26.1 and newer). */
+    default dev.lumora.core.building.BuildingPlatform building() {
+        return dev.lumora.core.building.BuildingPlatform.NONE;
+    }
+
     /** Game details for the built-in Lumora modules (potions, items, combo, fullbright, toggle sprint). */
     default dev.lumora.core.extras.GameExtras extras() {
         return dev.lumora.core.extras.GameExtras.NONE;

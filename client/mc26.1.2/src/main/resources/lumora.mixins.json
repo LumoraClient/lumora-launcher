@@ -3,6 +3,9 @@
   "package": "dev.lumora.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "BuildingUseMixin",
+    "BuildingClientMixin",
+    "BuildingSecondaryUseMixin",
     "FlySpeedMixin",
     "FlySpeedVerticalMixin",
     "HiddenArmorMixin",

@@ -38,6 +38,7 @@ final class AddonContextImpl implements AddonContext {
     private final dev.lumora.api.interaction.PlayerMenu playerMenu;
     private final dev.lumora.api.ui.Theme theme;
     private final dev.lumora.api.chat.Chat chat;
+    private final dev.lumora.api.building.Building building;
     private final dev.lumora.api.social.SocialInfo social;
     private final dev.lumora.api.screen.AddonScreens screens;
     private final AddonTextures textures;
@@ -81,6 +82,10 @@ final class AddonContextImpl implements AddonContext {
             require(AddonPermission.PLAYER_MENU);
         });
         this.theme = core.themes().scoped(id, record.tracker, this::requireActive, () -> require(AddonPermission.DESIGN));
+        this.building = core.building().scoped(id, record.tracker, () -> {
+            requireActive();
+            require(AddonPermission.BUILDING);
+        });
         this.chat = core.chat().scoped(id, record.tracker, () -> {
             requireActive();
             require(AddonPermission.CHAT);
@@ -245,6 +250,12 @@ final class AddonContextImpl implements AddonContext {
     public dev.lumora.api.chat.Chat chat() {
         require(AddonPermission.CHAT);
         return chat;
+    }
+
+    @Override
+    public dev.lumora.api.building.Building building() {
+        require(AddonPermission.BUILDING);
+        return building;
     }
 
     @Override

@@ -114,6 +114,16 @@ public interface AddonContext {
         throw new UnsupportedOperationException("requires Lumora API 1.1");
     }
 
+    /**
+     * Building tools: the block under the crosshair, block states, break and place, pick-block, creative hotbar slots and
+     * hooks into right-click and pick-block (permission {@code building}; creative mode only, Minecraft 26.1 and newer).
+     *
+     * @since 1.10.0
+     */
+    default dev.lumora.api.building.Building building() {
+        throw new UnsupportedOperationException("requires Lumora API 1.10");
+    }
+
     /** Textures this addon makes at runtime from pixels (e.g. an album cover); no permission. @since 1.8.0 */
     default dev.lumora.api.render.DynamicTextures textures() {
         throw new UnsupportedOperationException("requires Lumora API 1.8");

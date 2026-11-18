@@ -67,6 +67,7 @@ public final class LumoraCore implements Lumora {
     private final dev.lumora.core.interaction.PlayerInteraction interaction;
     private final dev.lumora.core.theme.ThemeService themes;
     private final dev.lumora.core.chat.ChatApi chat;
+    private final dev.lumora.core.building.BuildingApi building;
     private final dev.lumora.core.session.SessionServiceImpl session;
     private final dev.lumora.core.connection.ConnectionTracker connections;
     private final dev.lumora.core.hub.ScreenshotWatcher screenshots;
@@ -103,6 +104,7 @@ public final class LumoraCore implements Lumora {
         this.interaction = new dev.lumora.core.interaction.PlayerInteraction(this, playerMenu);
         this.themes = new dev.lumora.core.theme.ThemeService(platform.translations().language().startsWith("de"));
         this.chat = new dev.lumora.core.chat.ChatApi(events, log);
+        this.building = new dev.lumora.core.building.BuildingApi(log, platform::building);
         new dev.lumora.core.render.ItemTooltips(events, log);
         chat.setOpener(text -> platform.extras().openChat(text));
         chat.setExtras(platform::extras);
@@ -381,6 +383,11 @@ public final class LumoraCore implements Lumora {
     /** Chat menu entries and messages for addons (Lumora API 1.5). */
     public dev.lumora.core.chat.ChatApi chat() {
         return chat;
+    }
+
+    /** Building tools of the Lumora API 1.10 (click handlers and delays of the addons). */
+    public dev.lumora.core.building.BuildingApi building() {
+        return building;
     }
 
     public dev.lumora.core.screen.ViewManager views() {

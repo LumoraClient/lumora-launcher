@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.70 (2026-11-18)
+
+### Client
+- **Toggle Sprint: Fliegen.** Neuer Abschnitt mit zwei Reglern. „Fluggeschwindigkeit“ (1x bis 5x, Standard 1x) macht das Fliegen im Kreativ- und Zuschauermodus schneller, waagerecht wie hoch und runter. „Flug-Schwung“ (0 bis 100 %, Standard 100 %) legt fest, wie weit du nach dem Loslassen der Bewegungstasten weitergleitest; bei 0 % hältst du sofort an. Nur die eigene Bewegung ändert sich, der vom Server gesendete Flugwert bleibt unverändert. In allen Versionen von 1.8.9 bis 26.3.
+
+### Launcher
+- **News:** Artikel „Toggle Sprint: schneller fliegen“.
+
 ## 0.3.69 (2026-11-18)
 
 ### Launcher

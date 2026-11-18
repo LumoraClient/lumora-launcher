@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.70 (2026-11-18):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 653 Unit-Tests ohne Fehler (1 übersprungen; neu: `ToggleSprintFlyTest` mit 2 Tests für Standardwerte, Modul aus = normales Tempo und die Grenzen der Regler). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neue `FlySpeedMixin` (Player: `getFlyingSpeed` ab 1.19.4, `travel` 1.16.5–1.18.2, `PlayerEntity#travel`/`method_2657` in 1.8.9/1.12.2) und `FlySpeedVerticalMixin` (`LocalPlayer#aiStep`, `ClientPlayerEntity#tickMovement` in Legacy) mit `check-mixins.pl` in allen 16 Versionen OK.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Fluggeschwindigkeit und Flug-Schwung sind im Spiel nicht ausprobiert.
+- **News:** Artikel „Toggle Sprint: schneller fliegen“. Das Titelbild ist aus dem echten Hub-Icon des Moduls erzeugt (kein Spiel-Screenshot). Der Artikel ist im Launcher nicht angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, beide Mixins in allen 16 gebündelten Client-Jars, News-Bild im Launcher-Jar.
+
 **0.3.69 (2026-11-18):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 651 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
 - **News:** Artikel „Light Block Overlay: Lichtstufen“. Bilder aus einem 26.1.2-Smoke-Lauf im Test-Home (Steinboden mit zwei Fackeln, Lichtstufe als Zahl und als Fläche, mit HUD wie im alten Light-Overlay-Bild). Dabei lief der Lichtstufen-Modus erstmals im Spiel: Farbverlauf und Zahlen sichtbar. Ein 26.3-Lauf mit den neuen Smoke-Aufnahmen hat ebenfalls bestanden. Weitere Tests auf Wunsch nicht ausgeführt; der Artikel ist im Launcher nicht angesehen.

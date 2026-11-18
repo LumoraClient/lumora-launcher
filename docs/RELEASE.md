@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.73 (2026-11-18):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 660 Unit-Tests ohne Fehler (1 übersprungen; neu in `Api110Test`: NoClip gehört dem Addon, geht beim Zurücksetzen durch den Server und beim Ausschalten des Addons aus). Der erste Lauf scheiterte an `ArticleTest`/`NewsAndServersTest`, weil der News-Eintrag noch kein Bild hatte; mit Titelbild grün. `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neue `NoClipMixin` (`Player#tick` nach dem Setzen von `noPhysics`), `NoClipViewMixin` (26.1.2 `LevelRenderer#update`, 26.2/26.3 `Camera#extractRenderState`, Aufruf `LocalPlayer#isSpectator`) und `NoClipServerMoveMixin` (`ClientPacketListener#handleMovePlayer` nach `ensureRunningOnSameThread`) mit `check-mixins.pl` in 26.1.2, 26.2 und 26.3 OK; die Server-Prüfung `noPhysics` in `ServerGamePacketListenerImpl` per `javap` nachgesehen.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. NoClip, Blockmerkmale und Item-Farben sind im Spiel nicht angesehen. Das News-Bild ist ein gezeichnetes Titelbild, kein Screenshot.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, die drei NoClip-Mixins und API 1.12.0 in den gebündelten 26.1.2-, 26.2- und 26.3-Jars, News-Bild im Launcher-Jar.
+
 **0.3.72 (2026-11-18):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 659 Unit-Tests ohne Fehler (1 übersprungen; neu in `Api110Test`: Umrandungen verschwinden mit ihrer Registrierung und beim Ausschalten des Addons). Ein vorheriger Lauf hatte einmal `HubViewTest` beim Löschen des Temp-Verzeichnisses scheitern lassen (Windows-Dateisperre), einzeln und im Release-Build grün. `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** neuer Accessor `SpriteContentsAccessor` (`originalImage`, Feld in 26.1.2, 26.2 und 26.3 per `javap` geprüft); `LightOverlayMixin` ruft zusätzlich `BuildingOverlayRender` auf, Ziele unverändert.

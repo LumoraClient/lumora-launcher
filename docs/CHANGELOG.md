@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.73 (2026-11-18)
+
+### Client
+- **Lumora API 1.12: NoClip, Blockmerkmale und Item-Farben für Addons** (nur Minecraft 26.1.2, 26.2 und 26.3): Addons können NoClip beim Fliegen im Kreativmodus einschalten. In der eigenen Welt (Einzelspieler, LAN-Host) lässt Lumora den Spieler durch Blöcke, die Welt bleibt im Block sichtbar; auf anderen Servern nur, wenn der Server es zulässt, sonst schaltet sich NoClip beim Zurücksetzen ab. Dazu Blockmerkmale (voller Block, fest, undurchsichtig, gleiche Textur auf allen Seiten) und die Farbe von Items. Grundlage für BuildingUtilities 1.2.0.
+
 ## 0.3.72 (2026-11-18)
 
 ### Client

@@ -1,6 +1,34 @@
 {
   "news": [
     {
+      "id": "lumora-building-utilities-1-2",
+      "date": "2026-11-18",
+      "author": "Lumora",
+      "version": "0.3.73",
+      "title": "BuildingUtilities 1.2: NoClip, neuer Replacer, Filter",
+      "text": "Das Bau-Addon BuildingUtilities kann jetzt durch Blöcke fliegen, tauscht beim Ersetzen nur das Material und hat Filter im Color Picker. Dafür bringt Lumora die API 1.12 mit.",
+      "image": "news-building-utilities-1-2.png",
+      "body": [
+        {"p": "BuildingUtilities ist ein Addon mit Bauwerkzeugen für den Kreativmodus in Minecraft 26.1 und neuer. Version 1.2.0 braucht Lumora 0.3.73 und liegt im Addon-Store."},
+        {"h": "Neu im Addon"},
+        {"list": [
+          "Phantom / NoClip: mit seiner Taste beim Fliegen durch Blöcke fliegen, wie im Zuschauermodus",
+          "Block Replacer REPLACE: der Block behält Form und Drehung und bekommt das Material aus deiner Hand, z. B. Steinmauer + Diorit = Dioritmauer",
+          "Ist ein Block schon das, was er werden würde, passiert beim Ersetzen nichts mehr",
+          "Color Picker: Filter F/S/O/T für volle, feste, undurchsichtige Blöcke und gleiche Textur auf allen Seiten; Farbe auch von einem Item aus der Hotbar",
+          "Hotbar-Pool geht in jedem Spielmodus",
+          "Fast Place und Fast Break mit eigener Taste",
+          "Ein HUD-Element pro Werkzeug, im Widget-Design aus dem Hub"
+        ]},
+        {"h": "Gut zu wissen"},
+        {"list": [
+          "NoClip wirkt voll in deiner eigenen Welt (Einzelspieler oder als LAN-Host). Auf anderen Servern nur, wenn der Server es zulässt; setzt er dich zurück, schaltet sich NoClip mit einer Meldung ab. Lumora umgeht dabei nichts",
+          "Die neuen Tasten sind ab Werk nicht belegt, du legst sie in den Tastenbelegungen fest",
+          "Die alten Ersetzungsregeln (stone > andesite) gibt es nicht mehr"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-fly-speed",
       "date": "2026-11-18",
       "author": "Lumora",

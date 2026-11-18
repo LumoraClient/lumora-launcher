@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.71 (2026-11-18):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 658 Unit-Tests ohne Fehler (1 übersprungen; neu: `Api110Test` mit 5 Tests für Berechtigung, Lesen und Handeln über den Versions-Adapter, Reihenfolge der Handler mit übersprungenem fehlerhaftem Handler, Wartezeiten und Handler weg beim Ausschalten, Werte von Items und Block-States). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neue `BuildingUseMixin` (`MultiPlayerGameMode#useItemOn`, `startDestroyBlock`, `continueDestroyBlock`), `BuildingClientMixin` (`Minecraft#pickBlockOrEntity`, `startUseItem`) und `BuildingSecondaryUseMixin` (`Player#isSecondaryUseActive`) mit `check-mixins.pl` in 26.1.2, 26.2 und 26.3 OK.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Die Bauwerkzeuge (Schleich-Klick, Mittelklick, Wartezeiten, Abbauen und Platzieren) sind im Spiel nicht ausprobiert.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `McBuilding` und die drei Mixins in den gebündelten 26.1.2-, 26.2- und 26.3-Jars, API-Version 1.10.0.
+
 **0.3.70 (2026-11-18):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 653 Unit-Tests ohne Fehler (1 übersprungen; neu: `ToggleSprintFlyTest` mit 2 Tests für Standardwerte, Modul aus = normales Tempo und die Grenzen der Regler). `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** neue `FlySpeedMixin` (Player: `getFlyingSpeed` ab 1.19.4, `travel` 1.16.5–1.18.2, `PlayerEntity#travel`/`method_2657` in 1.8.9/1.12.2) und `FlySpeedVerticalMixin` (`LocalPlayer#aiStep`, `ClientPlayerEntity#tickMovement` in Legacy) mit `check-mixins.pl` in allen 16 Versionen OK.

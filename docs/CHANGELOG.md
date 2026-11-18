@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.71 (2026-11-18)
+
+### Client
+- **Lumora API 1.10: Bauwerkzeuge für Addons** (nur Minecraft 26.1.2, 26.2 und 26.3). Neue Berechtigung `building` und `AddonContext.building()`: anvisierter Block mit Block-States, Hotbar lesen und wählen, Kreativ-Slots setzen (auch mit Block-State), Block aufnehmen, abbauen und platzieren, sich vor Rechtsklick und Mittelklick einhängen (normal / wie Schleichen / abbrechen), Wartezeiten beim Setzen und Abbauen verkürzen. Alles nur im Kreativmodus und nur mit den Paketen, die ein Spieler auch selbst schicken würde; keine Befehle. Grundlage für das Addon BuildingUtilities. Bauplan: `docs/LUMORA_API_1_10_BUILDING.md`.
+
 ## 0.3.70 (2026-11-18)
 
 ### Client

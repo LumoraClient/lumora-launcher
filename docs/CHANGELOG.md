@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.72 (2026-11-18)
+
+### Client
+- **Lumora API 1.11: mehr Bauwerkzeuge für Addons** (nur Minecraft 26.1.2, 26.2 und 26.3): Liste aller Blöcke, mittlere Texturfarbe eines Blocks, Suche im Kreativ-Inventar, farbige Umrandungen um Blöcke in der Welt und Item-Bilder in Addon-Fenstern. Grundlage für BuildingUtilities 1.1.0 (Tinker, Color Picker, Hotbar-Pool, Item-Suche).
+
 ## 0.3.71 (2026-11-18)
 
 ### Client

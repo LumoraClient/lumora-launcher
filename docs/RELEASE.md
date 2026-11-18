@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.72 (2026-11-18):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 659 Unit-Tests ohne Fehler (1 übersprungen; neu in `Api110Test`: Umrandungen verschwinden mit ihrer Registrierung und beim Ausschalten des Addons). Ein vorheriger Lauf hatte einmal `HubViewTest` beim Löschen des Temp-Verzeichnisses scheitern lassen (Windows-Dateisperre), einzeln und im Release-Build grün. `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neuer Accessor `SpriteContentsAccessor` (`originalImage`, Feld in 26.1.2, 26.2 und 26.3 per `javap` geprüft); `LightOverlayMixin` ruft zusätzlich `BuildingOverlayRender` auf, Ziele unverändert.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Texturfarben, Kreativ-Items, Umrandungen und Item-Bilder sind im Spiel nicht angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `SpriteContentsAccessor`, `BuildingOverlayRender` und API 1.11.0 in den gebündelten 26.1.2-, 26.2- und 26.3-Jars.
+
 **0.3.71 (2026-11-18):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 658 Unit-Tests ohne Fehler (1 übersprungen; neu: `Api110Test` mit 5 Tests für Berechtigung, Lesen und Handeln über den Versions-Adapter, Reihenfolge der Handler mit übersprungenem fehlerhaftem Handler, Wartezeiten und Handler weg beim Ausschalten, Werte von Items und Block-States). `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** neue `BuildingUseMixin` (`MultiPlayerGameMode#useItemOn`, `startDestroyBlock`, `continueDestroyBlock`), `BuildingClientMixin` (`Minecraft#pickBlockOrEntity`, `startUseItem`) und `BuildingSecondaryUseMixin` (`Player#isSecondaryUseActive`) mit `check-mixins.pl` in 26.1.2, 26.2 und 26.3 OK.

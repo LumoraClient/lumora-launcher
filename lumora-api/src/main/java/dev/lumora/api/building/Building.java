@@ -95,4 +95,37 @@ public interface Building {
     default Registration highlight(int x, int y, int z, int argb) {
         throw new UnsupportedOperationException("requires Lumora API 1.11");
     }
+
+    // --- since 1.12.0
+
+    /**
+     * What the block is like (full cube, solid, opaque, same texture on all sides); {@link BlockTraits#NONE} if
+     * unknown. @since 1.12.0
+     */
+    default BlockTraits blockTraits(String blockId) {
+        return BlockTraits.NONE;
+    }
+
+    /**
+     * Average colour of an item as it looks in the inventory ({@code 0xAARRGGBB} like {@link #averageColor}); block
+     * items give the colour of their block, other items that of their item texture; 0 if unknown. @since 1.12.0
+     */
+    default int itemColor(String itemId) {
+        return 0;
+    }
+
+    /**
+     * NoClip: while on, the own player flies through blocks in creative mode (only while flying, like spectator).
+     * In the own world (singleplayer or as LAN host) Lumora's built-in server lets the player through. On other servers
+     * it only works as far as the server accepts the movement; when the server puts the player back from inside a
+     * block, NoClip switches itself off ({@link #noClip()} turns {@code false}). Nothing is bypassed. Removed when the
+     * addon is disabled. @since 1.12.0
+     */
+    default void setNoClip(boolean on) {
+    }
+
+    /** Whether this addon's NoClip is on; false again after the server refused it. @since 1.12.0 */
+    default boolean noClip() {
+        return false;
+    }
 }

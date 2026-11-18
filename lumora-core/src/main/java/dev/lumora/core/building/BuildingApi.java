@@ -51,6 +51,10 @@ public final class BuildingApi {
     private final Map<String, Integer> breakDelays = new ConcurrentHashMap<>();
     /** Outlined blocks of all addons: x, y, z, ARGB (API 1.11). */
     private final List<int[]> highlights = new CopyOnWriteArrayList<>();
+    /** Addons with NoClip on (API 1.12). */
+    private final Set<String> noClipOwners = ConcurrentHashMap.newKeySet();
+    /** Addons whose NoClip is removed again when they are disabled. */
+    private final Set<String> noClipTracked = ConcurrentHashMap.newKeySet();
     /** Addons whose delays are removed again when they are disabled. */
     private final Set<String> delayOwners = ConcurrentHashMap.newKeySet();
     /** Handlers that threw once (logged once, then skipped). */
@@ -126,6 +130,19 @@ public final class BuildingApi {
     /** Whether any addon listens to pick-block. */
     public boolean hasPickHandlers() {
         return !pickHandlers.isEmpty();
+    }
+
+    /** Whether any addon has NoClip on (API 1.12); the adapter still checks creative mode and flying. */
+    public boolean wantsNoClip() {
+        return !noClipOwners.isEmpty();
+    }
+
+    /** The server put the player back from inside a block: NoClip goes off for every addon. */
+    public void rejectNoClip() {
+        if (!noClipOwners.isEmpty()) {
+            noClipOwners.clear();
+            log.info("NoClip switched off: the server does not let the player through blocks");
+        }
     }
 
     static int shortest(Map<String, Integer> delays) {
@@ -277,6 +294,39 @@ public final class BuildingApi {
                 int[] box = {x, y, z, argb};
                 highlights.add(box);
                 return tracker.track(RegistrationTracker.of(() -> highlights.remove(box)));
+            }
+
+            @Override
+            public dev.lumora.api.building.BlockTraits blockTraits(String blockId) {
+                guard.run();
+                return blockId == null ? dev.lumora.api.building.BlockTraits.NONE : platform().blockTraits(blockId);
+            }
+
+            @Override
+            public int itemColor(String itemId) {
+                guard.run();
+                return itemId == null ? 0 : platform().itemColor(itemId);
+            }
+
+            @Override
+            public void setNoClip(boolean on) {
+                guard.run();
+                if (!on) {
+                    noClipOwners.remove(addon);
+                    return;
+                }
+                if (noClipTracked.add(addon)) {
+                    tracker.track(RegistrationTracker.of(() -> {
+                        noClipOwners.remove(addon);
+                        noClipTracked.remove(addon);
+                    }));
+                }
+                noClipOwners.add(addon);
+            }
+
+            @Override
+            public boolean noClip() {
+                return noClipOwners.contains(addon);
             }
 
             @Override

@@ -85,6 +85,21 @@ Stufe 2 (API 1.11, umgesetzt):
 - `HudGraphics#item(ItemSpec, x, y)`: Item-Bild in Addon-Fenstern (`GuiGraphicsExtractor#fakeItem`); auf Versionen
   ohne Bauwerkzeuge zeichnet es nichts.
 
+API 1.12 (Addon 1.2.0):
+- `Building#blockTraits(blockId)` → `BlockTraits(fullCube, solid, opaque, sameTexture)` für die Filter F/S/O/T des
+  Color Pickers (Kollisionsform voller Block, `isSolid`, `isSolidRender`, alle Flächen des Modells mit einer Textur).
+- `Building#itemColor(itemId)`: Farbe eines Items (Block-Items wie ihr Block, sonst Mittel von
+  `textures/item/<name>.png`) für das Item-Feld des Color Pickers.
+- `Building#setNoClip(on)` / `noClip()`: Phantom/NoClip beim Fliegen im Kreativmodus. `NoClipMixin` setzt nach
+  `Player#tick` `noPhysics` für den eigenen Spieler; in der eigenen Welt (eingebauter Server) auch für denselben
+  `ServerPlayer`, den der Server dann durchlässt (er prüft `noPhysics`). Auf anderen Servern prüft der Server weiter:
+  Setzt er den Spieler aus einem Block zurück (`NoClipServerMoveMixin` an `handleMovePlayer`), schaltet sich NoClip ab.
+  `NoClipViewMixin` zeichnet die Welt im Block ohne Verdeckungs-Culling wie für Zuschauer (26.1.2
+  `LevelRenderer#update`, 26.2/26.3 `Camera#extractRenderState`). Es wird nichts umgangen.
+- Im Addon: REPLACE tauscht das Material und behält die Form (Regeln entfernt), beide Modi tun nichts, wenn der Block
+  schon passt; Hotbar-Pool in jedem Spielmodus; Fast Place/Break mit eigenen Tasten; ein HUD-Element je Werkzeug mit
+  dem Widget-Design des Clients.
+
 Abweichungen von den Vorlagebildern: Im Hotbar-Pool bestimmen die Gewichte im Verlauf den Anteil jedes Blocks an der
 Strecke (statt verschiebbarer Griffe auf einer Leiste); die Item-Suche filtert „Nur Blöcke“ (eigene Items gibt es
 ohne Server-Plugin im Kreativ-Inventar nicht).

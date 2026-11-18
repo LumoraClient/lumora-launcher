@@ -78,4 +78,14 @@ public interface BuildingPlatform {
     default List<ItemSpec> creativeItems(String search, boolean blocksOnly) {
         return List.of();
     }
+
+    /** Full cube, solid, opaque, same texture on all sides (API 1.12). */
+    default dev.lumora.api.building.BlockTraits blockTraits(String blockId) {
+        return dev.lumora.api.building.BlockTraits.NONE;
+    }
+
+    /** Average colour of an item as shown in the inventory, 0 if unknown (API 1.12). */
+    default int itemColor(String itemId) {
+        return 0;
+    }
 }

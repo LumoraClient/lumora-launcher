@@ -2,6 +2,7 @@ package dev.lumora.client.api;
 
 import dev.lumora.api.building.BlockHit;
 import dev.lumora.api.building.BlockInfo;
+import dev.lumora.api.building.BlockTraits;
 import dev.lumora.api.building.ItemSpec;
 import dev.lumora.api.building.UseHandler;
 import dev.lumora.core.building.BuildingApi;
@@ -294,6 +295,8 @@ public final class McBuilding implements BuildingPlatform {
     /** Forgets the colours (resource packs changed). */
     public static void resourcesReloaded() {
         COLORS.clear();
+        TRAITS.clear();
+        ITEM_COLORS.clear();
     }
 
     private static int computeColor(String id) {
@@ -306,32 +309,37 @@ public final class McBuilding implements BuildingPlatform {
             var sprite = mc().getModelManager().getBlockStateModelSet().getParticleMaterial(state).sprite();
             var contents = sprite.contents();
             var image = ((dev.lumora.client.mixin.SpriteContentsAccessor) contents).lumora$image();
-            long r = 0;
-            long g = 0;
-            long b = 0;
-            int opaque = 0;
-            int total = 0;
-            for (int y = 0; y < contents.height(); y++) {
-                for (int x = 0; x < contents.width(); x++) {
-                    int argb = image.getPixel(x, y);
-                    total++;
-                    if ((argb >>> 24) < 128) {
-                        continue;
-                    }
-                    opaque++;
-                    r += (argb >> 16) & 0xFF;
-                    g += (argb >> 8) & 0xFF;
-                    b += argb & 0xFF;
-                }
-            }
-            if (opaque == 0) {
-                return 0;
-            }
-            int alpha = Math.max(1, opaque * 255 / total);
-            return alpha << 24 | (int) (r / opaque) << 16 | (int) (g / opaque) << 8 | (int) (b / opaque);
+            return average(image, contents.width(), contents.height());
         } catch (RuntimeException e) {
             return 0;
         }
+    }
+
+    /** Mean colour of the pixels that are at least half opaque, alpha = their share; 0 if none. */
+    private static int average(com.mojang.blaze3d.platform.NativeImage image, int width, int height) {
+        long r = 0;
+        long g = 0;
+        long b = 0;
+        int opaque = 0;
+        int total = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int argb = image.getPixel(x, y);
+                total++;
+                if ((argb >>> 24) < 128) {
+                    continue;
+                }
+                opaque++;
+                r += (argb >> 16) & 0xFF;
+                g += (argb >> 8) & 0xFF;
+                b += argb & 0xFF;
+            }
+        }
+        if (opaque == 0) {
+            return 0;
+        }
+        int alpha = Math.max(1, opaque * 255 / total);
+        return alpha << 24 | (int) (r / opaque) << 16 | (int) (g / opaque) << 8 | (int) (b / opaque);
     }
 
     @Override
@@ -350,6 +358,132 @@ public final class McBuilding implements BuildingPlatform {
             }
         }
         return out;
+    }
+
+    // --- block traits, item colours and NoClip (API 1.12)
+
+    private static final Map<String, BlockTraits> TRAITS = new ConcurrentHashMap<>();
+    private static final Map<String, Integer> ITEM_COLORS = new ConcurrentHashMap<>();
+    /** The own player while NoClip runs in the own world: Lumora's built-in server lets this player through. */
+    private static volatile java.util.UUID ownWorldNoClip;
+
+    @Override
+    public BlockTraits blockTraits(String blockId) {
+        return TRAITS.computeIfAbsent(blockId, McBuilding::computeTraits);
+    }
+
+    private static BlockTraits computeTraits(String id) {
+        Identifier rid = Identifier.tryParse(id);
+        if (rid == null || !BuiltInRegistries.BLOCK.containsKey(rid)) {
+            return BlockTraits.NONE;
+        }
+        try {
+            BlockState state = BuiltInRegistries.BLOCK.getValue(rid).defaultBlockState();
+            boolean full = state.isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+            return new BlockTraits(full, state.isSolid(), state.isSolidRender(), sameTexture(state));
+        } catch (RuntimeException e) {
+            return BlockTraits.NONE;
+        }
+    }
+
+    /** Whether all faces of the block model use one texture. */
+    private static boolean sameTexture(BlockState state) {
+        var model = mc().getModelManager().getBlockStateModelSet().get(state);
+        List<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart> parts = new ArrayList<>();
+        model.collectParts(net.minecraft.util.RandomSource.create(42L), parts);
+        Object first = null;
+        List<Direction> sides = new ArrayList<>(List.of(Direction.values()));
+        sides.add(null);
+        for (var part : parts) {
+            for (Direction side : sides) {
+                for (var quad : part.getQuads(side)) {
+                    Object sprite = quad.materialInfo().sprite();
+                    if (first == null) {
+                        first = sprite;
+                    } else if (first != sprite) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return first != null;
+    }
+
+    @Override
+    public int itemColor(String itemId) {
+        return ITEM_COLORS.computeIfAbsent(itemId, McBuilding::computeItemColor);
+    }
+
+    private static int computeItemColor(String id) {
+        Identifier rid = Identifier.tryParse(id);
+        if (rid == null || !BuiltInRegistries.ITEM.containsKey(rid)) {
+            return 0;
+        }
+        Item item = BuiltInRegistries.ITEM.getValue(rid);
+        if (item instanceof BlockItem blockItem) {
+            int c = INSTANCE.averageColor(BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()).toString());
+            if (c != 0) {
+                return c;
+            }
+        }
+        Identifier texture = Identifier.fromNamespaceAndPath(rid.getNamespace(), "textures/item/" + rid.getPath() + ".png");
+        var resource = mc().getResourceManager().getResource(texture);
+        if (resource.isEmpty()) {
+            return 0;
+        }
+        try (java.io.InputStream in = resource.get().open();
+             com.mojang.blaze3d.platform.NativeImage image = com.mojang.blaze3d.platform.NativeImage.read(in)) {
+            return average(image, image.getWidth(), image.getHeight());
+        } catch (java.io.IOException | RuntimeException e) {
+            return 0;
+        }
+    }
+
+    /** NoClip for the own player right now: an addon wants it, creative mode and flying. */
+    private static boolean noClipWanted(LocalPlayer p) {
+        BuildingApi api = api();
+        return api != null && api.wantsNoClip() && p == mc().player && INSTANCE.creative() && p.getAbilities().flying;
+    }
+
+    /**
+     * Asked by {@code NoClipMixin} right after {@code Player#tick} set {@code noPhysics}: true lets this player through
+     * blocks. Client side for the own player; server side only in the own world (built-in server) for the same player.
+     */
+    public static boolean noClip(net.minecraft.world.entity.player.Player player) {
+        if (player instanceof LocalPlayer lp) {
+            if (lp != mc().player) {
+                return false;
+            }
+            boolean on = noClipWanted(lp);
+            ownWorldNoClip = on && mc().hasSingleplayerServer() ? lp.getUUID() : null;
+            return on;
+        }
+        if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            java.util.UUID own = ownWorldNoClip;
+            return own != null && own.equals(sp.getUUID()) && sp.isCreative() && sp.getAbilities().flying;
+        }
+        return false;
+    }
+
+    /** While NoClip runs the world is drawn from inside blocks like in spectator mode. */
+    public static boolean noClipView() {
+        LocalPlayer p = mc().player;
+        return p != null && p.noPhysics && noClipWanted(p);
+    }
+
+    /**
+     * The server sent the player a position. On another server with NoClip on and the player inside blocks this is
+     * the server refusing the movement: NoClip goes off (nothing is retried or bypassed).
+     */
+    public static void serverMoved() {
+        LocalPlayer p = mc().player;
+        BuildingApi api = api();
+        if (p == null || api == null || !api.wantsNoClip() || mc().hasSingleplayerServer() || mc().level == null) {
+            return;
+        }
+        if (!mc().level.noCollision(p, p.getBoundingBox().deflate(1.0E-5))) {
+            api.rejectNoClip();
+        }
     }
 
     // --- hooks (called by the mixins)

@@ -162,6 +162,25 @@ class Api110Test {
         assertTrue(new FakePlatform(dir).building().blockIds().isEmpty(), "versions without building tools: nothing");
     }
 
+    /** API 1.12: NoClip belongs to the addon, the server can switch it off, disabling the addon removes it. */
+    @Test
+    void noClipIsPerAddonAndGoesOffWhenTheServerRefuses() throws Exception {
+        Building b = start("tools", "\"building\"").building();
+        var api = core.building();
+        assertFalse(api.wantsNoClip());
+        b.setNoClip(true);
+        assertTrue(b.noClip());
+        assertTrue(api.wantsNoClip());
+        api.rejectNoClip();
+        assertFalse(b.noClip(), "the server put the player back");
+        assertFalse(api.wantsNoClip());
+        b.setNoClip(true);
+        core.addonManager().setWanted("tools", false);
+        assertFalse(api.wantsNoClip(), "gone with the addon");
+        assertEquals(dev.lumora.api.building.BlockTraits.NONE, new FakePlatform(dir).building().blockTraits("minecraft:stone"));
+        assertEquals(0, new FakePlatform(dir).building().itemColor("minecraft:stick"));
+    }
+
     @Test
     void itemsAndBlockStatesAreValues() {
         ItemSpec stairs = new ItemSpec("minecraft:oak_stairs", 1, Map.of("facing", "east"), true, "Oak Stairs");

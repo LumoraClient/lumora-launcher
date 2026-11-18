@@ -229,6 +229,13 @@ abstract class BrowserView implements AddonView {
     private long lastClick;
     private int lastClickRow = -1;
     private boolean draggingBar;
+    /** Row pressed with the mouse (start of a possible drag), -1 if none. */
+    private int pressRow = -1;
+    private double pressY;
+    /** Row being dragged to a new place, -1 while not dragging. */
+    int dragRow = -1;
+    private double dragY;
+    private int lastRowCount;
 
     BrowserView(Platform platform, BrowserPlatform game) {
         this.platform = platform;
@@ -264,6 +271,15 @@ abstract class BrowserView implements AddonView {
 
     /** Delete key on the selected row. */
     void deleteRow(int index) {
+    }
+
+    /** Whether rows can be dragged to a new place (server list). */
+    boolean canReorder() {
+        return false;
+    }
+
+    /** A row was dropped: move row {@code from} so that it stands before row {@code to} ({@code rowCount()} = end). */
+    void moveRow(int from, int to) {
     }
 
     // --- AddonView ---
@@ -340,6 +356,10 @@ abstract class BrowserView implements AddonView {
     private void list(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
         g.card(x, y, w, h, 6, SURFACE, BORDER);
         int n = rowCount();
+        lastRowCount = n;
+        if (dragRow >= n) {
+            dragRow = -1;
+        }
         int inner = h - 8;
         contentHeight = n * (ROW_H + ROW_GAP) - (n > 0 ? ROW_GAP : 0);
         int maxScroll = Math.max(0, contentHeight - inner);
@@ -357,14 +377,17 @@ abstract class BrowserView implements AddonView {
             if (ry + ROW_H < y || ry > y + h) {
                 continue;
             }
-            boolean hover = inList && mx >= x + 4 && mx < x + 4 + rowW && my >= ry && my < ry + ROW_H;
+            boolean hover = dragRow < 0 && inList && mx >= x + 4 && mx < x + 4 + rowW && my >= ry && my < ry + ROW_H;
             g.roundedRect(x + 4, ry, rowW, ROW_H, 4, i == selected ? ROW_SELECTED : hover ? ROW_HOVER : ROW);
-            if (i == selected) {
-                g.fill(x + 4, ry + 4, x + 6, ry + ROW_H - 4, LumoraTheme.accent());
-            }
             int index = i;
             int rowsBefore = hits.size();
             drawRow(g, i, x + 4, ry, rowW, ROW_H, hover, mx, my);
+            if (i == selected) {
+                g.fill(x + 4, ry + 4, x + 6, ry + ROW_H - 4, LumoraTheme.accent());
+            }
+            if (i == dragRow) {
+                g.fill(x + 4, ry, x + 4 + rowW, ry + ROW_H, 0xA0070B14); // the row that is being moved
+            }
             // buttons of a row that is partly scrolled out only count inside the list, never over the toolbar or
             // the bottom bar
             int top = y + 4;
@@ -384,6 +407,9 @@ abstract class BrowserView implements AddonView {
                 hits.add(rowsBefore, new Hit(x + 4, Math.max(ry, top), x + 4 + rowW, Math.min(ry + ROW_H, bottom), () -> clickRow(index)));
             }
         }
+        if (dragRow >= 0) {
+            drawDrag(g, x + 4, y, rowW, n);
+        }
         g.disableScissor();
         if (bar) {
             int trackH = h - 8;
@@ -395,7 +421,30 @@ abstract class BrowserView implements AddonView {
         }
     }
 
+    /** While dragging: a line where the row will land and the row itself under the mouse. */
+    private void drawDrag(HudGraphics g, int x, int y, int rowW, int n) {
+        int slot = dropIndex(dragY);
+        int ly = y + 4 + slot * (ROW_H + ROW_GAP) - (int) scroll - ROW_GAP / 2 - 1;
+        g.fill(x, ly, x + rowW, ly + 2, LumoraTheme.accent());
+        int fy = (int) dragY - ROW_H / 2;
+        g.roundedRect(x, fy, rowW, ROW_H, 4, ROW_SELECTED);
+        int before = hits.size();
+        drawRow(g, dragRow, x, fy, rowW, ROW_H, false, -1000, -1000);
+        while (hits.size() > before) {
+            hits.remove(hits.size() - 1); // the floating copy has no buttons
+        }
+        g.fill(x, fy, x + 2, fy + ROW_H, LumoraTheme.accent());
+    }
+
+    /** Where a row dropped at screen height {@code y} lands: 0 (top) .. row count (end). */
+    int dropIndex(double y) {
+        double pos = y - (listTop + 4) + scroll + (ROW_H + ROW_GAP) / 2.0;
+        int slot = (int) Math.floor(pos / (ROW_H + ROW_GAP));
+        return Math.max(0, Math.min(lastRowCount, slot));
+    }
+
     private void clickRow(int index) {
+        pressRow = index;
         long now = System.currentTimeMillis();
         if (index == lastClickRow && now - lastClick < 350) {
             activate(index);
@@ -665,6 +714,8 @@ abstract class BrowserView implements AddonView {
             return false;
         }
         pressX = x;
+        pressY = y;
+        pressRow = -1;
         for (int i = hits.size() - 1; i >= 0; i--) {
             Hit h = hits.get(i);
             if (h.contains(x, y)) {
@@ -694,6 +745,21 @@ abstract class BrowserView implements AddonView {
             lastPressed = null; // a drag is no first click of a double click
             return true;
         }
+        if (pressRow >= 0 && dialog == null && canReorder()) {
+            if (dragRow < 0 && Math.abs(y - pressY) > 4) {
+                dragRow = pressRow; // the mouse moved far enough: the row is dragged
+            }
+            if (dragRow >= 0) {
+                dragY = Math.max(listTop, Math.min(listBottom, y));
+                // near the top or bottom edge the list scrolls along
+                if (y < listTop + 14) {
+                    scroll -= 6;
+                } else if (y > listBottom - 14) {
+                    scroll += 6;
+                }
+                return true;
+            }
+        }
         return false;
     }
 
@@ -701,6 +767,17 @@ abstract class BrowserView implements AddonView {
     public boolean mouseReleased(double x, double y, int button) {
         draggingBar = false;
         dragField = null;
+        pressRow = -1;
+        if (dragRow >= 0) {
+            int from = dragRow;
+            dragRow = -1;
+            lastClick = 0; // a drag is no first click of a double click
+            int to = dropIndex(Math.max(listTop, Math.min(listBottom, y)));
+            if (to != from && to != from + 1) {
+                moveRow(from, to);
+            }
+            return true;
+        }
         return false;
     }
 

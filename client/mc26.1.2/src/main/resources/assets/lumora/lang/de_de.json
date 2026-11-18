@@ -744,6 +744,8 @@
   "lumora.extras.buttons.shadow": "Schatten (Blackout, Hyperium, Rounded)",
   "lumora.extras.browser.multiplayer": "Lumora-Serverliste statt Mehrspieler-Menü",
   "lumora.extras.browser.singleplayer": "Lumora-Weltliste statt Einzelspieler-Menü",
+  "lumora.extras.browser.mappings": "Server-Mappings (Banner, Icons, Namen)",
+  "lumora.extras.browser.mappings.description": "Bekannte Server bekommen in der Lumora-Serverliste ihr Banner, Icon, ihren Namen und ihre Kategorien aus dem öffentlichen Projekt NoRiskClient/nrc-server-mappings (GPL-3.0). Die Liste wird höchstens alle 12 Stunden von GitHub geladen, Bilder nur für Server in deiner Liste; alles wird zwischengespeichert.",
   "lumora.extras.blockoverlay.mode": "Darstellung",
   "lumora.extras.blockoverlay.mode.box": "Box (Füllung und Umrandung)",
   "lumora.extras.blockoverlay.mode.outline": "Nur Umrandung",

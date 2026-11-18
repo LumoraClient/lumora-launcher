@@ -20,6 +20,7 @@ public final class BrowserModule implements LumoraAddon {
     private final Platform platform;
     BooleanSetting multiplayer;
     BooleanSetting singleplayer;
+    BooleanSetting mappings;
 
     public BrowserModule(Platform platform) {
         this.platform = platform;
@@ -30,6 +31,8 @@ public final class BrowserModule implements LumoraAddon {
         SettingsGroup s = context.configuration().settings();
         multiplayer = s.toggle("multiplayer", true).name("lumora.extras.browser.multiplayer").section("lumora.extras.browser.section.menus");
         singleplayer = s.toggle("singleplayer", true).name("lumora.extras.browser.singleplayer");
+        mappings = s.toggle("mappings", true).name("lumora.extras.browser.mappings")
+                .description("lumora.extras.browser.mappings.description").requires(multiplayer);
     }
 
     @Override
@@ -65,6 +68,12 @@ public final class BrowserModule implements LumoraAddon {
         } else if (action.startsWith("join:")) {
             game.join(action.substring(5), "Lumora Smoke");
         }
+    }
+
+    /** Whether the server list shows the server mappings (pretty name, categories, icon, banner) of known servers. */
+    static boolean mappingsEnabled() {
+        BrowserModule m = active;
+        return m != null && m.mappings != null && m.mappings.get();
     }
 
     /** The next vanilla multiplayer or singleplayer screen is shown as is (ViaFabricPlus button, smoke test). */

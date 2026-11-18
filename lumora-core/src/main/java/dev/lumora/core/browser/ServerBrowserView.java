@@ -1,6 +1,7 @@
 package dev.lumora.core.browser;
 
 import dev.lumora.api.render.HudGraphics;
+import dev.lumora.api.render.TextureRef;
 import dev.lumora.core.Platform;
 
 import java.io.IOException;
@@ -11,13 +12,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
  * Lumora multiplayer screen: the saved servers as cards with favicon, name, MOTD, players, version and ping, search,
- * "online only" and version filter, add / edit / delete / reorder and direct connect. Uses Minecraft's servers.dat, so
- * the vanilla screen (module off, or ViaFabricPlus) shows the same list.
+ * "online only" and version filter, add / edit / delete / reorder (buttons or drag and drop) and direct connect. Uses
+ * Minecraft's servers.dat, so the vanilla screen (module off, or ViaFabricPlus) shows the same list. Known servers get
+ * their banner, icon, pretty name and categories from the server mappings ({@link ServerMappings}).
  */
 public final class ServerBrowserView extends BrowserView {
     private static final ExecutorService PINGS = Icons.pool("Lumora server ping", 6);
@@ -31,6 +34,19 @@ public final class ServerBrowserView extends BrowserView {
     private final List<Servers.Entry> visible = new ArrayList<>();
     private String saveError;
     private long lastDiskCheck;
+    /** Server mappings, null while the setting is off. */
+    private final ServerMappings mappings;
+
+    /** A mapping picture uploaded as texture, with its size in pixels. */
+    record Picture(TextureRef ref, int width, int height) {
+    }
+
+    /** Pictures of the mappings: uploaded ones, decoded ones waiting for upload, and when to look again. */
+    private static final Map<String, Picture> PICTURES = new ConcurrentHashMap<>();
+    private static final Map<String, Object[]> DECODED = new ConcurrentHashMap<>();
+    private static final Map<String, Long> NEXT_TRY = new ConcurrentHashMap<>();
+    private static final Set<String> FAILED = ConcurrentHashMap.newKeySet();
+    private static volatile boolean noTextures;
 
     public ServerBrowserView(Platform platform, BrowserPlatform game) {
         super(platform, game);
@@ -39,6 +55,92 @@ public final class ServerBrowserView extends BrowserView {
         for (Servers.Entry e : servers.entries()) {
             ping(e.address);
         }
+        if (BrowserModule.mappingsEnabled() && platform.configDir() != null) {
+            mappings = ServerMappings.get(platform.configDir());
+            mappings.start();
+        } else {
+            mappings = null;
+        }
+    }
+
+    /**
+     * The icon or banner of a mapping as texture, null until it is downloaded, decoded and uploaded (a few frames)
+     * or if there is none. Render thread.
+     */
+    private Picture picture(ServerMappings.Mapping m, boolean background) {
+        String sha = background ? m.backgroundSha() : m.iconSha();
+        if (noTextures || sha == null || FAILED.contains(sha)) {
+            return null;
+        }
+        String path = "browser/mapping/" + sha;
+        Picture p = PICTURES.get(path);
+        if (p != null) {
+            return p;
+        }
+        Object[] decoded = DECODED.remove(path);
+        if (decoded != null) {
+            int w = (int) decoded[0];
+            int h = (int) decoded[1];
+            if (!platform.uploadTexture(path, w, h, (int[]) decoded[2])) {
+                noTextures = true; // this Minecraft version cannot take runtime textures: no pictures
+                return null;
+            }
+            p = new Picture(new TextureRef("lumora", path), w, h);
+            PICTURES.put(path, p);
+            return p;
+        }
+        long now = System.currentTimeMillis();
+        Long next = NEXT_TRY.get(path);
+        if (next != null && now < next) {
+            return null;
+        }
+        NEXT_TRY.put(path, now + 1500);
+        Icons.POOL.execute(() -> {
+            byte[] png = mappings == null ? null : mappings.image(m, background);
+            if (png == null) {
+                return; // still downloading: looked at again in a moment
+            }
+            int[] size = background ? new int[]{640, 360} : new int[]{64, 64};
+            int[] px = decodePicture(png, size[0], size[1]);
+            if (px == null) {
+                FAILED.add(sha);
+            } else {
+                DECODED.put(path, new Object[]{size[0], size[1], px});
+            }
+        });
+        return null;
+    }
+
+    /** PNG scaled to {@code w x h} ARGB pixels (bilinear), null if it is not a readable image of sane size. */
+    static int[] decodePicture(byte[] png, int w, int h) {
+        try (java.io.InputStream in = new java.io.ByteArrayInputStream(png)) {
+            java.awt.image.BufferedImage src = javax.imageio.ImageIO.read(in);
+            if (src == null || src.getWidth() > 4096 || src.getHeight() > 4096) {
+                return null;
+            }
+            java.awt.image.BufferedImage dst = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g = dst.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+            g.drawImage(src, 0, 0, w, h, null);
+            g.dispose();
+            return dst.getRGB(0, 0, w, h, null, 0, w);
+        } catch (java.io.IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** The mapping of a server, null if none or the setting is off. */
+    private ServerMappings.Mapping mapping(Servers.Entry e) {
+        return mappings == null ? null : mappings.find(e.address);
+    }
+
+    /** The name to show: the saved one, or the mapping's pretty name if the saved one is only the address or the default. */
+    static String displayName(String saved, String address, ServerMappings.Mapping m) {
+        String s = saved == null ? "" : saved.strip();
+        boolean plain = s.isEmpty() || s.equalsIgnoreCase(address == null ? "" : address.strip())
+                || s.equals("Minecraft-Server") || s.equals("Minecraft Server");
+        return m != null && plain ? m.name() : saved;
     }
 
     private static String key(String address) {
@@ -155,15 +257,31 @@ public final class ServerBrowserView extends BrowserView {
     void drawRow(HudGraphics g, int index, int x, int y, int w, int h, boolean hover, int mx, int my) {
         Servers.Entry e = visible.get(index);
         ServerPinger.Status s = status.get(key(e.address));
+        ServerMappings.Mapping map = mapping(e);
+        if (map != null) {
+            Picture banner = picture(map, true);
+            if (banner != null) {
+                // the middle band of the banner, as wide as the row; darkened so the text stays readable
+                int band = Math.max(1, Math.min(banner.height(), Math.round((float) banner.width() * h / Math.max(1, w))));
+                g.texture(banner.ref(), x + 1, y + 1, w - 2, h - 2, 0, (banner.height() - band) / 2f, banner.width(), band,
+                        banner.width(), banner.height());
+                g.fill(x + 1, y + 1, x + w - 1, y + h - 1, hover ? 0x80070B14 : 0x98070B14);
+            }
+        }
+        String name = displayName(e.name, e.address, map);
         int ix = x + 7;
         int iy = y + (h - ICON) / 2;
+        Picture mapIcon = map == null ? null : picture(map, false);
         byte[] png = s != null && s.favicon() != null ? s.favicon() : e.cachedIcon();
-        int[] px = png == null ? null : Icons.get("srv:" + key(e.address) + ":" + Arrays.hashCode(png), ICON, () -> png);
-        if (px != null) {
+        int[] px = mapIcon != null || png == null ? null
+                : Icons.get("srv:" + key(e.address) + ":" + Arrays.hashCode(png), ICON, () -> png);
+        if (mapIcon != null) {
+            g.texture(mapIcon.ref(), ix, iy, ICON, ICON, 0, 0, mapIcon.width(), mapIcon.height(), mapIcon.width(), mapIcon.height());
+        } else if (px != null) {
             Icons.draw(g, px, ICON, ix, iy);
         } else {
             g.roundedRect(ix, iy, ICON, ICON, 4, 0xFF213552);
-            String l = e.name.isEmpty() ? "?" : e.name.substring(0, 1).toUpperCase(Locale.ROOT);
+            String l = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase(Locale.ROOT);
             g.centeredText(l, ix + ICON / 2 + 1, iy + 8, TEXT, false);
         }
 
@@ -180,7 +298,19 @@ public final class ServerBrowserView extends BrowserView {
         }
         int tx = ix + ICON + 8;
         int room = Math.max(20, right - colW - 8 - tx);
-        g.text(fit(g, "§l" + e.name, room), tx, y + 5, TEXT, false);
+        String title = fit(g, "§l" + name, room);
+        g.text(title, tx, y + 5, TEXT, false);
+        if (map != null && !map.categories().isEmpty()) {
+            int cx = tx + g.textWidth(title) + 6;
+            StringBuilder cats = new StringBuilder();
+            for (String c : map.categories()) {
+                cats.append(cats.length() == 0 ? "" : " · ").append(ServerMappings.category(c));
+            }
+            int left = tx + room - cx;
+            if (left > 20) {
+                g.text(fit(g, "§7" + cats, left), cx, y + 5, DIM, false);
+            }
+        }
         if (isPending(s)) {
             g.text(t("Server wird abgefragt…", "Pinging server…"), tx, y + 16, DIM, false);
         } else if (!s.ok()) {
@@ -228,6 +358,33 @@ public final class ServerBrowserView extends BrowserView {
         button(g, x + 2 * (size + 2), y, size, size, "✎", Style.GHOST, mx, my, () -> edit(e));
         button(g, x + 3 * (size + 2), y, size, size, "§c✕", Style.GHOST, mx, my, () -> delete(e));
         return right - x;
+    }
+
+    @Override
+    boolean canReorder() {
+        return true;
+    }
+
+    /** Drag and drop: the shown row {@code from} goes before the shown row {@code to} (also with filters on). */
+    @Override
+    void moveRow(int from, int to) {
+        if (from < 0 || from >= visible.size() || to < 0 || to > visible.size()) {
+            return;
+        }
+        List<Servers.Entry> all = servers.entries();
+        Servers.Entry moving = visible.get(from);
+        int target = to >= visible.size() ? all.indexOf(visible.get(visible.size() - 1)) + 1 : all.indexOf(visible.get(to));
+        int old = all.indexOf(moving);
+        if (old < 0 || target < 0) {
+            return;
+        }
+        all.remove(old);
+        if (target > old) {
+            target--;
+        }
+        all.add(target, moving);
+        selected = to > from ? to - 1 : to;
+        save();
     }
 
     private void move(int index, int dir) {

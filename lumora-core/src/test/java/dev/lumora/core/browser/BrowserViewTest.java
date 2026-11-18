@@ -258,6 +258,55 @@ class BrowserViewTest {
         assertEquals(1, v.rowCount());
     }
 
+    /** Servers are reordered by dragging a row with the mouse; a click without moving changes nothing. */
+    @Test
+    void serversAreReorderedByDragAndDrop(@TempDir Path dir) throws IOException {
+        Path config = Files.createDirectories(dir.resolve("config"));
+        Servers seed = new Servers(dir.resolve("servers.dat"));
+        seed.entries().add(new Servers.Entry("Alpha", "127.0.0.1:1"));
+        seed.entries().add(new Servers.Entry("Beta", "127.0.0.1:2"));
+        seed.entries().add(new Servers.Entry("Gamma", "127.0.0.1:3"));
+        seed.save();
+        ServerBrowserView v = new ServerBrowserView(platform(config), new FakeGame());
+        FakeGraphics g = render(v);
+        FakeGraphics.Text alpha = g.find("§lAlpha");
+        FakeGraphics.Text gamma = g.find("§lGamma");
+        assertNotNull(alpha);
+        assertNotNull(gamma);
+        // a click without moving: nothing moves
+        v.mouseClicked(alpha.x() + 2, alpha.y() + 3, 0);
+        v.mouseDragged(alpha.x() + 2, alpha.y() + 5, 0);
+        v.mouseReleased(alpha.x() + 2, alpha.y() + 5, 0);
+        assertEquals(List.of("Alpha", "Beta", "Gamma"), names(dir));
+        // drag Alpha below Gamma
+        render(v);
+        v.mouseClicked(alpha.x() + 2, alpha.y() + 3, 0);
+        int target = gamma.y() + BrowserView.ROW_H;
+        for (int y = alpha.y() + 3; y <= target; y += 6) {
+            v.mouseDragged(alpha.x() + 2, y, 0);
+            render(v);
+        }
+        assertTrue(v.dragRow >= 0, "the row is being dragged");
+        v.mouseReleased(alpha.x() + 2, target, 0);
+        assertEquals(-1, v.dragRow);
+        assertEquals(List.of("Beta", "Gamma", "Alpha"), names(dir));
+        // and Gamma back to the top
+        g = render(v);
+        FakeGraphics.Text gammaNow = g.find("§lGamma");
+        FakeGraphics.Text betaNow = g.find("§lBeta");
+        v.mouseClicked(gammaNow.x() + 2, gammaNow.y() + 3, 0);
+        for (int y = gammaNow.y() + 3; y >= betaNow.y() - 12; y -= 6) {
+            v.mouseDragged(gammaNow.x() + 2, y, 0);
+            render(v);
+        }
+        v.mouseReleased(gammaNow.x() + 2, betaNow.y() - 12, 0);
+        assertEquals(List.of("Gamma", "Beta", "Alpha"), names(dir));
+    }
+
+    private static List<String> names(Path dir) {
+        return new Servers(dir.resolve("servers.dat")).load().entries().stream().map(e -> e.name).toList();
+    }
+
     /** Everything with the mouse, like a player: dialog buttons and fields, delete, cancel, toolbar while scrolled. */
     @Test
     void dialogsAndToolbarWorkWithTheMouse(@TempDir Path dir) throws IOException {

@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.75 (2026-11-19)
+
+### Client
+- **Serverliste: Drag and Drop:** Server lassen sich in der Lumora-Serverliste mit der Maus an eine neue Stelle ziehen; eine Linie zeigt, wo der Server landet, am Rand scrollt die Liste mit. Auch mit Suche oder Filtern landet er an der richtigen Stelle der ganzen Liste. Die ▲/▼-Knöpfe bleiben; die Reihenfolge steht in Minecrafts `servers.dat`.
+- **Server-Mappings:** Bekannte Server bekommen in der Lumora-Serverliste ihr Banner als Hintergrund, ihr Icon und ihre Kategorien, und statt der bloßen Adresse ihren Namen. Die Daten kommen aus dem öffentlichen Projekt NoRiskClient/nrc-server-mappings (GPL-3.0): die Liste höchstens alle 12 Stunden von GitHub, Bilder nur für Server in der eigenen Liste, alles gegen den Git-Hash geprüft und zwischengespeichert. Abschaltbar im Modul „Server- & Weltliste“ (Schalter „Server-Mappings“).
+
 ## 0.3.74 (2026-11-18)
 
 ### Client

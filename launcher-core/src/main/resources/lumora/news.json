@@ -1,6 +1,36 @@
 {
   "news": [
     {
+      "id": "lumora-server-list-mappings",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.75",
+      "title": "Serverliste: Ziehen und Server-Banner",
+      "text": "In der Lumora-Serverliste ziehst du Server jetzt mit der Maus an ihren Platz, und bekannte Server zeigen ihr Banner, Icon und ihre Kategorien.",
+      "image": "news-server-list.png",
+      "body": [
+        {"h": "Server verschieben"},
+        {"list": [
+          "Einen Server mit gedrückter Maus greifen und an die neue Stelle ziehen; eine Linie zeigt, wo er landet",
+          "Am oberen und unteren Rand scrollt die Liste mit",
+          "Klappt auch mit Suche oder Filtern, die ▲/▼-Knöpfe gibt es weiterhin",
+          "Die Reihenfolge gilt auch im normalen Mehrspieler-Menü von Minecraft"
+        ]},
+        {"h": "Server-Mappings"},
+        {"p": "Bekannte Server bekommen ihr Banner als Hintergrund, ihr Icon und ihre Kategorien wie „PvP · Survival“. Hast du einen Server nur mit seiner Adresse gespeichert, steht dort jetzt sein Name. Eigene Namen bleiben."},
+        {"list": [
+          "Die Daten stammen aus dem öffentlichen Projekt NoRiskClient/nrc-server-mappings (GPL-3.0)",
+          "Die Liste lädt Lumora höchstens alle 12 Stunden von GitHub, Bilder nur für Server in deiner Liste; alles wird zwischengespeichert und vorher geprüft",
+          "Abschalten im Hub: Modul „Server- & Weltliste“, Schalter „Server-Mappings“"
+        ]},
+        {"h": "Gut zu wissen"},
+        {"list": [
+          "Gilt für die Lumora-Serverliste in allen Versionen von 1.8.9 bis 26.3",
+          "Fehlt ein Server, kann er beim Projekt nrc-server-mappings eingetragen werden"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-hotkey-escape",
       "date": "2026-11-18",
       "author": "Lumora",

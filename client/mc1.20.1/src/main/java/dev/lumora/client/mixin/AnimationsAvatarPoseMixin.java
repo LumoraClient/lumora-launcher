@@ -14,7 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Lumora "Animations", "Item posture (third person)": a player who blocks with a shield in the off hand while
  * holding a sword is shown blocking with the sword, as 1.7 and 1.8 showed sword blocking (only while the legacy
- * third-person posture is on).
+ * third-person posture is on). With "Old block animation" the own player holding the use key with a sword is shown
+ * blocking too.
  */
 @Mixin(PlayerRenderer.class)
 public abstract class AnimationsAvatarPoseMixin {
@@ -29,6 +30,13 @@ public abstract class AnimationsAvatarPoseMixin {
             } else {
                 model.leftArmPose = HumanoidModel.ArmPose.BLOCK;
                 model.rightArmPose = HumanoidModel.ArmPose.ITEM;
+            }
+        } else if (LegacyHands.clickBlocking(player, main)) {
+            HumanoidModel<?> model = ((PlayerRenderer) (Object) this).getModel();
+            if (player.getMainArm() == HumanoidArm.RIGHT) {
+                model.rightArmPose = HumanoidModel.ArmPose.BLOCK;
+            } else {
+                model.leftArmPose = HumanoidModel.ArmPose.BLOCK;
             }
         }
     }

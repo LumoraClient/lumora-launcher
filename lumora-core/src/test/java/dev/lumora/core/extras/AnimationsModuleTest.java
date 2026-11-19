@@ -5,6 +5,7 @@ import dev.lumora.core.extras.AnimationsModule.Feature;
 import dev.lumora.core.extras.AnimationsModule.Style;
 import dev.lumora.core.extras.anim.BodyTurn;
 import dev.lumora.core.extras.anim.HandEquip;
+import dev.lumora.core.extras.anim.ItemPose;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +63,34 @@ class AnimationsModuleTest {
         for (Feature f : Feature.values()) {
             assertEquals(Style.DEFAULT, AnimationsModule.style(f));
         }
+    }
+
+    @Test
+    void oldBlockAnimationIsItsOwnSwitchInThePresets() {
+        AnimationsModule m = module();
+        assertFalse(AnimationsModule.oldBlocking(), "off by default");
+        // blocking with a sword (use key or shield) while "Sword / Blocking" is Default: Minecraft draws it
+        assertEquals(null, ItemPose.select(ItemPose.Use.NONE, true, false, true));
+        m.swordBlock.set(true);
+        assertEquals("custom", m.preset.get(), "a change by hand switches to Custom");
+        assertTrue(AnimationsModule.oldBlocking());
+        assertEquals(Style.LEGACY_1_7, ItemPose.select(ItemPose.Use.NONE, true, false, true), "the 1.7 block pose");
+        assertEquals(null, ItemPose.select(ItemPose.Use.NONE, true, false, false), "not blocking: the posture stays Default");
+
+        m.preset.set("default");
+        assertFalse(AnimationsModule.oldBlocking());
+        m.preset.set("legacy");
+        assertTrue(AnimationsModule.oldBlocking(), "part of Legacy (everything)");
+        assertEquals("legacy", m.preset.get());
+
+        m.setActive(false);
+        assertFalse(AnimationsModule.oldBlocking(), "module off");
+        module = new AnimationsModule(java.util.EnumSet.of(Feature.HEAD_ROTATION));
+        module.settings(new SettingsGroup("lumora-animations."));
+        module.setActive(true);
+        module.swordBlock.set(true);
+        assertFalse(AnimationsModule.oldBlocking(), "not built into this version");
+        assertFalse(module.swordBlock.isVisible());
     }
 
     @Test

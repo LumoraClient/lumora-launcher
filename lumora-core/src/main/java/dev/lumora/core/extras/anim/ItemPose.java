@@ -142,7 +142,8 @@ public final class ItemPose {
      * @param sword      the item is a sword
      * @param rod        fishing rod or carrot on a stick
      * @param shieldBlocking the player blocks with a shield in the off hand while holding a sword (1.9+ servers block
-     *                   like that; 1.7 and 1.8 showed the sword in block pose)
+     *                   like that; 1.7 and 1.8 showed the sword in block pose), or holds the use key with a sword while
+     *                   "Old block animation" is on
      */
     public static Style select(Use use, boolean sword, boolean rod, boolean shieldBlocking) {
         Feature f;
@@ -160,6 +161,9 @@ public final class ItemPose {
             f = Feature.POSTURE;
         }
         Style s = AnimationsModule.style(f);
+        if (f == Feature.SWORD && !s.legacy() && AnimationsModule.oldBlocking()) {
+            s = Feature.SWORD.legacy; // "Old block animation": the 1.7 block pose without the rest of the legacy look
+        }
         return s == Style.LEGACY_1_7 || s == Style.LEGACY_1_8 ? s : null;
     }
 

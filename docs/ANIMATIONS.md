@@ -23,6 +23,15 @@ bei den Creative-Tabs „Legacy (1.8)“, weil 1.7 dieselben Tabs hatte.
 **Presets:** Legacy (alles), Default (alles normal) und Custom. Eine Änderung von Hand stellt das Preset auf Custom. Alles wird in der
 Modul-Konfiguration gespeichert und wirkt sofort.
 
+**Alte Block-Animation** (Schalter unter „Schwert / Blocken“): Server seit 1.9 kennen kein Blocken mit dem Schwert.
+Ist der Schalter an, zeigt ein Schwert die Blockhaltung von 1.7 (mit Blockhitting), solange der eigene Spieler die
+rechte Maustaste hält (kein Bildschirm offen, kein anderes Item in Benutzung) und beim Blocken mit einem Schild in der
+Nebenhand, auch wenn „Schwert / Blocken“ auf Default steht. In der dritten Person hebt der eigene Spieler den Arm zum
+Blocken. Nur die Anzeige: kein weniger Schaden, andere Spieler sehen es nicht. Teil der Presets (Legacy an, Default
+aus). Umsetzung: `AnimationsModule.oldBlocking()`, `ItemPose.select`, `LegacyHands.clickBlocking`,
+`AnimationsAvatarPoseMixin`; in die Versionen eingespielt mit `.t/anim-swordblock.pl` (nach einem erneuten Lauf von
+`anim-hands.pl`, `anim-third.pl` oder `anim-third-old.pl` noch einmal ausführen).
+
 **Schlag-Stil** (Vanilla, Smooth, Spin, Slap): früher auf der Themes-Seite, jetzt im Modul; der alte Wert wird beim
 ersten Start übernommen. Er gilt nur, solange die Item-Haltung nicht auf Legacy steht, weil die Legacy-Haltung den
 Original-Schlag von 1.7/1.8 mitbringt.

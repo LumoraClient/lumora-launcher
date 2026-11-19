@@ -47,7 +47,8 @@ public final class LegacyHands {
             return;
         }
         boolean sword = main.is(ItemTags.SWORDS);
-        boolean shieldBlocking = using && player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getOffhandItem().is(Items.SHIELD);
+        boolean shieldBlocking = using && player.getUsedItemHand() == InteractionHand.OFF_HAND && player.getOffhandItem().is(Items.SHIELD)
+                || clickBlocking(player, main);
         ItemPose.decide(ItemPose.select(use, sword, rod(main), shieldBlocking),
                 use == ItemPose.Use.NONE && sword && shieldBlocking ? ItemPose.Use.BLOCK : use);
     }
@@ -63,7 +64,7 @@ public final class LegacyHands {
     /** What the main hand of a player does, for the third person (BLOCK also when blocking with a shield while holding a sword). */
     public static ItemPose.Use thirdUse(net.minecraft.world.entity.LivingEntity e, ItemStack main) {
         if (!e.isUsingItem()) {
-            return ItemPose.Use.NONE;
+            return clickBlocking(e, main) ? ItemPose.Use.BLOCK : ItemPose.Use.NONE;
         }
         if (e.getUsedItemHand() == InteractionHand.MAIN_HAND) {
             return use(main.getUseAnimation());
@@ -74,6 +75,18 @@ public final class LegacyHands {
     /** The player blocks with a shield in the off hand while holding a sword (1.7 / 1.8 showed the sword blocking). */
     public static boolean shieldBlocking(net.minecraft.world.entity.LivingEntity e, ItemStack main) {
         return e.isUsingItem() && e.getUsedItemHand() == InteractionHand.OFF_HAND && e.getOffhandItem().is(Items.SHIELD) && main.is(ItemTags.SWORDS);
+    }
+
+    /**
+     * "Old block animation": the own player holds the use key with a sword and uses nothing else (servers since 1.9 do
+     * not let swords block, so only the drawing changes; other players cannot be seen doing it).
+     */
+    public static boolean clickBlocking(net.minecraft.world.entity.LivingEntity e, ItemStack main) {
+        if (!AnimationsModule.oldBlocking() || e.isUsingItem() || !(main.is(ItemTags.SWORDS))) {
+            return false;
+        }
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        return e == mc.player && mc.gui.screen() == null && mc.options.keyUse.isDown();
     }
 
     /** Items that existed in 1.7 / 1.8 or behave like them; everything with an own modern animation stays Minecraft's. */

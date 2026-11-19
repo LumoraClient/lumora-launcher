@@ -264,6 +264,8 @@
   "lumora.offhand.setting.both_hands.description": "Also shows the empty off hand, not only the main hand. It sits on the other side of your main hand, which you set in Minecraft under Options › Skin Customization › Main Hand (right or left).",
   "lumora.module.lumora-hiddenarmor": "Hidden Armor",
   "lumora.module.lumora-hiddenarmor.description": "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
+  "lumora.animations.sword_block": "Old block animation",
+  "lumora.animations.sword_block.description": "While you hold right-click with a sword, it shows the 1.7 block pose and the swing keeps running (block hitting); also while blocking with a shield in the off hand. Only the drawing: servers since 1.9 do not know sword blocking, so you take no less damage, and other players do not see it.",
   "lumora.animations.recipe_book": "Recipe book",
   "lumora.animations.recipe_book.description": "Legacy (1.7): no recipe book and no button in the inventory, crafting table and furnaces (1.7 had none); the window stays centred. Only in your client: Minecraft keeps remembering whether the book is open as before.",
   "lumora.animations.recipe_book.default": "Default (normal)",

@@ -264,6 +264,8 @@
   "lumora.offhand.setting.both_hands.description": "Zeigt auch die leere Zweithand, nicht nur die Haupthand. Sie sitzt auf der anderen Seite als deine Haupthand, die du in Minecraft unter Optionen › Skin-Anpassung › Haupthand (rechts oder links) einstellst.",
   "lumora.module.lumora-hiddenarmor": "Hidden Armor",
   "lumora.module.lumora-hiddenarmor.description": "Jedes Rüstungsteil einzeln unsichtbar oder durchsichtig machen; bei einem Treffer wird die Rüstung kurz wieder angezeigt",
+  "lumora.animations.sword_block": "Alte Block-Animation",
+  "lumora.animations.sword_block.description": "Hältst du mit einem Schwert die rechte Maustaste, zeigt es die Blockhaltung von 1.7, der Schlag läuft dabei weiter (Blockhitting); auch beim Blocken mit einem Schild in der Nebenhand. Nur die Anzeige: Server seit 1.9 kennen kein Blocken mit dem Schwert, du nimmst also nicht weniger Schaden, und andere Spieler sehen es nicht.",
   "lumora.animations.recipe_book": "Rezeptbuch",
   "lumora.animations.recipe_book.description": "Legacy (1.7): kein Rezeptbuch und kein Knopf in Inventar, Werkbank und Öfen (1.7 hatte keins); das Fenster bleibt mittig. Nur in deinem Client: ob das Buch offen ist, merkt sich Minecraft weiter wie bisher.",
   "lumora.animations.recipe_book.default": "Default (normal)",

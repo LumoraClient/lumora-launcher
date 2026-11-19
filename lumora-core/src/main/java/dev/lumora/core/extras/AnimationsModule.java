@@ -133,6 +133,8 @@ public final class AnimationsModule implements LumoraAddon {
 
     ChoiceSetting preset;
     final Map<Feature, ChoiceSetting> features = new EnumMap<>(Feature.class);
+    /** "Old block animation": a sword shows the 1.7 block pose while the use key is held (and when blocking with a shield). */
+    BooleanSetting swordBlock;
     ChoiceSetting swing;
     /** The swing value was taken over from the old client setting once. */
     BooleanSetting swingMigrated;
@@ -165,6 +167,16 @@ public final class AnimationsModule implements LumoraAddon {
     public static Style style(Feature f) {
         AnimationsModule m = active;
         return m == null || !m.supported.contains(f) ? Style.DEFAULT : STYLES[f.ordinal()];
+    }
+
+    /**
+     * "Old block animation": swords block like before 1.9. While the use key is held with a sword (servers since 1.9
+     * do not let swords block, so this only changes the drawing) and when blocking with a shield in the off hand, the
+     * sword shows the 1.7 block pose, also while "Sword / Blocking" is Default.
+     */
+    public static boolean oldBlocking() {
+        AnimationsModule m = active;
+        return m != null && m.supported.contains(Feature.SWORD) && m.swordBlock.get();
     }
 
     /** Whether the recipe book is taken out of the inventory screens. */
@@ -212,6 +224,10 @@ public final class AnimationsModule implements LumoraAddon {
                 c.section(K + "section." + section);
             }
             features.put(f, c);
+            if (f == Feature.SWORD) {
+                swordBlock = s.toggle("sword_block", false).name(K + "sword_block").description(K + "sword_block.description");
+                swordBlock.visibleWhen(() -> supported.contains(Feature.SWORD));
+            }
             c.onChange(v -> {
                 STYLES[f.ordinal()] = f.styleOf(v);
                 if (!applying && !PRESET_CUSTOM.equals(preset.get())) {
@@ -220,6 +236,11 @@ public final class AnimationsModule implements LumoraAddon {
             });
             STYLES[f.ordinal()] = f.styleOf(c.get());
         }
+        swordBlock.onChange(v -> {
+            if (!applying && !PRESET_CUSTOM.equals(preset.get())) {
+                preset.set(PRESET_CUSTOM);
+            }
+        });
         swing = s.choice("swing", "smooth", SWINGS.toArray(String[]::new)).name(K + "swing")
                 .description(K + "swing.description").section(K + "section.swing");
         swingMigrated = s.toggle("swing_migrated", false).visibleWhen(() -> false);
@@ -235,6 +256,7 @@ public final class AnimationsModule implements LumoraAddon {
                 for (Feature f : Feature.values()) {
                     features.get(f).set(option);
                 }
+                swordBlock.set(PRESET_LEGACY.equals(p));
             }
         } finally {
             applying = false;

@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.76 (2026-11-19)
+
+### Client
+- **Serverliste: Spielmodi:** Bekannte Server zeigen in der Lumora-Serverliste unter dem MOTD ihre Spielmodi als farbige Felder (so viele, wie Platz ist, der Rest als „+n“), nur die für die eigene Minecraft-Version. Ohne NoRisk-Mapping steht statt der bloßen Adresse der Servername. Die Texte kommen aus dem öffentlichen Repository LabyMod/server-media; es hat keine Lizenz, darum liefert Lumora nichts davon mit, der Client liest nur Name, Adressen und Spielmodi beim Spieler direkt von GitHub (höchstens alle 12 Stunden, gegen den Git-Hash geprüft, zwischengespeichert), keine Bilder. Abschaltbar im Modul „Server- & Weltliste“ (Schalter „Spielmodi anzeigen“). Die Zeilen der Serverliste sind dafür etwas höher.
+
 ## 0.3.75 (2026-11-19)
 
 ### Client

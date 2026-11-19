@@ -1,6 +1,30 @@
 {
   "news": [
     {
+      "id": "lumora-server-gamemodes",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.76",
+      "title": "Serverliste: Spielmodi auf einen Blick",
+      "text": "Bekannte Server zeigen in der Lumora-Serverliste jetzt ihre Spielmodi als farbige Felder, etwa SkyBlock oder Bed Wars.",
+      "image": "news-server-gamemodes.png",
+      "body": [
+        {"p": "Unter Name und MOTD jedes bekannten Servers steht jetzt eine Reihe farbiger Felder mit seinen Spielmodi. So siehst du schon in der Liste, was dich auf einem Server erwartet."},
+        {"list": [
+          "So viele Spielmodi, wie in die Zeile passen, der Rest als „+n“",
+          "Nur die Spielmodi, die deine Minecraft-Version unterstützen",
+          "Hast du einen Server nur mit seiner Adresse gespeichert, steht dort jetzt sein Name",
+          "Abschalten im Hub: Modul „Server- & Weltliste“, Schalter „Spielmodi anzeigen“"
+        ]},
+        {"h": "Woher die Daten kommen"},
+        {"list": [
+          "Aus dem öffentlichen Repository LabyMod/server-media auf GitHub",
+          "Lumora liefert davon nichts mit: dein Client liest nur Servernamen, Adressen und Spielmodi direkt von GitHub, höchstens alle 12 Stunden, geprüft und zwischengespeichert",
+          "Bilder werden daraus keine geladen; Banner und Icons kommen weiter aus den Server-Mappings"
+        ]}
+      ]
+    },
+    {
       "id": "lumora-server-list-mappings",
       "date": "2026-11-19",
       "author": "Lumora",

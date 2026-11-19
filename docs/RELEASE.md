@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.76 (2026-11-19):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 673 Unit-Tests ohne Fehler (1 übersprungen; neu: `ServerGamemodesTest` mit 5 Tests für Tree und Manifest, Versionsbereiche, Adress- und Wildcard-Abgleich mit Cache und die Spielmodus-Felder mit „+n“). `integrationTest` enthält weiterhin keine Tests.
+- **Echte Daten:** Tree von LabyMod/server-media (296 Server) und das Hypixel-Manifest ohne Spiel durch `ServerGamemodes` geprüft: Git-Blob-Hash stimmt, für 26.3 kommen SkyBlock, Bed Wars Solo, Skywars Solo Normal, Murder Mystery Classic, Housing, Bed Wars 4v4 heraus.
+- **Mixins:** keine Änderung; alles in `lumora-core` (`browser`), Texte in den Sprachdateien aller 16 Client-Module.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Die Spielmodus-Felder sind im Spiel nicht angesehen. Das News-Bild ist ein gezeichnetes Titelbild, kein Screenshot.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `ServerGamemodes` und die neuen Texte in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3), News-Bild im Launcher-Jar.
+
 **0.3.75 (2026-11-19):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 668 Unit-Tests ohne Fehler (1 übersprungen; neu: `ServerMappingsTest` mit 6 Tests für Adressabgleich, Tree- und Manifest-Prüfung, Git-Blob-Hash und PNG-Signatur, Cache und Anzeigenamen; in `BrowserViewTest` Server per Drag and Drop umsortieren). Ein vorheriger Einzellauf von `lumora-core:test` hatte einmal `HubViewTest` beim Löschen des Temp-Verzeichnisses scheitern lassen (Windows-Dateisperre), einzeln und im Release-Build grün. `integrationTest` enthält weiterhin keine Tests.
 - **Echte Daten:** Tree von NoRiskClient/nrc-server-mappings (117 Server-Ordner), ein Manifest und ein Icon ohne Spiel durch `ServerMappings` geprüft: Git-Blob-Hashes stimmen, Manifest gelesen, Icon dekodiert.

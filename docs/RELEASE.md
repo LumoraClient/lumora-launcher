@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.84 (2026-11-19):**
+- **Inhalt:** Inventory-HUD: der Hotkey steht in den Einstellungen des Widgets (Widget-Karte im Hub und „Einstellungen“ im HUD-Editor aller 16 Versionen; neu `KeybindManager.ofWidget`), Standard-Modus „Solange die Taste gehalten wird“. Auf Wunsch ohne News- und ohne Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 686 Unit-Tests ohne Fehler (1 übersprungen). Der erste Lauf brach ab, weil der Rechner keinen freien Arbeitsspeicher mehr hatte (0,7 von 15,9 GB frei; Test-JVMs mit „Native memory allocation failed“, `hs_err_pid*.log` danach gelöscht); der zweite Lauf mit `--max-workers=2` lief durch. `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** keine Änderung.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Hotkey und Halten-Modus sind nicht im Spiel geprüft.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `ofWidget` im HUD-Editor und der neue Text in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3).
+
 **0.3.83 (2026-11-19):**
 - **Inhalt:** neues HUD-Widget „Inventory“ (Inventar auf Tastendruck, Standard X; Modi An/Aus, kurz, Halten, Immer; Stil Minecraft-Inventar oder Lumora-Widget; Überschrift und Hotbar-Reihe abschaltbar). `GameExtras.drawSlot` kennt dafür die Plätze 10 bis 36 (Hauptinventar) in allen 16 Modulen. Mit News-Eintrag (`news-inventory-hud.png`: echter Screenshot aus dem Smoke-Lauf von 1.8.9 mit dem Widget auf „Immer“, ausgeschnitten und verlustfrei auf 854×480 vergrößert, nicht bearbeitet; das „Combo“-Widget lag dort darüber) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 686 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Größe, Platz-Nummern, Modi An/Aus, kurz, immer, außerhalb einer Welt). `integrationTest` enthält weiterhin keine Tests.

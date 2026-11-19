@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.85 (2026-11-19)
+
+### Client
+- **Held Item Tooltip: dauerhaft oder mit/ohne Fade-out:** „Immer anzeigen“ heißt jetzt „Dauerhaft anzeigen“: der Name des Items bleibt stehen. Neu ist der Schalter „Ausblenden (Fade-out)“ (Standard an): an blendet der Name nach 2 Sekunden weich aus wie bei Minecraft, aus verschwindet er nach 2 Sekunden auf einmal. Der Schalter erscheint nur, solange „Dauerhaft anzeigen“ aus ist. In allen Minecraft-Versionen.
+
 ## 0.3.83 (2026-11-19)
 
 ### Client

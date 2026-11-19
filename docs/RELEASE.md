@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.85 (2026-11-19):**
+- **Inhalt:** Held Item Tooltip: „Immer anzeigen“ heißt „Dauerhaft anzeigen“, neuer Schalter „Ausblenden (Fade-out)“ (aus: nach der Anzeigezeit auf einmal weg). Mit News-Eintrag (Bild: das vorhandene gezeichnete Titelbild `news-held-item-tooltip.png` aus 0.3.79, kein neuer Screenshot, weil ohne Spiellauf) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2` wegen knappem Arbeitsspeicher) erfolgreich, 687 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Fade-out, ohne Fade-out, dauerhaft). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** keine Änderung.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Nicht im Spiel angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, neuer Text in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3), News-Eintrag im Launcher-Jar.
+
 **0.3.84 (2026-11-19):**
 - **Inhalt:** Inventory-HUD: der Hotkey steht in den Einstellungen des Widgets (Widget-Karte im Hub und „Einstellungen“ im HUD-Editor aller 16 Versionen; neu `KeybindManager.ofWidget`), Standard-Modus „Solange die Taste gehalten wird“. Auf Wunsch ohne News- und ohne Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 686 Unit-Tests ohne Fehler (1 übersprungen). Der erste Lauf brach ab, weil der Rechner keinen freien Arbeitsspeicher mehr hatte (0,7 von 15,9 GB frei; Test-JVMs mit „Native memory allocation failed“, `hs_err_pid*.log` danach gelöscht); der zweite Lauf mit `--max-workers=2` lief durch. `integrationTest` enthält weiterhin keine Tests.

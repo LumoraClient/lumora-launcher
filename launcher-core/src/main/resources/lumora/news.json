@@ -1,6 +1,24 @@
 {
   "news": [
     {
+      "id": "lumora-held-item-fade",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.85",
+      "title": "Held Item Tooltip: so lange, wie du willst",
+      "text": "Der Name deines Items kann jetzt dauerhaft stehen bleiben oder ohne Ausblenden verschwinden.",
+      "image": "news-held-item-tooltip.png",
+      "body": [
+        {"p": "Im Widget „Held Item Tooltip“ entscheidest du jetzt selbst, wie lange der Name deines Items zu sehen ist."},
+        {"list": [
+          "„Dauerhaft anzeigen“: der Name bleibt die ganze Zeit stehen",
+          "„Ausblenden (Fade-out)“ an: nach 2 Sekunden blendet er weich aus, wie bei Minecraft",
+          "„Ausblenden (Fade-out)“ aus: nach 2 Sekunden verschwindet er auf einmal"
+        ]},
+        {"p": "Die Schalter findest du in den Einstellungen des Widgets im HUD-Editor."}
+      ]
+    },
+    {
       "id": "lumora-inventory-hud",
       "date": "2026-11-19",
       "author": "Lumora",

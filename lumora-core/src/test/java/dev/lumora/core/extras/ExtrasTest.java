@@ -94,6 +94,53 @@ class ExtrasTest {
     }
 
     @Test
+    void inventoryHudShowsTheInventoryOnTheKey() {
+        FakePlatform p = new FakePlatform(dir);
+        core = new LumoraCore(p);
+        core.loadAddons(List.of());
+        InventoryHud w = (InventoryHud) core.widgetRegistry().entry("lumora-info:inventory").orElseThrow().widget();
+        dev.lumora.api.hud.RenderContext editor = dev.lumora.core.TestContexts.ctx(p, 854, 480, true);
+        assertTrue(w.isVisible(editor), "the empty grid is shown in the editor");
+        dev.lumora.core.FakeGraphics g = new dev.lumora.core.FakeGraphics();
+        w.render(g, editor);
+        assertEquals(List.of("Inventar"), g.texts);
+        // Minecraft's inventory: 7 px edge, 9 x 3 slots of 18 px, title line
+        assertEquals(176, w.width(editor));
+        assertEquals(7 + 11 + 3 * 18 + 7, w.height(editor));
+        w.hotbar.set(true);
+        assertEquals(7 + 11 + 3 * 18 + 4 + 18 + 7, w.height(editor), "hotbar as fourth row below a gap");
+        assertEquals(10, InventoryHud.slotNumber(0, 0), "first inventory row = inventory index 9");
+        assertEquals(36, InventoryHud.slotNumber(8, 2));
+        assertEquals(4, InventoryHud.slotNumber(4, 3), "hotbar row");
+
+        dev.lumora.api.hud.RenderContext game = dev.lumora.core.TestContexts.ctx(p, 854, 480, false);
+        p.inWorld = true;
+        w.tick();
+        assertFalse(w.isVisible(game), "toggle (default): hidden until the key");
+        w.pressed();
+        w.tick();
+        assertTrue(w.isVisible(game));
+        w.pressed();
+        w.tick();
+        assertFalse(w.isVisible(game));
+        w.mode.set("flash");
+        w.seconds.set(1);
+        w.pressed();
+        for (int i = 0; i < 19; i++) {
+            w.tick();
+            assertTrue(w.shown(), "shown for the chosen seconds");
+        }
+        w.tick();
+        assertFalse(w.shown());
+        w.mode.set("always");
+        w.tick();
+        assertTrue(w.shown());
+        p.inWorld = false;
+        w.tick();
+        assertFalse(w.shown(), "never outside a world");
+    }
+
+    @Test
     void heldItemTooltipInPocketAndJavaStyle() {
         FakePlatform p = new FakePlatform(dir);
         core = new LumoraCore(p);

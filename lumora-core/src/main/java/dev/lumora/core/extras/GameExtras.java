@@ -186,7 +186,7 @@ public interface GameExtras {
     /**
      * Draws the item of a slot at (x, y) as Minecraft's hotbar does (item, count, durability bar).
      *
-     * @param slot 0..8 hotbar, 9 offhand
+     * @param slot 0..8 hotbar, 9 offhand, 10..36 the three rows of the main inventory (inventory index 9..35, row by row)
      */
     default void drawSlot(dev.lumora.api.render.HudGraphics g, int slot, int x, int y) {
     }

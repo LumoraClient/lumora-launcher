@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Built-in module "Info-Widgets": status effects with remaining time, arrow and item counter, compass, memory, day
- * counter, active resource packs and a combo counter. Written once on the Lumora API; the game details come from
- * {@link GameExtras} of the version adapter.
+ * Built-in module "Info-Widgets": status effects with remaining time, the inventory on a key, arrow and item counter,
+ * compass, memory, day counter, active resource packs and a combo counter. Written once on the Lumora API; the game
+ * details come from {@link GameExtras} of the version adapter.
  */
 public final class InfoWidgetsModule implements LumoraAddon {
     private final Platform platform;
@@ -36,6 +36,13 @@ public final class InfoWidgetsModule implements LumoraAddon {
     public void onEnable(AddonContext context) {
         context.widgets().register(new Potions());
         context.widgets().register(new HeldItemTooltip(platform, this::tr));
+        dev.lumora.api.input.Keybind[] inventoryKey = new dev.lumora.api.input.Keybind[1];
+        InventoryHud inventory = new InventoryHud(platform::extras, () -> platform.game().inWorld(),
+                () -> inventoryKey[0] != null && inventoryKey[0].isDown(), this::tr);
+        context.widgets().register(inventory);
+        // X like the request; where Minecraft uses X itself ("Load hotbar", since 1.12) it starts unbound
+        inventoryKey[0] = context.keybinds().register("inventory", "lumora-info.widget.inventory.key", dev.lumora.api.input.Keys.X,
+                inventory::pressed);
         context.widgets().register(new Items());
         context.widgets().register(new Compass());
         context.widgets().register(new Memory());

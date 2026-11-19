@@ -286,7 +286,7 @@ final class McExtras implements GameExtras {
 
     /** Hotbar slot 0..8 or the offhand (9, none before 1.9); null or empty if nothing is there. */
     private static ItemStack slotStack(ClientPlayerEntity p, int slot) {
-        return slot == 9 ? p.getOffHandStack() : p.inventory.getInvStack(slot);
+        return slot == 9 ? p.getOffHandStack() : p.inventory.getInvStack(slot >= 10 ? slot - 1 : slot);
     }
 
     @Override
@@ -302,7 +302,7 @@ final class McExtras implements GameExtras {
     @Override
     public void drawSlot(dev.lumora.api.render.HudGraphics g, int slot, int x, int y) {
         ClientPlayerEntity p = mc().player;
-        if (p == null || slot < 0 || slot > 9) {
+        if (p == null || slot < 0 || slot > 36) {
             return;
         }
         ItemStack s = slotStack(p, slot);

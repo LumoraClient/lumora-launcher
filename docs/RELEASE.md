@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.80 (2026-11-19):**
+- **Inhalt:** neues Modul „Animations“ (1.7 / 1.8 / modern je Teil, Presets, Schlag-Stil von der Themes-Seite ins Modul); die Teile sind in 26.1.2, 26.2 und 26.3 eingebaut, in 1.12.2 bis 1.21.11 bietet das Modul vorerst nur den Schlag-Stil (die übrigen Einstellungen sind dort ausgeblendet). Details und Stand in `docs/ANIMATIONS.md`. Auf Wunsch ohne News-Eintrag und ohne Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 684 Unit-Tests ohne Fehler (1 übersprungen; neu: `AnimationsModuleTest` (6), `ItemPoseTest` (3), `CreativeTabs18Test` (2)). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neu in 26.1.2, 26.2 und 26.3: `AnimationsBodyMixin`, `AnimationsEquipMixin`, `AnimationsBuildMixin`, `AnimationsCameraMixin`, `AnimationsSneakModelMixin`, `AnimationsHeartMixin`, `AnimationsHandDrawMixin` (26.3 zusätzlich `AnimationsHandPrepareMixin`), `AnimationsArmedStateMixin`, `AnimationsThirdPersonMixin`, `AnimationsArmPoseMixin`, `AnimationsAvatarPoseMixin`, `AnimationsRecipeBookMixin`, `AnimationsRecipeBookHiddenMixin`, `AnimationsCreativeTabMixin`; `check-mixins.pl` findet alle Ziele (die üblichen „MISMATCH“-Meldungen nur für Handler ohne Parameter). Schlag-Mixins aller Versionen ab 1.9 lesen den Stil aus dem Modul.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Keine der Animationen ist im Spiel angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler.
+
 **0.3.79 (2026-11-19):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 673 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Held Item Tooltip im Pocket- und Java-Stil, Verzauberungen abschaltbar, Minecrafts Name ausgeblendet, erneutes Anzeigen bei anderem Platz, Item, Namen oder Verzauberungen). `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** neu `HeldItemNameMixin` in allen 16 Client-Modulen (bricht `renderHeldItemName` bzw. `renderSelectedItemName` bzw. `extractSelectedItemName` am Anfang ab, solange das Widget im HUD ist); `check-mixins.pl` findet die Zielmethode in jeder Version (die Meldung „MISMATCH“ kommt wie bei den übrigen Hotbar-Mixins nur vom Handler ohne Parameter). Dazu `McExtras.heldItem()` (Name, Seltenheit, umbenannt, Verzauberungen, Hotbar-Platz) in allen 16 Modulen, Widget `InfoWidgetsModule.HeldItemTooltip`, Texte in den Sprachdateien aller 16 Module.

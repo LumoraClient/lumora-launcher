@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.3.81 (2026-11-19)
+
+### Client
+- **Modul „Animations“ in allen Versionen ab 1.16.5 und einfacher:** Jeder Teil hat nur noch zwei Optionen: „Default“ lässt Minecraft unverändert, „Legacy“ zeigt das Original von 1.7. Bei Rückwärtslaufen und Kopfdrehung heißt die Option „Legacy (1.7/1.8)“, weil beide gleich sind, bei den Creative-Tabs „Legacy (Tabs von 1.8)“, weil 1.7 dieselben Tabs hatte. Presets: „Legacy (alles)“, „Default (alles normal)“ und „Custom“. Das Rezeptbuch ist jetzt ein normaler Teil („Legacy (1.7, ohne Rezeptbuch)“). Neu in 1.16.5 bis 1.21.11: Rückwärtslaufen, Kopfdrehung, Item-Wechsel, Block bauen, Schleichen, Herzen, Item-Haltung in der ersten Person (Schwert, Bogen, Essen, Angel), Item-Haltung in der dritten Person und Rezeptbuch; die Creative-Tabs von 1.8 ab 1.19.4 (davor hat Minecraft noch die alten Tabs). In 1.12.2 vorerst nur Rückwärtslaufen und Kopfdrehung. Teile, die eine Version noch nicht hat, sind dort ausgeblendet. Einstellungen aus 0.3.80 (1.7 / 1.8 / Modern) stehen nach dem Update wieder auf „Default“.
+
+## 0.3.80 (2026-11-19)
+
+### Client
+- **Neues Modul „Animations“:** klassische Animationen oder die modernen, jeder Teil einzeln: Schleichen, Herzen, Block bauen, Rückwärtslaufen, Kopfdrehung, Schwert/Blocken, Item-Haltung in erster und dritter Person, Bogen, Essen, Angel, Item-Wechsel, Rezeptbuch entfernen und die Creative-Tabs von 1.8. Nachgebaut nach dem Original-Code von 1.7.10 und 1.8.9. Der Schlag-Stil (Vanilla, Smooth, Spin, Slap) ist von der Themes-Seite ins Modul gezogen; der alte Wert wird übernommen. Zuerst nur in 26.1.2, 26.2 und 26.3.
+
 ## 0.3.79 (2026-11-19)
 
 ### Client

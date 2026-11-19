@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.81 (2026-11-19):**
+- **Inhalt:** Modul „Animations“ vereinfacht (je Teil nur „Default“ und „Legacy“, Presets Legacy/Default/Custom, Rezeptbuch als normaler Teil) und nach 1.16.5 bis 1.21.11 portiert (Creative-Tabs ab 1.19.4, 1.12.2 vorerst nur Rückwärtslaufen und Kopfdrehung); Teile ohne Umsetzung je Version über `Platform.animations()` ausgeblendet. Mit News-Eintrag (`news-animations.png`, gezeichnetes Titelbild, kein Screenshot) und Changelog-Einträgen für 0.3.81 und nachträglich 0.3.80. Gespeicherte Werte aus 0.3.80 (1.7/1.8/Modern, alte Presets) sind unbekannt und fallen auf „Default“ zurück.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 684 Unit-Tests ohne Fehler (1 übersprungen; `AnimationsModuleTest` auf zwei Optionen und Versions-Unterstützung umgestellt). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neu in 1.16.5 bis 1.21.11 (je nach Version): `AnimationsBodyMixin`, `AnimationsEquipMixin`, `AnimationsBuildMixin`, `AnimationsCameraMixin`, `AnimationsSneakModelMixin`, `AnimationsHeartMixin` (1.16.5 über die Feldzugriffe in `renderPlayerHealth`), `AnimationsHandDrawMixin`, `AnimationsThirdPersonMixin`, `AnimationsArmPoseMixin`, `AnimationsAvatarPoseMixin`, `AnimationsRecipeBookMixin`, `AnimationsRecipeBookHiddenMixin`, `AnimationsCreativeTabMixin` (ab 1.19.4), `AnimationsArmedStateMixin` (1.21.4 bis 1.21.11); in 1.12.2 `AnimationsBodyMixin`. `check-mixins.pl` findet alle Ziele (die üblichen „MISMATCH“-Meldungen nur für Handler ohne Parameter).
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Keine der Animationen ist in einer älteren Version im Spiel angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, Animations-Mixins in den gebündelten Client-Jars (Stichprobe 1.16.5, 1.21.11, 26.3), News-Bild im Launcher-Jar.
+
 **0.3.80 (2026-11-19):**
 - **Inhalt:** neues Modul „Animations“ (1.7 / 1.8 / modern je Teil, Presets, Schlag-Stil von der Themes-Seite ins Modul); die Teile sind in 26.1.2, 26.2 und 26.3 eingebaut, in 1.12.2 bis 1.21.11 bietet das Modul vorerst nur den Schlag-Stil (die übrigen Einstellungen sind dort ausgeblendet). Details und Stand in `docs/ANIMATIONS.md`. Auf Wunsch ohne News-Eintrag und ohne Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 684 Unit-Tests ohne Fehler (1 übersprungen; neu: `AnimationsModuleTest` (6), `ItemPoseTest` (3), `CreativeTabs18Test` (2)). `integrationTest` enthält weiterhin keine Tests.

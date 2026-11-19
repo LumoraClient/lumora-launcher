@@ -96,15 +96,15 @@ class ItemPoseTest {
         AnimationsModuleAccess.settings(module, new SettingsGroup("lumora-animations."));
         AnimationsModuleAccess.setActive(module, true);
         assertNull(ItemPose.select(ItemPose.Use.NONE, false, false, false), "default: Minecraft draws");
-        AnimationsModuleAccess.set(module, "posture", "legacy_1_8");
-        assertEquals(Style.LEGACY_1_8, ItemPose.select(ItemPose.Use.NONE, false, false, false));
+        AnimationsModuleAccess.set(module, "posture", "legacy");
+        assertEquals(Style.LEGACY_1_7, ItemPose.select(ItemPose.Use.NONE, false, false, false));
         assertNull(ItemPose.select(ItemPose.Use.EAT_DRINK, false, false, false), "eating is its own part");
-        AnimationsModuleAccess.set(module, "food", "legacy_1_7");
+        AnimationsModuleAccess.set(module, "food", "legacy");
         assertEquals(Style.LEGACY_1_7, ItemPose.select(ItemPose.Use.EAT_DRINK, false, false, false));
-        AnimationsModuleAccess.set(module, "sword", "legacy_1_7");
+        AnimationsModuleAccess.set(module, "sword", "legacy");
         assertEquals(Style.LEGACY_1_7, ItemPose.select(ItemPose.Use.NONE, true, false, true), "sword with a blocking shield");
         assertNull(ItemPose.select(ItemPose.Use.OTHER, false, false, false), "an item use 1.7 / 1.8 did not have");
-        AnimationsModuleAccess.set(module, "posture", "modern");
+        AnimationsModuleAccess.set(module, "posture", "default");
         assertNull(ItemPose.select(ItemPose.Use.NONE, false, false, false));
     }
 }

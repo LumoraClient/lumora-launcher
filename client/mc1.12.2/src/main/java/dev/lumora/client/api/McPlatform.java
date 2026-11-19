@@ -267,6 +267,13 @@ final class McPlatform implements Platform {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
 
+    /** The parts of the module "Animations" built into this version so far. */
+    @Override
+    public java.util.Set<dev.lumora.core.extras.AnimationsModule.Feature> animations() {
+        return java.util.EnumSet.of(dev.lumora.core.extras.AnimationsModule.Feature.BACKWARDS_WALKING,
+                dev.lumora.core.extras.AnimationsModule.Feature.HEAD_ROTATION);
+    }
+
     /** Clouds included: this version builds the fancy clouds vertex by vertex in every frame. */
     @Override
     public java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {

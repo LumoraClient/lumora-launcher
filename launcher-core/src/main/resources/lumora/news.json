@@ -1,6 +1,27 @@
 {
   "news": [
     {
+      "id": "lumora-animations",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.81",
+      "title": "Neu: Animations – das Gefühl von 1.7 zurück",
+      "text": "Das neue Modul bringt die klassischen Animationen aus Minecraft 1.7 zurück, jeden Teil einzeln, jetzt in allen Versionen ab 1.16.5.",
+      "image": "news-animations.png",
+      "body": [
+        {"p": "Blockhitting, die alte Schwerthaltung, der Bogen von früher: Das Modul „Animations“ zeigt Minecraft so, wie es sich in 1.7 angefühlt hat. Nachgebaut nach dem Original-Code von 1.7.10 und 1.8.9."},
+        {"list": [
+          "Spieler: Schleichen, blinkende Herzen, Block bauen, Rückwärtslaufen und Kopfdrehung",
+          "Items: Schwert und Blocken, Item-Haltung in der ersten und dritten Person, Bogen, Essen und Trinken, Angel, Item-Wechsel",
+          "Inventar: ohne Rezeptbuch und die Creative-Tabs von 1.8",
+          "Jeder Teil hat nur zwei Optionen: „Default“ lässt Minecraft unverändert, „Legacy“ zeigt das Original",
+          "Presets „Legacy (alles)“ und „Default (alles normal)“; änderst du einen Teil von Hand, steht das Preset auf „Custom“",
+          "Der Schlag-Stil (Vanilla, Smooth, Spin, Slap) ist von der Themes-Seite ins Modul gewandert"
+        ]},
+        {"p": "Alles gibt es in 1.16.5 bis 26.3, die Creative-Tabs ab 1.19.4. In 1.12.2 sind vorerst Rückwärtslaufen und Kopfdrehung dabei, der Rest folgt. Du findest das Modul in der Modulliste unter „Animations“."}
+      ]
+    },
+    {
       "id": "lumora-held-item-tooltip",
       "date": "2026-11-19",
       "author": "Lumora",

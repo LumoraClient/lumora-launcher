@@ -15,6 +15,9 @@ import dev.lumora.core.extras.AnimationsModule.Style;
  * the view) and limits the head to {@code getMaxHeadRotationRelativeToBody} (50° for players).
  */
 public final class BodyTurn {
+    /** Whether the last {@link #tick} saw the head 90° or more off the body (versions before 1.21.5 negate the walked distance then). */
+    private static boolean flipped;
+
     private BodyTurn() {
     }
 
@@ -56,6 +59,7 @@ public final class BodyTurn {
         }
         float body = bodyRot + wrap(t - bodyRot) * 0.3F;
         float d = wrap(yRot - body);
+        flipped = d < -90.0F || d >= 90.0F;
         if (legacyHead) {
             if (d < -75.0F) {
                 d = -75.0F;
@@ -73,6 +77,11 @@ public final class BodyTurn {
             body += d - Math.signum(d) * maxModern;
         }
         return body;
+    }
+
+    /** The walked distance as the original {@code tickHeadTurn(float, float)} returns it after {@link #tick} (negated when looking backwards). */
+    public static float distance(float walked) {
+        return flipped ? -walked : walked;
     }
 
     /** Minecraft's {@code Mth.wrapDegrees(float)}: into [-180, 180). */

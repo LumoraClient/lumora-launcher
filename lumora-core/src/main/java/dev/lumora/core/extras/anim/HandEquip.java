@@ -75,7 +75,7 @@ public final class HandEquip {
      */
     public static boolean blockPlaced(boolean infiniteMaterials) {
         Style b = AnimationsModule.style(Feature.BLOCK_BUILD);
-        if (b == Style.DEFAULT || b == Style.MODERN) {
+        if (b == Style.DEFAULT) {
             return true;
         }
         if (b == Style.LEGACY_1_8 && !infiniteMaterials && AnimationsModule.style(Feature.ITEM_EQUIP) != Style.LEGACY_1_8) {

@@ -275,6 +275,12 @@ final class McPlatform implements Platform {
     }
 
     /** Clouds are left out: since 1.21.2 Minecraft rebuilds them only when the cloud cell or mode changes. */
+    /** All parts of the module "Animations" are built into this version. */
+    @Override
+    public java.util.Set<dev.lumora.core.extras.AnimationsModule.Feature> animations() {
+        return java.util.EnumSet.allOf(dev.lumora.core.extras.AnimationsModule.Feature.class);
+    }
+
     @Override
     public java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {
         return java.util.EnumSet.of(dev.lumora.core.perf.Optimization.ENTITY_CULLING, dev.lumora.core.perf.Optimization.RENDERING,

@@ -263,6 +263,19 @@ final class McPlatform implements Platform {
         return dev.lumora.client.platform.LoaderEnv.isLoaded(modId);
     }
 
+    /** The parts of the module "Animations" built into this version so far. */
+    @Override
+    public java.util.Set<dev.lumora.core.extras.AnimationsModule.Feature> animations() {
+        return java.util.EnumSet.of(dev.lumora.core.extras.AnimationsModule.Feature.BACKWARDS_WALKING,
+                dev.lumora.core.extras.AnimationsModule.Feature.HEAD_ROTATION,
+                dev.lumora.core.extras.AnimationsModule.Feature.ITEM_EQUIP, dev.lumora.core.extras.AnimationsModule.Feature.BLOCK_BUILD,
+                dev.lumora.core.extras.AnimationsModule.Feature.SNEAK, dev.lumora.core.extras.AnimationsModule.Feature.RECIPE_BOOK,
+                dev.lumora.core.extras.AnimationsModule.Feature.POSTURE, dev.lumora.core.extras.AnimationsModule.Feature.SWORD,
+                dev.lumora.core.extras.AnimationsModule.Feature.BOW, dev.lumora.core.extras.AnimationsModule.Feature.FOOD,
+                dev.lumora.core.extras.AnimationsModule.Feature.FISHING_ROD, dev.lumora.core.extras.AnimationsModule.Feature.POSTURE_THIRD, dev.lumora.core.extras.AnimationsModule.Feature.CREATIVE_LAYOUT,
+                dev.lumora.core.extras.AnimationsModule.Feature.HEART);
+    }
+
     /** Clouds are left out: since 1.21.2 Minecraft rebuilds them only when the cloud cell or mode changes. */
     @Override
     public java.util.Set<dev.lumora.core.perf.Optimization> optimizations() {

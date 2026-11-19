@@ -16,14 +16,11 @@ Die Legacy-Optionen bauen die Original-Formeln nach, keine Annäherungen:
 
 ## Einstellungen
 
-Jede Funktion hat eine eigene Auswahl. **Default** lässt die Minecraft-Version unverändert. Angeboten werden nur
-Optionen, die es im Originalcode wirklich gibt:
+Jede Funktion hat genau zwei Optionen: **Default** lässt die Minecraft-Version unverändert (normal), **Legacy**
+zeigt das Original von 1.7. Wo 1.7 und 1.8 gleich sind (Rückwärtslaufen, Kopfdrehung), heißt sie „Legacy (1.7/1.8)“;
+bei den Creative-Tabs „Legacy (1.8)“, weil 1.7 dieselben Tabs hatte.
 
-- Verhalten sich 1.7 und 1.8 gleich, gibt es eine Option **Legacy (1.7/1.8)**.
-- Verhält sich 1.8 schon wie heute, gibt es keine eigene 1.8-Option.
-
-**Presets:** Classic 1.7, Classic 1.8, Modern und Custom. Ein Preset nimmt pro Funktion 1.7 bzw. 1.8, sonst die
-gemeinsame Legacy-Option, sonst Modern. Eine Änderung von Hand stellt das Preset auf Custom. Alles wird in der
+**Presets:** Legacy (alles), Default (alles normal) und Custom. Eine Änderung von Hand stellt das Preset auf Custom. Alles wird in der
 Modul-Konfiguration gespeichert und wirkt sofort.
 
 **Schlag-Stil** (Vanilla, Smooth, Spin, Slap): früher auf der Themes-Seite, jetzt im Modul; der alte Wert wird beim
@@ -34,20 +31,20 @@ Original-Schlag von 1.7/1.8 mitbringt.
 
 | Funktion | 1.7.10 | 1.8.9 | modern (26.x) | Optionen |
 | --- | --- | --- | --- | --- |
-| Schleichen | Kamera sofort 0,08 tiefer (`ySize` 0,2 × 0,4), beim Loslassen weich hoch; Modell: Körper 0,5 rad, Beine y 9 / z 4, Kopf y 1 | Augenhöhe 1,62 − 0,08, ohne Übergang; Modell wie 1.7, beim Zeichnen 0,2 nach unten | Augenhöhe gleitet auf 1,27 (Kamera mit 0,5-Glättung), Haltung `HumanoidModel` crouching | 1.7, 1.8, Modern |
-| Herzen | blinken, solange die Unverwundbarkeit ≥ 10 Ticks ist (`hurtResistantTime / 3 % 2`) | eigener Zähler: 20 Ticks bei Schaden, 10 bei Heilung | wie 1.8 | 1.7, Modern (= 1.8) |
-| Block bauen | kein Absenken beim Platzieren (gleiches Item und gleicher Schaden werden sofort getauscht) | Absenken, sobald sich der Stapel ändert (Anzahl, also nicht im Kreativmodus) | Absenken bei jeder Platzierung, im Kreativmodus auch | 1.7, 1.8, Modern |
-| Rückwärtslaufen | Körper dreht zur Laufrichtung (Ziel = Bewegungsrichtung) | wie 1.7 | Körper bleibt vorn (95°–265° → Richtung − 180°) | Legacy (1.7/1.8), Modern |
-| Kopfdrehung | Kopf bis 75° zum Körper, ab 50° zieht der Körper mit 0,2 nach | wie 1.7 | höchstens 50° | Legacy (1.7/1.8), Modern |
-| Schwert / Blocken | Blockhaltung, der Schlag läuft beim Blocken weiter (Blockhitting) | Blockhaltung ohne Schlag | Schwerter blocken nur mit Komponente / Schild | 1.7, 1.8, Modern |
-| Item-Haltung (1. Person) | 0,7·0,8 / −0,65·0,8 / −0,9·0,8, 45°, Schlag, ×0,4, flaches Item 1,5×, 50°, 335° | `transformFirstPersonItem` + Modell-Anzeige „firstperson“ | `firstperson_righthand` | 1.7, 1.8, Modern |
-| Bogen | −18° / −12° / −8°, (−0,9 / 0,2), Spannen z 0,1, Skalierung z 1 + 0,2·Kraft | wie 1.7 mit 1.8-Haltung | eigene Bogenhaltung | 1.7, 1.8, Modern |
-| Essen / Trinken | 1 − t²⁷, Wackeln bis 80 % | gleiche Formel, 1.8-Haltung | gleiche Formel, moderne Haltung | 1.7, 1.8, Modern |
-| Angel | um 180° gedreht (`shouldRotateAroundWhenRendering`) | Modell-Anzeige der Angel | `handheld_rod` | 1.7, 1.8, Modern |
-| Item-Wechsel | Absenken nur bei anderem Slot oder anderem Item/Schaden | Absenken bei jedem anderen Stapel | Absenken auch beim Angriffs-Cooldown | 1.7, 1.8, Modern |
-| Item-Haltung (3. Person) | Blockhaltung ohne Drehung | Blockhaltung mit −30° | moderne Haltung | 1.7, 1.8, Modern |
-| Rezeptbuch entfernen | – | – | – | an / aus |
-| Creative-Layout | – | Tabs von 1.8 | moderne Tabs | 1.8, Modern |
+| Schleichen | Kamera sofort 0,08 tiefer (`ySize` 0,2 × 0,4), beim Loslassen weich hoch; Modell: Körper 0,5 rad, Beine y 9 / z 4, Kopf y 1 | Augenhöhe 1,62 − 0,08, ohne Übergang; Modell wie 1.7, beim Zeichnen 0,2 nach unten | Augenhöhe gleitet auf 1,27 (Kamera mit 0,5-Glättung), Haltung `HumanoidModel` crouching | Default, Legacy (1.7) |
+| Herzen | blinken, solange die Unverwundbarkeit ≥ 10 Ticks ist (`hurtResistantTime / 3 % 2`) | eigener Zähler: 20 Ticks bei Schaden, 10 bei Heilung | wie 1.8 | Default (= 1.8), Legacy (1.7) |
+| Block bauen | kein Absenken beim Platzieren (gleiches Item und gleicher Schaden werden sofort getauscht) | Absenken, sobald sich der Stapel ändert (Anzahl, also nicht im Kreativmodus) | Absenken bei jeder Platzierung, im Kreativmodus auch | Default, Legacy (1.7) |
+| Rückwärtslaufen | Körper dreht zur Laufrichtung (Ziel = Bewegungsrichtung) | wie 1.7 | Körper bleibt vorn (95°–265° → Richtung − 180°) | Default, Legacy (1.7/1.8) |
+| Kopfdrehung | Kopf bis 75° zum Körper, ab 50° zieht der Körper mit 0,2 nach | wie 1.7 | höchstens 50° | Default, Legacy (1.7/1.8) |
+| Schwert / Blocken | Blockhaltung, der Schlag läuft beim Blocken weiter (Blockhitting) | Blockhaltung ohne Schlag | Schwerter blocken nur mit Komponente / Schild | Default, Legacy (1.7) |
+| Item-Haltung (1. Person) | 0,7·0,8 / −0,65·0,8 / −0,9·0,8, 45°, Schlag, ×0,4, flaches Item 1,5×, 50°, 335° | `transformFirstPersonItem` + Modell-Anzeige „firstperson“ | `firstperson_righthand` | Default, Legacy (1.7) |
+| Bogen | −18° / −12° / −8°, (−0,9 / 0,2), Spannen z 0,1, Skalierung z 1 + 0,2·Kraft | wie 1.7 mit 1.8-Haltung | eigene Bogenhaltung | Default, Legacy (1.7) |
+| Essen / Trinken | 1 − t²⁷, Wackeln bis 80 % | gleiche Formel, 1.8-Haltung | gleiche Formel, moderne Haltung | Default, Legacy (1.7) |
+| Angel | um 180° gedreht (`shouldRotateAroundWhenRendering`) | Modell-Anzeige der Angel | `handheld_rod` | Default, Legacy (1.7) |
+| Item-Wechsel | Absenken nur bei anderem Slot oder anderem Item/Schaden | Absenken bei jedem anderen Stapel | Absenken auch beim Angriffs-Cooldown | Default, Legacy (1.7) |
+| Item-Haltung (3. Person) | Blockhaltung ohne Drehung | Blockhaltung mit −30° | moderne Haltung | Default, Legacy (1.7) |
+| Rezeptbuch | kein Rezeptbuch | kein Rezeptbuch | Rezeptbuch-Knopf im Inventar | Default, Legacy (1.7, ohne Rezeptbuch) |
+| Creative-Layout | dieselben Tabs wie 1.8 | Tabs von 1.8 | moderne Tabs | Default, Legacy (Tabs von 1.8) |
 
 ## Umsetzung
 
@@ -58,20 +55,40 @@ Original-Schlag von 1.7/1.8 mitbringt.
 
 ## Stand
 
-Wird mit jedem Schritt ergänzt.
+Wird mit jedem Schritt ergänzt. Teile, die eine Version noch nicht hat, blendet das Modul dort aus
+(`Platform.animations()` je Version).
 
-| Teil | 26.1.2 / 26.2 / 26.3 | 1.12.2 – 1.21.11 |
-| --- | --- | --- |
-| Kernmodul (Einstellungen, Presets, Custom, Speichern) | fertig | fertig (versionsunabhängig) |
-| Schlag-Stil aus Themes ins Modul | fertig | fertig |
-| Rückwärtslaufen, Kopfdrehung (`AnimationsBodyMixin`, `BodyTurn`) | fertig | offen |
-| Item wechseln, Block bauen (`AnimationsEquipMixin`, `AnimationsBuildMixin`, `HandEquip`) | fertig | offen |
-| Schleichen (`AnimationsCameraMixin`, `AnimationsSneakModelMixin`, `SneakCamera`) | fertig | offen |
-| Herzen (`AnimationsHeartMixin`, `HeartBlink`; nur Minecrafts Herzen, Lumoras eigene blinken nicht) | fertig | offen |
-| Schwert, Item-Haltung, Bogen, Essen, Angel (1. Person; `AnimationsHandPrepareMixin`/`AnimationsHandDrawMixin`, `LegacyHands`, `ItemPose`) | fertig | offen |
-| Item-Haltung (3. Person; `AnimationsArmedStateMixin`, `AnimationsThirdPersonMixin`, `AnimationsArmPoseMixin`, `AnimationsAvatarPoseMixin`) | fertig | offen |
-| Rezeptbuch entfernen (`AnimationsRecipeBookMixin`, `AnimationsRecipeBookHiddenMixin`) | fertig | offen |
-| Creative-Layout, Tabs von 1.8 (`AnimationsCreativeTabMixin`, `LegacyCreative`, `CreativeTabs18`, Tabelle `creative_1_8.tsv`) | fertig | offen |
+| Teil | 26.x | 1.21.4 – 1.21.11 | 1.16.5 – 1.21 | 1.12.2 |
+| --- | --- | --- | --- | --- |
+| Kernmodul (Einstellungen, Presets, Custom, Speichern) | fertig | fertig | fertig | fertig |
+| Schlag-Stil aus Themes ins Modul | fertig | fertig | fertig | fertig |
+| Rückwärtslaufen, Kopfdrehung (`AnimationsBodyMixin`, `BodyTurn`) | fertig | fertig | fertig | fertig |
+| Item wechseln, Block bauen (`AnimationsEquipMixin`, `AnimationsBuildMixin`, `HandEquip`) | fertig | fertig | fertig | offen |
+| Schleichen (`AnimationsCameraMixin`, `AnimationsSneakModelMixin`, `SneakCamera`) | fertig | fertig | fertig | offen |
+| Herzen (`AnimationsHeartMixin`, `HeartBlink`; nur Minecrafts Herzen, Lumoras eigene blinken nicht) | fertig | fertig | fertig | offen |
+| Schwert, Item-Haltung, Bogen, Essen, Angel (1. Person; `AnimationsHandDrawMixin`, `LegacyHands`, `ItemPose`) | fertig | fertig | fertig | offen |
+| Item-Haltung (3. Person; `AnimationsThirdPersonMixin`, `AnimationsArmPoseMixin`, `AnimationsAvatarPoseMixin`) | fertig | fertig | fertig | offen |
+| Rezeptbuch entfernen (`AnimationsRecipeBookMixin`, `AnimationsRecipeBookHiddenMixin`) | fertig | fertig | fertig | offen |
+| Creative-Layout, Tabs von 1.8 (`AnimationsCreativeTabMixin`, `LegacyCreative`, `CreativeTabs18`) | fertig | fertig | ab 1.19.4 | – |
+
+Generatoren der älteren Versionen (Ordner `.t` neben dem Repo): `anim-body.pl`, `anim-equip.pl`, `anim-sneak.pl`,
+`anim-hands.pl` (1. Person bis 1.21), `anim-third.pl` (3. Person 1.21.4 – 1.21.11), `anim-third-old.pl`
+(3. Person bis 1.21), `anim-creative.pl` (Creative-Tabs 1.19.4 – 1.21).
+
+Unterschiede der älteren Versionen:
+
+- **Bis 1.21:** kein `ItemStackRenderState`; das Item wird mit `ItemInHandRenderer.renderItem` und dem Kontext `NONE`
+  gezeichnet, „wie ein Block beleuchtet“ kommt aus dem gebackenen Modell. Die 3. Person bekommt das Entity direkt
+  (`ItemInHandLayer.renderArmWithItem`), das Schwert-Blocken mit Schild setzt `PlayerRenderer.setModelProperties`.
+- **Blockhaltung 3. Person vor 1.20.2:** Minecrafts Arm folgt dem Kopf noch nicht und ist schon der 1.8-Arm; für 1.7
+  wird nur die Drehung um 30° entfernt.
+- **Herzen 1.16.5:** gezeichnet direkt in `renderPlayerHealth`; umgeleitet werden die Lesezugriffe auf
+  `healthBlinkTime` (blinken) und `displayHealth` (weißer Teil).
+- **Creative 1.19.4:** neue Tabs, aber noch keine Registry; die Tabs werden über ihren Übersetzungsschlüssel
+  (`itemGroup.…`) zugeordnet. Bis 1.18.2 hat Minecraft noch die alten Tabs (fast die von 1.8), dort gibt es den
+  Teil nicht.
+- **Bis 1.18.2** keine Werkzeug-Tags: Schwerter/Werkzeuge über `SwordItem`/`DiggerItem`; 1.16.5 hat kein
+  `ItemStack.is(Item)` und kein Fernrohr.
 
 Umsetzungsdetails:
 
@@ -91,7 +108,7 @@ Umsetzungsdetails:
 - **Schleichen:** unter niedrigen Decken (Aufstehen unmöglich) bleibt die moderne Kamera, sonst steckte sie in den
   Blöcken darüber.
 
-Erkenntnisse für die offenen Teile:
+Erkenntnisse aus der Umsetzung:
 
 - **Item-Haltung 1. Person:** 26.3 bereitet die Hand-Items in `FirstPersonHandsAndItems.extractRenderState` mit
   `FIRST_PERSON_RIGHT_HAND` vor; für Legacy wird dort `ItemDisplayContext.NONE` genommen und die 1.7- bzw.

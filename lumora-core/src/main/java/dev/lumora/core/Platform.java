@@ -86,6 +86,14 @@ public interface Platform {
     }
 
     /**
+     * The parts of the module "Animations" this version adapter implements; the others are hidden in its settings.
+     * Default: none (the module then only offers the swing style).
+     */
+    default java.util.Set<dev.lumora.core.extras.AnimationsModule.Feature> animations() {
+        return java.util.Set.of();
+    }
+
+    /**
      * The performance optimizations this version adapter implements. The default covers the ones that live in the core
      * or the Lumora Loader and therefore work on every version (menus without needless rebuilds, faster startup).
      */

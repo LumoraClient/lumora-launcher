@@ -101,15 +101,22 @@ class HubViewTest {
         assertFalse(view.cards() == view.cards(), "off: built every time like before");
     }
 
+    /** The cores of this test; their IO thread is drained before JUnit deletes the temp folder. */
+    private final List<LumoraCore> cores = new java.util.ArrayList<>();
+
     private LumoraCore core() {
         FakePlatform platform = new FakePlatform(dir);
         LumoraCore core = new LumoraCore(platform);
         core.loadAddons(Extras.candidates(platform));
+        cores.add(core);
         return core;
     }
 
     @AfterEach
     void resetAccent() {
+        // favourites and settings are written on the IO thread; a file still being written keeps Windows from
+        // deleting the temp folder
+        cores.forEach(c -> c.taskService().shutdown());
         LumoraTheme.setAccent("purple");
         HubView.select(0);
         dev.lumora.core.perf.PerformanceEngine.allOff();

@@ -181,6 +181,8 @@ class ScreenshotViewTest {
             }
         }
         assertTrue(opened, "a double click opens the preview");
+        // let the background decoder finish the preview: an open Burg.png keeps Windows from deleting the temp folder
+        renderUntil(v, p, 3);
         assertFalse(v.closeRequested(), "Esc leaves the preview first");
         assertTrue(v.closeRequested(), "then Esc closes the view");
     }

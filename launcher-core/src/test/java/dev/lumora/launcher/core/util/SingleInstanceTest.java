@@ -49,6 +49,12 @@ class SingleInstanceTest {
             assertTrue(SingleInstance.signal(dir, SingleInstance.Request.SHOW, Duration.ofSeconds(2)));
             List<SingleInstance.Request> got = new CopyOnWriteArrayList<>();
             first.onRequest(got::add);
+            // "OK" is answered before the server thread hands the request on: it arrives either here as the
+            // pending show or a moment later through the handler, so wait for it
+            long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (got.isEmpty() && System.nanoTime() < end) {
+                Thread.sleep(10);
+            }
             assertEquals(List.of(SingleInstance.Request.SHOW), got);
         }
     }

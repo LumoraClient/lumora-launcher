@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.82 (2026-11-19):**
+- **Inhalt:** Animations: Schalter „Alte Block-Animation“ (Schwert-Blockhaltung von 1.7 bei gehaltener rechter Maustaste und beim Blocken mit Schild, auch wenn „Schwert / Blocken“ auf Default steht; eigener Spieler in der dritten Person mit Blockarm; Teil der Presets). Mit News-Eintrag (`news-old-block.png`, gezeichnetes Titelbild, kein Screenshot) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 685 Unit-Tests ohne Fehler (1 übersprungen; neu in `AnimationsModuleTest`: Schalter an/aus, Presets, Custom, Auswirkung auf `ItemPose.select`, Versionen ohne den Teil). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** keine neuen; `LegacyHands.clickBlocking` und `AnimationsAvatarPoseMixin` in allen 14 Modulen von 1.16.5 bis 26.3 erweitert (`.t/anim-swordblock.pl`), Texte in den Sprachdateien aller 16 Module.
+- **Smoke-Test:** komplett, alle 16 Versionen (1.8.9, 1.12.2, 1.16.5, 1.17.1, 1.18.2, 1.19.4, 1.20.1, 1.20.4, 1.20.6, 1.21, 1.21.4, 1.21.8, 1.21.11, 26.1.2, 26.2, 26.3) `SMOKE TEST PASSED`, stumm, im Test-Home, mit dem Modul „Animations“ an und allen Teilen auf Legacy samt „Alte Block-Animation“; in `latest.log` ab 1.16.5 jeweils „Addon lumora-animations … enabled“ und kein Mixin-Fehler. Der Smoke-Test hält nie die rechte Maustaste: die Blockhaltung selbst ist nicht im Spiel angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `clickBlocking` und die Texte in den gebündelten Client-Jars (Stichprobe 1.16.5, 1.21.11, 26.3), News-Bild im Launcher-Jar.
+
 **0.3.81 (2026-11-19):**
 - **Inhalt:** Modul „Animations“ vereinfacht (je Teil nur „Default“ und „Legacy“, Presets Legacy/Default/Custom, Rezeptbuch als normaler Teil) und nach 1.16.5 bis 1.21.11 portiert (Creative-Tabs ab 1.19.4, 1.12.2 vorerst nur Rückwärtslaufen und Kopfdrehung); Teile ohne Umsetzung je Version über `Platform.animations()` ausgeblendet. Mit News-Eintrag (`news-animations.png`, gezeichnetes Titelbild, kein Screenshot) und Changelog-Einträgen für 0.3.81 und nachträglich 0.3.80. Gespeicherte Werte aus 0.3.80 (1.7/1.8/Modern, alte Presets) sind unbekannt und fallen auf „Default“ zurück.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 684 Unit-Tests ohne Fehler (1 übersprungen; `AnimationsModuleTest` auf zwei Optionen und Versions-Unterstützung umgestellt). `integrationTest` enthält weiterhin keine Tests.

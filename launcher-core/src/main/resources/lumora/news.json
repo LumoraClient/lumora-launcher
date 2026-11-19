@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-old-block-animation",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.82",
+      "title": "Blockhitting ist zurück",
+      "text": "Ein neuer Schalter im Modul „Animations“ lässt dein Schwert wieder wie in 1.7 blocken, wenn du die rechte Maustaste hältst.",
+      "image": "news-old-block.png",
+      "body": [
+        {"p": "Seit 1.9 können Schwerter nicht mehr blocken. Mit dem neuen Schalter „Alte Block-Animation“ im Modul „Animations“ sieht es trotzdem wieder aus wie früher."},
+        {"list": [
+          "Rechte Maustaste halten: das Schwert geht in die Blockhaltung von 1.7",
+          "Dabei zuschlagen: der Schlag läuft weiter, wie beim Blockhitting",
+          "Blockst du mit einem Schild in der Nebenhand, zeigt das Schwert ebenfalls die alte Haltung",
+          "In der dritten Person hebt dein Spieler den Arm zum Blocken"
+        ]},
+        {"p": "Es ändert sich nur, was du siehst: Du nimmst nicht weniger Schaden, und andere Spieler sehen es nicht. Der Schalter steht unter „Schwert / Blocken“ und ist im Preset „Legacy (alles)“ schon an. In Minecraft 1.16.5 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-animations",
       "date": "2026-11-19",
       "author": "Lumora",

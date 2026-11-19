@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.82 (2026-11-19)
+
+### Client
+- **Animations: Schalter „Alte Block-Animation“:** Server seit 1.9 kennen kein Blocken mit dem Schwert. Ist der neue Schalter unter „Schwert / Blocken“ an, zeigt ein Schwert die Blockhaltung von 1.7, solange du die rechte Maustaste hältst; schlägst du dabei zu, läuft der Schlag weiter (Blockhitting). Auch beim Blocken mit einem Schild in der Nebenhand zeigt das Schwert die alte Haltung, und in der dritten Person hebt dein Spieler den Arm. Das gilt auch, wenn „Schwert / Blocken“ auf Default steht. Nur die Anzeige: Du nimmst nicht weniger Schaden, andere Spieler sehen es nicht. „Legacy (alles)“ schaltet ihn ein, „Default (alles normal)“ aus. In 1.16.5 bis 26.3.
+
 ## 0.3.81 (2026-11-19)
 
 ### Client

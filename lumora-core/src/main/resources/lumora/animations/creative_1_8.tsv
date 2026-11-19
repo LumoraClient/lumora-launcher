@@ -1,0 +1,627 @@
+# Creative tabs of Minecraft 1.8.9 in their original order, for the module "Animations" (creative layout 1.8).
+# Read from 1.8.9 (CreativeTabs.displayAllReleventItems) and converted to today's item ids with Minecraft's own
+# DataFixer (data version 99 to 26.3). Columns: tab, item id, extra (potion=<id> | ench=<id>:<level>).
+building_blocks	minecraft:stone	
+building_blocks	minecraft:granite	
+building_blocks	minecraft:polished_granite	
+building_blocks	minecraft:diorite	
+building_blocks	minecraft:polished_diorite	
+building_blocks	minecraft:andesite	
+building_blocks	minecraft:polished_andesite	
+building_blocks	minecraft:grass_block	
+building_blocks	minecraft:dirt	
+building_blocks	minecraft:coarse_dirt	
+building_blocks	minecraft:podzol	
+building_blocks	minecraft:cobblestone	
+building_blocks	minecraft:oak_planks	
+building_blocks	minecraft:spruce_planks	
+building_blocks	minecraft:birch_planks	
+building_blocks	minecraft:jungle_planks	
+building_blocks	minecraft:acacia_planks	
+building_blocks	minecraft:dark_oak_planks	
+building_blocks	minecraft:bedrock	
+building_blocks	minecraft:sand	
+building_blocks	minecraft:red_sand	
+building_blocks	minecraft:gravel	
+building_blocks	minecraft:gold_ore	
+building_blocks	minecraft:iron_ore	
+building_blocks	minecraft:coal_ore	
+building_blocks	minecraft:oak_log	
+building_blocks	minecraft:spruce_log	
+building_blocks	minecraft:birch_log	
+building_blocks	minecraft:jungle_log	
+building_blocks	minecraft:sponge	
+building_blocks	minecraft:wet_sponge	
+building_blocks	minecraft:glass	
+building_blocks	minecraft:lapis_ore	
+building_blocks	minecraft:lapis_block	
+building_blocks	minecraft:sandstone	
+building_blocks	minecraft:chiseled_sandstone	
+building_blocks	minecraft:cut_sandstone	
+building_blocks	minecraft:white_wool	
+building_blocks	minecraft:orange_wool	
+building_blocks	minecraft:magenta_wool	
+building_blocks	minecraft:light_blue_wool	
+building_blocks	minecraft:yellow_wool	
+building_blocks	minecraft:lime_wool	
+building_blocks	minecraft:pink_wool	
+building_blocks	minecraft:gray_wool	
+building_blocks	minecraft:light_gray_wool	
+building_blocks	minecraft:cyan_wool	
+building_blocks	minecraft:purple_wool	
+building_blocks	minecraft:blue_wool	
+building_blocks	minecraft:brown_wool	
+building_blocks	minecraft:green_wool	
+building_blocks	minecraft:red_wool	
+building_blocks	minecraft:black_wool	
+building_blocks	minecraft:gold_block	
+building_blocks	minecraft:iron_block	
+building_blocks	minecraft:smooth_stone_slab	
+building_blocks	minecraft:sandstone_slab	
+building_blocks	minecraft:cobblestone_slab	
+building_blocks	minecraft:brick_slab	
+building_blocks	minecraft:stone_brick_slab	
+building_blocks	minecraft:nether_brick_slab	
+building_blocks	minecraft:quartz_slab	
+building_blocks	minecraft:bricks	
+building_blocks	minecraft:bookshelf	
+building_blocks	minecraft:mossy_cobblestone	
+building_blocks	minecraft:obsidian	
+building_blocks	minecraft:oak_stairs	
+building_blocks	minecraft:diamond_ore	
+building_blocks	minecraft:diamond_block	
+building_blocks	minecraft:cobblestone_stairs	
+building_blocks	minecraft:redstone_ore	
+building_blocks	minecraft:ice	
+building_blocks	minecraft:snow_block	
+building_blocks	minecraft:clay	
+building_blocks	minecraft:carved_pumpkin	
+building_blocks	minecraft:netherrack	
+building_blocks	minecraft:soul_sand	
+building_blocks	minecraft:glowstone	
+building_blocks	minecraft:jack_o_lantern	
+building_blocks	minecraft:white_stained_glass	
+building_blocks	minecraft:orange_stained_glass	
+building_blocks	minecraft:magenta_stained_glass	
+building_blocks	minecraft:light_blue_stained_glass	
+building_blocks	minecraft:yellow_stained_glass	
+building_blocks	minecraft:lime_stained_glass	
+building_blocks	minecraft:pink_stained_glass	
+building_blocks	minecraft:gray_stained_glass	
+building_blocks	minecraft:light_gray_stained_glass	
+building_blocks	minecraft:cyan_stained_glass	
+building_blocks	minecraft:purple_stained_glass	
+building_blocks	minecraft:blue_stained_glass	
+building_blocks	minecraft:brown_stained_glass	
+building_blocks	minecraft:green_stained_glass	
+building_blocks	minecraft:red_stained_glass	
+building_blocks	minecraft:black_stained_glass	
+building_blocks	minecraft:stone_bricks	
+building_blocks	minecraft:mossy_stone_bricks	
+building_blocks	minecraft:cracked_stone_bricks	
+building_blocks	minecraft:chiseled_stone_bricks	
+building_blocks	minecraft:melon	
+building_blocks	minecraft:brick_stairs	
+building_blocks	minecraft:stone_brick_stairs	
+building_blocks	minecraft:mycelium	
+building_blocks	minecraft:nether_bricks	
+building_blocks	minecraft:nether_brick_stairs	
+building_blocks	minecraft:end_stone	
+building_blocks	minecraft:oak_slab	
+building_blocks	minecraft:spruce_slab	
+building_blocks	minecraft:birch_slab	
+building_blocks	minecraft:jungle_slab	
+building_blocks	minecraft:acacia_slab	
+building_blocks	minecraft:dark_oak_slab	
+building_blocks	minecraft:sandstone_stairs	
+building_blocks	minecraft:emerald_ore	
+building_blocks	minecraft:emerald_block	
+building_blocks	minecraft:spruce_stairs	
+building_blocks	minecraft:birch_stairs	
+building_blocks	minecraft:jungle_stairs	
+building_blocks	minecraft:cobblestone_wall	
+building_blocks	minecraft:mossy_cobblestone_wall	
+building_blocks	minecraft:nether_quartz_ore	
+building_blocks	minecraft:quartz_block	
+building_blocks	minecraft:chiseled_quartz_block	
+building_blocks	minecraft:quartz_pillar	
+building_blocks	minecraft:quartz_stairs	
+building_blocks	minecraft:white_terracotta	
+building_blocks	minecraft:orange_terracotta	
+building_blocks	minecraft:magenta_terracotta	
+building_blocks	minecraft:light_blue_terracotta	
+building_blocks	minecraft:yellow_terracotta	
+building_blocks	minecraft:lime_terracotta	
+building_blocks	minecraft:pink_terracotta	
+building_blocks	minecraft:gray_terracotta	
+building_blocks	minecraft:light_gray_terracotta	
+building_blocks	minecraft:cyan_terracotta	
+building_blocks	minecraft:purple_terracotta	
+building_blocks	minecraft:blue_terracotta	
+building_blocks	minecraft:brown_terracotta	
+building_blocks	minecraft:green_terracotta	
+building_blocks	minecraft:red_terracotta	
+building_blocks	minecraft:black_terracotta	
+building_blocks	minecraft:acacia_log	
+building_blocks	minecraft:dark_oak_log	
+building_blocks	minecraft:acacia_stairs	
+building_blocks	minecraft:dark_oak_stairs	
+building_blocks	minecraft:prismarine	
+building_blocks	minecraft:prismarine_bricks	
+building_blocks	minecraft:dark_prismarine	
+building_blocks	minecraft:sea_lantern	
+building_blocks	minecraft:hay_block	
+building_blocks	minecraft:terracotta	
+building_blocks	minecraft:coal_block	
+building_blocks	minecraft:packed_ice	
+building_blocks	minecraft:red_sandstone	
+building_blocks	minecraft:chiseled_red_sandstone	
+building_blocks	minecraft:cut_red_sandstone	
+building_blocks	minecraft:red_sandstone_stairs	
+building_blocks	minecraft:red_sandstone_slab	
+decorations	minecraft:oak_sapling	
+decorations	minecraft:spruce_sapling	
+decorations	minecraft:birch_sapling	
+decorations	minecraft:jungle_sapling	
+decorations	minecraft:acacia_sapling	
+decorations	minecraft:dark_oak_sapling	
+decorations	minecraft:oak_leaves	
+decorations	minecraft:spruce_leaves	
+decorations	minecraft:birch_leaves	
+decorations	minecraft:jungle_leaves	
+decorations	minecraft:cobweb	
+decorations	minecraft:short_grass	
+decorations	minecraft:fern	
+decorations	minecraft:dead_bush	
+decorations	minecraft:dandelion	
+decorations	minecraft:poppy	
+decorations	minecraft:blue_orchid	
+decorations	minecraft:allium	
+decorations	minecraft:azure_bluet	
+decorations	minecraft:red_tulip	
+decorations	minecraft:orange_tulip	
+decorations	minecraft:white_tulip	
+decorations	minecraft:pink_tulip	
+decorations	minecraft:oxeye_daisy	
+decorations	minecraft:brown_mushroom	
+decorations	minecraft:red_mushroom	
+decorations	minecraft:torch	
+decorations	minecraft:chest	
+decorations	minecraft:crafting_table	
+decorations	minecraft:furnace	
+decorations	minecraft:ladder	
+decorations	minecraft:snow	
+decorations	minecraft:cactus	
+decorations	minecraft:jukebox	
+decorations	minecraft:oak_fence	
+decorations	minecraft:infested_stone	
+decorations	minecraft:infested_cobblestone	
+decorations	minecraft:infested_stone_bricks	
+decorations	minecraft:infested_mossy_stone_bricks	
+decorations	minecraft:infested_cracked_stone_bricks	
+decorations	minecraft:infested_chiseled_stone_bricks	
+decorations	minecraft:iron_bars	
+decorations	minecraft:glass_pane	
+decorations	minecraft:vine	
+decorations	minecraft:lily_pad	
+decorations	minecraft:nether_brick_fence	
+decorations	minecraft:enchanting_table	
+decorations	minecraft:end_portal_frame	
+decorations	minecraft:ender_chest	
+decorations	minecraft:anvil	
+decorations	minecraft:chipped_anvil	
+decorations	minecraft:damaged_anvil	
+decorations	minecraft:trapped_chest	
+decorations	minecraft:white_stained_glass_pane	
+decorations	minecraft:orange_stained_glass_pane	
+decorations	minecraft:magenta_stained_glass_pane	
+decorations	minecraft:light_blue_stained_glass_pane	
+decorations	minecraft:yellow_stained_glass_pane	
+decorations	minecraft:lime_stained_glass_pane	
+decorations	minecraft:pink_stained_glass_pane	
+decorations	minecraft:gray_stained_glass_pane	
+decorations	minecraft:light_gray_stained_glass_pane	
+decorations	minecraft:cyan_stained_glass_pane	
+decorations	minecraft:purple_stained_glass_pane	
+decorations	minecraft:blue_stained_glass_pane	
+decorations	minecraft:brown_stained_glass_pane	
+decorations	minecraft:green_stained_glass_pane	
+decorations	minecraft:red_stained_glass_pane	
+decorations	minecraft:black_stained_glass_pane	
+decorations	minecraft:acacia_leaves	
+decorations	minecraft:dark_oak_leaves	
+decorations	minecraft:slime_block	
+decorations	minecraft:white_carpet	
+decorations	minecraft:orange_carpet	
+decorations	minecraft:magenta_carpet	
+decorations	minecraft:light_blue_carpet	
+decorations	minecraft:yellow_carpet	
+decorations	minecraft:lime_carpet	
+decorations	minecraft:pink_carpet	
+decorations	minecraft:gray_carpet	
+decorations	minecraft:light_gray_carpet	
+decorations	minecraft:cyan_carpet	
+decorations	minecraft:purple_carpet	
+decorations	minecraft:blue_carpet	
+decorations	minecraft:brown_carpet	
+decorations	minecraft:green_carpet	
+decorations	minecraft:red_carpet	
+decorations	minecraft:black_carpet	
+decorations	minecraft:sunflower	
+decorations	minecraft:lilac	
+decorations	minecraft:tall_grass	
+decorations	minecraft:large_fern	
+decorations	minecraft:rose_bush	
+decorations	minecraft:peony	
+decorations	minecraft:spruce_fence	
+decorations	minecraft:birch_fence	
+decorations	minecraft:jungle_fence	
+decorations	minecraft:dark_oak_fence	
+decorations	minecraft:acacia_fence	
+decorations	minecraft:painting	
+decorations	minecraft:oak_sign	
+decorations	minecraft:red_bed	
+decorations	minecraft:item_frame	
+decorations	minecraft:flower_pot	
+decorations	minecraft:skeleton_skull	
+decorations	minecraft:wither_skeleton_skull	
+decorations	minecraft:zombie_head	
+decorations	minecraft:player_head	
+decorations	minecraft:creeper_head	
+decorations	minecraft:armor_stand	
+decorations	minecraft:white_banner	
+decorations	minecraft:orange_banner	
+decorations	minecraft:magenta_banner	
+decorations	minecraft:light_blue_banner	
+decorations	minecraft:yellow_banner	
+decorations	minecraft:lime_banner	
+decorations	minecraft:pink_banner	
+decorations	minecraft:gray_banner	
+decorations	minecraft:light_gray_banner	
+decorations	minecraft:cyan_banner	
+decorations	minecraft:purple_banner	
+decorations	minecraft:blue_banner	
+decorations	minecraft:brown_banner	
+decorations	minecraft:green_banner	
+decorations	minecraft:red_banner	
+decorations	minecraft:black_banner	
+redstone	minecraft:dispenser	
+redstone	minecraft:note_block	
+redstone	minecraft:sticky_piston	
+redstone	minecraft:piston	
+redstone	minecraft:tnt	
+redstone	minecraft:lever	
+redstone	minecraft:stone_pressure_plate	
+redstone	minecraft:oak_pressure_plate	
+redstone	minecraft:redstone_torch	
+redstone	minecraft:stone_button	
+redstone	minecraft:oak_trapdoor	
+redstone	minecraft:oak_fence_gate	
+redstone	minecraft:redstone_lamp	
+redstone	minecraft:tripwire_hook	
+redstone	minecraft:oak_button	
+redstone	minecraft:light_weighted_pressure_plate	
+redstone	minecraft:heavy_weighted_pressure_plate	
+redstone	minecraft:daylight_detector	
+redstone	minecraft:redstone_block	
+redstone	minecraft:hopper	
+redstone	minecraft:dropper	
+redstone	minecraft:iron_trapdoor	
+redstone	minecraft:spruce_fence_gate	
+redstone	minecraft:birch_fence_gate	
+redstone	minecraft:jungle_fence_gate	
+redstone	minecraft:dark_oak_fence_gate	
+redstone	minecraft:acacia_fence_gate	
+redstone	minecraft:oak_door	
+redstone	minecraft:iron_door	
+redstone	minecraft:redstone	
+redstone	minecraft:repeater	
+redstone	minecraft:comparator	
+redstone	minecraft:spruce_door	
+redstone	minecraft:birch_door	
+redstone	minecraft:jungle_door	
+redstone	minecraft:acacia_door	
+redstone	minecraft:dark_oak_door	
+transportation	minecraft:powered_rail	
+transportation	minecraft:detector_rail	
+transportation	minecraft:rail	
+transportation	minecraft:activator_rail	
+transportation	minecraft:minecart	
+transportation	minecraft:saddle	
+transportation	minecraft:oak_boat	
+transportation	minecraft:chest_minecart	
+transportation	minecraft:furnace_minecart	
+transportation	minecraft:carrot_on_a_stick	
+transportation	minecraft:tnt_minecart	
+transportation	minecraft:hopper_minecart	
+misc	minecraft:beacon	
+misc	minecraft:bucket	
+misc	minecraft:water_bucket	
+misc	minecraft:lava_bucket	
+misc	minecraft:snowball	
+misc	minecraft:milk_bucket	
+misc	minecraft:paper	
+misc	minecraft:book	
+misc	minecraft:slime_ball	
+misc	minecraft:bone	
+misc	minecraft:ender_pearl	
+misc	minecraft:ender_eye	
+misc	minecraft:creeper	
+misc	minecraft:skeleton	
+misc	minecraft:spider	
+misc	minecraft:zombie	
+misc	minecraft:slime	
+misc	minecraft:ghast	
+misc	minecraft:zombified_piglin	
+misc	minecraft:enderman	
+misc	minecraft:cave_spider	
+misc	minecraft:silverfish	
+misc	minecraft:blaze	
+misc	minecraft:magma_cube	
+misc	minecraft:bat	
+misc	minecraft:witch	
+misc	minecraft:endermite	
+misc	minecraft:guardian	
+misc	minecraft:pig	
+misc	minecraft:sheep	
+misc	minecraft:cow	
+misc	minecraft:chicken	
+misc	minecraft:squid	
+misc	minecraft:wolf	
+misc	minecraft:mooshroom	
+misc	minecraft:ocelot	
+misc	minecraft:horse	
+misc	minecraft:rabbit	
+misc	minecraft:villager	
+misc	minecraft:experience_bottle	
+misc	minecraft:fire_charge	
+misc	minecraft:writable_book	
+misc	minecraft:map	
+misc	minecraft:firework_star	
+misc	minecraft:iron_horse_armor	
+misc	minecraft:golden_horse_armor	
+misc	minecraft:diamond_horse_armor	
+misc	minecraft:music_disc_13	
+misc	minecraft:music_disc_cat	
+misc	minecraft:music_disc_blocks	
+misc	minecraft:music_disc_chirp	
+misc	minecraft:music_disc_far	
+misc	minecraft:music_disc_mall	
+misc	minecraft:music_disc_mellohi	
+misc	minecraft:music_disc_stal	
+misc	minecraft:music_disc_strad	
+misc	minecraft:music_disc_ward	
+misc	minecraft:music_disc_11	
+misc	minecraft:music_disc_wait	
+food	minecraft:apple	
+food	minecraft:mushroom_stew	
+food	minecraft:bread	
+food	minecraft:porkchop	
+food	minecraft:cooked_porkchop	
+food	minecraft:golden_apple	
+food	minecraft:enchanted_golden_apple	
+food	minecraft:cod	
+food	minecraft:salmon	
+food	minecraft:tropical_fish	
+food	minecraft:pufferfish	
+food	minecraft:cooked_cod	
+food	minecraft:cooked_salmon	
+food	minecraft:cake	
+food	minecraft:cookie	
+food	minecraft:melon_slice	
+food	minecraft:beef	
+food	minecraft:cooked_beef	
+food	minecraft:chicken	
+food	minecraft:cooked_chicken	
+food	minecraft:rotten_flesh	
+food	minecraft:spider_eye	
+food	minecraft:carrot	
+food	minecraft:potato	
+food	minecraft:baked_potato	
+food	minecraft:poisonous_potato	
+food	minecraft:pumpkin_pie	
+food	minecraft:rabbit	
+food	minecraft:cooked_rabbit	
+food	minecraft:rabbit_stew	
+food	minecraft:mutton	
+food	minecraft:cooked_mutton	
+tools	minecraft:iron_shovel	
+tools	minecraft:iron_pickaxe	
+tools	minecraft:iron_axe	
+tools	minecraft:flint_and_steel	
+tools	minecraft:wooden_shovel	
+tools	minecraft:wooden_pickaxe	
+tools	minecraft:wooden_axe	
+tools	minecraft:stone_shovel	
+tools	minecraft:stone_pickaxe	
+tools	minecraft:stone_axe	
+tools	minecraft:diamond_shovel	
+tools	minecraft:diamond_pickaxe	
+tools	minecraft:diamond_axe	
+tools	minecraft:golden_shovel	
+tools	minecraft:golden_pickaxe	
+tools	minecraft:golden_axe	
+tools	minecraft:wooden_hoe	
+tools	minecraft:stone_hoe	
+tools	minecraft:iron_hoe	
+tools	minecraft:diamond_hoe	
+tools	minecraft:golden_hoe	
+tools	minecraft:compass	
+tools	minecraft:fishing_rod	
+tools	minecraft:clock	
+tools	minecraft:shears	
+tools	minecraft:lead	
+tools	minecraft:name_tag	
+tools	minecraft:enchanted_book	ench=minecraft:efficiency:5
+tools	minecraft:enchanted_book	ench=minecraft:silk_touch:1
+tools	minecraft:enchanted_book	ench=minecraft:unbreaking:3
+tools	minecraft:enchanted_book	ench=minecraft:fortune:3
+tools	minecraft:enchanted_book	ench=minecraft:luck_of_the_sea:3
+tools	minecraft:enchanted_book	ench=minecraft:lure:3
+combat	minecraft:bow	
+combat	minecraft:arrow	
+combat	minecraft:iron_sword	
+combat	minecraft:wooden_sword	
+combat	minecraft:stone_sword	
+combat	minecraft:diamond_sword	
+combat	minecraft:golden_sword	
+combat	minecraft:leather_helmet	
+combat	minecraft:leather_chestplate	
+combat	minecraft:leather_leggings	
+combat	minecraft:leather_boots	
+combat	minecraft:chainmail_helmet	
+combat	minecraft:chainmail_chestplate	
+combat	minecraft:chainmail_leggings	
+combat	minecraft:chainmail_boots	
+combat	minecraft:iron_helmet	
+combat	minecraft:iron_chestplate	
+combat	minecraft:iron_leggings	
+combat	minecraft:iron_boots	
+combat	minecraft:diamond_helmet	
+combat	minecraft:diamond_chestplate	
+combat	minecraft:diamond_leggings	
+combat	minecraft:diamond_boots	
+combat	minecraft:golden_helmet	
+combat	minecraft:golden_chestplate	
+combat	minecraft:golden_leggings	
+combat	minecraft:golden_boots	
+combat	minecraft:enchanted_book	ench=minecraft:protection:4
+combat	minecraft:enchanted_book	ench=minecraft:fire_protection:4
+combat	minecraft:enchanted_book	ench=minecraft:feather_falling:4
+combat	minecraft:enchanted_book	ench=minecraft:blast_protection:4
+combat	minecraft:enchanted_book	ench=minecraft:projectile_protection:4
+combat	minecraft:enchanted_book	ench=minecraft:respiration:3
+combat	minecraft:enchanted_book	ench=minecraft:aqua_affinity:1
+combat	minecraft:enchanted_book	ench=minecraft:thorns:3
+combat	minecraft:enchanted_book	ench=minecraft:depth_strider:3
+combat	minecraft:enchanted_book	ench=minecraft:sharpness:5
+combat	minecraft:enchanted_book	ench=minecraft:smite:5
+combat	minecraft:enchanted_book	ench=minecraft:bane_of_arthropods:5
+combat	minecraft:enchanted_book	ench=minecraft:knockback:2
+combat	minecraft:enchanted_book	ench=minecraft:fire_aspect:2
+combat	minecraft:enchanted_book	ench=minecraft:looting:3
+combat	minecraft:enchanted_book	ench=minecraft:power:5
+combat	minecraft:enchanted_book	ench=minecraft:punch:2
+combat	minecraft:enchanted_book	ench=minecraft:flame:1
+combat	minecraft:enchanted_book	ench=minecraft:infinity:1
+brewing	minecraft:ghast_tear	
+brewing	minecraft:potion	potion=minecraft:water
+brewing	minecraft:potion	potion=minecraft:regeneration
+brewing	minecraft:potion	potion=minecraft:strong_regeneration
+brewing	minecraft:potion	potion=minecraft:long_regeneration
+brewing	minecraft:splash_potion	potion=minecraft:regeneration
+brewing	minecraft:splash_potion	potion=minecraft:strong_regeneration
+brewing	minecraft:splash_potion	potion=minecraft:long_regeneration
+brewing	minecraft:potion	potion=minecraft:swiftness
+brewing	minecraft:potion	potion=minecraft:strong_swiftness
+brewing	minecraft:potion	potion=minecraft:long_swiftness
+brewing	minecraft:splash_potion	potion=minecraft:swiftness
+brewing	minecraft:splash_potion	potion=minecraft:strong_swiftness
+brewing	minecraft:splash_potion	potion=minecraft:long_swiftness
+brewing	minecraft:potion	potion=minecraft:fire_resistance
+brewing	minecraft:potion	potion=minecraft:long_fire_resistance
+brewing	minecraft:splash_potion	potion=minecraft:fire_resistance
+brewing	minecraft:splash_potion	potion=minecraft:long_fire_resistance
+brewing	minecraft:potion	potion=minecraft:poison
+brewing	minecraft:potion	potion=minecraft:strong_poison
+brewing	minecraft:potion	potion=minecraft:long_poison
+brewing	minecraft:splash_potion	potion=minecraft:poison
+brewing	minecraft:splash_potion	potion=minecraft:strong_poison
+brewing	minecraft:splash_potion	potion=minecraft:long_poison
+brewing	minecraft:potion	potion=minecraft:healing
+brewing	minecraft:potion	potion=minecraft:strong_healing
+brewing	minecraft:splash_potion	potion=minecraft:healing
+brewing	minecraft:splash_potion	potion=minecraft:strong_healing
+brewing	minecraft:potion	potion=minecraft:night_vision
+brewing	minecraft:potion	potion=minecraft:long_night_vision
+brewing	minecraft:splash_potion	potion=minecraft:night_vision
+brewing	minecraft:splash_potion	potion=minecraft:long_night_vision
+brewing	minecraft:potion	potion=minecraft:weakness
+brewing	minecraft:potion	potion=minecraft:long_weakness
+brewing	minecraft:splash_potion	potion=minecraft:weakness
+brewing	minecraft:splash_potion	potion=minecraft:long_weakness
+brewing	minecraft:potion	potion=minecraft:strength
+brewing	minecraft:potion	potion=minecraft:strong_strength
+brewing	minecraft:potion	potion=minecraft:long_strength
+brewing	minecraft:splash_potion	potion=minecraft:strength
+brewing	minecraft:splash_potion	potion=minecraft:strong_strength
+brewing	minecraft:splash_potion	potion=minecraft:long_strength
+brewing	minecraft:potion	potion=minecraft:slowness
+brewing	minecraft:potion	potion=minecraft:long_slowness
+brewing	minecraft:splash_potion	potion=minecraft:slowness
+brewing	minecraft:splash_potion	potion=minecraft:long_slowness
+brewing	minecraft:potion	potion=minecraft:leaping
+brewing	minecraft:potion	potion=minecraft:strong_leaping
+brewing	minecraft:potion	potion=minecraft:long_leaping
+brewing	minecraft:splash_potion	potion=minecraft:leaping
+brewing	minecraft:splash_potion	potion=minecraft:strong_leaping
+brewing	minecraft:splash_potion	potion=minecraft:long_leaping
+brewing	minecraft:potion	potion=minecraft:harming
+brewing	minecraft:potion	potion=minecraft:strong_harming
+brewing	minecraft:splash_potion	potion=minecraft:harming
+brewing	minecraft:splash_potion	potion=minecraft:strong_harming
+brewing	minecraft:potion	potion=minecraft:water_breathing
+brewing	minecraft:potion	potion=minecraft:long_water_breathing
+brewing	minecraft:splash_potion	potion=minecraft:water_breathing
+brewing	minecraft:splash_potion	potion=minecraft:long_water_breathing
+brewing	minecraft:potion	potion=minecraft:invisibility
+brewing	minecraft:potion	potion=minecraft:long_invisibility
+brewing	minecraft:splash_potion	potion=minecraft:invisibility
+brewing	minecraft:splash_potion	potion=minecraft:long_invisibility
+brewing	minecraft:glass_bottle	
+brewing	minecraft:fermented_spider_eye	
+brewing	minecraft:blaze_powder	
+brewing	minecraft:magma_cream	
+brewing	minecraft:brewing_stand	
+brewing	minecraft:cauldron	
+brewing	minecraft:glistering_melon_slice	
+brewing	minecraft:golden_carrot	
+brewing	minecraft:rabbit_foot	
+materials	minecraft:coal	
+materials	minecraft:charcoal	
+materials	minecraft:diamond	
+materials	minecraft:iron_ingot	
+materials	minecraft:gold_ingot	
+materials	minecraft:stick	
+materials	minecraft:bowl	
+materials	minecraft:string	
+materials	minecraft:feather	
+materials	minecraft:gunpowder	
+materials	minecraft:wheat_seeds	
+materials	minecraft:wheat	
+materials	minecraft:flint	
+materials	minecraft:leather	
+materials	minecraft:brick	
+materials	minecraft:clay_ball	
+materials	minecraft:sugar_cane	
+materials	minecraft:egg	
+materials	minecraft:glowstone_dust	
+materials	minecraft:ink_sac	
+materials	minecraft:red_dye	
+materials	minecraft:green_dye	
+materials	minecraft:cocoa_beans	
+materials	minecraft:lapis_lazuli	
+materials	minecraft:purple_dye	
+materials	minecraft:cyan_dye	
+materials	minecraft:light_gray_dye	
+materials	minecraft:gray_dye	
+materials	minecraft:pink_dye	
+materials	minecraft:lime_dye	
+materials	minecraft:yellow_dye	
+materials	minecraft:light_blue_dye	
+materials	minecraft:magenta_dye	
+materials	minecraft:orange_dye	
+materials	minecraft:bone_meal	
+materials	minecraft:sugar	
+materials	minecraft:pumpkin_seeds	
+materials	minecraft:melon_seeds	
+materials	minecraft:blaze_rod	
+materials	minecraft:gold_nugget	
+materials	minecraft:nether_wart	
+materials	minecraft:emerald	
+materials	minecraft:nether_star	
+materials	minecraft:nether_brick	
+materials	minecraft:quartz	
+materials	minecraft:prismarine_shard	
+materials	minecraft:prismarine_crystals	
+materials	minecraft:rabbit_hide	

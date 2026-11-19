@@ -1209,7 +1209,9 @@ public final class HubView implements AddonView {
             host.set("transitionMillis", next);
         });
         y = toggleRow(g, x, y, w, t("Übergang im Spiel", "Transition in game"), "transitionInGame", mx, my);
-        if (host.has("swingAnimation")) {
+        // from 1.9 the swing style is set in the module "Animations"; 1.8.9 keeps it here
+        if (host.has("swingAnimation")
+                && (core.minecraftVersion() == null || dev.lumora.core.addon.VersionSupport.compare(core.minecraftVersion(), dev.lumora.core.extras.AnimationsModule.MIN_MINECRAFT) < 0)) {
             String swing = str("swingAnimation", "smooth");
             String swingName = Character.toUpperCase(swing.charAt(0)) + swing.substring(1);
             y = row(g, x, y, w, t("Schlag-Animation", "Swing animation"), mx, my, (rx, ry) -> pill(g, rx, ry, swingName), () -> {

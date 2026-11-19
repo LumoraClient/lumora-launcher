@@ -86,6 +86,12 @@ public final class Extras {
                         OffHandModule.class, dev.lumora.core.addon.VersionSupport.atLeast(OffHandModule.MIN_MINECRAFT,
                                 platform.minecraftVersion())),
                         OffHandModule::new),
+                // the animations differ from 1.8 only since 1.9: on older versions the hub shows the module locked with the reason
+                AddonCandidate.of(LumoraCore.builtInDescriptor(AnimationsModule.ID, "Animations",
+                        "Classic 1.7 / 1.8 or modern animations, each part on its own: sneaking, hearts, items, bow, food, inventory",
+                        AnimationsModule.class, dev.lumora.core.addon.VersionSupport.atLeast(AnimationsModule.MIN_MINECRAFT,
+                                platform.minecraftVersion())),
+                        () -> new AnimationsModule(platform.minecraftVersion())),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(HiddenArmorModule.ID, "Hidden Armor",
                         "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
                         HiddenArmorModule.class),

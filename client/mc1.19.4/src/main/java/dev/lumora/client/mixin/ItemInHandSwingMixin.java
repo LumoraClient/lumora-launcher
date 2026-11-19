@@ -38,7 +38,7 @@ public abstract class ItemInHandSwingMixin {
         if (LumoraClient.config() == null || hand != InteractionHand.MAIN_HAND) {
             return SwingAnimation.Mode.VANILLA;
         }
-        return SwingAnimation.Mode.parse(LumoraClient.config().swingAnimation);
+        return lumora$swingMode();
     }
 
     @Redirect(method = RENDER_ARM, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", ordinal = 3))
@@ -70,5 +70,14 @@ public abstract class ItemInHandSwingMixin {
         } else {
             SwingAnimation.apply(mode, pose, swing, arm);
         }
+    }
+
+    /** The swing style of the module "Animations" (the old client setting is taken over once); vanilla while the item posture is legacy. */
+    private static SwingAnimation.Mode lumora$swingMode() {
+        dev.lumora.core.extras.AnimationsModule.migrateSwing(LumoraClient.config().swingAnimation);
+        if (dev.lumora.core.extras.AnimationsModule.style(dev.lumora.core.extras.AnimationsModule.Feature.POSTURE).legacy()) {
+            return SwingAnimation.Mode.VANILLA;
+        }
+        return SwingAnimation.Mode.parse(dev.lumora.core.extras.AnimationsModule.swing());
     }
 }

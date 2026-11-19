@@ -30,7 +30,7 @@ public abstract class ItemInHandSwingMixin {
         if (LumoraClient.config() == null) {
             return;
         }
-        SwingAnimation.Mode mode = SwingAnimation.Mode.parse(LumoraClient.config().swingAnimation);
+        SwingAnimation.Mode mode = lumora$swingMode();
         LocalPlayer player = Minecraft.getInstance().player;
         if (mode == SwingAnimation.Mode.VANILLA || player == null || arm != player.getMainArm()) {
             return;
@@ -38,5 +38,14 @@ public abstract class ItemInHandSwingMixin {
         applyItemArmTransform(pose, arm, equip);
         SwingAnimation.apply(mode, pose, swing, arm);
         ci.cancel();
+    }
+
+    /** The swing style of the module "Animations" (the old client setting is taken over once); vanilla while the item posture is legacy. */
+    private static SwingAnimation.Mode lumora$swingMode() {
+        dev.lumora.core.extras.AnimationsModule.migrateSwing(LumoraClient.config().swingAnimation);
+        if (dev.lumora.core.extras.AnimationsModule.style(dev.lumora.core.extras.AnimationsModule.Feature.POSTURE).legacy()) {
+            return SwingAnimation.Mode.VANILLA;
+        }
+        return SwingAnimation.Mode.parse(dev.lumora.core.extras.AnimationsModule.swing());
     }
 }

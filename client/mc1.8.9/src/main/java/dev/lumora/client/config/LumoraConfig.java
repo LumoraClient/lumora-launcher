@@ -60,6 +60,19 @@ public final class LumoraConfig {
     public boolean zoomVignette = true;
     /** Black bars that slide in at the top and bottom while zoomed. */
     public boolean zoomCinemaBars = false;
+    /** Show the hand in first person while zoomed. */
+    public boolean zoomHand = true;
+    /** Transition curves and durations (ms) when zooming in and out ("zoomSmooth" switches the transition on). */
+    public String zoomInEase = "ease_out";
+    public int zoomInMs = 100;
+    public String zoomOutEase = "ease_in";
+    public int zoomOutMs = 100;
+    /** Cinematic camera only while the zoom-in transition runs, then the normal camera. */
+    public boolean zoomCinematicTransition = false;
+    /** Height of each cinema bar in percent of the screen height (5..25). */
+    public int zoomBarHeight = 12;
+    /** Hide the HUD and the chat like F1 while zoomed. */
+    public boolean zoomHideHud = false;
     /** First-person swing animation (cosmetic): vanilla, smooth, spin, slap. */
     public String swingAnimation = "smooth";
     public boolean titleScreenButton = true;
@@ -102,6 +115,19 @@ public final class LumoraConfig {
         }
         if (!"hold".equals(zoomMode) && !"toggle".equals(zoomMode)) {
             zoomMode = "hold";
+            changed = true;
+        }
+        String zie = dev.lumora.core.zoom.ZoomMotion.curve(zoomInEase, "ease_out");
+        String zoe = dev.lumora.core.zoom.ZoomMotion.curve(zoomOutEase, "ease_in");
+        int zim = Math.max(0, Math.min(dev.lumora.core.zoom.ZoomMotion.MAX_MS, zoomInMs));
+        int zom = Math.max(0, Math.min(dev.lumora.core.zoom.ZoomMotion.MAX_MS, zoomOutMs));
+        int zbh = Math.max(5, Math.min(25, zoomBarHeight));
+        if (!zie.equals(zoomInEase) || !zoe.equals(zoomOutEase) || zim != zoomInMs || zom != zoomOutMs || zbh != zoomBarHeight) {
+            zoomInEase = zie;
+            zoomOutEase = zoe;
+            zoomInMs = zim;
+            zoomOutMs = zom;
+            zoomBarHeight = zbh;
             changed = true;
         }
         double zf = Math.clamp(zoomFactor, 1.5, 50.0);

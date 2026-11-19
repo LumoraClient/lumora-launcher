@@ -49,6 +49,7 @@
     "AnimationsThirdPersonMixin",
     "AnimationsArmedStateMixin",
     "AnimationsHandDrawMixin",
+    "ZoomHandMixin",
     "AnimationsHandPrepareMixin",
     "AnimationsHeartMixin",
     "AnimationsSneakModelMixin",

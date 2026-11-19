@@ -30,6 +30,9 @@ public abstract class AnimationsHandDrawMixin {
     private void lumora$legacyHand(PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state, float partialTicks, float xRot,
                                    InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack,
                                    SubmitNodeCollector collector, int lightCoords, CallbackInfo ci) {
+        if (dev.lumora.client.zoom.LumoraZoom.hidesHand()) {
+            return; // ZoomHandMixin hides the hand
+        }
         AnimationsModule.Style version = ItemPose.frameVersion();
         AvatarRenderState avatar = playerState.avatarRenderState;
         if (version == null || hand != InteractionHand.MAIN_HAND || state.isScoping || avatar == null || itemStack != state.mainHandItem) {

@@ -18,6 +18,7 @@ import dev.lumora.core.extras.ButtonStyleModule;
 import dev.lumora.core.hud.HudLayout;
 import dev.lumora.core.theme.LumoraFonts;
 import dev.lumora.core.theme.LumoraTheme;
+import dev.lumora.core.zoom.ZoomMotion;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -98,7 +99,9 @@ public final class HubView implements AddonView {
     /** Built-in modules set on the Themes page only (no module card). */
     static final Set<String> THEMES_PAGE_ADDONS = Set.of("lumora-buttons", "lumora-browser", "lumora-widgetdesign");
     private static final int[] DURATIONS = {150, 220, 350, 500};
-    private static final String[] ZOOM_FACTORS = {"2", "3", "4", "6", "8", "10"};
+    private static final double ZOOM_MIN = 1.5;
+    /** The "Zoom Distance" slider ends here; the scroll wheel goes further (up to 50). */
+    private static final double ZOOM_SLIDER_MAX = 20;
     private static final String[] SWING = {"vanilla", "smooth", "spin", "slap"};
 
     private static Page page = Page.MODULES;
@@ -322,7 +325,7 @@ public final class HubView implements AddonView {
             out.add(new Card("zoom", zoom, lang("lumora.module.zoom.description", "Zoom in with key %s, factor, mode, cinematic camera",
                     host.zoomKey()), WidgetCategory.PLAYER, "zoom",
                     bool("zoomEnabled"), null, () -> host.set("zoomEnabled", !bool("zoomEnabled")), () -> host.openSettings(zoom,
-                    t("Taste: ", "Key: ") + host.zoomKey() + t(" · änderbar unter Optionen › Steuerung", " · change it in Options › Controls"),
+                    t("Taste: ", "Key: ") + host.zoomKey(),
                     zoomSettings(), List.of(), null, false),
                     null, null));
         }
@@ -1536,38 +1539,59 @@ public final class HubView implements AddonView {
 
     // ---- zoom
 
-    /** The zoom options of lumora-client.json as settings, bound to the client config (nothing is stored twice). */
+    /**
+     * The zoom options of lumora-client.json as settings, bound to the client config (nothing is stored twice); the zoom
+     * key is Minecraft's own key mapping. Options the running version does not have are left out.
+     */
     SettingsGroup zoomSettings() {
         SettingsGroup s = new SettingsGroup("lumora.zoom.");
         BooleanSetting enabled = s.toggle("enabled", true).bind(() -> bool("zoomEnabled"), v -> host.set("zoomEnabled", v))
                 .section("lumora.zoom.section.general");
-        s.selection("factor", "4", ZOOM_FACTORS).bind(() -> nearestFactor(num("zoomFactor", 4)),
-                v -> host.set("zoomFactor", Double.parseDouble(v))).requires(enabled);
-        s.selection("mode", "hold", "hold", "toggle").bind(() -> "toggle".equals(str("zoomMode", "hold")) ? "toggle" : "hold",
-                v -> host.set("zoomMode", v)).requires(enabled);
-        String section = "lumora.zoom.section.behaviour";
-        for (String[] o : new String[][]{{"smooth", "zoomSmooth"}, {"scroll", "zoomScroll"}, {"sensitivity", "zoomSensitivity"},
-                {"cinematic", "zoomCinematic"}, {"vignette", "zoomVignette"}, {"cinema_bars", "zoomCinemaBars"}}) {
-            if (host.has(o[1])) {
-                BooleanSetting b = s.checkbox(o[0], false).bind(() -> bool(o[1]), v -> host.set(o[1], v)).requires(enabled);
-                if (section != null) {
-                    b.section(section);
-                    section = null;
-                }
+        s.keybind("key", -1).bind(host::zoomKeyCode, host::setZoomKeyCode).requires(enabled);
+        s.toggle("hold", true).bind(() -> !"toggle".equals(str("zoomMode", "hold")), v -> host.set("zoomMode", v ? "hold" : "toggle"))
+                .requires(enabled);
+        zoomToggle(s, "scroll", "zoomScroll", enabled, null);
+        zoomToggle(s, "hand", "zoomHand", enabled, null);
+        s.decimal("distance", 4, ZOOM_MIN, ZOOM_SLIDER_MAX, 0.5)
+                .bind(() -> Math.max(ZOOM_MIN, Math.min(ZOOM_SLIDER_MAX, num("zoomFactor", 4))), v -> host.set("zoomFactor", v))
+                .requires(enabled);
+        zoomToggle(s, "sensitivity", "zoomSensitivity", enabled, null);
+        zoomToggle(s, "vignette", "zoomVignette", enabled, null);
+        BooleanSetting bars = zoomToggle(s, "cinema_bars", "zoomCinemaBars", enabled, null);
+        if (bars != null && host.has("zoomBarHeight")) {
+            s.slider("bar_height", 12, 5, 25).unit("%").bind(() -> (int) num("zoomBarHeight", 12), v -> host.set("zoomBarHeight", v))
+                    .visibleWhen(() -> enabled.get() && bars.get());
+        }
+        zoomToggle(s, "hide_hud", "zoomHideHud", enabled, null);
+
+        BooleanSetting cinematic = zoomToggle(s, "cinematic", "zoomCinematic", enabled, "lumora.zoom.section.cinematic");
+        if (cinematic != null) {
+            zoomToggle(s, "cinematic_transition", "zoomCinematicTransition", cinematic, null);
+        }
+
+        BooleanSetting smooth = zoomToggle(s, "smooth", "zoomSmooth", enabled, "lumora.zoom.section.transition");
+        if (smooth != null && host.has("zoomInEase")) {
+            for (String[] d : new String[][]{{"in", "zoomInEase", "zoomInMs", "ease_out"}, {"out", "zoomOutEase", "zoomOutMs", "ease_in"}}) {
+                s.selection(d[0] + "_ease", d[3], ZoomMotion.EASES).bind(() -> ZoomMotion.curve(str(d[1], d[3]), d[3]), v -> host.set(d[1], v))
+                        .visibleWhen(() -> enabled.get() && smooth.get());
+                s.slider(d[0] + "_ms", 100, 0, ZoomMotion.MAX_MS).step(10).unit(" ms").bind(() -> (int) num(d[2], 100), v -> host.set(d[2], v))
+                        .visibleWhen(() -> enabled.get() && smooth.get());
             }
         }
         return s;
     }
 
-    /** The zoom factor option nearest to {@code factor}. */
-    static String nearestFactor(double factor) {
-        String best = ZOOM_FACTORS[0];
-        for (String f : ZOOM_FACTORS) {
-            if (Math.abs(Double.parseDouble(f) - factor) < Math.abs(Double.parseDouble(best) - factor)) {
-                best = f;
-            }
+    /** A zoom switch bound to the client option {@code option}; {@code null} if this version has no such option. */
+    private BooleanSetting zoomToggle(SettingsGroup s, String key, String option, BooleanSetting parent, String section) {
+        if (!host.has(option)) {
+            return null;
         }
-        return best;
+        BooleanSetting b = s.toggle(key, false).bind(() -> bool(option), v -> host.set(option, v));
+        b.visibleWhen(() -> bool("zoomEnabled") && parent.get());
+        if (section != null) {
+            b.section(section);
+        }
+        return b;
     }
 
     // ---- profiles

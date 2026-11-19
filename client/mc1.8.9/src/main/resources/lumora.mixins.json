@@ -13,6 +13,7 @@
     "ChatScreenMixin",
     "MouseScrollMixin",
     "HeldItemSwingMixin",
+    "ZoomHandMixin",
     "ButtonSkinMixin",
     "SliderWidgetSkinMixin",
     "OptionSliderWidgetSkinMixin",

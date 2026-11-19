@@ -38,6 +38,7 @@
     "AnimationsThirdPersonMixin",
     "AnimationsArmedStateMixin",
     "AnimationsHandDrawMixin",
+    "ZoomHandMixin",
     "AnimationsRecipeBookHiddenMixin",
     "AnimationsRecipeBookMixin",
     "AnimationsHeartMixin",

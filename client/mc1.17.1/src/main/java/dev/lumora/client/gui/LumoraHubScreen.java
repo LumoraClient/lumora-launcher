@@ -137,6 +137,16 @@ public final class LumoraHubScreen {
         }
 
         @Override
+        public int zoomKeyCode() {
+            return dev.lumora.client.zoom.LumoraZoom.keyCode();
+        }
+
+        @Override
+        public void setZoomKeyCode(int glfw) {
+            dev.lumora.client.zoom.LumoraZoom.setKeyCode(glfw);
+        }
+
+        @Override
         public void openHudEditor() {
             show(new HudEditorScreen(current()));
         }

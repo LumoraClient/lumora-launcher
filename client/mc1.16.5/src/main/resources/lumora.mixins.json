@@ -33,6 +33,7 @@
     "AnimationsArmPoseMixin",
     "AnimationsThirdPersonMixin",
     "AnimationsHandDrawMixin",
+    "ZoomHandMixin",
     "AnimationsRecipeBookHiddenMixin",
     "AnimationsRecipeBookMixin",
     "AnimationsSneakModelMixin",

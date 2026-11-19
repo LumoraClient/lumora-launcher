@@ -41,6 +41,9 @@ public abstract class AnimationsHandDrawMixin {
     private void lumora$legacyHand(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float attack,
                                    ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, MultiBufferSource buffers,
                                    int lightCoords, CallbackInfo ci) {
+        if (dev.lumora.client.zoom.LumoraZoom.hidesHand()) {
+            return; // ZoomHandMixin hides the hand
+        }
         if (hand != InteractionHand.MAIN_HAND || player.isScoping()) {
             return;
         }

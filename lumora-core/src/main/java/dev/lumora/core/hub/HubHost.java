@@ -32,6 +32,15 @@ public interface HubHost {
     /** Name of the key bound to zoom. */
     String zoomKey();
 
+    /** GLFW code of the zoom key in Minecraft's controls, {@code -1} if unbound or unknown. */
+    default int zoomKeyCode() {
+        return -1;
+    }
+
+    /** Binds the zoom key in Minecraft's controls ({@code -1}: unbound). */
+    default void setZoomKeyCode(int glfw) {
+    }
+
     /** Opens the HUD editor; it returns to the hub. */
     void openHudEditor();
 

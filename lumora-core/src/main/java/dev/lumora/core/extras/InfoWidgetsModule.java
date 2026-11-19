@@ -244,6 +244,7 @@ public final class InfoWidgetsModule implements LumoraAddon {
         dev.lumora.api.config.ChoiceSetting style;
         BooleanSetting enchantments;
         BooleanSetting always;
+        BooleanSetting fade;
         private GameExtras.HeldItem item;
         private String shownKey = "";
         private int timer;
@@ -284,6 +285,8 @@ public final class InfoWidgetsModule implements LumoraAddon {
             style = s.choice("style", "pocket", "java", "pocket");
             enchantments = s.toggle("enchantments", true);
             always = s.toggle("always", false);
+            fade = s.toggle("fade", true);
+            fade.visibleWhen(() -> !always.get());
         }
 
         @Override
@@ -320,10 +323,13 @@ public final class InfoWidgetsModule implements LumoraAddon {
             return item;
         }
 
-        /** 0..255: full while shown, then fading out like Minecraft; always full with "always". */
+        /** 0..255: full while shown, then fading out like Minecraft (gone at once without "fade"); always full with "always". */
         int alpha(RenderContext ctx) {
             if (ctx.editing() || ctx.preview() || !platform.game().inWorld() || always.get()) {
                 return 255;
+            }
+            if (!fade.get()) {
+                return timer > FADE_TICKS ? 255 : 0;
             }
             return Math.min(255, timer * 256 / FADE_TICKS);
         }

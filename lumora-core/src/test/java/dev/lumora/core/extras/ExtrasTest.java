@@ -180,6 +180,52 @@ class ExtrasTest {
         assertEquals("", InfoWidgetsModule.HeldItemTooltip.key(null));
     }
 
+    @Test
+    void heldItemTooltipStaysOrFadesAsChosen() {
+        FakePlatform p = new FakePlatform(dir);
+        GameExtras.HeldItem sword = new GameExtras.HeldItem("minecraft:diamond_sword", "Sword", 2, false, List.of(), 0);
+        // the version adapter: a sword in the hand, everything else like a version without extras
+        p.extras = (GameExtras) java.lang.reflect.Proxy.newProxyInstance(GameExtras.class.getClassLoader(), new Class<?>[]{GameExtras.class},
+                (proxy, m, args) -> m.getName().equals("heldItem") ? sword : m.invoke(GameExtras.NONE, args));
+        p.inWorld = true;
+        core = new LumoraCore(p);
+        core.loadAddons(List.of());
+        InfoWidgetsModule.HeldItemTooltip w = (InfoWidgetsModule.HeldItemTooltip) core.widgetRegistry().entry("lumora-info:helditem")
+                .orElseThrow().widget();
+        dev.lumora.api.hud.RenderContext game = dev.lumora.core.TestContexts.ctx(p, 854, 480, false);
+        int shown = InfoWidgetsModule.HeldItemTooltip.SHOW_TICKS;
+        int fadeTicks = InfoWidgetsModule.HeldItemTooltip.FADE_TICKS;
+        // fade (default): full for the show time, then fading like Minecraft, then gone
+        w.tick();
+        assertEquals(255, w.alpha(game));
+        for (int i = 0; i < shown + fadeTicks / 2; i++) {
+            w.tick();
+        }
+        int half = w.alpha(game);
+        assertTrue(half > 0 && half < 255, "fading: " + half);
+        for (int i = 0; i < fadeTicks; i++) {
+            w.tick();
+        }
+        assertFalse(w.isVisible(game));
+        // without fade: the same show time, then gone at once
+        setting(w, "fade", false);
+        setting(w, "always", false);
+        w = (InfoWidgetsModule.HeldItemTooltip) core.widgetRegistry().entry("lumora-info:helditem").orElseThrow().widget();
+        p.extras = (GameExtras) java.lang.reflect.Proxy.newProxyInstance(GameExtras.class.getClassLoader(), new Class<?>[]{GameExtras.class},
+                (proxy, m, args) -> m.getName().equals("heldItem")
+                        ? new GameExtras.HeldItem("minecraft:bow", "Bow", 0, false, List.of(), 1) : m.invoke(GameExtras.NONE, args));
+        w.tick();
+        for (int i = 0; i < shown; i++) {
+            assertEquals(255, w.alpha(game), "tick " + i);
+            w.tick();
+        }
+        assertEquals(0, w.alpha(game), "no fade: gone at once after the show time");
+        // always: stays
+        setting(w, "always", true);
+        assertEquals(255, w.alpha(game));
+        assertTrue(w.isVisible(game));
+    }
+
     @SuppressWarnings("unchecked")
     private static void setting(dev.lumora.api.hud.HudWidget w, String key, Object value) {
         ((dev.lumora.api.config.Setting<Object>) w.settings().all().stream().filter(s -> s.key().equals(key))

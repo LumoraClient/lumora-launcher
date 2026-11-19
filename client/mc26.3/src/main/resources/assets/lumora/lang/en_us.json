@@ -501,6 +501,7 @@
   "lumora.hud.potions.sample_speed": "Speed",
   "lumora.hud.potions.sample_fire": "Fire Resistance",
   "lumora-info.widget.potions.compact": "Compact (one line per effect, no picture)",
+  "lumora-info.widget.helditem.fade": "Fade out",
   "lumora.hud.helditem": "Held Item Tooltip",
   "lumora.hud.helditem.description": "Name of the held item after switching, like Minecraft shows it above the hotbar: in Java style or in Pocket style with a border and enchantments",
   "lumora.hud.helditem.sample": "Diamond Sword",

@@ -72,6 +72,23 @@ final class McExtras implements GameExtras {
     }
 
     @Override
+    public HeldItem heldItem() {
+        LocalPlayer p = mc().player;
+        if (p == null || p.getMainHandItem().isEmpty()) {
+            return null;
+        }
+        net.minecraft.world.item.ItemStack s = p.getMainHandItem();
+        List<Enchant> en = new ArrayList<>();
+        for (java.util.Map.Entry<net.minecraft.world.item.enchantment.Enchantment, Integer> e
+                : net.minecraft.world.item.enchantment.EnchantmentHelper.getEnchantments(s).entrySet()) {
+            if (en.size() < 16) {
+                en.add(new Enchant(e.getKey().getFullname(e.getValue()).getString(), e.getKey().isCurse()));
+            }
+        }
+        return new HeldItem(heldItemId(), s.getHoverName().getString(), s.getRarity().ordinal(), s.hasCustomHoverName(), List.copyOf(en), p.inventory.selected);
+    }
+
+    @Override
     public long dayTime() {
         return mc().level == null ? -1 : mc().level.getDayTime();
     }

@@ -33,6 +33,7 @@
     "CrosshairMixin",
     "ExperienceBarMixin",
     "StatusBarsMixin",
+    "HeldItemNameMixin",
     "ScoreboardMixin",
     "TabPingMixin",
     "ChatInputMixin",

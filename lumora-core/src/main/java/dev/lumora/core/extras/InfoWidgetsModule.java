@@ -35,6 +35,7 @@ public final class InfoWidgetsModule implements LumoraAddon {
     @Override
     public void onEnable(AddonContext context) {
         context.widgets().register(new Potions());
+        context.widgets().register(new HeldItemTooltip(platform, this::tr));
         context.widgets().register(new Items());
         context.widgets().register(new Compass());
         context.widgets().register(new Memory());
@@ -49,6 +50,11 @@ public final class InfoWidgetsModule implements LumoraAddon {
             }
         });
         context.events().subscribe(WorldLeaveEvent.class, e -> combo.reset());
+    }
+
+    /** For the version mixins: Minecraft's name of the held item is hidden while the "Held Item Tooltip" widget is in the HUD. */
+    public static boolean heldItemTooltipTakesOver() {
+        return HeldItemTooltip.takesOver();
     }
 
     String tr(String key, String fallback) {
@@ -206,6 +212,187 @@ public final class InfoWidgetsModule implements LumoraAddon {
         @Override
         public boolean isVisible(RenderContext ctx) {
             return ctx.editing() || ctx.preview() || !platform.game().inWorld() || !x().effects().isEmpty();
+        }
+    }
+
+    /**
+     * "Held Item Tooltip": the name of the held item for a moment after switching, like Minecraft above the hotbar.
+     * Style "Java" draws it like Minecraft (name in its rarity colour, shadow, fading out); "Pocket" puts name and
+     * enchantments in a dark box with a border like the Pocket/Bedrock edition. While shown it replaces Minecraft's own
+     * name (version mixins ask {@link #takesOver()}).
+     */
+    static final class HeldItemTooltip extends dev.lumora.api.hud.HudWidget {
+        static final int SHOW_TICKS = 40;
+        static final int FADE_TICKS = 10;
+        static final int[] RARITY = {0xFFFFFF, 0xFFFF55, 0x55FFFF, 0xFF55FF};
+        static final int JAVA_ENCHANT = 0xAAAAAA;
+        static final int POCKET_ENCHANT = 0x8F8FFF;
+        static final int CURSE = 0xFF5555;
+        static final int POCKET_BACKGROUND = 0x2A2A2A;
+        static final int POCKET_BORDER = 0x101010;
+        /** When a HUD frame last asked for this widget: Minecraft's name stays hidden shortly after. */
+        private static volatile long active;
+        private final Platform platform;
+        private final java.util.function.BiFunction<String, String, String> tr;
+        dev.lumora.api.config.ChoiceSetting style;
+        BooleanSetting enchantments;
+        BooleanSetting always;
+        private GameExtras.HeldItem item;
+        private String shownKey = "";
+        private int timer;
+
+        HeldItemTooltip(Platform platform, java.util.function.BiFunction<String, String, String> tr) {
+            super("helditem");
+            this.platform = platform;
+            this.tr = tr;
+        }
+
+        /** Whether Minecraft's own name of the held item is hidden (this widget is in the HUD). */
+        public static boolean takesOver() {
+            return System.currentTimeMillis() - active < 1000;
+        }
+
+        @Override
+        public String nameKey() {
+            return "lumora.hud." + id();
+        }
+
+        @Override
+        public String descriptionKey() {
+            return "lumora.hud." + id() + ".description";
+        }
+
+        @Override
+        public String category() {
+            return WidgetCategory.PLAYER;
+        }
+
+        @Override
+        public WidgetPlacement defaultPlacement() {
+            return WidgetPlacement.at(0.5f, 0.76f);
+        }
+
+        @Override
+        public void configure(SettingsGroup s) {
+            style = s.choice("style", "pocket", "java", "pocket");
+            enchantments = s.toggle("enchantments", true);
+            always = s.toggle("always", false);
+        }
+
+        @Override
+        public void tick() {
+            GameExtras.HeldItem now = platform.game().inWorld() ? platform.extras().heldItem() : null;
+            String key = key(now);
+            if (!key.equals(shownKey)) {
+                shownKey = key;
+                timer = now == null ? 0 : SHOW_TICKS + FADE_TICKS;
+            } else if (timer > 0) {
+                timer--;
+            }
+            item = now;
+        }
+
+        /** What makes Minecraft show the name again: another slot, item, name or enchantments. */
+        static String key(GameExtras.HeldItem h) {
+            if (h == null) {
+                return "";
+            }
+            StringBuilder sb = new StringBuilder().append(h.slot()).append('|').append(h.id()).append('|').append(h.name());
+            for (GameExtras.Enchant e : h.enchantments()) {
+                sb.append('|').append(e.name());
+            }
+            return sb.toString();
+        }
+
+        /** The item to draw: the sample in the editor and menus, else the held one. */
+        private GameExtras.HeldItem shown(RenderContext ctx) {
+            if (ctx.editing() || ctx.preview() || !platform.game().inWorld()) {
+                return new GameExtras.HeldItem("minecraft:diamond_sword", tr.apply("lumora.hud.helditem.sample", "Diamantschwert"), 2,
+                        false, List.of(new GameExtras.Enchant(tr.apply("lumora.hud.helditem.sample_enchant", "Schärfe V"), false)), 0);
+            }
+            return item;
+        }
+
+        /** 0..255: full while shown, then fading out like Minecraft; always full with "always". */
+        int alpha(RenderContext ctx) {
+            if (ctx.editing() || ctx.preview() || !platform.game().inWorld() || always.get()) {
+                return 255;
+            }
+            return Math.min(255, timer * 256 / FADE_TICKS);
+        }
+
+        List<String> lines(GameExtras.HeldItem h) {
+            List<String> out = new ArrayList<>();
+            out.add(h.customName() ? "§o" + h.name() : h.name());
+            if (enchantments.get()) {
+                for (GameExtras.Enchant e : h.enchantments()) {
+                    out.add(e.name());
+                }
+            }
+            return out;
+        }
+
+        boolean pocket() {
+            return "pocket".equals(style.get());
+        }
+
+        @Override
+        public boolean isVisible(RenderContext ctx) {
+            active = System.currentTimeMillis();
+            GameExtras.HeldItem h = shown(ctx);
+            return h != null && alpha(ctx) > 4;
+        }
+
+        /** Widest line, measured while drawing (the HUD asks for the size before the first frame: an estimate). */
+        private int textWidth = 60;
+
+        @Override
+        public int width(RenderContext ctx) {
+            return textWidth + (pocket() ? 12 : 2);
+        }
+
+        @Override
+        public int height(RenderContext ctx) {
+            GameExtras.HeldItem h = shown(ctx);
+            int n = h == null ? 1 : lines(h).size();
+            return n * 10 - 1 + (pocket() ? 7 : 0);
+        }
+
+        @Override
+        public void render(HudGraphics g, RenderContext ctx) {
+            GameExtras.HeldItem h = shown(ctx);
+            int a = alpha(ctx);
+            if (h == null || a <= 4) {
+                return;
+            }
+            List<String> l = lines(h);
+            int tw = 0;
+            for (String line : l) {
+                tw = Math.max(tw, g.textWidth(line));
+            }
+            textWidth = tw;
+            int w = width(ctx);
+            int name = RARITY[Math.max(0, Math.min(3, h.rarity()))];
+            boolean pocket = pocket();
+            int top = 0;
+            if (pocket) {
+                // dark translucent box with a black frame and a lighter inner line, like the Pocket edition
+                g.fill(0, 0, w, height(ctx), (a * 0xC8 / 255) << 24 | POCKET_BACKGROUND);
+                int frame = a << 24 | POCKET_BORDER;
+                g.outline(0, 0, w, height(ctx), frame);
+                g.outline(1, 1, w - 2, height(ctx) - 2, (a * 0x50 / 255) << 24 | 0xFFFFFF);
+                top = 4;
+            }
+            for (int i = 0; i < l.size(); i++) {
+                int rgb;
+                if (i == 0) {
+                    rgb = name;
+                } else {
+                    GameExtras.Enchant e = h.enchantments().get(i - 1);
+                    rgb = e.curse() ? CURSE : pocket ? POCKET_ENCHANT : JAVA_ENCHANT;
+                }
+                g.centeredText(l.get(i), w / 2, top + i * 10, a << 24 | rgb, true);
+            }
         }
     }
 

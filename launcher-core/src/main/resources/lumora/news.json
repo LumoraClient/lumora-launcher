@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-held-item-tooltip",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.79",
+      "title": "Neu: Held Item Tooltip im Pocket-Stil",
+      "text": "Ein neues HUD-Widget zeigt den Namen deines Items samt Verzauberungen beim Wechseln, auf Wunsch in einer Box wie in der Pocket Edition.",
+      "image": "news-held-item-tooltip.png",
+      "body": [
+        {"p": "Wechselst du das Item in der Hand, zeigt das neue Widget „Held Item Tooltip“ kurz seinen Namen über der Hotbar, so wie Minecraft, nur schöner."},
+        {"list": [
+          "Stil „Pocket“: dunkle Box mit Rahmen, Name und darunter die Verzauberungen, wie in der Pocket- und Bedrock-Edition",
+          "Stil „Java“: nur der Name mit Schatten, wie du es von Minecraft kennst",
+          "Der Name hat die Farbe der Seltenheit, umbenannte Items stehen kursiv, Flüche rot",
+          "„Immer anzeigen“ lässt den Namen stehen, statt ihn auszublenden"
+        ]},
+        {"p": "Das Widget ist zuerst aus: Schalte es im HUD-Editor ein und schieb es dahin, wo du es haben willst. Solange es an ist, blendet Lumora den Namen von Minecraft aus, damit er nicht doppelt erscheint."}
+      ]
+    },
+    {
       "id": "lumora-potion-list",
       "date": "2026-11-19",
       "author": "Lumora",

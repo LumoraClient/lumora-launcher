@@ -47,6 +47,22 @@ public interface GameExtras {
 
     List<Effect> effects();
 
+    /**
+     * The held item as Minecraft names it above the hotbar: registry id, shown name, rarity (0 common, 1 uncommon,
+     * 2 rare, 3 epic: the colour of the name), whether it was renamed (italic), its enchantments and the hotbar slot.
+     */
+    record HeldItem(String id, String name, int rarity, boolean customName, List<Enchant> enchantments, int slot) {
+    }
+
+    /** One enchantment with level as Minecraft writes it ("Sharpness V"); curses are shown red. */
+    record Enchant(String name, boolean curse) {
+    }
+
+    /** The item in the main hand, null when the hand is empty or the version cannot tell. */
+    default HeldItem heldItem() {
+        return null;
+    }
+
     /** The picture of an effect by registry id ({@code minecraft:speed}), for the sample in menus; null if unknown. */
     default EffectIcon effectIcon(String id) {
         return null;

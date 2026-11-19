@@ -93,6 +93,44 @@ class ExtrasTest {
         assertEquals(List.of("Schnelligkeit II  2:15", "Feuerresistenz  4:30"), g.texts);
     }
 
+    @Test
+    void heldItemTooltipInPocketAndJavaStyle() {
+        FakePlatform p = new FakePlatform(dir);
+        core = new LumoraCore(p);
+        core.loadAddons(List.of());
+        dev.lumora.api.hud.HudWidget w = core.widgetRegistry().entry("lumora-info:helditem").orElseThrow().widget();
+        dev.lumora.api.hud.RenderContext ctx = dev.lumora.core.TestContexts.ctx(p, 854, 480, true);
+        assertTrue(w.isVisible(ctx), "the sample is shown in the editor");
+        assertTrue(InfoWidgetsModule.heldItemTooltipTakesOver(), "Minecraft's own name is hidden while the widget is in the HUD");
+        dev.lumora.core.FakeGraphics g = new dev.lumora.core.FakeGraphics();
+        w.render(g, ctx);
+        // Pocket (default): name and enchantment in a framed box
+        assertEquals(List.of("Diamantschwert", "Schärfe V"), g.texts);
+        assertTrue(g.fills >= 9, "background and two frames");
+        assertEquals(2 * 10 - 1 + 7, w.height(ctx));
+        // Java: the same lines without a box, enchantments can be switched off
+        setting(w, "style", "java");
+        setting(w, "enchantments", false);
+        g = new dev.lumora.core.FakeGraphics();
+        w.render(g, ctx);
+        assertEquals(List.of("Diamantschwert"), g.texts);
+        assertEquals(0, g.fills);
+        assertEquals(9, w.height(ctx));
+        // switching slot, item, name or enchantments shows the name again
+        GameExtras.HeldItem sword = new GameExtras.HeldItem("minecraft:diamond_sword", "Sword", 2, false, List.of(), 0);
+        assertFalse(InfoWidgetsModule.HeldItemTooltip.key(sword).equals(InfoWidgetsModule.HeldItemTooltip.key(
+                new GameExtras.HeldItem("minecraft:diamond_sword", "Sword", 2, false, List.of(), 1))));
+        assertFalse(InfoWidgetsModule.HeldItemTooltip.key(sword).equals(InfoWidgetsModule.HeldItemTooltip.key(
+                new GameExtras.HeldItem("minecraft:diamond_sword", "Sword", 2, false, List.of(new GameExtras.Enchant("Sharpness I", false)), 0))));
+        assertEquals("", InfoWidgetsModule.HeldItemTooltip.key(null));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setting(dev.lumora.api.hud.HudWidget w, String key, Object value) {
+        ((dev.lumora.api.config.Setting<Object>) w.settings().all().stream().filter(s -> s.key().equals(key))
+                .findFirst().orElseThrow()).set(value);
+    }
+
     private static String key(GameExtras.EffectIcon icon) {
         return icon.texture().namespace() + ":" + icon.texture().path();
     }

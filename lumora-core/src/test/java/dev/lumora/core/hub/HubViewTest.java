@@ -207,7 +207,7 @@ class HubViewTest {
             // widget names: English in both languages
             for (Map.Entry<String, String> e : english.entrySet()) {
                 String k = e.getKey();
-                if (k.matches("lumora\\.hud\\.(fps|cps|coords|keystrokes|ping|clock|speed|server|potions|items|compass|memory|day|packs|combo|togglesprint|blockinfo)")
+                if (k.matches("lumora\\.hud\\.(fps|cps|coords|keystrokes|ping|clock|speed|server|potions|helditem|items|compass|memory|day|packs|combo|togglesprint|blockinfo)")
                         || k.matches("lumora-(statusbars|armor)\\.widget\\.[a-z_]+")) {
                     assertEquals(e.getValue(), german.get(k), de + ": " + k);
                 }

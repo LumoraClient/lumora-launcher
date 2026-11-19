@@ -27,6 +27,7 @@
   ,
     "CrosshairMixin",
     "StatusBarsMixin",
+    "HeldItemNameMixin",
     "ScoreboardMixin",
     "TabPingMixin",
     "ChatInputMixin",

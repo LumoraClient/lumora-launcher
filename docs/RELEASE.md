@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.77 (2026-11-19):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 671 Unit-Tests ohne Fehler (1 übersprungen; `ServerMappingsTest` neu mit 9 Tests für die Liste aus LumoraClient/Multiplayer-Mapping, erlaubte Download-Adressen, Bildpfade nur im eigenen Ordner, Versionsbereiche, Cache, Entfernen der alten Caches und die Spielmodus-Felder; `ServerGamemodesTest` entfällt mit `ServerGamemodes`). `integrationTest` enthält weiterhin keine Tests.
+- **Echte Daten:** die veröffentlichte `servers.json` aus LumoraClient/Multiplayer-Mapping ohne Spiel mit dem neuen `ServerMappings` gelesen: 375 Server, 116 mit Icon und Banner, 268 mit Spielmodi; mc.hypixel.net, gommehd.net und play.cubecraft.net werden erkannt. Die Git-Hashes aller 232 Bilder im Repo stimmen mit `servers.json` überein, Stichprobe Hypixel-Icon direkt von raw.githubusercontent.com.
+- **Mixins:** keine Änderung; alles in `lumora-core` (`browser`), Texte in den Sprachdateien aller 16 Client-Module.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Die Serverliste mit den neuen Daten ist im Spiel nicht angesehen. Kein News-Eintrag.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, das neue `ServerMappings` (ohne `ServerGamemodes`) und die neuen Texte in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3).
+
 **0.3.76 (2026-11-19):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 673 Unit-Tests ohne Fehler (1 übersprungen; neu: `ServerGamemodesTest` mit 5 Tests für Tree und Manifest, Versionsbereiche, Adress- und Wildcard-Abgleich mit Cache und die Spielmodus-Felder mit „+n“). `integrationTest` enthält weiterhin keine Tests.
 - **Echte Daten:** Tree von LabyMod/server-media (296 Server) und das Hypixel-Manifest ohne Spiel durch `ServerGamemodes` geprüft: Git-Blob-Hash stimmt, für 26.3 kommen SkyBlock, Bed Wars Solo, Skywars Solo Normal, Murder Mystery Classic, Housing, Bed Wars 4v4 heraus.

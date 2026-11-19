@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.77 (2026-11-19)
+
+### Client
+- **Eigenes Server-Mapping:** Banner, Icons, Namen, Kategorien und Spielmodi der Serverliste kommen jetzt nur noch aus dem Lumora-Repository LumoraClient/Multiplayer-Mapping (GPL-3.0). Es wird dort automatisch aus NoRiskClient/nrc-server-mappings und LabyMod/server-media zusammengestellt: 375 Server in einer Datei, die Bilder auf die angezeigte Größe verkleinert. Der Client lädt damit beim ersten Öffnen eine Datei statt rund 400 einzelner, Bilder weiter nur für Server in der eigenen Liste, gegen den Git-Hash geprüft und zwischengespeichert. Die alten Zwischenspeicher `config/lumora/server-mappings` und `server-gamemodes` werden entfernt. Die Schalter „Server-Mappings“ und „Spielmodi anzeigen“ bleiben.
+
 ## 0.3.76 (2026-11-19)
 
 ### Client

@@ -36,6 +36,9 @@ public final class ServerBrowserView extends BrowserView {
     private long lastDiskCheck;
     /** Server mappings, null while the setting is off. */
     private final ServerMappings mappings;
+    /** Game modes of known servers, null while the setting is off. */
+    private final ServerGamemodes gamemodes;
+    static final int CHIP_H = 11;
 
     /** A mapping picture uploaded as texture, with its size in pixels. */
     record Picture(TextureRef ref, int width, int height) {
@@ -61,6 +64,50 @@ public final class ServerBrowserView extends BrowserView {
         } else {
             mappings = null;
         }
+        if (BrowserModule.gamemodesEnabled() && platform.configDir() != null) {
+            gamemodes = ServerGamemodes.get(platform.configDir());
+            gamemodes.start();
+        } else {
+            gamemodes = null;
+        }
+    }
+
+    /** Rows get a line for the game mode chips while game modes are shown. */
+    @Override
+    int rowH() {
+        return gamemodes == null ? ROW_H : ROW_H + CHIP_H + 3;
+    }
+
+    /** Game mode chips from {@code x} up to {@code maxX}; a last "+n" chip counts the ones that do not fit. */
+    static void chips(HudGraphics g, List<ServerGamemodes.Mode> modes, int x, int y, int maxX) {
+        int cx = x;
+        for (int i = 0; i < modes.size(); i++) {
+            ServerGamemodes.Mode m = modes.get(i);
+            int w = g.textWidth(m.name()) + 8;
+            String more = "+" + (modes.size() - i - 1);
+            int reserve = i < modes.size() - 1 ? g.textWidth(more) + 12 : 0;
+            if (cx + w + reserve > maxX) {
+                String rest = "+" + (modes.size() - i);
+                int rw = g.textWidth(rest) + 8;
+                if (cx + rw <= maxX) {
+                    g.roundedRect(cx, y, rw, CHIP_H, 3, 0xC0213552);
+                    g.text(rest, cx + 4, y + 2, TEXT, false);
+                }
+                return;
+            }
+            int color = m.color() < 0 ? 0x3B5BDB : m.color();
+            g.roundedRect(cx, y, w, CHIP_H, 3, 0xFF000000 | color);
+            g.text(m.name(), cx + 4, y + 2, light(color) ? 0xFF10141C : 0xFFFFFFFF, false);
+            cx += w + 4;
+        }
+    }
+
+    /** Whether text on this colour should be dark. */
+    static boolean light(int rgb) {
+        int r = (rgb >> 16) & 0xFF;
+        int gr = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        return (r * 299 + gr * 587 + b * 114) / 1000 > 170;
     }
 
     /**
@@ -137,10 +184,14 @@ public final class ServerBrowserView extends BrowserView {
 
     /** The name to show: the saved one, or the mapping's pretty name if the saved one is only the address or the default. */
     static String displayName(String saved, String address, ServerMappings.Mapping m) {
+        return displayName(saved, address, m == null ? null : m.name());
+    }
+
+    static String displayName(String saved, String address, String pretty) {
         String s = saved == null ? "" : saved.strip();
         boolean plain = s.isEmpty() || s.equalsIgnoreCase(address == null ? "" : address.strip())
                 || s.equals("Minecraft-Server") || s.equals("Minecraft Server");
-        return m != null && plain ? m.name() : saved;
+        return pretty != null && !pretty.isEmpty() && plain ? pretty : saved;
     }
 
     private static String key(String address) {
@@ -268,7 +319,8 @@ public final class ServerBrowserView extends BrowserView {
                 g.fill(x + 1, y + 1, x + w - 1, y + h - 1, hover ? 0x80070B14 : 0x98070B14);
             }
         }
-        String name = displayName(e.name, e.address, map);
+        ServerGamemodes.Server laby = gamemodes == null ? null : gamemodes.find(e.address);
+        String name = displayName(e.name, e.address, map != null ? map.name() : laby == null ? null : laby.name());
         int ix = x + 7;
         int iy = y + (h - ICON) / 2;
         Picture mapIcon = map == null ? null : picture(map, false);
@@ -309,6 +361,12 @@ public final class ServerBrowserView extends BrowserView {
             int left = tx + room - cx;
             if (left > 20) {
                 g.text(fit(g, "§7" + cats, left), cx, y + 5, DIM, false);
+            }
+        }
+        if (laby != null) {
+            List<ServerGamemodes.Mode> modes = ServerGamemodes.modesFor(laby, platform.minecraftVersion());
+            if (!modes.isEmpty()) {
+                chips(g, modes, tx, y + ROW_H + 1, x + w - 34);
             }
         }
         if (isPending(s)) {

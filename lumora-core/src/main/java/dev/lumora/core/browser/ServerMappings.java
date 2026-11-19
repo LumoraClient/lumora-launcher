@@ -65,7 +65,7 @@ final class ServerMappings {
     private final Map<String, Mapping> lookups = new ConcurrentHashMap<>();
     private final Map<String, Boolean> fetching = new ConcurrentHashMap<>();
     private volatile boolean started;
-    private HttpClient http;
+    private static HttpClient http;
 
     ServerMappings(Path cache) {
         this.cache = cache;
@@ -456,7 +456,7 @@ final class ServerMappings {
 
     // --- network
 
-    private synchronized HttpClient http() {
+    private static synchronized HttpClient http() {
         if (http == null) {
             http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8))
                     .followRedirects(HttpClient.Redirect.NEVER).build();
@@ -465,7 +465,7 @@ final class ServerMappings {
     }
 
     /** GET of one of the two allowed GitHub hosts, at most {@code max} bytes; null on any error. */
-    private byte[] download(String url, int max) throws IOException {
+    static byte[] download(String url, int max) throws IOException {
         URI uri = URI.create(url);
         if (!"https".equals(uri.getScheme())
                 || !("api.github.com".equals(uri.getHost()) || "raw.githubusercontent.com".equals(uri.getHost()))) {

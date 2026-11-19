@@ -744,6 +744,8 @@
   "lumora.extras.buttons.shadow": "Shadow (Blackout, Hyperium, Rounded)",
   "lumora.extras.browser.multiplayer": "Lumora server list instead of the multiplayer menu",
   "lumora.extras.browser.singleplayer": "Lumora world list instead of the singleplayer menu",
+  "lumora.extras.browser.gamemodes": "Show game modes (LabyMod server-media)",
+  "lumora.extras.browser.gamemodes.description": "Known servers show their game modes as coloured tags in the Lumora server list, only those for your Minecraft version. Names and game modes come from the public repository LabyMod/server-media; it has no licence, so Lumora ships none of it and only reads these texts on your computer straight from GitHub (at most every 12 hours, cached). No pictures are loaded from it.",
   "lumora.extras.browser.mappings": "Server mappings (banners, icons, names)",
   "lumora.extras.browser.mappings.description": "Known servers get their banner, icon, name and categories in the Lumora server list from the public project NoRiskClient/nrc-server-mappings (GPL-3.0). The list is loaded from GitHub at most every 12 hours, pictures only for servers in your list; everything is cached.",
   "lumora.extras.blockoverlay.mode": "Style",

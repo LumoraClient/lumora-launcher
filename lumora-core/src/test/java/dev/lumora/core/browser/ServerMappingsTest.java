@@ -113,7 +113,7 @@ class ServerMappingsTest {
         assertEquals("AlphaSMP", ServerBrowserView.displayName("alpha.de", "alpha.de", m), "the name was only the address");
         assertEquals("AlphaSMP", ServerBrowserView.displayName("Minecraft-Server", "alpha.de", m));
         assertEquals("Mein Server", ServerBrowserView.displayName("Mein Server", "alpha.de", m), "an own name stays");
-        assertEquals("alpha.de", ServerBrowserView.displayName("alpha.de", "alpha.de", null));
+        assertEquals("alpha.de", ServerBrowserView.displayName("alpha.de", "alpha.de", (String) null));
     }
 
     private static ServerMappings.Mapping mapping(String dir, String name, List<String> addresses) {

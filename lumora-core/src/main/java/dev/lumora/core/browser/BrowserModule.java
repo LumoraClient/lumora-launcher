@@ -21,6 +21,7 @@ public final class BrowserModule implements LumoraAddon {
     BooleanSetting multiplayer;
     BooleanSetting singleplayer;
     BooleanSetting mappings;
+    BooleanSetting gamemodes;
 
     public BrowserModule(Platform platform) {
         this.platform = platform;
@@ -33,6 +34,8 @@ public final class BrowserModule implements LumoraAddon {
         singleplayer = s.toggle("singleplayer", true).name("lumora.extras.browser.singleplayer");
         mappings = s.toggle("mappings", true).name("lumora.extras.browser.mappings")
                 .description("lumora.extras.browser.mappings.description").requires(multiplayer);
+        gamemodes = s.toggle("gamemodes", true).name("lumora.extras.browser.gamemodes")
+                .description("lumora.extras.browser.gamemodes.description").requires(multiplayer);
     }
 
     @Override
@@ -74,6 +77,12 @@ public final class BrowserModule implements LumoraAddon {
     static boolean mappingsEnabled() {
         BrowserModule m = active;
         return m != null && m.mappings != null && m.mappings.get();
+    }
+
+    /** Whether the server list shows the game modes of known servers (LabyMod/server-media). */
+    static boolean gamemodesEnabled() {
+        BrowserModule m = active;
+        return m != null && m.gamemodes != null && m.gamemodes.get();
     }
 
     /** The next vanilla multiplayer or singleplayer screen is shown as is (ViaFabricPlus button, smoke test). */

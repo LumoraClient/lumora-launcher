@@ -273,6 +273,11 @@ abstract class BrowserView implements AddonView {
     void deleteRow(int index) {
     }
 
+    /** Height of one row (the server list is taller while it shows game modes). */
+    int rowH() {
+        return ROW_H;
+    }
+
     /** Whether rows can be dragged to a new place (server list). */
     boolean canReorder() {
         return false;
@@ -361,7 +366,7 @@ abstract class BrowserView implements AddonView {
             dragRow = -1;
         }
         int inner = h - 8;
-        contentHeight = n * (ROW_H + ROW_GAP) - (n > 0 ? ROW_GAP : 0);
+        contentHeight = n * (rowH() + ROW_GAP) - (n > 0 ? ROW_GAP : 0);
         int maxScroll = Math.max(0, contentHeight - inner);
         scroll = Math.max(0, Math.min(scroll, maxScroll));
         if (n == 0) {
@@ -373,20 +378,20 @@ abstract class BrowserView implements AddonView {
         g.enableScissor(x + 1, y + 4, x + w - 1, y + h - 4);
         boolean inList = mx >= x && mx < x + w && my >= y + 4 && my < y + h - 4;
         for (int i = 0; i < n; i++) {
-            int ry = y + 4 + i * (ROW_H + ROW_GAP) - (int) scroll;
-            if (ry + ROW_H < y || ry > y + h) {
+            int ry = y + 4 + i * (rowH() + ROW_GAP) - (int) scroll;
+            if (ry + rowH() < y || ry > y + h) {
                 continue;
             }
-            boolean hover = dragRow < 0 && inList && mx >= x + 4 && mx < x + 4 + rowW && my >= ry && my < ry + ROW_H;
-            g.roundedRect(x + 4, ry, rowW, ROW_H, 4, i == selected ? ROW_SELECTED : hover ? ROW_HOVER : ROW);
+            boolean hover = dragRow < 0 && inList && mx >= x + 4 && mx < x + 4 + rowW && my >= ry && my < ry + rowH();
+            g.roundedRect(x + 4, ry, rowW, rowH(), 4, i == selected ? ROW_SELECTED : hover ? ROW_HOVER : ROW);
             int index = i;
             int rowsBefore = hits.size();
-            drawRow(g, i, x + 4, ry, rowW, ROW_H, hover, mx, my);
+            drawRow(g, i, x + 4, ry, rowW, rowH(), hover, mx, my);
             if (i == selected) {
-                g.fill(x + 4, ry + 4, x + 6, ry + ROW_H - 4, LumoraTheme.accent());
+                g.fill(x + 4, ry + 4, x + 6, ry + rowH() - 4, LumoraTheme.accent());
             }
             if (i == dragRow) {
-                g.fill(x + 4, ry, x + 4 + rowW, ry + ROW_H, 0xA0070B14); // the row that is being moved
+                g.fill(x + 4, ry, x + 4 + rowW, ry + rowH(), 0xA0070B14); // the row that is being moved
             }
             // buttons of a row that is partly scrolled out only count inside the list, never over the toolbar or
             // the bottom bar
@@ -403,8 +408,8 @@ abstract class BrowserView implements AddonView {
                 }
             }
             // the row click goes below its buttons
-            if (Math.max(ry, top) < Math.min(ry + ROW_H, bottom)) {
-                hits.add(rowsBefore, new Hit(x + 4, Math.max(ry, top), x + 4 + rowW, Math.min(ry + ROW_H, bottom), () -> clickRow(index)));
+            if (Math.max(ry, top) < Math.min(ry + rowH(), bottom)) {
+                hits.add(rowsBefore, new Hit(x + 4, Math.max(ry, top), x + 4 + rowW, Math.min(ry + rowH(), bottom), () -> clickRow(index)));
             }
         }
         if (dragRow >= 0) {
@@ -424,22 +429,22 @@ abstract class BrowserView implements AddonView {
     /** While dragging: a line where the row will land and the row itself under the mouse. */
     private void drawDrag(HudGraphics g, int x, int y, int rowW, int n) {
         int slot = dropIndex(dragY);
-        int ly = y + 4 + slot * (ROW_H + ROW_GAP) - (int) scroll - ROW_GAP / 2 - 1;
+        int ly = y + 4 + slot * (rowH() + ROW_GAP) - (int) scroll - ROW_GAP / 2 - 1;
         g.fill(x, ly, x + rowW, ly + 2, LumoraTheme.accent());
-        int fy = (int) dragY - ROW_H / 2;
-        g.roundedRect(x, fy, rowW, ROW_H, 4, ROW_SELECTED);
+        int fy = (int) dragY - rowH() / 2;
+        g.roundedRect(x, fy, rowW, rowH(), 4, ROW_SELECTED);
         int before = hits.size();
-        drawRow(g, dragRow, x, fy, rowW, ROW_H, false, -1000, -1000);
+        drawRow(g, dragRow, x, fy, rowW, rowH(), false, -1000, -1000);
         while (hits.size() > before) {
             hits.remove(hits.size() - 1); // the floating copy has no buttons
         }
-        g.fill(x, fy, x + 2, fy + ROW_H, LumoraTheme.accent());
+        g.fill(x, fy, x + 2, fy + rowH(), LumoraTheme.accent());
     }
 
     /** Where a row dropped at screen height {@code y} lands: 0 (top) .. row count (end). */
     int dropIndex(double y) {
-        double pos = y - (listTop + 4) + scroll + (ROW_H + ROW_GAP) / 2.0;
-        int slot = (int) Math.floor(pos / (ROW_H + ROW_GAP));
+        double pos = y - (listTop + 4) + scroll + (rowH() + ROW_GAP) / 2.0;
+        int slot = (int) Math.floor(pos / (rowH() + ROW_GAP));
         return Math.max(0, Math.min(lastRowCount, slot));
     }
 
@@ -459,11 +464,11 @@ abstract class BrowserView implements AddonView {
     /** Scrolls so that row {@code i} is visible. */
     void reveal(int i) {
         int inner = listBottom - listTop - 8;
-        int top = i * (ROW_H + ROW_GAP);
+        int top = i * (rowH() + ROW_GAP);
         if (top < scroll) {
             scroll = top;
-        } else if (top + ROW_H > scroll + inner) {
-            scroll = top + ROW_H - inner;
+        } else if (top + rowH() > scroll + inner) {
+            scroll = top + rowH() - inner;
         }
     }
 

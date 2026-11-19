@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * Lumora multiplayer screen: the saved servers as cards with favicon, name, MOTD, players, version and ping, search,
  * "online only" and version filter, add / edit / delete / reorder (buttons or drag and drop) and direct connect. Uses
  * Minecraft's servers.dat, so the vanilla screen (module off, or ViaFabricPlus) shows the same list. Known servers get
- * their banner, icon, pretty name and categories from the server mappings ({@link ServerMappings}).
+ * their banner, icon, pretty name, categories and game modes from the server mappings ({@link ServerMappings}).
  */
 public final class ServerBrowserView extends BrowserView {
     private static final ExecutorService PINGS = Icons.pool("Lumora server ping", 6);
@@ -34,10 +34,12 @@ public final class ServerBrowserView extends BrowserView {
     private final List<Servers.Entry> visible = new ArrayList<>();
     private String saveError;
     private long lastDiskCheck;
-    /** Server mappings, null while the setting is off. */
+    /** Server mappings, null while both the mappings and the game modes are off. */
     private final ServerMappings mappings;
-    /** Game modes of known servers, null while the setting is off. */
-    private final ServerGamemodes gamemodes;
+    /** Whether banners, icons and categories are shown (setting "mappings"). */
+    private final boolean showMappings;
+    /** Whether game mode chips are shown (setting "gamemodes"). */
+    private final boolean showModes;
     static final int CHIP_H = 11;
 
     /** A mapping picture uploaded as texture, with its size in pixels. */
@@ -58,31 +60,28 @@ public final class ServerBrowserView extends BrowserView {
         for (Servers.Entry e : servers.entries()) {
             ping(e.address);
         }
-        if (BrowserModule.mappingsEnabled() && platform.configDir() != null) {
+        boolean config = platform.configDir() != null;
+        showMappings = config && BrowserModule.mappingsEnabled();
+        showModes = config && BrowserModule.gamemodesEnabled();
+        if (showMappings || showModes) {
             mappings = ServerMappings.get(platform.configDir());
             mappings.start();
         } else {
             mappings = null;
-        }
-        if (BrowserModule.gamemodesEnabled() && platform.configDir() != null) {
-            gamemodes = ServerGamemodes.get(platform.configDir());
-            gamemodes.start();
-        } else {
-            gamemodes = null;
         }
     }
 
     /** Rows get a line for the game mode chips while game modes are shown. */
     @Override
     int rowH() {
-        return gamemodes == null ? ROW_H : ROW_H + CHIP_H + 3;
+        return showModes ? ROW_H + CHIP_H + 3 : ROW_H;
     }
 
     /** Game mode chips from {@code x} up to {@code maxX}; a last "+n" chip counts the ones that do not fit. */
-    static void chips(HudGraphics g, List<ServerGamemodes.Mode> modes, int x, int y, int maxX) {
+    static void chips(HudGraphics g, List<ServerMappings.Mode> modes, int x, int y, int maxX) {
         int cx = x;
         for (int i = 0; i < modes.size(); i++) {
-            ServerGamemodes.Mode m = modes.get(i);
+            ServerMappings.Mode m = modes.get(i);
             int w = g.textWidth(m.name()) + 8;
             String more = "+" + (modes.size() - i - 1);
             int reserve = i < modes.size() - 1 ? g.textWidth(more) + 12 : 0;
@@ -177,7 +176,7 @@ public final class ServerBrowserView extends BrowserView {
         }
     }
 
-    /** The mapping of a server, null if none or the setting is off. */
+    /** The mapping of a server, null if none or both settings are off. */
     private ServerMappings.Mapping mapping(Servers.Entry e) {
         return mappings == null ? null : mappings.find(e.address);
     }
@@ -308,7 +307,8 @@ public final class ServerBrowserView extends BrowserView {
     void drawRow(HudGraphics g, int index, int x, int y, int w, int h, boolean hover, int mx, int my) {
         Servers.Entry e = visible.get(index);
         ServerPinger.Status s = status.get(key(e.address));
-        ServerMappings.Mapping map = mapping(e);
+        ServerMappings.Mapping found = mapping(e);
+        ServerMappings.Mapping map = showMappings ? found : null;
         if (map != null) {
             Picture banner = picture(map, true);
             if (banner != null) {
@@ -319,8 +319,7 @@ public final class ServerBrowserView extends BrowserView {
                 g.fill(x + 1, y + 1, x + w - 1, y + h - 1, hover ? 0x80070B14 : 0x98070B14);
             }
         }
-        ServerGamemodes.Server laby = gamemodes == null ? null : gamemodes.find(e.address);
-        String name = displayName(e.name, e.address, map != null ? map.name() : laby == null ? null : laby.name());
+        String name = displayName(e.name, e.address, found);
         int ix = x + 7;
         int iy = y + (h - ICON) / 2;
         Picture mapIcon = map == null ? null : picture(map, false);
@@ -363,8 +362,8 @@ public final class ServerBrowserView extends BrowserView {
                 g.text(fit(g, "§7" + cats, left), cx, y + 5, DIM, false);
             }
         }
-        if (laby != null) {
-            List<ServerGamemodes.Mode> modes = ServerGamemodes.modesFor(laby, platform.minecraftVersion());
+        if (showModes && found != null) {
+            List<ServerMappings.Mode> modes = ServerMappings.modesFor(found, platform.minecraftVersion());
             if (!modes.isEmpty()) {
                 chips(g, modes, tx, y + ROW_H + 1, x + w - 34);
             }

@@ -1,6 +1,5 @@
 package dev.lumora.core.browser;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.lumora.core.io.AtomicFiles;
@@ -19,7 +18,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -27,38 +26,48 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
- * Server mappings from the public repository <a href="https://github.com/NoRiskClient/nrc-server-mappings">
- * NoRiskClient/nrc-server-mappings</a> (GPL-3.0, like Lumora): pretty name, categories, icon and background banner
- * of known servers. The list is refreshed at most every 12 hours with one request to GitHub's tree API; only changed
- * manifests are fetched, and images only for servers in the own list, on first use. Everything is cached in
- * {@code config/lumora/server-mappings}.
+ * Server mappings of the Lumora repository <a href="https://github.com/LumoraClient/Multiplayer-Mapping">
+ * LumoraClient/Multiplayer-Mapping</a> (GPL-3.0): pretty name, addresses, categories, icon, background banner and
+ * game modes of known servers, built there from NoRiskClient/nrc-server-mappings and the facts of
+ * LabyMod/server-media. The list ({@code servers.json}) is loaded at most every 12 hours, pictures only for servers
+ * in the own list, on first use. Everything is cached in {@code config/lumora/multiplayer-mapping}.
  * <p>
- * Only {@code api.github.com} and {@code raw.githubusercontent.com} of that repository are contacted, without any
- * data of the player. Every download is size-limited and checked against the git blob hash from the tree (so a file is
- * exactly the one in the repository); folder and file names are validated, images must be PNG.
+ * Only files of that repository on {@code raw.githubusercontent.com} are fetched, without any data of the player.
+ * Every download is size-limited; pictures must be PNG and match the git blob hash the list names for them.
  */
 final class ServerMappings {
-    static final String REPO = "NoRiskClient/nrc-server-mappings";
-    static final String TREE_URL = "https://api.github.com/repos/" + REPO + "/git/trees/main?recursive=1";
-    static final String RAW_URL = "https://raw.githubusercontent.com/" + REPO + "/main/servers/";
+    static final String REPO = "LumoraClient/Multiplayer-Mapping";
+    static final String BASE_URL = "https://raw.githubusercontent.com/" + REPO + "/main/";
+    static final String INDEX_URL = BASE_URL + "servers.json";
     static final long REFRESH_MS = 12L * 60 * 60 * 1000;
     static final long RETRY_MS = 30L * 60 * 1000;
-    static final int TREE_MAX = 4 * 1024 * 1024;
-    static final int MANIFEST_MAX = 64 * 1024;
-    static final int IMAGE_MAX = 6 * 1024 * 1024;
+    static final int INDEX_MAX = 4 * 1024 * 1024;
+    static final int IMAGE_MAX = 2 * 1024 * 1024;
     static final Pattern DIR = Pattern.compile("[a-z0-9][a-z0-9_.-]{0,63}");
-    static final Pattern FILE = Pattern.compile("[A-Za-z0-9_-]{1,64}\\.png");
     static final Pattern SHA = Pattern.compile("[0-9a-f]{40}");
+    static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
+    /** The old caches of 0.3.75/0.3.76, which read the two source repositories directly. */
+    static final List<String> OLD_CACHES = List.of("server-mappings", "server-gamemodes");
     private static final byte[] PNG = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'};
     private static final ExecutorService POOL = Icons.pool("Lumora server mappings", 2);
     private static volatile ServerMappings instance;
 
-    /** One mapped server. {@code icon}/{@code background}: file name in its folder and git blob hash, null if none. */
-    record Mapping(String dir, String name, List<String> addresses, List<String> categories,
-                   String icon, String iconSha, String background, String backgroundSha) {
+    /** One game mode: name, colour (RGB, -1 if none) and the version range ({@code "1.8<1.12.2,1.20<*"}, "" = all). */
+    record Mode(String name, int color, String versions) {
     }
+
+    /**
+     * One mapped server. {@code icon}/{@code background}: path in the repository ({@code servers/<id>/icon.png}) and
+     * git blob hash, null if none.
+     */
+    record Mapping(String dir, String name, List<String> addresses, List<String> categories,
+                   String icon, String iconSha, String background, String backgroundSha, List<Mode> modes) {
+    }
+
+    private static final Mapping NONE = new Mapping("", "", List.of(), List.of(), null, null, null, null, List.of());
 
     private final Path cache;
     private volatile Map<String, Mapping> mappings = Map.of();
@@ -74,8 +83,8 @@ final class ServerMappings {
     /** The shared instance for this config folder (created on first use). */
     static ServerMappings get(Path configDir) {
         ServerMappings m = instance;
-        if (m == null || !m.cache.equals(configDir.resolve("server-mappings"))) {
-            m = new ServerMappings(configDir.resolve("server-mappings"));
+        if (m == null || !m.cache.equals(configDir.resolve("multiplayer-mapping"))) {
+            m = new ServerMappings(configDir.resolve("multiplayer-mapping"));
             instance = m;
         }
         return m;
@@ -88,6 +97,7 @@ final class ServerMappings {
         }
         started = true;
         POOL.execute(() -> {
+            removeOldCaches();
             long checked = loadIndex();
             if (System.currentTimeMillis() - checked > REFRESH_MS) {
                 refresh();
@@ -108,11 +118,11 @@ final class ServerMappings {
             return cached.dir().isEmpty() ? null : cached;
         }
         Mapping found = match(mappings, host);
-        lookups.put(host, found == null ? new Mapping("", "", List.of(), List.of(), null, null, null, null) : found);
+        lookups.put(host, found == null ? NONE : found);
         return found;
     }
 
-    /** Exact address first, then a mapped domain the host belongs to ({@code mc.example.net} → {@code example.net}). */
+    /** Exact address first, then the longest mapped domain the host belongs to ({@code mc.example.net} → {@code example.net}). */
     static Mapping match(Map<String, Mapping> all, String host) {
         Mapping suffix = null;
         int best = -1;
@@ -151,6 +161,62 @@ final class ServerMappings {
         return s;
     }
 
+    // --- game modes
+
+    /** The game modes of a server that support this Minecraft version (all if the version is unknown). */
+    static List<Mode> modesFor(Mapping m, String minecraftVersion) {
+        List<Mode> out = new ArrayList<>();
+        for (Mode mode : m.modes()) {
+            if (supports(mode.versions(), minecraftVersion)) {
+                out.add(mode);
+            }
+        }
+        return out;
+    }
+
+    /** {@code "1.8<1.12.2,1.20<*"} against {@code "1.21.11"}; empty or broken ranges allow everything. */
+    static boolean supports(String ranges, String version) {
+        if (ranges == null || ranges.isBlank() || version == null || version.isBlank()) {
+            return true;
+        }
+        boolean any = false;
+        for (String range : ranges.split(",")) {
+            String[] p = range.strip().split("<", -1);
+            if (p.length != 2) {
+                continue;
+            }
+            any = true;
+            boolean fromOk = p[0].strip().equals("*") || compare(version, p[0].strip()) >= 0;
+            boolean toOk = p[1].strip().equals("*") || compare(version, p[1].strip()) <= 0;
+            if (fromOk && toOk) {
+                return true;
+            }
+        }
+        return !any;
+    }
+
+    /** Compares dotted versions numerically ({@code 1.8.9 < 1.12 < 26.1}). */
+    static int compare(String a, String b) {
+        String[] x = a.split("\\.");
+        String[] y = b.split("\\.");
+        for (int i = 0; i < Math.max(x.length, y.length); i++) {
+            int u = i < x.length ? number(x[i]) : 0;
+            int v = i < y.length ? number(y[i]) : 0;
+            if (u != v) {
+                return Integer.compare(u, v);
+            }
+        }
+        return 0;
+    }
+
+    private static int number(String s) {
+        int n = 0;
+        for (int i = 0; i < s.length() && Character.isDigit(s.charAt(i)) && i < 6; i++) {
+            n = n * 10 + (s.charAt(i) - '0');
+        }
+        return n;
+    }
+
     // --- images
 
     /**
@@ -160,7 +226,7 @@ final class ServerMappings {
     byte[] image(Mapping m, boolean background) {
         String file = background ? m.background() : m.icon();
         String sha = background ? m.backgroundSha() : m.iconSha();
-        if (file == null || sha == null || !SHA.matcher(sha).matches()) {
+        if (file == null || sha == null || !SHA.matcher(sha).matches() || !file(m.dir(), file)) {
             return null;
         }
         Path path = cache.resolve("images").resolve(sha + ".png");
@@ -174,7 +240,7 @@ final class ServerMappings {
         if (fetching.putIfAbsent(sha, Boolean.TRUE) == null) {
             POOL.execute(() -> {
                 try {
-                    byte[] png = download(RAW_URL + m.dir() + "/" + file, IMAGE_MAX);
+                    byte[] png = download(BASE_URL + file, IMAGE_MAX);
                     if (png != null && isPng(png) && sha.equals(blobSha(png))) {
                         Files.createDirectories(path.getParent());
                         Path tmp = path.resolveSibling(sha + ".tmp");
@@ -189,6 +255,11 @@ final class ServerMappings {
             });
         }
         return null;
+    }
+
+    /** Only {@code servers/<own id>/icon.png} or {@code background.png}: no other paths of the repository. */
+    static boolean file(String dir, String path) {
+        return path != null && (path.equals("servers/" + dir + "/icon.png") || path.equals("servers/" + dir + "/background.png"));
     }
 
     static boolean isPng(byte[] data) {
@@ -219,127 +290,93 @@ final class ServerMappings {
         }
     }
 
-    // --- refresh
+    // --- parsing
 
-    /** One file of a server folder from the tree: name and blob hash. */
-    record Blob(String file, String sha) {
-    }
-
-    /** The server folders of a tree response: folder → file name → blob. */
-    static Map<String, Map<String, Blob>> parseTree(String json) {
-        Map<String, Map<String, Blob>> out = new LinkedHashMap<>();
+    /** The servers of a {@code servers.json}; entries with a bad id, no name or no address are left out. */
+    static Map<String, Mapping> parseIndex(String json) {
+        Map<String, Mapping> out = new LinkedHashMap<>();
         JsonElement root = Json.parse(json);
-        if (!root.isJsonObject() || !root.getAsJsonObject().has("tree")) {
+        if (!root.isJsonObject() || !root.getAsJsonObject().has("servers")
+                || !root.getAsJsonObject().get("servers").isJsonObject()) {
             return out;
         }
-        for (JsonElement e : root.getAsJsonObject().getAsJsonArray("tree")) {
-            if (!e.isJsonObject()) {
+        for (Map.Entry<String, JsonElement> e : root.getAsJsonObject().getAsJsonObject("servers").entrySet()) {
+            if (!DIR.matcher(e.getKey()).matches() || !e.getValue().isJsonObject() || out.size() >= 5000) {
                 continue;
             }
-            JsonObject o = e.getAsJsonObject();
-            String path = str(o, "path");
-            String sha = str(o, "sha");
-            if (!"blob".equals(str(o, "type")) || !path.startsWith("servers/") || !SHA.matcher(sha).matches()) {
-                continue;
+            try {
+                Mapping m = parseServer(e.getKey(), e.getValue().getAsJsonObject());
+                if (m != null) {
+                    out.put(e.getKey(), m);
+                }
+            } catch (RuntimeException ignored) {
+                // a broken entry is left out
             }
-            String[] parts = path.split("/");
-            if (parts.length != 3 || !DIR.matcher(parts[1]).matches()) {
-                continue;
-            }
-            if (!parts[2].equals("manifest.json") && !FILE.matcher(parts[2]).matches()) {
-                continue;
-            }
-            out.computeIfAbsent(parts[1], k -> new LinkedHashMap<>()).put(parts[2], new Blob(parts[2], sha));
         }
         return out;
     }
 
-    /** A manifest with the image hashes from its folder; null if a required field is missing. */
-    static Mapping parseManifest(String dir, String json, Map<String, Blob> files) {
-        JsonElement root = Json.parse(json);
-        if (!root.isJsonObject()) {
-            return null;
-        }
-        JsonObject o = root.getAsJsonObject();
-        String name = str(o, "pretty-name").strip();
-        List<String> addresses = strings(o.get("server-address"));
-        List<String> categories = strings(o.get("categorys"));
+    static Mapping parseServer(String dir, JsonObject o) {
+        String name = str(o, "name").strip();
+        List<String> addresses = strings(o.get("addresses"), 32);
         if (name.isEmpty() || addresses.isEmpty()) {
             return null;
         }
         if (name.length() > 48) {
             name = name.substring(0, 48);
         }
-        String icon = null;
-        String background = null;
-        if (o.has("assets") && o.get("assets").isJsonObject()) {
-            JsonObject assets = o.getAsJsonObject("assets");
-            icon = asset(str(assets, "icon"), files);
-            background = asset(str(assets, "background"), files);
+        String[] icon = picture(dir, o.get("icon"));
+        String[] background = picture(dir, o.get("background"));
+        List<Mode> modes = new ArrayList<>();
+        if (o.has("gamemodes") && o.get("gamemodes").isJsonArray()) {
+            for (JsonElement g : o.getAsJsonArray("gamemodes")) {
+                if (!g.isJsonObject() || modes.size() >= 64) {
+                    continue;
+                }
+                JsonObject go = g.getAsJsonObject();
+                String mode = str(go, "name").strip();
+                if (mode.isEmpty()) {
+                    continue;
+                }
+                String c = str(go, "color");
+                int color = COLOR.matcher(c).matches() ? Integer.parseInt(c.substring(1), 16) : -1;
+                modes.add(new Mode(mode.length() > 40 ? mode.substring(0, 40) : mode, color, str(go, "versions")));
+            }
         }
-        Blob ib = icon == null ? null : files.get(icon);
-        Blob bb = background == null ? null : files.get(background);
-        return new Mapping(dir, name, addresses, categories, icon, ib == null ? null : ib.sha(), background,
-                bb == null ? null : bb.sha());
+        return new Mapping(dir, name, addresses, strings(o.get("categories"), 16), icon[0], icon[1], background[0],
+                background[1], List.copyOf(modes));
     }
 
-    /** {@code "./icon.png"} → {@code icon.png} if that file is in the folder, else null. */
-    private static String asset(String ref, Map<String, Blob> files) {
-        String f = ref.startsWith("./") ? ref.substring(2) : ref;
-        return FILE.matcher(f).matches() && files.containsKey(f) ? f : null;
+    /** {@code {"file": "servers/<dir>/icon.png", "sha": "…"}} → path and hash, both null if missing or invalid. */
+    private static String[] picture(String dir, JsonElement e) {
+        if (e == null || !e.isJsonObject()) {
+            return new String[2];
+        }
+        String file = str(e.getAsJsonObject(), "file");
+        String sha = str(e.getAsJsonObject(), "sha");
+        return file(dir, file) && SHA.matcher(sha).matches() ? new String[]{file, sha} : new String[2];
     }
+
+    // --- refresh
 
     private void refresh() {
         try {
-            byte[] tree = download(TREE_URL, TREE_MAX);
-            if (tree == null) {
+            byte[] data = download(INDEX_URL, INDEX_MAX);
+            if (data == null) {
                 retryLater();
                 return;
             }
-            Map<String, Map<String, Blob>> folders = parseTree(new String(tree, StandardCharsets.UTF_8));
-            if (folders.isEmpty()) {
+            String json = new String(data, StandardCharsets.UTF_8);
+            Map<String, Mapping> next = parseIndex(json);
+            if (next.isEmpty()) {
                 retryLater();
                 return;
             }
-            Map<String, String> manifestShas = readManifestShas();
-            Map<String, Mapping> next = new LinkedHashMap<>();
-            Map<String, String> nextShas = new HashMap<>();
-            for (Map.Entry<String, Map<String, Blob>> f : folders.entrySet()) {
-                Blob manifest = f.getValue().get("manifest.json");
-                if (manifest == null) {
-                    continue;
-                }
-                Mapping old = mappings.get(f.getKey());
-                String json = null;
-                if (old != null && manifest.sha().equals(manifestShas.get(f.getKey()))) {
-                    // unchanged manifest: only the image hashes may have changed
-                    json = readCachedManifest(f.getKey());
-                }
-                if (json == null) {
-                    byte[] data = download(RAW_URL + f.getKey() + "/manifest.json", MANIFEST_MAX);
-                    if (data == null || !manifest.sha().equals(blobSha(data))) {
-                        if (old != null) {
-                            next.put(f.getKey(), old);
-                            nextShas.put(f.getKey(), manifestShas.get(f.getKey()));
-                        }
-                        continue;
-                    }
-                    json = new String(data, StandardCharsets.UTF_8);
-                    writeCachedManifest(f.getKey(), json);
-                }
-                try {
-                    Mapping m = parseManifest(f.getKey(), json, f.getValue());
-                    if (m != null) {
-                        next.put(f.getKey(), m);
-                        nextShas.put(f.getKey(), manifest.sha());
-                    }
-                } catch (RuntimeException e) {
-                    // a broken manifest is left out
-                }
-            }
+            Files.createDirectories(cache);
+            AtomicFiles.write(cache.resolve("servers.json"), json);
+            writeChecked(System.currentTimeMillis());
             mappings = Map.copyOf(next);
             lookups.clear();
-            saveIndex(System.currentTimeMillis(), next, nextShas);
         } catch (IOException | RuntimeException e) {
             retryLater();
         }
@@ -347,7 +384,7 @@ final class ServerMappings {
 
     private void retryLater() {
         try {
-            saveIndex(System.currentTimeMillis() - REFRESH_MS + RETRY_MS, mappings, readManifestShas());
+            writeChecked(System.currentTimeMillis() - REFRESH_MS + RETRY_MS);
         } catch (IOException ignored) {
             // try again next start
         }
@@ -355,93 +392,52 @@ final class ServerMappings {
 
     // --- cache files
 
-    private Path index() {
-        return cache.resolve("index.json");
-    }
-
-    /** Loads the cached mappings; returns when they were last checked (0 if never). */
+    /** Loads the cached list; returns when it was last checked (0 if never). */
     long loadIndex() {
         try {
-            if (!Files.isRegularFile(index())) {
+            Path list = cache.resolve("servers.json");
+            if (Files.isRegularFile(list)) {
+                mappings = Map.copyOf(parseIndex(Files.readString(list, StandardCharsets.UTF_8)));
+                lookups.clear();
+            }
+            Path state = cache.resolve("state.json");
+            if (!Files.isRegularFile(state)) {
                 return 0;
             }
-            JsonObject root = Json.parse(Files.readString(index(), StandardCharsets.UTF_8)).getAsJsonObject();
-            Map<String, Mapping> out = new LinkedHashMap<>();
-            JsonObject servers = root.has("servers") ? root.getAsJsonObject("servers") : new JsonObject();
-            for (Map.Entry<String, JsonElement> e : servers.entrySet()) {
-                if (!DIR.matcher(e.getKey()).matches() || !e.getValue().isJsonObject()) {
-                    continue;
-                }
-                JsonObject o = e.getValue().getAsJsonObject();
-                String icon = nullable(o, "icon");
-                String background = nullable(o, "background");
-                out.put(e.getKey(), new Mapping(e.getKey(), str(o, "name"), strings(o.get("addresses")),
-                        strings(o.get("categories")), icon != null && FILE.matcher(icon).matches() ? icon : null,
-                        nullable(o, "iconSha"), background != null && FILE.matcher(background).matches() ? background : null,
-                        nullable(o, "backgroundSha")));
-            }
-            mappings = Map.copyOf(out);
-            lookups.clear();
-            return root.has("checked") ? root.get("checked").getAsLong() : 0;
+            JsonObject o = Json.parse(Files.readString(state, StandardCharsets.UTF_8)).getAsJsonObject();
+            return o.has("checked") ? o.get("checked").getAsLong() : 0;
         } catch (IOException | RuntimeException e) {
             return 0;
         }
     }
 
-    private Map<String, String> readManifestShas() {
-        Map<String, String> out = new HashMap<>();
-        try {
-            if (Files.isRegularFile(index())) {
-                JsonObject root = Json.parse(Files.readString(index(), StandardCharsets.UTF_8)).getAsJsonObject();
-                if (root.has("servers")) {
-                    for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("servers").entrySet()) {
-                        if (e.getValue().isJsonObject()) {
-                            out.put(e.getKey(), nullable(e.getValue().getAsJsonObject(), "manifestSha"));
-                        }
-                    }
-                }
-            }
-        } catch (IOException | RuntimeException ignored) {
-            // no index yet
-        }
-        return out;
-    }
-
-    void saveIndex(long checked, Map<String, Mapping> all, Map<String, String> manifestShas) throws IOException {
-        JsonObject root = new JsonObject();
-        root.addProperty("source", "https://github.com/" + REPO + " (GPL-3.0)");
-        root.addProperty("checked", checked);
-        JsonObject servers = new JsonObject();
-        for (Mapping m : all.values()) {
-            JsonObject o = new JsonObject();
-            o.addProperty("name", m.name());
-            o.add("addresses", array(m.addresses()));
-            o.add("categories", array(m.categories()));
-            o.addProperty("icon", m.icon());
-            o.addProperty("iconSha", m.iconSha());
-            o.addProperty("background", m.background());
-            o.addProperty("backgroundSha", m.backgroundSha());
-            o.addProperty("manifestSha", manifestShas.get(m.dir()));
-            servers.add(m.dir(), o);
-        }
-        root.add("servers", servers);
+    void writeChecked(long checked) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("source", "https://github.com/" + REPO + " (GPL-3.0)");
+        o.addProperty("checked", checked);
         Files.createDirectories(cache);
-        AtomicFiles.write(index(), root.toString());
+        AtomicFiles.write(cache.resolve("state.json"), o.toString());
     }
 
-    private String readCachedManifest(String dir) {
-        try {
-            Path p = cache.resolve("manifests").resolve(dir + ".json");
-            return Files.isRegularFile(p) ? Files.readString(p, StandardCharsets.UTF_8) : null;
-        } catch (IOException e) {
-            return null;
+    /** Deletes the caches of the two source repositories that 0.3.75/0.3.76 read directly. */
+    void removeOldCaches() {
+        Path config = cache.getParent();
+        if (config == null) {
+            return;
         }
-    }
-
-    private void writeCachedManifest(String dir, String json) throws IOException {
-        Path p = cache.resolve("manifests").resolve(dir + ".json");
-        Files.createDirectories(p.getParent());
-        AtomicFiles.write(p, json);
+        for (String name : OLD_CACHES) {
+            Path old = config.resolve(name);
+            if (!Files.isDirectory(old)) {
+                continue;
+            }
+            try (Stream<Path> walk = Files.walk(old)) {
+                for (Path p : walk.sorted(Comparator.reverseOrder()).toList()) {
+                    Files.deleteIfExists(p);
+                }
+            } catch (IOException | RuntimeException ignored) {
+                // tried again next start
+            }
+        }
     }
 
     /** The current mappings (tests). */
@@ -464,15 +460,21 @@ final class ServerMappings {
         return http;
     }
 
-    /** GET of one of the two allowed GitHub hosts, at most {@code max} bytes; null on any error. */
-    static byte[] download(String url, int max) throws IOException {
+    /** Whether a URL points into the mapping repository on raw.githubusercontent.com. */
+    static boolean allowed(String url) {
         URI uri = URI.create(url);
-        if (!"https".equals(uri.getScheme())
-                || !("api.github.com".equals(uri.getHost()) || "raw.githubusercontent.com".equals(uri.getHost()))) {
+        return "https".equals(uri.getScheme()) && "raw.githubusercontent.com".equals(uri.getHost())
+                && uri.getRawPath() != null && uri.getRawPath().startsWith("/" + REPO + "/main/")
+                && !uri.getRawPath().contains("..") && uri.getRawQuery() == null;
+    }
+
+    /** GET of a file of the mapping repository, at most {@code max} bytes; null on any error. */
+    static byte[] download(String url, int max) throws IOException {
+        if (!allowed(url)) {
             return null;
         }
-        HttpRequest req = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(20))
-                .header("User-Agent", "Lumora-Client").header("Accept", "application/vnd.github+json").GET().build();
+        HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(20))
+                .header("User-Agent", "Lumora-Client").GET().build();
         try {
             HttpResponse<InputStream> res = http().send(req, HttpResponse.BodyHandlers.ofInputStream());
             try (InputStream in = res.body()) {
@@ -495,34 +497,19 @@ final class ServerMappings {
         return e != null && e.isJsonPrimitive() ? e.getAsString() : "";
     }
 
-    private static String nullable(JsonObject o, String key) {
-        JsonElement e = o.get(key);
-        return e != null && e.isJsonPrimitive() ? e.getAsString() : null;
-    }
-
-    private static List<String> strings(JsonElement e) {
+    private static List<String> strings(JsonElement e, int max) {
         List<String> out = new ArrayList<>();
         if (e != null && e.isJsonArray()) {
             for (JsonElement x : e.getAsJsonArray()) {
-                if (x.isJsonPrimitive() && out.size() < 16) {
+                if (x.isJsonPrimitive() && out.size() < max) {
                     String s = x.getAsString().strip();
                     if (!s.isEmpty() && s.length() <= 255) {
                         out.add(s);
                     }
                 }
             }
-        } else if (e != null && e.isJsonPrimitive()) {
-            out.add(e.getAsString().strip());
         }
         return List.copyOf(out);
-    }
-
-    private static JsonArray array(List<String> values) {
-        JsonArray a = new JsonArray();
-        for (String v : values) {
-            a.add(new com.google.gson.JsonPrimitive(v));
-        }
-        return a;
     }
 
     /** Display name of a category: {@code KITPVP} → {@code KitPvP}, {@code SURVIVAL} → {@code Survival}. */

@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.78 (2026-11-19)
+
+### Client
+- **Trank-Effekte als Liste:** Das HUD-Widget „Potion Effects“ zeigt jeden Effekt in einer eigenen Box mit dem Effekt-Bild aus Minecraft, Name und Stufe, darunter die Restzeit. Effekte von Beacon oder Conduit bekommen einen türkisen Rand, schädliche Effekte stehen rot da. Hintergrund und Rand der Boxen folgen dem Widget-Design. Die bisherige Anzeige (eine Zeile pro Effekt, ohne Bild) gibt es weiter über die neue Einstellung „Kompakt“. In allen Minecraft-Versionen (1.8.9 und 1.12.2 mit den Bildern aus `inventory.png`).
+
 ## 0.3.77 (2026-11-19)
 
 ### Client

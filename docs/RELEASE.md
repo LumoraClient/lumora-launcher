@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.78 (2026-11-19):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 672 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Bildpfade der Effekte (Datei, Sprite, `inventory.png`), ungültige Ids, Liste mit Name/Stufe und Restzeit, Höhe, Einstellung „Kompakt“). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** keine Änderung; Widget in `lumora-core` (`InfoWidgetsModule.Potions`, `GameExtras.EffectIcon`), Effekt-Bild und Beacon-Kennzeichen in `McExtras` aller 16 Client-Module (26.x über den GUI-Sprite-Atlas, 1.16.5 bis 1.21.11 über `textures/mob_effect`, 1.8.9 und 1.12.2 über `inventory.png`), Text für „Kompakt“ in den Sprachdateien aller 16 Module.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Die Effekt-Bilder sind in keiner Version im Spiel angesehen. Das News-Bild ist ein gezeichnetes Titelbild, kein Screenshot.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `GameExtras.EffectIcon`, `InfoWidgetsModule.Potions` und der neue Text in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3), News-Bild im Launcher-Jar.
+
 **0.3.77 (2026-11-19):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 671 Unit-Tests ohne Fehler (1 übersprungen; `ServerMappingsTest` neu mit 9 Tests für die Liste aus LumoraClient/Multiplayer-Mapping, erlaubte Download-Adressen, Bildpfade nur im eigenen Ordner, Versionsbereiche, Cache, Entfernen der alten Caches und die Spielmodus-Felder; `ServerGamemodesTest` entfällt mit `ServerGamemodes`). `integrationTest` enthält weiterhin keine Tests.
 - **Echte Daten:** die veröffentlichte `servers.json` aus LumoraClient/Multiplayer-Mapping ohne Spiel mit dem neuen `ServerMappings` gelesen: 375 Server, 116 mit Icon und Banner, 268 mit Spielmodi; mc.hypixel.net, gommehd.net und play.cubecraft.net werden erkannt. Die Git-Hashes aller 232 Bilder im Repo stimmen mit `servers.json` überein, Stichprobe Hypixel-Icon direkt von raw.githubusercontent.com.

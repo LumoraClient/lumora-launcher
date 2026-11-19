@@ -414,6 +414,7 @@
   "lumora.hud.potions.description": "Active potion and status effects with level and remaining time",
   "lumora.hud.potions.sample_speed": "Speed",
   "lumora.hud.potions.sample_fire": "Fire Resistance",
+  "lumora-info.widget.potions.compact": "Compact (one line per effect, no picture)",
   "lumora.hud.items": "Item Counter",
   "lumora.hud.items.description": "Arrows in your inventory and how many of the held item you have left",
   "lumora.hud.items.arrows": "Arrows",

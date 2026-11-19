@@ -64,6 +64,40 @@ class ExtrasTest {
     }
 
     @Test
+    void potionEffectsAreAListWithPictureNameAndTime() {
+        assertEquals("minecraft:textures/mob_effect/speed.png", key(GameExtras.EffectIcon.file("minecraft:speed")));
+        assertEquals("minecraft:textures/gui/sprites/mob_effect/jump_boost.png", key(GameExtras.EffectIcon.sprite("minecraft:jump_boost")));
+        GameExtras.EffectIcon legacy = GameExtras.EffectIcon.legacy(15);
+        assertEquals(List.of(126, 216, 18, 256), List.of(legacy.u(), legacy.v(), legacy.size(), legacy.textureWidth()),
+                "icon 15 of inventory.png: row 2, column 8");
+        assertNull(GameExtras.EffectIcon.file("minecraft:../evil"));
+        assertNull(GameExtras.EffectIcon.sprite("Bad Id"));
+        assertNull(GameExtras.EffectIcon.legacy(-1));
+
+        FakePlatform p = new FakePlatform(dir);
+        core = new LumoraCore(p);
+        core.loadAddons(List.of());
+        dev.lumora.api.hud.HudWidget w = core.widgetRegistry().entry("lumora-info:potions").orElseThrow().widget();
+        dev.lumora.api.hud.RenderContext ctx = dev.lumora.core.TestContexts.ctx(p, 854, 480, true);
+        w.tick();
+        dev.lumora.core.FakeGraphics g = new dev.lumora.core.FakeGraphics();
+        w.render(g, ctx);
+        // menu sample: two boxes, name with level above, remaining time below
+        assertEquals(List.of("Schnelligkeit II", "2:15", "Feuerresistenz", "4:30"), g.texts);
+        assertEquals(2 * InfoWidgetsModule.Potions.ROW + InfoWidgetsModule.Potions.GAP, w.height(ctx));
+        // "Kompakt": the old single lines
+        ((dev.lumora.api.config.BooleanSetting) w.settings().all().stream().filter(s -> s.key().equals("compact"))
+                .findFirst().orElseThrow()).set(true);
+        g = new dev.lumora.core.FakeGraphics();
+        w.render(g, ctx);
+        assertEquals(List.of("Schnelligkeit II  2:15", "Feuerresistenz  4:30"), g.texts);
+    }
+
+    private static String key(GameExtras.EffectIcon icon) {
+        return icon.texture().namespace() + ":" + icon.texture().path();
+    }
+
+    @Test
     void crosshairShapes() {
         List<int[]> gap = CrosshairModule.shape("gap", 5, 2, 1, false);
         assertEquals(4, gap.size());

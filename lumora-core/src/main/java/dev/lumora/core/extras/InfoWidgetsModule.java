@@ -13,6 +13,7 @@ import dev.lumora.api.hud.WidgetPlacement;
 import dev.lumora.api.render.Colors;
 import dev.lumora.api.render.HudGraphics;
 import dev.lumora.core.Platform;
+import dev.lumora.core.hud.WidgetDesign;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,20 @@ public final class InfoWidgetsModule implements LumoraAddon {
         }
     }
 
-    final class Potions extends Info {
+    /**
+     * Status effects as a list like Minecraft's inventory: one box per effect with its picture, name and level, and the
+     * remaining time below; effects of a beacon or conduit get a turquoise border. "Kompakt" shows the old single lines.
+     */
+    final class Potions extends Panels.Panel {
+        static final int ICON = 18;
+        static final int ROW = 24;
+        static final int GAP = 2;
+        static final int HARMFUL = 0xFFF28A8D;
+        static final int AMBIENT = 0xFF4FD6DC;
+        BooleanSetting compact;
+        private List<GameExtras.Effect> effects = List.of();
+        private int width = 80;
+
         Potions() {
             super("potions");
         }
@@ -85,18 +99,108 @@ public final class InfoWidgetsModule implements LumoraAddon {
         }
 
         @Override
-        List<String[]> lines(boolean preview) {
-            List<GameExtras.Effect> effects = preview
-                    ? List.of(new GameExtras.Effect(tr("lumora.hud.potions.sample_speed", "Schnelligkeit"), 1, 2710, true),
-                    new GameExtras.Effect(tr("lumora.hud.potions.sample_fire", "Feuerresistenz"), 0, 5400, true))
-                    : x().effects();
-            List<String[]> out = new ArrayList<>();
-            for (GameExtras.Effect e : effects) {
-                String name = e.name() + (e.amplifier() > 0 ? " " + roman(e.amplifier() + 1) : "");
-                out.add(new String[]{"", name + "  " + duration(e.durationTicks()),
-                        Panels.hex(e.beneficial() ? Colors.TEXT : 0xFFF28A8D)});
+        void extra(SettingsGroup s) {
+            compact = s.toggle("compact", false);
+        }
+
+        @Override
+        public void initialize() {
+            refresh();
+        }
+
+        @Override
+        public void onEnable() {
+            refresh();
+        }
+
+        @Override
+        public void tick() {
+            refresh();
+        }
+
+        private void refresh() {
+            effects = platform.game().inWorld() ? x().effects() : sample();
+        }
+
+        private GameExtras x() {
+            return platform.extras();
+        }
+
+        /** Two effects for the HUD editor and menus. */
+        List<GameExtras.Effect> sample() {
+            return List.of(
+                    new GameExtras.Effect(tr("lumora.hud.potions.sample_speed", "Schnelligkeit"), 1, 2710, true, false,
+                            x().effectIcon("minecraft:speed")),
+                    new GameExtras.Effect(tr("lumora.hud.potions.sample_fire", "Feuerresistenz"), 0, 5400, true, true,
+                            x().effectIcon("minecraft:fire_resistance")));
+        }
+
+        static String title(GameExtras.Effect e) {
+            return e.name() + (e.amplifier() > 0 ? " " + roman(e.amplifier() + 1) : "");
+        }
+
+        private boolean compact() {
+            return compact != null && compact.get();
+        }
+
+        @Override
+        public int width(RenderContext ctx) {
+            return width;
+        }
+
+        @Override
+        public int height(RenderContext ctx) {
+            int n = Math.max(1, effects.size());
+            return compact() ? n * Panels.LINE + Panels.PAD * 2 - 1 : n * (ROW + GAP) - GAP;
+        }
+
+        @Override
+        public void render(HudGraphics g, RenderContext ctx) {
+            List<GameExtras.Effect> list = effects;
+            int name = valueColor.argb();
+            if (compact()) {
+                int w = 0;
+                for (GameExtras.Effect e : list) {
+                    w = Math.max(w, WidgetDesign.lineWidth(g::textWidth, "", title(e) + "  " + duration(e.durationTicks())));
+                }
+                width = Math.max(20, w + Panels.PAD * 2 + 2);
+                panel(g, width, height(ctx));
+                int y = Panels.PAD;
+                for (GameExtras.Effect e : list) {
+                    WidgetDesign.line(g, Panels.PAD + 2, y, "", title(e) + "  " + duration(e.durationTicks()),
+                            labelColor.argb(), e.beneficial() ? name : HARMFUL, true, !e.beneficial());
+                    y += Panels.LINE;
+                }
+                return;
             }
-            return out;
+            int textX = 4 + ICON + 4;
+            int w = 0;
+            for (GameExtras.Effect e : list) {
+                w = Math.max(w, Math.max(WidgetDesign.lineWidth(g::textWidth, "", title(e)),
+                        WidgetDesign.lineWidth(g::textWidth, "", duration(e.durationTicks()))));
+            }
+            width = Math.max(60, textX + w + 6);
+            WidgetDesign.Look look = WidgetDesign.look();
+            int radius = look != null ? look.radius() : 0;
+            int y = 0;
+            for (GameExtras.Effect e : list) {
+                g.push();
+                g.translate(0, y);
+                panel(g, width, ROW);
+                if (e.ambient()) {
+                    WidgetDesign.outline(g, 0, 0, width, ROW, radius, AMBIENT);
+                }
+                GameExtras.EffectIcon icon = e.icon();
+                if (icon != null) {
+                    g.texture(icon.texture(), 4, (ROW - ICON) / 2, ICON, ICON, icon.u(), icon.v(), icon.size(), icon.size(),
+                            icon.textureWidth(), icon.textureHeight());
+                }
+                int tx = icon != null ? textX : 6;
+                WidgetDesign.line(g, tx, 3, "", title(e), labelColor.argb(), e.beneficial() ? name : HARMFUL, true, !e.beneficial());
+                WidgetDesign.line(g, tx, 13, "", duration(e.durationTicks()), labelColor.argb(), Colors.MUTED, true, true);
+                g.pop();
+                y += ROW + GAP;
+            }
         }
 
         @Override

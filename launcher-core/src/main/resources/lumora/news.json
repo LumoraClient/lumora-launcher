@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-potion-list",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.78",
+      "title": "Trank-Effekte als übersichtliche Liste",
+      "text": "Das HUD-Widget für Trank-Effekte zeigt jeden Effekt jetzt in einer eigenen Box mit Bild, Name und Restzeit.",
+      "image": "news-potion-list.png",
+      "body": [
+        {"p": "Aktive Effekte sind im HUD jetzt auf einen Blick zu erkennen: Jeder Effekt hat seine eigene Box mit dem Effekt-Bild aus Minecraft, daneben Name und Stufe und darunter die Restzeit."},
+        {"list": [
+          "Effekte von Beacon oder Conduit haben einen türkisen Rand",
+          "Schädliche Effekte wie Vergiftung stehen rot da",
+          "Hintergrund und Rand der Boxen folgen deinem Widget-Design",
+          "Lieber die alte Anzeige? Im Widget „Potion Effects“ die Einstellung „Kompakt“ einschalten"
+        ]},
+        {"p": "Die Liste gibt es in allen Minecraft-Versionen, die Lumora unterstützt."}
+      ]
+    },
+    {
       "id": "lumora-server-gamemodes",
       "date": "2026-11-19",
       "author": "Lumora",

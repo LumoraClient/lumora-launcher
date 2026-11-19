@@ -36,9 +36,20 @@ final class McExtras implements GameExtras {
             if (effect == null) {
                 continue;
             }
-            out.add(new Effect(I18n.translate(effect.getTranslationKey()), e.getAmplifier(), e.getDuration(), !effect.isNegative()));
+            out.add(new Effect(I18n.translate(effect.getTranslationKey()), e.getAmplifier(), e.getDuration(), !effect.isNegative(),
+                    e.isAmbient(), effect.hasIcon() ? EffectIcon.legacy(effect.getIconLevel()) : null));
         }
         return out;
+    }
+
+    @Override
+    public EffectIcon effectIcon(String id) {
+        // icon numbers in inventory.png, only for the menu sample
+        return switch (id) {
+            case "minecraft:speed" -> EffectIcon.legacy(0);
+            case "minecraft:fire_resistance" -> EffectIcon.legacy(15);
+            default -> null;
+        };
     }
 
     private static String id(ItemStack s) {

@@ -414,6 +414,7 @@
   "lumora.hud.potions.description": "Aktive Trank- und Statuseffekte mit Stufe und Restzeit",
   "lumora.hud.potions.sample_speed": "Schnelligkeit",
   "lumora.hud.potions.sample_fire": "Feuerresistenz",
+  "lumora-info.widget.potions.compact": "Kompakt (eine Zeile pro Effekt, ohne Bild)",
   "lumora.hud.items": "Item Counter",
   "lumora.hud.items.description": "Pfeile im Inventar und wie viele vom Item in der Hand du noch hast",
   "lumora.hud.items.arrows": "Pfeile",

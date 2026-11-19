@@ -32,9 +32,15 @@ final class McExtras implements GameExtras {
         }
         for (MobEffectInstance e : p.getActiveEffects()) {
             out.add(new Effect(e.getEffect().getDisplayName().getString(), e.getAmplifier(),
-                    e.isInfiniteDuration() ? -1 : e.getDuration(), e.getEffect().isBeneficial()));
+                    e.isInfiniteDuration() ? -1 : e.getDuration(), e.getEffect().isBeneficial(),
+                    e.isAmbient(), EffectIcon.file(String.valueOf(BuiltInRegistries.MOB_EFFECT.getKey(e.getEffect())))));
         }
         return out;
+    }
+
+    @Override
+    public EffectIcon effectIcon(String id) {
+        return EffectIcon.file(id);
     }
 
     @Override

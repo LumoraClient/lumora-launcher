@@ -8,11 +8,49 @@ import java.util.List;
  * {@link #NONE} is used where a version adapter does not provide something.
  */
 public interface GameExtras {
-    /** An active status effect: translated name, amplifier (0 = level I), remaining ticks (-1 = infinite). */
-    record Effect(String name, int amplifier, int durationTicks, boolean beneficial) {
+    /**
+     * An active status effect: translated name, amplifier (0 = level I), remaining ticks (-1 = infinite), whether it
+     * comes from a beacon or conduit ({@code ambient}) and its picture (null if the version has none).
+     */
+    record Effect(String name, int amplifier, int durationTicks, boolean beneficial, boolean ambient, EffectIcon icon) {
+        public Effect(String name, int amplifier, int durationTicks, boolean beneficial) {
+            this(name, amplifier, durationTicks, beneficial, false, null);
+        }
+    }
+
+    /** The picture of a status effect: a texture and the square region in it (18x18 in Minecraft's files). */
+    record EffectIcon(dev.lumora.api.render.TextureRef texture, int u, int v, int size, int textureWidth, int textureHeight) {
+        private static final java.util.regex.Pattern ID = java.util.regex.Pattern.compile("([a-z0-9_.-]+):([a-z0-9_./-]+)");
+
+        /** 1.13 to 1.21.11: {@code textures/mob_effect/<name>.png}; null for an invalid id. */
+        public static EffectIcon file(String id) {
+            java.util.regex.Matcher m = id == null ? null : ID.matcher(id);
+            return m == null || !m.matches() || m.group(2).contains("..") ? null
+                    : new EffectIcon(new dev.lumora.api.render.TextureRef(m.group(1), "textures/mob_effect/" + m.group(2) + ".png"),
+                    0, 0, 18, 18, 18);
+        }
+
+        /** 26.x: the same picture from Minecraft's GUI sprite atlas ({@code mob_effect/<name>}); null for an invalid id. */
+        public static EffectIcon sprite(String id) {
+            java.util.regex.Matcher m = id == null ? null : ID.matcher(id);
+            return m == null || !m.matches() || m.group(2).contains("..") ? null
+                    : new EffectIcon(new dev.lumora.api.render.TextureRef(m.group(1), "textures/gui/sprites/mob_effect/" + m.group(2) + ".png"),
+                    0, 0, 18, 18, 18);
+        }
+
+        /** 1.8.9 and 1.12.2: icon number in {@code textures/gui/container/inventory.png} (8 per row from y 198). */
+        public static EffectIcon legacy(int index) {
+            return index < 0 || index > 31 ? null : new EffectIcon(new dev.lumora.api.render.TextureRef("minecraft",
+                    "textures/gui/container/inventory.png"), index % 8 * 18, 198 + index / 8 * 18, 18, 256, 256);
+        }
     }
 
     List<Effect> effects();
+
+    /** The picture of an effect by registry id ({@code minecraft:speed}), for the sample in menus; null if unknown. */
+    default EffectIcon effectIcon(String id) {
+        return null;
+    }
 
     /** Number of items with this id (e.g. "minecraft:arrow") in the player's whole inventory, offhand included. */
     int count(String itemId);

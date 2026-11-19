@@ -290,7 +290,7 @@ public final class WidgetDesign {
     }
 
     /** A one pixel border with rounded corners (the inside stays free, so a translucent background stays even). */
-    static void outline(HudGraphics g, int x, int y, int w, int h, int radius, int color) {
+    public static void outline(HudGraphics g, int x, int y, int w, int h, int radius, int color) {
         if (dev.lumora.core.perf.PerformanceEngine.frame) {
             dev.lumora.core.perf.FastShapes.roundedOutline(g, x, y, w, h, radius, color);
             return;

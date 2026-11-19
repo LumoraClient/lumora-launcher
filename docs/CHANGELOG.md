@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.86 (2026-11-19)
+
+### Client
+- **Zoom: neue Einstellungsseite:** Die Zoom-Taste lässt sich direkt auf der Seite setzen (es bleibt Minecrafts Zoom-Taste). „Zoom halten“ ersetzt den Modus (an: Zoom, solange die Taste gedrückt ist; aus: die Taste schaltet an und aus). Die Zoom-Stärke ist ein Regler von 1,5 bis 20 statt fester Stufen, mit dem Mausrad geht es weiter bis 50. Neu: „Hand in der Ich-Perspektive zeigen“ (aus: Hand und Item beim Zoomen ausgeblendet), „Balkenhöhe (%)“ für die Kinobalken (5 bis 25), „HUD ausblenden“ (HUD und Chat wie mit F1 beim Zoomen) und bei der Kinokamera „Nach dem Übergang ausschalten“. Der Zoom-Übergang hat jetzt je Richtung eine eigene Kurve (Linear, Ease In, Ease Out, Ease In Out) und Dauer (0 bis 1000 ms, Standard 100) und läuft nach Zeit, also bei jeder Bildrate gleich weich. In allen Minecraft-Versionen.
+
 ## 0.3.85 (2026-11-19)
 
 ### Client

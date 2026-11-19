@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.86 (2026-11-19):**
+- **Inhalt:** Zoom: neue Einstellungsseite (Zoom-Taste auf der Seite, „Zoom halten“, Zoom-Stärke als Regler 1,5 bis 20, Hand in der Ich-Perspektive, Balkenhöhe, HUD ausblenden, Kinokamera nur während des Übergangs, Übergangskurve und -dauer je Richtung). Neu `ZoomMotion` (Core), `ZoomHandMixin` in allen 16 Modulen, neue Optionen in `LumoraConfig`, `HubHost.zoomKeyCode/setZoomKeyCode`. Mit Changelog-Eintrag, auf Wunsch ohne News.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 689 Unit-Tests ohne Fehler (1 übersprungen; neu: `ZoomMotionTest` (2), Zoom-Seite in `SettingKindsViewTest` neu). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neu `ZoomHandMixin` in allen 16 Modulen (1.16.5 bis 26.2 `ItemInHandRenderer.renderArmWithItem`, 26.3 `submitArmWithItem`, 1.8.9/1.12.2 `HeldItemRenderer.renderArmHoldingItem`); `AnimationsHandDrawMixin` zeichnet nicht, solange die Hand ausgeblendet ist. `check-mixins.pl` findet die Ziele (geprüft 1.8.9, 1.12.2, 26.3). 26.2/26.3 blenden das HUD über `Hud.toggle()` aus, 26.3 rechnet die Zoom-Taste über `SdlKeys` um.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Nichts davon ist im Spiel geprüft.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `ZoomHandMixin` (auch in `lumora.mixins.json`) und die neuen Texte in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3).
+
 **0.3.85 (2026-11-19):**
 - **Inhalt:** Held Item Tooltip: „Immer anzeigen“ heißt „Dauerhaft anzeigen“, neuer Schalter „Ausblenden (Fade-out)“ (aus: nach der Anzeigezeit auf einmal weg). Mit News-Eintrag (Bild: das vorhandene gezeichnete Titelbild `news-held-item-tooltip.png` aus 0.3.79, kein neuer Screenshot, weil ohne Spiellauf) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2` wegen knappem Arbeitsspeicher) erfolgreich, 687 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Fade-out, ohne Fade-out, dauerhaft). `integrationTest` enthält weiterhin keine Tests.

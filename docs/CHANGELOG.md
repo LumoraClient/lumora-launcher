@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.79 (2026-11-19)
+
+### Client
+- **Neues HUD-Widget „Held Item Tooltip“:** Nach dem Wechsel des Items zeigt es kurz den Namen des Items in der Hand, wie Minecraft über der Hotbar, und blendet dann aus. Stil „Pocket“ (Standard): dunkle Box mit Rahmen, darin der Name in der Farbe seiner Seltenheit und darunter die Verzauberungen (Flüche rot), wie in der Pocket-/Bedrock-Edition. Stil „Java“: nur der Name mit Schatten wie bei Minecraft. Einstellungen „Verzauberungen anzeigen“ und „Immer anzeigen“. Solange das Widget im HUD ist, blendet Lumora Minecrafts eigenen Namen aus. Standardmäßig aus, einschalten im HUD-Editor. In allen Minecraft-Versionen.
+
 ## 0.3.78 (2026-11-19)
 
 ### Client

@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.79 (2026-11-19):**
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 673 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Held Item Tooltip im Pocket- und Java-Stil, Verzauberungen abschaltbar, Minecrafts Name ausgeblendet, erneutes Anzeigen bei anderem Platz, Item, Namen oder Verzauberungen). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** neu `HeldItemNameMixin` in allen 16 Client-Modulen (bricht `renderHeldItemName` bzw. `renderSelectedItemName` bzw. `extractSelectedItemName` am Anfang ab, solange das Widget im HUD ist); `check-mixins.pl` findet die Zielmethode in jeder Version (die Meldung „MISMATCH“ kommt wie bei den übrigen Hotbar-Mixins nur vom Handler ohne Parameter). Dazu `McExtras.heldItem()` (Name, Seltenheit, umbenannt, Verzauberungen, Hotbar-Platz) in allen 16 Modulen, Widget `InfoWidgetsModule.HeldItemTooltip`, Texte in den Sprachdateien aller 16 Module.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Das Widget ist in keiner Version im Spiel angesehen, auch nicht, ob Minecrafts eigener Name überall verschwindet. Das News-Bild ist ein gezeichnetes Titelbild, kein Screenshot.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `HeldItemNameMixin` (auch in `lumora.mixins.json`), `InfoWidgetsModule$HeldItemTooltip` und die neun Texte in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3), News-Bild im Launcher-Jar.
+
 **0.3.78 (2026-11-19):**
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 672 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Bildpfade der Effekte (Datei, Sprite, `inventory.png`), ungültige Ids, Liste mit Name/Stufe und Restzeit, Höhe, Einstellung „Kompakt“). `integrationTest` enthält weiterhin keine Tests.
 - **Mixins:** keine Änderung; Widget in `lumora-core` (`InfoWidgetsModule.Potions`, `GameExtras.EffectIcon`), Effekt-Bild und Beacon-Kennzeichen in `McExtras` aller 16 Client-Module (26.x über den GUI-Sprite-Atlas, 1.16.5 bis 1.21.11 über `textures/mob_effect`, 1.8.9 und 1.12.2 über `inventory.png`), Text für „Kompakt“ in den Sprachdateien aller 16 Module.

@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.83 (2026-11-19):**
+- **Inhalt:** neues HUD-Widget „Inventory“ (Inventar auf Tastendruck, Standard X; Modi An/Aus, kurz, Halten, Immer; Stil Minecraft-Inventar oder Lumora-Widget; Überschrift und Hotbar-Reihe abschaltbar). `GameExtras.drawSlot` kennt dafür die Plätze 10 bis 36 (Hauptinventar) in allen 16 Modulen. Mit News-Eintrag (`news-inventory-hud.png`: echter Screenshot aus dem Smoke-Lauf von 1.8.9 mit dem Widget auf „Immer“, ausgeschnitten und verlustfrei auf 854×480 vergrößert, nicht bearbeitet; das „Combo“-Widget lag dort darüber) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 686 Unit-Tests ohne Fehler (1 übersprungen; neu in `ExtrasTest`: Größe, Platz-Nummern, Modi An/Aus, kurz, immer, außerhalb einer Welt). `integrationTest` enthält weiterhin keine Tests.
+- **Mixins:** keine Änderung; Taste über die Lumora-Keybinds (wo Minecraft X belegt, ab 1.12 „Hotbar laden“, startet sie ungebunden), Texte in den Sprachdateien aller 16 Module.
+- **Smoke-Test:** für dieses Release auf Wunsch nicht ausgeführt. Vor dem Release lief ein Smoke-Test von 26.3 und 1.8.9 mit dem Widget auf „Immer“ (beide bestanden, Screenshots angesehen: Raster, Überschrift und das Schwert im richtigen Hotbar-Platz); der Tastendruck selbst ist nicht im Spiel geprüft.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `InventoryHud` und die Texte in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3), News-Bild im Launcher-Jar.
+
 **0.3.82 (2026-11-19):**
 - **Inhalt:** Animations: Schalter „Alte Block-Animation“ (Schwert-Blockhaltung von 1.7 bei gehaltener rechter Maustaste und beim Blocken mit Schild, auch wenn „Schwert / Blocken“ auf Default steht; eigener Spieler in der dritten Person mit Blockarm; Teil der Presets). Mit News-Eintrag (`news-old-block.png`, gezeichnetes Titelbild, kein Screenshot) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` erfolgreich, 685 Unit-Tests ohne Fehler (1 übersprungen; neu in `AnimationsModuleTest`: Schalter an/aus, Presets, Custom, Auswirkung auf `ItemPose.select`, Versionen ohne den Teil). `integrationTest` enthält weiterhin keine Tests.

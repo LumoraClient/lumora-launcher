@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-inventory-hud",
+      "date": "2026-11-19",
+      "author": "Lumora",
+      "version": "0.3.83",
+      "title": "Neu: dein Inventar als HUD",
+      "text": "Ein Tastendruck, und dein Inventar erscheint im HUD, ohne dass du das Inventar öffnen musst.",
+      "image": "news-inventory-hud.png",
+      "body": [
+        {"p": "Das neue HUD-Widget „Inventory“ zeigt dein Inventar direkt im Spiel: alle drei Reihen mit Items, Anzahl und Haltbarkeit. Du kannst dich dabei weiter bewegen und kämpfen."},
+        {"list": [
+          "Taste X (änderbar): einmal drücken zeigt das Inventar, nochmal drücken blendet es aus",
+          "Oder: kurz anzeigen (1 bis 10 Sekunden), nur solange die Taste gehalten wird, oder immer",
+          "Im Look des Minecraft-Inventars oder im dunklen Lumora-Widget-Design",
+          "Auf Wunsch mit der Hotbar als vierter Reihe und ohne Überschrift"
+        ]},
+        {"p": "Ab Minecraft 1.12 belegt Minecraft die Taste X selbst mit „Hotbar laden“. Gib X dort in den Steuerungseinstellungen frei und weise sie dann in Lumora zu, oder nimm eine andere Taste. Position und Größe stellst du im HUD-Editor ein. Das Bild ist ein Screenshot aus Minecraft 1.8.9."}
+      ]
+    },
+    {
       "id": "lumora-old-block-animation",
       "date": "2026-11-19",
       "author": "Lumora",

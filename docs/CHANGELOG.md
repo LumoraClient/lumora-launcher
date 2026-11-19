@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.83 (2026-11-19)
+
+### Client
+- **Neues HUD-Widget „Inventory“:** Zeigt dein Inventar auf Tastendruck als HUD: die drei Reihen mit Items, Anzahl und Haltbarkeitsbalken, auf Wunsch die Hotbar als vierte Reihe. Taste Standard X, änderbar; Modi „Taste schaltet an und aus“ (Standard), „Kurz nach dem Drücken“ (1 bis 10 Sekunden), „Solange die Taste gehalten wird“ und „Immer“. Stil „Minecraft-Inventar“ oder „Lumora-Widget“, Überschrift abschaltbar. Ab 1.12 belegt Minecraft X selbst („Hotbar laden“); dort startet die Taste ungebunden, bis du X in Minecrafts Steuerung freigibst und sie zuweist. Das Widget ist im HUD, aber unsichtbar, bis du die Taste drückst. In allen Minecraft-Versionen.
+
 ## 0.3.82 (2026-11-19)
 
 ### Client

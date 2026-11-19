@@ -116,7 +116,15 @@ class ExtrasTest {
         dev.lumora.api.hud.RenderContext game = dev.lumora.core.TestContexts.ctx(p, 854, 480, false);
         p.inWorld = true;
         w.tick();
-        assertFalse(w.isVisible(game), "toggle (default): hidden until the key");
+        assertEquals("hold", w.mode.get(), "default: only while the hotkey is held");
+        assertFalse(w.isVisible(game), "hidden while the key is up");
+        w.pressed();
+        w.tick();
+        assertFalse(w.isVisible(game), "a press alone does not keep it in hold mode");
+        assertEquals(List.of("lumora-info.widget.inventory.key"), core.keybindManager().ofWidget("lumora-info:inventory").stream()
+                .map(dev.lumora.api.input.Keybind::nameKey).toList(), "the hotkey is shown in the widget's settings");
+        assertTrue(core.keybindManager().ofWidget("lumora-info:items").isEmpty());
+        w.mode.set("toggle");
         w.pressed();
         w.tick();
         assertTrue(w.isVisible(game));

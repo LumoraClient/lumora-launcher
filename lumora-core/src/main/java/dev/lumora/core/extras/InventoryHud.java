@@ -69,7 +69,7 @@ final class InventoryHud extends Panels.Panel {
 
     @Override
     void extra(SettingsGroup s) {
-        mode = s.choice("mode", "toggle", "hold", "toggle", "flash", "always");
+        mode = s.choice("mode", "hold", "hold", "toggle", "flash", "always");
         seconds = s.slider("seconds", 3, 1, 10);
         seconds.visibleWhen(() -> "flash".equals(mode.get()));
         style = s.choice("style", "vanilla", "vanilla", "lumora");

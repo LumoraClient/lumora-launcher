@@ -234,6 +234,20 @@ public final class KeybindManager {
         return List.copyOf(binds);
     }
 
+    /**
+     * Keybinds that belong to a HUD widget: registered by its addon under the widget's own id ({@code addon:widget},
+     * or {@code addon:widget.<name>}), shown in that widget's settings.
+     */
+    public List<Keybind> ofWidget(String widgetId) {
+        List<Keybind> out = new ArrayList<>();
+        for (Bind b : binds) {
+            if (b.id.equals(widgetId) || b.id.startsWith(widgetId + ".")) {
+                out.add(b);
+            }
+        }
+        return out;
+    }
+
     public List<Keybind> of(String owner) {
         List<Keybind> out = new ArrayList<>();
         for (Bind b : binds) {

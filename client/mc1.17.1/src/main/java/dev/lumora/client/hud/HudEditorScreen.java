@@ -316,7 +316,7 @@ public final class HudEditorScreen extends Screen {
     private void openSettings(WidgetEntry e) {
         keepSession = true;
         minecraft.setScreen(SettingsScreen.create(new HudEditorScreen(parent, model), new TextComponent(name(e)),
-                e.widget().settings(), List.of(), null));
+                e.widget().settings(), dev.lumora.client.api.LumoraRuntime.core().keybindManager().ofWidget(e.id()), null));
     }
 
     // --- drawing

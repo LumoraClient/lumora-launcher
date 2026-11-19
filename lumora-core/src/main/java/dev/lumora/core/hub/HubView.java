@@ -390,7 +390,8 @@ public final class HubView implements AddonView {
                     || w.addonId().startsWith("lumora-")) ? w.widget().id() : HubIcons.forAddon(w.addonId());
             out.add(new Card("widget:" + w.id(), name, desc, w.category(), icon, w.isEnabled(), w.failure().orElse(null),
                     () -> w.setEnabled(!w.isEnabled()),
-                    hasSettings ? () -> host.openSettings(widgetName, widgetDesc, w.widget().settings(), List.of(), null, true) : null,
+                    hasSettings ? () -> host.openSettings(widgetName, widgetDesc, w.widget().settings(), core.keybindManager().ofWidget(w.id()), null, true)
+                            : null,
                     null, from));
         }
         // favorites (heart) first, then by name

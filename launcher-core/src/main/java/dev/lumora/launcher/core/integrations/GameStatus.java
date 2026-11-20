@@ -61,6 +61,11 @@ public record GameStatus(State state, String server, long since, String version)
         return new DiscordPresence.Activity(flavor + " " + v, line, start);
     }
 
+    /** The server Discord may show (on a server and {@code showServer}), else null. */
+    public String shownServer(boolean showServer) {
+        return state == State.MULTIPLAYER && showServer && !server.isEmpty() ? server : null;
+    }
+
     private static String text(JsonObject o, String key) {
         String t = DiscordPresence.text(o, key);
         return t == null ? "" : t;

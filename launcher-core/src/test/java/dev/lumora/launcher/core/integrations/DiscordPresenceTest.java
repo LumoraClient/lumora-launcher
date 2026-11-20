@@ -141,6 +141,28 @@ class DiscordPresenceTest {
     }
 
     @Test
+    void logoAndSmallPictureAsLinks() {
+        JsonObject plain = JsonParser.parseString(DiscordPresence.activityCommand(new DiscordPresence.Activity("a", "b", 0)))
+                .getAsJsonObject().getAsJsonObject("args").getAsJsonObject("activity").getAsJsonObject("assets");
+        assertEquals(PresenceImages.LOGO, plain.get("large_image").getAsString());
+        assertFalse(plain.has("small_image"), "no small picture without one");
+
+        String head = PresenceImages.head("d887a8e3-0f1d-4c81-930e-373c77a1aff3");
+        assertEquals("https://mc-heads.net/avatar/d887a8e30f1d4c81930e373c77a1aff3/128", head);
+        JsonObject assets = JsonParser.parseString(DiscordPresence.activityCommand(
+                        new DiscordPresence.Activity("a", "b", 0).withSmall(head, "Signed in as Steve")))
+                .getAsJsonObject().getAsJsonObject("args").getAsJsonObject("activity").getAsJsonObject("assets");
+        assertEquals(head, assets.get("small_image").getAsString());
+        assertEquals("Signed in as Steve", assets.get("small_text").getAsString());
+
+        assertEquals("https://api.mcsrvstat.us/icon/eineip.de:25566", PresenceImages.server("eineip.de:25566"));
+        assertEquals(null, PresenceImages.server("evil.de/../x"), "only clean addresses");
+        assertEquals(null, PresenceImages.server(""));
+        assertEquals(null, PresenceImages.head("not-a-uuid"));
+        assertEquals(null, PresenceImages.head(null));
+    }
+
+    @Test
     void frameLayout() {
         byte[] f = DiscordPresence.encode(1, "{}");
         ByteBuffer b = ByteBuffer.wrap(f).order(ByteOrder.LITTLE_ENDIAN);

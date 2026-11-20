@@ -25,6 +25,10 @@ class GameStatusTest {
         assertEquals(1_800_000_100L, a.startEpochSeconds());
         // server hidden in the settings
         assertEquals("Multiplayer", s.activity("Lumora", "26.3", 1, false).state());
+        // the server icon only with the server shown
+        assertEquals("eineip.de", s.shownServer(true));
+        assertEquals(null, s.shownServer(false));
+        assertEquals(null, new GameStatus(GameStatus.State.MENU, "", 0, "26.3").shownServer(true));
     }
 
     @Test

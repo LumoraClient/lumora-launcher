@@ -930,7 +930,21 @@ final class LauncherWindow implements PageHost {
             lastGameStatus = null;
             a = new dev.lumora.launcher.core.integrations.DiscordPresence.Activity(Lang.t("discord.in_launcher"), "Lumora " + BuildInfo.VERSION, launcherStarted);
         }
-        discord.update(a);
+        discord.update(withSmallPicture(a));
+    }
+
+    /** Small picture: the server's icon on a server (if the server may be shown), else the head of the signed-in account. */
+    private dev.lumora.launcher.core.integrations.DiscordPresence.Activity withSmallPicture(dev.lumora.launcher.core.integrations.DiscordPresence.Activity a) {
+        String server = lastGameStatus == null ? null : lastGameStatus.shownServer(ctx.config.discordShowServer);
+        if (server != null) {
+            return a.withSmall(dev.lumora.launcher.core.integrations.PresenceImages.server(server), server);
+        }
+        MinecraftSession s = ctx.play.storedSession();
+        if (s == null) {
+            return a;
+        }
+        String head = dev.lumora.launcher.core.integrations.PresenceImages.head(s.uuid());
+        return head == null ? a : a.withSmall(head, Lang.t("discord.signed_in", s.username()));
     }
 
     private static dev.lumora.launcher.core.integrations.GameStatus gameStatus(dev.lumora.launcher.core.launch.GameProcess game) {
@@ -1096,6 +1110,7 @@ final class LauncherWindow implements PageHost {
             accountHint.setText(Lang.t("account.sign_in_microsoft"));
             avatar.setPlayer(null, null);
         }
+        updateDiscord(); // the account head in Discord
         if (social != null) {
             social.apply(); // new account: reconnect; same account after a new sign-in: retry a rejected login
         }

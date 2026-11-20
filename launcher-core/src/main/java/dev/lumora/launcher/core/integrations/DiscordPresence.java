@@ -24,7 +24,8 @@ import java.util.concurrent.Executors;
  * Discord Rich Presence over the local Discord app's IPC socket (named pipe {@code \\.\pipe\discord-ipc-N} on Windows,
  * Unix socket {@code discord-ipc-N} elsewhere), the protocol Discord documents for its Game SDK / RPC:
  * frames of {@code [opcode int32 LE][length int32 LE][JSON]}, opcode 0 = handshake, 1 = command.
- * Uses Lumora's own Discord application ID (AppIds, always on); nothing leaves the computer except to the local Discord app. Errors
+ * Uses Lumora's own Discord application ID (AppIds, always on); the launcher talks only to the local Discord app, which
+ * loads the pictures (public links, PresenceImages) itself. Errors
  * (Discord not running) are logged once and never reach the UI.
  */
 public final class DiscordPresence implements Closeable {
@@ -40,8 +41,19 @@ public final class DiscordPresence implements Closeable {
         byte[] read(int n) throws IOException;
     }
 
-    /** What the presence shows. */
-    public record Activity(String details, String state, long startEpochSeconds) {
+    /**
+     * What the presence shows: two lines, since when, and the small picture at the corner of the Lumora logo with its
+     * hover text (null: none).
+     */
+    public record Activity(String details, String state, long startEpochSeconds, String smallImage, String smallText) {
+        public Activity(String details, String state, long startEpochSeconds) {
+            this(details, state, startEpochSeconds, null, null);
+        }
+
+        /** The same activity with this small picture. */
+        public Activity withSmall(String image, String text) {
+            return new Activity(details, state, startEpochSeconds, image, text);
+        }
     }
 
     private final ExecutorService io = Executors.newSingleThreadExecutor(r -> {
@@ -179,10 +191,16 @@ public final class DiscordPresence implements Closeable {
                 ts.addProperty("start", a.startEpochSeconds());
                 act.add("timestamps", ts);
             }
-            // shown if the Discord application has an art asset named "lumora"
+            // picture links, Discord loads them through its media proxy (PresenceImages)
             JsonObject assets = new JsonObject();
-            assets.addProperty("large_image", "lumora");
+            assets.addProperty("large_image", PresenceImages.LOGO);
             assets.addProperty("large_text", "Lumora Client");
+            if (a.smallImage() != null && !a.smallImage().isBlank()) {
+                assets.addProperty("small_image", a.smallImage());
+                if (a.smallText() != null && !a.smallText().isBlank()) {
+                    assets.addProperty("small_text", limit(a.smallText()));
+                }
+            }
             act.add("assets", assets);
             args.add("activity", act);
         }

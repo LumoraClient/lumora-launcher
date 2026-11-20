@@ -656,7 +656,7 @@
   "settings.game.env.title": "Environment variables",
   "settings.game.fullscreen.desc": "Always start Minecraft in fullscreen. When off, your in-game choice is kept.",
   "settings.game.fullscreen.title": "Force fullscreen",
-  "settings.game.instances.desc": "Start several Minecraft versions at the same time. Each version (Lumora, vanilla) still runs only once.",
+  "settings.game.instances.desc": "Start Minecraft several times at the same time, also the same version (up to 8 runs per version, e.g. with two accounts). The runs share the version's settings and worlds.",
   "settings.game.instances.title": "Multiple instances",
   "settings.game.java.choose": "Choose java.exe or javaw.exe",
   "settings.game.java.desc": "Path to your own Java installation instead of Mojang's official runtime. Only change this if you know what you are doing.",

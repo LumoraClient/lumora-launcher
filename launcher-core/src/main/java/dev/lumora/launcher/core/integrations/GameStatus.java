@@ -22,7 +22,12 @@ public record GameStatus(State state, String server, long since, String version)
 
     /** The status file of an instance (its own folder, InstanceLayout#versionDir). */
     public static Path file(Path versionDir) {
-        return versionDir.resolve(".lumora").resolve("status.json");
+        return file(versionDir, "");
+    }
+
+    /** The status file of one run ({@code suffix} "" for the first, "-2" etc. for further runs of the same profile). */
+    public static Path file(Path versionDir, String suffix) {
+        return versionDir.resolve(".lumora").resolve("status" + suffix + ".json");
     }
 
     /** The last status the game wrote, empty if there is none (yet) or it cannot be read. */

@@ -67,7 +67,7 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
    standardmäßig **im Browser** (OAuth 2.0 Authorization Code + PKCE S256, Weiterleitung auf `http://localhost:<zufälliger Port>`,
    nur Loopback, `state`-Prüfung, `LoopbackReceiver`). Auf Wunsch per **Device Code** („Mit Code anmelden“).
 3. **LAUNCHING**: `LaunchCommandBuilder` erzeugt den Befehl aus den Argument-Templates der Versions-JSON (Regeln, Features, Platzhalter).
-4. **PLAYING**: `GameProcess` hält eine Dateisperre auf der Instanz (kein Doppelstart), schreibt die Spielausgabe geschwärzt nach `logs/lumora-game-output.log` und erkennt bei Absturz den Crash-Report. `CrashAnalyzer` liefert Hinweise, etwa zu Speichermangel oder inkompatiblen Mods.
+4. **PLAYING**: `GameProcess` hält eine Dateisperre auf der Instanz (ohne „Mehrere Instanzen“ kein Doppelstart; mit der Einstellung nimmt jeder weitere Lauf desselben Profils die nächste Sperre `.lumora-running-2.lock` usw., höchstens 8, mit eigener Ausgabe `lumora-game-output-2.log` und Statusdatei `status-2.json`; Native-Dateien, die ein laufendes Spiel geladen hat, bleiben dann liegen, wenn sie gleich sind), schreibt die Spielausgabe geschwärzt nach `logs/lumora-game-output.log` und erkennt bei Absturz den Crash-Report. `CrashAnalyzer` liefert Hinweise, etwa zu Speichermangel oder inkompatiblen Mods.
 
 ## Startarten
 

@@ -22,12 +22,81 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * A running Minecraft process. Holds an exclusive file lock on the instance directory while the
- * game runs, so the same profile cannot be started twice (also across launcher instances).
+ * A running Minecraft process. Holds an exclusive file lock on the instance directory while the game runs (a
+ * {@link Slot}): without "multiple instances" the same profile cannot be started twice (also across launcher
+ * instances); with it, every further run of the profile takes the next slot and writes its own output log.
  */
 public final class GameProcess {
     public static final String LOCK_FILE = ".lumora-running.lock";
     public static final String OUTPUT_LOG = "logs/lumora-game-output.log";
+    /** Runs of one profile at the same time with "multiple instances". */
+    public static final int MAX_SLOTS = 8;
+
+    /**
+     * One run's lock in an instance folder: run 1 holds {@code .lumora-running.lock}, run n
+     * {@code .lumora-running-n.lock}. Its {@link #suffix()} names the run's own files (output log, status file).
+     */
+    public static final class Slot implements java.io.Closeable {
+        private final int number;
+        private final FileChannel channel;
+        private final FileLock lock;
+
+        private Slot(int number, FileChannel channel, FileLock lock) {
+            this.number = number;
+            this.channel = channel;
+            this.lock = lock;
+        }
+
+        /** 1 for the first run, 2.. for further runs of the same profile. */
+        public int number() {
+            return number;
+        }
+
+        /** "" for the first run, "-2", "-3", .. for further runs. */
+        public String suffix() {
+            return number == 1 ? "" : "-" + number;
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                lock.release();
+            } finally {
+                channel.close();
+            }
+        }
+    }
+
+    /**
+     * Locks the first free slot of the instance folder.
+     *
+     * @param multiple "multiple instances": further runs take the next slot; else only slot 1
+     * @throws AlreadyRunningException if no slot is free
+     */
+    public static Slot lock(Path gameDir, String profileId, boolean multiple) throws IOException {
+        Files.createDirectories(gameDir);
+        int max = multiple ? MAX_SLOTS : 1;
+        for (int n = 1; n <= max; n++) {
+            FileChannel ch = FileChannel.open(gameDir.resolve(n == 1 ? LOCK_FILE : ".lumora-running-" + n + ".lock"),
+                    StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            FileLock l;
+            try {
+                l = ch.tryLock();
+            } catch (OverlappingFileLockException e) {
+                l = null;
+            }
+            if (l != null) {
+                return new Slot(n, ch, l);
+            }
+            ch.close();
+        }
+        throw new AlreadyRunningException(profileId);
+    }
+
+    /** The output log of the run in {@code slot} ({@link #OUTPUT_LOG}, "-2" etc. for further runs). */
+    public static String outputLog(Slot slot) {
+        return OUTPUT_LOG.replace(".log", slot.suffix() + ".log");
+    }
 
     public record Exit(int code, Optional<Path> crashReport, Path outputLog) {
         public boolean crashed() {
@@ -76,19 +145,23 @@ public final class GameProcess {
     /** @param environment extra environment variables for the game process (KEY -> value) */
     public static GameProcess start(List<String> command, Path gameDir, String profileId, java.util.Map<String, String> environment,
                                     Consumer<String> outputListener) throws IOException {
-        Files.createDirectories(gameDir.resolve("logs"));
-        FileChannel lockChannel = FileChannel.open(gameDir.resolve(LOCK_FILE), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-        FileLock lock;
+        return start(command, gameDir, lock(gameDir, profileId, false), environment, outputListener);
+    }
+
+    /**
+     * Starts the game in a slot locked with {@link #lock}; the process owns the slot from now on and releases it when
+     * it ends (or right away if it cannot start).
+     */
+    public static GameProcess start(List<String> command, Path gameDir, Slot slot, java.util.Map<String, String> environment,
+                                    Consumer<String> outputListener) throws IOException {
         try {
-            lock = lockChannel.tryLock();
-        } catch (OverlappingFileLockException e) {
-            lock = null;
+            Files.createDirectories(gameDir.resolve("logs"));
+        } catch (IOException e) {
+            slot.close();
+            throw e;
         }
-        if (lock == null) {
-            lockChannel.close();
-            throw new AlreadyRunningException(profileId);
-        }
-        Log.info("Launching: " + String.join(" ", Redactor.redactCommand(command)));
+        Log.info("Launching" + (slot.number() > 1 ? " (run " + slot.number() + ")" : "") + ": "
+                + String.join(" ", Redactor.redactCommand(command)));
         long startedAt = System.currentTimeMillis();
         Process p;
         try {
@@ -96,12 +169,10 @@ public final class GameProcess {
             pb.environment().putAll(environment);
             p = pb.start();
         } catch (IOException e) {
-            lock.release();
-            lockChannel.close();
+            slot.close();
             throw new IOException(Lang.t("play.error.java_start", e.getMessage()), e);
         }
-        Path outputLog = gameDir.resolve(OUTPUT_LOG);
-        FileLock heldLock = lock;
+        Path outputLog = gameDir.resolve(outputLog(slot));
         CompletableFuture<Exit> exit = new CompletableFuture<>();
         Thread pump = new Thread(() -> {
             try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
@@ -127,8 +198,7 @@ public final class GameProcess {
                 code = -1;
             }
             try {
-                heldLock.release();
-                lockChannel.close();
+                slot.close();
             } catch (IOException ignored) {
                 // lock is released by the OS when the channel is gone anyway
             }

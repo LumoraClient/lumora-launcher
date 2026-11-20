@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -57,7 +56,8 @@ public final class PlayService {
     private final ClientInstaller installer;
     private final AccountStore sessions;
     private final OsInfo os;
-    private final AtomicReference<GameProcess> running = new AtomicReference<>();
+    /** Running games, the newest last (several with "multiple instances"). */
+    private final java.util.List<GameProcess> running = new java.util.concurrent.CopyOnWriteArrayList<>();
     private volatile State state = State.IDLE;
     private final dev.lumora.launcher.core.stats.PlayStats stats;
 
@@ -91,8 +91,20 @@ public final class PlayService {
         return state;
     }
 
+    /** The newest running game. */
     public Optional<GameProcess> runningGame() {
-        return Optional.ofNullable(running.get()).filter(GameProcess::isAlive);
+        for (int i = running.size() - 1; i >= 0; i--) {
+            GameProcess g = running.get(i);
+            if (g.isAlive()) {
+                return Optional.of(g);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** All running games, the newest last. */
+    public java.util.List<GameProcess> runningGames() {
+        return running.stream().filter(GameProcess::isAlive).toList();
     }
 
     /** Lumora's built-in Azure application ID (see AppIds). */
@@ -128,9 +140,12 @@ public final class PlayService {
         if (runningGame().isPresent() && !config.multipleInstances) {
             throw new GameProcess.AlreadyRunningException(instanceId);
         }
+        GameProcess.Slot slot = null; // until the game process owns it
         try {
             setState(listener, State.INSTALLING, Lang.t("play.status.checking"));
             ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
+            // this run's lock in the instance folder (with "multiple instances" the next free one)
+            slot = GameProcess.lock(prepared.gameDir(), instanceId, config.multipleInstances);
             try {
                 // render backend of 26.2+ (Einstellungen › Spiel › Grafik-Backend; "default" leaves options.txt alone)
                 dev.lumora.launcher.core.launch.GraphicsBackend.apply(prepared.gameDir(), profile.minecraftVersion, config.graphicsBackend);
@@ -166,7 +181,7 @@ public final class PlayService {
             }
             sysProps.add("-Dlumora.diagnosticsDir=" + paths.diagnostics().toAbsolutePath());
             // the game reports menu / singleplayer / server there (Discord Rich Presence); a stale file of the last run goes first
-            Path statusFile = dev.lumora.launcher.core.integrations.GameStatus.file(prepared.layout().versionDir());
+            Path statusFile = dev.lumora.launcher.core.integrations.GameStatus.file(prepared.layout().versionDir(), slot.suffix());
             java.nio.file.Files.deleteIfExists(statusFile);
             sysProps.add("-Dlumora.statusFile=" + statusFile.toAbsolutePath());
             if (mode == Mode.SMOKE_TEST_DEMO && smokeReport != null) {
@@ -189,7 +204,7 @@ public final class PlayService {
             cmd.addAll(dev.lumora.launcher.core.launch.LaunchOptions.gameArgs(config));
             String player = identity.username();
             boolean track = mode != Mode.SMOKE_TEST_DEMO;
-            GameProcess game = GameProcess.start(cmd, prepared.gameDir(), instanceId,
+            GameProcess game = GameProcess.start(cmd, prepared.gameDir(), slot,
                     dev.lumora.launcher.core.launch.LaunchOptions.environment(config), line -> {
                         listener.gameOutput(line);
                         String server = track ? dev.lumora.launcher.core.history.ConnectionHistory.serverFromLog(line) : null;
@@ -197,12 +212,13 @@ public final class PlayService {
                             history.recordServer(server, player, instanceId, Instant.now());
                         }
                     });
+            slot = null; // the game process releases it when it ends
             java.time.Instant started = java.time.Instant.now();
             game.statusFile(statusFile);
-            running.set(game);
+            running.add(game);
             setState(listener, State.PLAYING, Lang.t("play.status.running", game.pid()));
             game.onExit().thenAccept(original -> {
-                running.compareAndSet(game, null);
+                running.remove(game);
                 GameProcess.Exit exit = original;
                 if (original.crashed() && original.crashReport().isEmpty()) {
                     // no crash report from Minecraft: keep the end of the output so the crash page can show it
@@ -221,6 +237,9 @@ public final class PlayService {
                         ? CrashAnalyzer.analyze(exit.outputLog(), exit.crashReport()) : List.of();
                 if (exit.crashed()) {
                     setState(listener, State.ERROR, Lang.t("play.status.exit_code", exit.code()));
+                } else if (runningGame().isPresent()) {
+                    // another run of "multiple instances" still plays
+                    setState(listener, State.PLAYING, Lang.t("play.status.running", runningGame().get().pid()));
                 } else {
                     setState(listener, State.IDLE, Lang.t("status.ready"));
                 }
@@ -228,6 +247,13 @@ public final class PlayService {
             });
             return game;
         } catch (IOException | AuthException | RuntimeException e) {
+            if (slot != null) {
+                try {
+                    slot.close();
+                } catch (IOException ignored) {
+                    // the OS releases it with the channel anyway
+                }
+            }
             setState(listener, State.ERROR, e.getMessage());
             throw e;
         }

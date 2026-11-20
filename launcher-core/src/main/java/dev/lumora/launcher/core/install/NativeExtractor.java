@@ -16,7 +16,8 @@ import java.util.zip.ZipInputStream;
 
 /**
  * Extracts native jars (LWJGL, jinput, ... up to Minecraft 1.18.2) into the profile's natives directory, the way
- * the official launcher does: the directory is emptied first, {@code extract.exclude} prefixes (META-INF/) are
+ * the official launcher does: the directory is emptied first (files a running game of the profile holds stay if they
+ * are identical, for "multiple instances"), {@code extract.exclude} prefixes (META-INF/) are
  * skipped, and every entry path is checked so a jar cannot write outside the directory.
  */
 public final class NativeExtractor {
@@ -27,8 +28,16 @@ public final class NativeExtractor {
         if (natives.isEmpty()) {
             return;
         }
-        clear(target);
+        boolean inUse = false;
+        try {
+            clear(target);
+        } catch (java.nio.file.FileSystemException e) {
+            // a running game of this profile ("multiple instances") has these libraries loaded: identical files stay
+            inUse = true;
+            Log.info("Natives in use by a running game, keeping identical files: " + e.getFile());
+        }
         int files = 0;
+        int kept = 0;
         for (ResolvedVersion.NativeLibrary n : natives) {
             Path jar = FileUtil.resolveInside(librariesDir, n.path());
             try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(jar))) {
@@ -39,12 +48,22 @@ public final class NativeExtractor {
                     }
                     Path out = FileUtil.resolveInside(target, e.getName());
                     Files.createDirectories(out.getParent());
-                    copy(zip, out);
+                    if (inUse && Files.isRegularFile(out)) {
+                        byte[] data = zip.readAllBytes();
+                        if (java.util.Arrays.equals(data, Files.readAllBytes(out))) {
+                            kept++;
+                            continue;
+                        }
+                        copy(new java.io.ByteArrayInputStream(data), out);
+                    } else {
+                        copy(zip, out);
+                    }
                     files++;
                 }
             }
         }
-        Log.info("Extracted " + files + " native files from " + natives.size() + " jars into " + target);
+        Log.info("Extracted " + files + " native files from " + natives.size() + " jars into " + target
+                + (kept > 0 ? " (" + kept + " in use kept)" : ""));
     }
 
     static boolean excluded(String name, List<String> excludes) {

@@ -110,6 +110,8 @@ public final class SocialClient implements AutoCloseable {
     private final Set<String> historyLoading = new HashSet<>();
     private final Map<String, Pending> pending = new LinkedHashMap<>();
     private Presence presence;
+    /** Own shared status lines by key: text and scope; sent again after every login. */
+    private final Map<String, String[]> statuses = new LinkedHashMap<>();
     private String focused;
 
     // connection
@@ -485,6 +487,7 @@ public final class SocialClient implements AutoCloseable {
         List<Pending> resend;
         Presence p;
         String focus;
+        Map<String, String[]> ownStatuses;
         synchronized (this) {
             self = me;
             friends.clear();
@@ -509,9 +512,11 @@ public final class SocialClient implements AutoCloseable {
             resend = new ArrayList<>(pending.values());
             p = presence;
             focus = focused;
+            ownStatuses = new LinkedHashMap<>(statuses);
         }
         setStatus(Status.ONLINE, "");
         sendRaw(Js.op("presence").put("presence", p.json()).toString());
+        ownStatuses.forEach((key, st) -> sendRaw(statusOp(key, st[0], st[1]).toString()));
         for (Pending m : resend) {
             sendPending(m);
         }
@@ -671,6 +676,59 @@ public final class SocialClient implements AutoCloseable {
     /** Removes a member or withdraws an invitation (leader only). */
     public CompletableFuture<Void> kickFromParty(String uuid) {
         return action(Js.op("party.kick").put("uuid", uuid));
+    }
+
+    /**
+     * A short status line under {@code key} (an addon id) that other Lumora players see at this player's name, e.g. the
+     * song: {@code scope} "all", "friends" or "none"; empty text or "none" clears it. Sent now if connected and again
+     * after every login; the server forgets it when the connection ends.
+     */
+    public void setSharedStatus(String key, String text, String scope) {
+        String k = Rules.statusKey(key);
+        if (k == null) {
+            throw new IllegalArgumentException("status key: " + key);
+        }
+        String t = Rules.clean(text, Rules.STATUS_MAX, false);
+        String s = Rules.statusScope(scope);
+        boolean clear = t.isEmpty() || s.equals("none");
+        synchronized (this) {
+            String[] old = statuses.get(k);
+            if (clear ? old == null : old != null && old[0].equals(t) && old[1].equals(s)) {
+                return;
+            }
+            if (clear) {
+                statuses.remove(k);
+            } else {
+                statuses.put(k, new String[]{t, s});
+            }
+        }
+        if (status() == Status.ONLINE) {
+            sendRaw(statusOp(k, clear ? "" : t, s).toString());
+        }
+    }
+
+    private static Js.Obj statusOp(String key, String text, String scope) {
+        return Js.op("status.set").put("key", key).put("text", text).put("scope", scope);
+    }
+
+    /**
+     * The status lines under {@code key} of these players (UUIDs without dashes, at most {@link Rules#STATUS_LOOKUP_MAX})
+     * that this player may see; players without one (or not on Lumora) are missing from the map.
+     */
+    public CompletableFuture<Map<String, String>> sharedStatuses(String key, java.util.Collection<String> uuids) {
+        com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+        uuids.stream().map(Rules::uuid).filter(java.util.Objects::nonNull).distinct().limit(Rules.STATUS_LOOKUP_MAX).forEach(u -> a.add(Js.prim(u)));
+        return call(Js.op("status.get").put("key", key).put("uuids", a)).thenApply(r -> {
+            Map<String, String> m = new HashMap<>();
+            JsonObject found = Js.obj(r, "statuses");
+            for (Map.Entry<String, com.google.gson.JsonElement> e : found == null ? java.util.Set.<Map.Entry<String, com.google.gson.JsonElement>>of() : found.entrySet()) {
+                String u = Rules.uuid(e.getKey());
+                if (u != null && e.getValue().isJsonPrimitive()) {
+                    m.put(u, Rules.clean(e.getValue().getAsString(), Rules.STATUS_MAX, false));
+                }
+            }
+            return m;
+        });
     }
 
     /** What the server tells about a player (UUID): Lumora user, friendship, shared groups, party. */

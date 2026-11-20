@@ -132,6 +132,10 @@ java -jar lumora-social-server.jar --tls-keystore server.p12 --port 443
 - Die Spielansicht ist versionsunabhängig (`lumora-core`, `dev.lumora.core.social.SocialView`). Sie zeichnet mit der
   `HudGraphics`-Schicht der Lumora-API. Pro Minecraft-Version gibt es nur einen kleinen Adapter
   (`client/mc<version>/…/gui/SocialScreen.java`).
+- Geteilte Statuszeilen (seit Lumora-API 1.13, z. B. der Song des Spotify-Addons unter dem Namen): `status.set` legt je
+  Addon eine Zeile mit Sichtbarkeit `all`, `friends` oder `none` ab, nur solange die Verbindung besteht (nichts wird
+  gespeichert); `status.get` fragt bis zu 100 Spieler auf einmal ab und bekommt nur die Zeilen, die der Fragende sehen
+  darf. Höchstens 96 Zeichen, Formatierungscodes werden entfernt, 30 Änderungen und 120 Abfragen pro Minute.
 - Skins: Die Köpfe kommen aus dem offiziellen Mojang-Profil (`sessionserver.mojang.com` → `textures.minecraft.net`),
   dabei wird nur die öffentliche UUID gesendet. Im Spiel werden die 8×8 Pixel als Rechtecke gezeichnet, ohne Textur-API.
 
@@ -140,7 +144,7 @@ Protokoll (JSON-Textnachrichten, Feld `op`; Anfragen mit `rid` werden mit `ok`/`
 | Richtung | Nachrichten |
 |---|---|
 | Anmeldung | `hello` (Protokoll, Profil) → `challenge` (Server-ID) → `login` → `welcome` (Freunde, Anfragen, Gruppen, Unterhaltungen) oder `rejected` |
-| Client → Server | `presence`, `friend.request/accept/decline/remove`, `group.create/update/delete/add/kick/leave`, `group.role.save/delete`, `group.member.role`, `conv.mute`, `msg.send/history/read` |
+| Client → Server | `presence`, `status.set`, `status.get`, `friend.request/accept/decline/remove`, `group.create/update/delete/add/kick/leave`, `group.role.save/delete`, `group.member.role`, `conv.mute`, `msg.send/history/read` |
 | Server → Client | `friends`, `requests`, `presence`, `group`, `group.removed`, `conv` (Ungelesen, Lesestand), `msg`, `history`, `notice` |
 
 ## 6. Tests
@@ -148,7 +152,7 @@ Protokoll (JSON-Textnachrichten, Feld `op`; Anfragen mit `rid` werden mit `ok`/`
 - `lumora-social`: Textbereinigung, Adressen (TLS-Pflicht außerhalb des LAN), Konversations-IDs, JSON-Rundreise.
 - `lumora-social-server`: echter Server und echte Clients über WebSocket. Freunde, Status, Direktnachrichten mit
   Lesebestätigung, Gruppen, Rollen und Rechte, 60 Nachrichten mit Nachladen, Stummschalten, Owner-Übergabe,
-  Neustart mit gespeicherten Daten, gleiches Konto in Launcher und Spiel, `/health`, Müll-Anfragen,
+  Neustart mit gespeicherten Daten, gleiches Konto in Launcher und Spiel, geteilte Statuszeilen je Sichtbarkeit, `/health`, Müll-Anfragen,
   `--dev-auth` nur auf Loopback.
 - Im Spiel: `.t/social-smoke.sh` startet einen Testserver mit Bots. Der Smoke-Test jeder Version schickt eine
   Freundschaftsanfrage, öffnet den Gruppenchat, sendet eine Nachricht und prüft Zustellung und Antwort

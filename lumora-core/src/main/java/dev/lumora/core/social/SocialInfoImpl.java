@@ -15,10 +15,23 @@ import java.util.function.Supplier;
 public final class SocialInfoImpl implements SocialInfo {
     private final Supplier<LumoraSocial> social;
     private final Runnable guard;
+    private final String addonId;
+    private final java.util.function.Consumer<Runnable> onDisable;
+    private volatile boolean sharing;
 
     public SocialInfoImpl(Supplier<LumoraSocial> social, Runnable guard) {
+        this(social, guard, null, r -> { });
+    }
+
+    /**
+     * @param addonId   key of the addon's shared status line (null: the addon cannot share one)
+     * @param onDisable runs the given clean-up when the addon is disabled (clears the shared line)
+     */
+    public SocialInfoImpl(Supplier<LumoraSocial> social, Runnable guard, String addonId, java.util.function.Consumer<Runnable> onDisable) {
         this.social = social;
         this.guard = guard;
+        this.addonId = addonId;
+        this.onDisable = onDisable;
     }
 
     private SocialClient client() {
@@ -70,6 +83,36 @@ public final class SocialInfoImpl implements SocialInfo {
     public boolean isFriend(UUID player) {
         SocialClient c = client();
         return c != null && player != null && c.friend(hex(player)) != null;
+    }
+
+    @Override
+    public void shareStatus(String text, StatusScope scope) {
+        guard.run();
+        LumoraSocial s = social.get();
+        SocialClient c = s == null ? null : s.client(); // also while offline: sent after the next login
+        if (c == null || addonId == null) {
+            return;
+        }
+        String sc = scope == null ? "none" : scope.name().toLowerCase(Locale.ROOT);
+        String t = text == null ? "" : text;
+        c.setSharedStatus(addonId, t, sc);
+        if (!sharing && !t.isBlank() && !sc.equals("none")) {
+            sharing = true;
+            onDisable.accept(() -> {
+                sharing = false;
+                c.setSharedStatus(addonId, "", "none");
+            });
+        }
+    }
+
+    @Override
+    public Optional<String> sharedStatus(UUID player) {
+        guard.run();
+        LumoraSocial s = social.get();
+        if (s == null || s.client() == null || addonId == null || player == null) {
+            return Optional.empty();
+        }
+        return s.statuses().get(addonId, hex(player), System.currentTimeMillis());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package dev.lumora.social.server;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.lumora.social.Conv;
 import dev.lumora.social.Js;
@@ -140,6 +141,8 @@ final class Hub implements WsServer.Handler {
         volatile Profile profile;
         String kind = "game";
         Presence presence = Presence.OFFLINE;
+        /** Shared status lines of this session by key (addon id): text and scope; gone with the connection. */
+        final Map<String, String[]> statuses = new HashMap<>();
         boolean verifying;
 
         Client(WsServer.Conn conn) {
@@ -503,6 +506,25 @@ final class Hub implements WsServer.Handler {
         q.addLast(now);
     }
 
+    private static String statusKeyArg(JsonObject o) {
+        String k = Rules.statusKey(Js.str(o, "key", null));
+        if (k == null) {
+            throw new Refusal("Ungültiger Status");
+        }
+        return k;
+    }
+
+    /** The status line {@code viewer} may see of {@code player} (any of the player's sessions), null if none. */
+    private String visibleStatus(String viewer, String player, String key) {
+        for (Client s : online.getOrDefault(player, List.of())) {
+            String[] st = s.statuses.get(key);
+            if (st != null && (st[1].equals("all") || player.equals(viewer) || st[1].equals("friends") && friends(viewer, player))) {
+                return st[0];
+            }
+        }
+        return null;
+    }
+
     private static String uuidArg(JsonObject o) {
         String u = Rules.uuid(Js.str(o, "uuid", null));
         if (u == null) {
@@ -541,6 +563,39 @@ final class Hub implements WsServer.Handler {
                 c.presence = p;
                 presenceChanged(me, before);
                 return;
+            }
+            case "status.set" -> {
+                // a short line an addon shows at the player's name (e.g. the song), only kept while connected
+                limit(me + ":status", 30, 60_000, "Zu viele Statusänderungen, bitte kurz warten.");
+                String key = statusKeyArg(o);
+                String text = Rules.clean(Js.str(o, "text", ""), Rules.STATUS_MAX, false);
+                String scope = Rules.statusScope(Js.str(o, "scope", ""));
+                if (text.isEmpty() || scope.equals("none")) {
+                    c.statuses.remove(key);
+                } else {
+                    c.statuses.put(key, new String[]{text, scope});
+                }
+            }
+            case "status.get" -> {
+                // the lines of players the asker sees in the game: scope "all" for everyone, "friends" for friends
+                limit(me + ":statusget", 120, 60_000, "Zu viele Abfragen, bitte kurz warten.");
+                String key = statusKeyArg(o);
+                JsonObject found = new JsonObject();
+                JsonElement asked = o.get("uuids");
+                if (asked != null && asked.isJsonArray()) {
+                    int n = 0;
+                    for (JsonElement e : asked.getAsJsonArray()) {
+                        if (n++ >= Rules.STATUS_LOOKUP_MAX) {
+                            break;
+                        }
+                        String other = e.isJsonPrimitive() ? Rules.uuid(e.getAsString()) : null;
+                        String text = other == null ? null : visibleStatus(me, other, key);
+                        if (text != null) {
+                            found.addProperty(other, text);
+                        }
+                    }
+                }
+                reply = Js.op("ok").put("rid", rid).put("statuses", found).json();
             }
             case "friend.request" -> {
                 limit(me + ":friend", 10, 60_000, "Zu viele Freundschaftsanfragen, bitte kurz warten.");

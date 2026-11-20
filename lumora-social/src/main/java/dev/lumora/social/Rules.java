@@ -23,6 +23,13 @@ public final class Rules {
     /** Members of a party, the leader and open invitations included. */
     public static final int PARTY_MAX = 8;
     public static final int PRESENCE_DETAIL_MAX = 64;
+    /** A shared status line (e.g. the song an addon shows under the name), in code points. */
+    public static final int STATUS_MAX = 96;
+    /** Players asked for in one status lookup. */
+    public static final int STATUS_LOOKUP_MAX = 100;
+    /** Who sees a shared status: every Lumora player, only friends, nobody (cleared). */
+    public static final List<String> STATUS_SCOPES = List.of("all", "friends", "none");
+    private static final Pattern STATUS_KEY = Pattern.compile("[a-z0-9_.-]{1,64}");
     public static final int HISTORY_PAGE = 50;
     /** Messages kept per conversation on the server. */
     public static final int HISTORY_KEPT = 1000;
@@ -109,6 +116,16 @@ public final class Rules {
         }
         String u = s.replace("-", "").toLowerCase(Locale.ROOT);
         return UUID.matcher(u).matches() ? u : null;
+    }
+
+    /** The key of a shared status (an addon id), or null if it is not one. */
+    public static String statusKey(String s) {
+        return s != null && STATUS_KEY.matcher(s).matches() ? s : null;
+    }
+
+    /** A known status scope, "none" for anything else. */
+    public static String statusScope(String s) {
+        return STATUS_SCOPES.contains(s) ? s : "none";
     }
 
     public static String icon(String key) {

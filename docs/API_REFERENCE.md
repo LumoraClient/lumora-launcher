@@ -1,10 +1,17 @@
-# Lumora-API – Referenz (Version 1.9.0)
+# Lumora-API – Referenz (Version 1.13.0)
 
-Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.9.0`, reines Java 21, keine Abhängigkeiten, keine
+Modul `lumora-api` (Artefakt `dev.lumora:lumora-api:1.13.0`, reines Java 21, keine Abhängigkeiten, keine
 Minecraft-Klassen). Die Implementierung steckt in `lumora-core` und den Minecraft-Adaptern unter `client/mc<version>`;
 Addons sprechen nur mit diesen Schnittstellen. Javadoc: `gradlew :lumora-api:javadoc` (→ `lumora-api/build/docs/javadoc`).
 
-**API 1.9.0** (`LumoraAPI.API_VERSION`) bringt Knöpfe und Fenster an der Chat-Eingabe (`Chat.addInputButton` mit
+**API 1.13.0** (`LumoraAPI.API_VERSION`) bringt geteilte Statuszeilen über Lumora Social: `SocialInfo.shareStatus(text, scope)`
+teilt eine kurze Zeile des Addons (z. B. den Song, den ein Musik-Addon spielt) mit allen Lumora-Spielern, nur mit
+Freunden oder niemandem; `SocialInfo.sharedStatus(uuid)` liest die Zeile eines anderen Spielers für dasselbe Addon
+(zwischengespeichert, nie blockierend, passend für `NameTags.Decorator#lines`). Siehe
+[dev.lumora.api.social](#devlumoraapisocial-seit-15). Die Bau-Schnittstellen von 1.10 bis 1.12 beschreibt
+[LUMORA_API_1_10_BUILDING.md](LUMORA_API_1_10_BUILDING.md). Addons für 1.0 bis 1.12 laden unverändert weiter.
+
+**API 1.9.0** brachte Knöpfe und Fenster an der Chat-Eingabe (`Chat.addInputButton` mit
 `ChatInputButton` und `ChatPanel`), Icons in Chatnachrichten für `:name:` (`Chat.addIcons` → `ChatIcons`) und Text in die
 Chat-Eingabe (`Chat.insertText`, `input()`, `closePanel()`) – Lumoras Gegenstück zu LabyMods Chat-Eingabe-Knöpfen und
 `IconComponent`. Das eingebaute Modul *Emoji Chat* nutzt genau diese API. Addons für 1.0 bis 1.8 laden unverändert weiter.
@@ -512,11 +519,11 @@ Zur Schrift gehört `assets/myaddon/font/icons.json` mit
 
 | Typ | Inhalt |
 |---|---|
-| `SocialInfo` (`AddonContext.social()`, Berechtigung `social`) | nur lesen: `connected()`, `self()`, `friends()` (`Friend(id, name, online, status, server)`), `isFriend(uuid)`, `party()` (`Party(leader, members)`, `contains(uuid)`) |
+| `SocialInfo` (`AddonContext.social()`, Berechtigung `social`) | lesen: `connected()`, `self()`, `friends()` (`Friend(id, name, online, status, server)`), `isFriend(uuid)`, `party()` (`Party(leader, members)`, `contains(uuid)`). Seit 1.13: `shareStatus(text, StatusScope.ALL/FRIENDS/NONE)` (eigene Zeile des Addons, höchstens 96 Zeichen, ohne Formatierungscodes; weg, wenn das Addon aus ist oder das Spiel endet) und `sharedStatus(uuid)` (Zeile eines anderen Spielers für dasselbe Addon, falls sichtbar; die erste Abfrage läuft im Hintergrund, danach alle 10 s neu) |
 | `event.social.SocialChangedEvent` | `kind()`: `CONNECTION`, `FRIENDS`, `PARTY` – den neuen Stand aus `SocialInfo` lesen |
 
 Ohne Verbindung zum Lumora-Social-Server sind alle Listen leer. Nachrichten senden oder Freunde ändern kann ein Addon
-nicht.
+nicht; teilen kann es nur seine eigene Statuszeile.
 
 ## dev.lumora.api.resource / i18n / task
 

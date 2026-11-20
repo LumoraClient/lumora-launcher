@@ -68,6 +68,10 @@ class SocialServerTest {
     }
 
     SocialClient connect(Profile p, String kind) {
+        return connect(p, kind, c -> { });
+    }
+
+    SocialClient connect(Profile p, String kind, java.util.function.Consumer<SocialClient> beforeStart) {
         SocialClient c = new SocialClient(URI.create("ws://127.0.0.1:" + server.port() + "/"), new SocialClient.Identity() {
             @Override
             public Profile profile() {
@@ -80,6 +84,7 @@ class SocialServerTest {
             }
         }, kind, "test", new Presence(kind.equals("launcher") ? Presence.State.LAUNCHER : Presence.State.MENU, "", ""));
         clients.add(c);
+        beforeStart.accept(c);
         c.start();
         await(() -> c.status() == SocialClient.Status.ONLINE, "online " + p.name);
         return c;
@@ -300,6 +305,46 @@ class SocialServerTest {
         assertTrue(friend.friend);
         assertNotNull(friend.presence);
         assertTrue(friend.presence.online());
+    }
+
+    static String statusOf(SocialClient asker, Profile p, String key) {
+        try {
+            return get(asker.sharedStatuses(key, List.of(p.uuid, "not a uuid"))).get(p.uuid);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    @Test
+    void sharedStatusLinesFollowTheirScope() throws Exception {
+        startServer();
+        // set before the login: sent with it
+        SocialClient max = connect(MAX, "game", c -> c.setSharedStatus("spotify", "♪ Song §c- Artist", "all"));
+        SocialClient toby = connect(TOBY, "game");
+        SocialClient sarah = connect(SARAH, "game");
+        get(max.addFriend("Toby"));
+        await(() -> toby.incomingRequests() == 1, "request");
+        get(toby.acceptFriend(MAX.uuid));
+        await(() -> max.friend(TOBY.uuid) != null, "friends");
+
+        await(() -> "♪ Song - Artist".equals(statusOf(sarah, MAX, "spotify")), "everyone sees it, without formatting codes");
+        assertEquals(null, statusOf(sarah, MAX, "other-addon"), "per addon");
+        assertEquals("♪ Song - Artist", statusOf(max, MAX, "spotify"), "the own line");
+
+        max.setSharedStatus("spotify", "♪ Song - Artist", "friends");
+        await(() -> statusOf(sarah, MAX, "spotify") == null, "strangers no longer see it");
+        assertEquals("♪ Song - Artist", statusOf(toby, MAX, "spotify"), "friends still do");
+
+        max.setSharedStatus("spotify", "", "all");
+        await(() -> statusOf(toby, MAX, "spotify") == null, "cleared");
+
+        sarah.setSharedStatus("spotify", "x".repeat(200), "all");
+        await(() -> statusOf(max, SARAH, "spotify") != null, "long line");
+        assertEquals(dev.lumora.social.Rules.STATUS_MAX, statusOf(max, SARAH, "spotify").length(), "cut to the limit");
+        sarah.close();
+        await(() -> statusOf(max, SARAH, "spotify") == null, "gone with the connection");
+
+        assertThrows(IllegalArgumentException.class, () -> max.setSharedStatus("Bad Key!", "x", "all"));
     }
 
     @Test

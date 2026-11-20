@@ -50,6 +50,7 @@ public final class LumoraSocial {
     private String viewConv;
     private volatile String openConversation;
     private final Set<String> knownInvites = new HashSet<>();
+    private final SharedStatuses statuses = new SharedStatuses();
 
     private LumoraSocial(LumoraCore core, Platform platform, SocialClient client, String disabledReason, boolean shareServer) {
         this.core = core;
@@ -104,6 +105,11 @@ public final class LumoraSocial {
     /** The client, or null when disabled. */
     public SocialClient client() {
         return client;
+    }
+
+    /** Status lines other players share per addon (SocialInfo#sharedStatus). */
+    public SharedStatuses statuses() {
+        return statuses;
     }
 
     /** Why there is no client (for the screen), else null. */
@@ -166,6 +172,9 @@ public final class LumoraSocial {
         }
         if (++ticks % 20 == 0) {
             client.setPresence(presenceNow());
+        }
+        if (client.status() == SocialClient.Status.ONLINE) {
+            statuses.tick(client::sharedStatuses, System.currentTimeMillis());
         }
         SocialEvent e;
         while ((e = events.poll()) != null) {

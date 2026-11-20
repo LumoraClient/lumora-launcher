@@ -90,7 +90,8 @@ final class AddonContextImpl implements AddonContext {
             requireActive();
             require(AddonPermission.CHAT);
         });
-        this.social = new dev.lumora.core.social.SocialInfoImpl(core::social, () -> require(AddonPermission.SOCIAL));
+        this.social = new dev.lumora.core.social.SocialInfoImpl(core::social, () -> require(AddonPermission.SOCIAL), id,
+                cleanUp -> record.tracker.track(dev.lumora.core.RegistrationTracker.of(cleanUp)));
         this.screens = core.views().scoped(id, record.tracker, () -> {
             requireActive();
             require(AddonPermission.SCREENS);

@@ -28,7 +28,7 @@ public enum AddonPermission {
     DESIGN("design"),
     /** Own entries in the chat message menu, open the chat ({@code AddonContext.chat()}), since 1.5.0. */
     CHAT("chat"),
-    /** Read Lumora Social friends and party ({@code AddonContext.social()}), since 1.5.0. */
+    /** Read Lumora Social friends and party, since 1.13.0 also share a status line ({@code AddonContext.social()}), since 1.5.0. */
     SOCIAL("social"),
     /** Building tools: break, place, pick, creative slots, click hooks ({@code AddonContext.building()}), since 1.10.0. */
     BUILDING("building");

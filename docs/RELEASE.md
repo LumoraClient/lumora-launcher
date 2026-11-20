@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.87 (2026-11-20):**
+- **Inhalt:** Discord Rich Presence: großes Bild ist das Launcher-Icon als Link (`PresenceImages.LOGO`, das Asset „lumora“ gab es in der Discord-Anwendung nicht), kleines Bild Account-Kopf (mc-heads.net nach UUID) oder Server-Icon (mcsrvstat.us, nur mit „Show server in Discord“). Neu `PresenceImages`, `Activity.withSmall`, `GameStatus.shownServer`. Auf Wunsch ohne News und Changelog.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 690 Unit-Tests ohne Fehler (1 übersprungen; neu: `DiscordPresenceTest.logoAndSmallPictureAsLinks`, `shownServer` in `GameStatusTest`). `integrationTest` enthält weiterhin keine Tests.
+- **Discord:** per Testprogramm gegen das lokale Discord geprüft, dass Bild-Links angenommen werden (Antwort `mp:external/…`); die drei Bildquellen liefern PNG. Die Anzeige im neuen Launcher selbst ist nicht in Discord angesehen.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt (nur Launcher geändert).
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `PresenceImages` und der neue Text in `launcher-core-0.3.87.jar`.
+
 **0.3.86 (2026-11-19):**
 - **Inhalt:** Zoom: neue Einstellungsseite (Zoom-Taste auf der Seite, „Zoom halten“, Zoom-Stärke als Regler 1,5 bis 20, Hand in der Ich-Perspektive, Balkenhöhe, HUD ausblenden, Kinokamera nur während des Übergangs, Übergangskurve und -dauer je Richtung). Neu `ZoomMotion` (Core), `ZoomHandMixin` in allen 16 Modulen, neue Optionen in `LumoraConfig`, `HubHost.zoomKeyCode/setZoomKeyCode`. Mit Changelog-Eintrag, auf Wunsch ohne News.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 689 Unit-Tests ohne Fehler (1 übersprungen; neu: `ZoomMotionTest` (2), Zoom-Seite in `SettingKindsViewTest` neu). `integrationTest` enthält weiterhin keine Tests.

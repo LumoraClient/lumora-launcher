@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.88 (2026-11-20):**
+- **Inhalt:** Lumora-API 1.13: geteilte Statuszeilen über Lumora Social (`SocialInfo.shareStatus/sharedStatus`, Zwischenspeicher `SharedStatuses` im Core, Social-Anfragen `status.set/status.get`, nur solange verbunden, nicht gespeichert). Genutzt vom Spotify-Addon 1.2.0 (Song unter dem Namen). Auf Wunsch ohne News und Changelog.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 693 Unit-Tests ohne Fehler (1 übersprungen; neu: `SocialServerTest.sharedStatusLinesFollowTheirScope`, `SharedStatusesTest` (2)). `integrationTest` enthält weiterhin keine Tests.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Das Teilen zwischen zwei Spielern ist nicht im Spiel geprüft, nur über echte Clients gegen den echten Server im Test.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `SharedStatuses` und API 1.13.0 in den gebündelten Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.3), `status.get` im gebündelten Social-Server.
+
 **0.3.87 (2026-11-20):**
 - **Inhalt:** Discord Rich Presence: großes Bild ist das Launcher-Icon als Link (`PresenceImages.LOGO`, das Asset „lumora“ gab es in der Discord-Anwendung nicht), kleines Bild Account-Kopf (mc-heads.net nach UUID) oder Server-Icon (mcsrvstat.us, nur mit „Show server in Discord“). Neu `PresenceImages`, `Activity.withSmall`, `GameStatus.shownServer`. Auf Wunsch ohne News und Changelog.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 690 Unit-Tests ohne Fehler (1 übersprungen; neu: `DiscordPresenceTest.logoAndSmallPictureAsLinks`, `shownServer` in `GameStatusTest`). `integrationTest` enthält weiterhin keine Tests.

@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.89 (2026-11-20):**
+- **Inhalt:** Launcher: „Multiple instances“ erlaubt jetzt auch dieselbe Version mehrmals (bis zu 8 Läufe). `GameProcess.Slot` (Sperre `.lumora-running-n.lock`, eigene Ausgabe `lumora-game-output-n.log`, eigene Statusdatei `status-n.json`), `NativeExtractor` lässt gleiche, vom laufenden Spiel gehaltene Native-Dateien liegen, `PlayService` verfolgt alle laufenden Spiele. Beschreibung der Einstellung angepasst. Mit News-Eintrag (Bild: der vorhandene ältere Launcher-Screenshot `settings.png`, kein neuer, weil der automatische Screenshot den Schalter nicht zeigt) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 697 Unit-Tests ohne Fehler (1 übersprungen; neu: `GameProcessSlotTest` (2), `NativeExtractorTest` (2, davon einer mit unter Windows gehaltener Datei)). `integrationTest` enthält weiterhin keine Tests.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Zwei gleichzeitige Läufe derselben Version sind nicht im Spiel geprüft.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `GameProcess$Slot`, News-Eintrag, Changelog und neuer Text im `launcher-core-0.3.89.jar`.
+
 **0.3.88 (2026-11-20):**
 - **Inhalt:** Lumora-API 1.13: geteilte Statuszeilen über Lumora Social (`SocialInfo.shareStatus/sharedStatus`, Zwischenspeicher `SharedStatuses` im Core, Social-Anfragen `status.set/status.get`, nur solange verbunden, nicht gespeichert). Genutzt vom Spotify-Addon 1.2.0 (Song unter dem Namen). Auf Wunsch ohne News und Changelog.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 693 Unit-Tests ohne Fehler (1 übersprungen; neu: `SocialServerTest.sharedStatusLinesFollowTheirScope`, `SharedStatusesTest` (2)). `integrationTest` enthält weiterhin keine Tests.

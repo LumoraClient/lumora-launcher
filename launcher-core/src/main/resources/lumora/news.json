@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-multi-instance",
+      "date": "2026-11-20",
+      "author": "Lumora",
+      "version": "0.3.89",
+      "title": "Mehrere Instanzen: jetzt auch dieselbe Version",
+      "text": "Mit „Multiple instances“ startest du dieselbe Minecraft-Version jetzt mehrmals gleichzeitig, zum Beispiel mit zwei Accounts.",
+      "image": "settings.png",
+      "body": [
+        {"p": "Bisher kam beim zweiten Start derselben Version die Meldung, das Profil laufe schon, auch wenn „Multiple instances“ an war. Das ist behoben."},
+        {"list": [
+          "Bis zu 8 Läufe pro Version gleichzeitig",
+          "Jeder Lauf schreibt seine eigene Spielausgabe und zeigt in Discord seinen eigenen Status",
+          "Auch 1.8.9 bis 1.18.2 starten ein zweites Mal, obwohl das erste Spiel seine Dateien geöffnet hat",
+          "Der Launcher merkt sich alle laufenden Spiele: Endet eins, läuft der Rest weiter"
+        ]},
+        {"p": "Den Schalter findest du unter Settings → Game → „Multiple instances“. Alle Läufe einer Version teilen sich deren Einstellungen und Welten, und mit demselben Account auf demselben Server wirft der Server einen der beiden hinaus: Für zwei Spieler brauchst du zwei Accounts. Das Bild ist ein älterer Screenshot der Launcher-Einstellungen."}
+      ]
+    },
+    {
       "id": "lumora-held-item-fade",
       "date": "2026-11-19",
       "author": "Lumora",

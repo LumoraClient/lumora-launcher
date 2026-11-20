@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.89 (2026-11-20)
+
+### Launcher
+- **Mehrere Instanzen funktionieren mit derselben Version:** Mit „Multiple instances“ (Settings → Game) lässt sich dieselbe Version jetzt mehrmals gleichzeitig starten, bis zu 8 Läufe; bisher kam beim zweiten Start „The profile … is already running“. Jeder weitere Lauf hat eine eigene Sperre im Instanzordner, eine eigene Spielausgabe (`logs/lumora-game-output-2.log` usw.) und eine eigene Statusdatei für Discord. In 1.8.9 bis 1.18.2 bleiben Native-Dateien, die das laufende Spiel geladen hat, beim zweiten Start liegen, statt den Start abzubrechen. Der Launcher verfolgt alle laufenden Spiele; endet eins, bleibt er bei „spielt“, solange ein anderes läuft. Ohne die Einstellung läuft jede Version wie bisher nur einmal.
+
 ## 0.3.86 (2026-11-19)
 
 ### Client

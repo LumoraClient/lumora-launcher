@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-hub-cards-click",
+      "date": "2026-11-22",
+      "author": "Lumora",
+      "version": "0.3.90",
+      "title": "Hub: Karte anklicken, Einstellungen offen",
+      "text": "Das Zahnrad auf den Modul-Karten ist weg: Ein Klick auf die Karte öffnet jetzt direkt die Einstellungen.",
+      "image": "news-settings-sections.png",
+      "body": [
+        {"p": "Die Karten im Lumora-Hub sind einfacher geworden."},
+        {"list": [
+          "Klick auf die Karte (Icon, Name oder freie Fläche): die Einstellungen öffnen sich",
+          "Klick auf die Leiste unten (AKTIV / INAKTIV): das Modul geht an oder aus",
+          "Karten ohne Einstellungen schalten wie bisher mit einem Klick an und aus",
+          "Herz für Favoriten und Menü bleiben, wo sie waren"
+        ]},
+        {"p": "Das gilt für alle Karten: eingebaute Module, Addons, Zoom und Widgets. Das Bild zeigt eine Einstellungsseite, wie sie sich nach dem Klick öffnet (älterer Screenshot)."}
+      ]
+    },
+    {
       "id": "lumora-multi-instance",
       "date": "2026-11-20",
       "author": "Lumora",

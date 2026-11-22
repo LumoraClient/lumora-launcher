@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.90 (2026-11-22)
+
+### Client
+- **Hub: Karte anklicken öffnet die Einstellungen:** Das Zahnrad auf den Karten ist weg. Ein Klick auf die Karte (Icon, Name, freie Fläche) öffnet die Einstellungen, die Leiste unten (AKTIV / INAKTIV) über die ganze Breite schaltet an und aus. Karten ohne Einstellungen schalten mit einem Klick wie bisher an und aus. Der Hinweis beim Darüberfahren sagt das jetzt, der Text der Zoom-Karte nennt die aktuellen Einstellungen. Für alle Karten (Module, Addons, Zoom, Widgets) in allen Minecraft-Versionen.
+
 ## 0.3.89 (2026-11-20)
 
 ### Launcher

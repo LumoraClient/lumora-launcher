@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.90 (2026-11-22):**
+- **Inhalt:** Hub: Zahnrad auf den Karten entfernt, Klick auf die Karte öffnet die Einstellungen, die Leiste unten schaltet an und aus (ohne Einstellungen schaltet die Karte wie bisher). Hover-Hinweis `lumora.hub.card.hint` in allen 16 Sprachdateien (Werkzeug `.t/add-card-hint-lang.pl`), Zoom-Kartentext aktualisiert, README angepasst. Mit News-Eintrag (Bild: der vorhandene ältere Screenshot `news-settings-sections.png` einer Einstellungsseite, kein neuer, weil ohne Spiellauf; das alte Hub-Bild zeigt noch das Zahnrad) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 697 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Die neuen Karten sind nicht im Spiel angesehen.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, neuer Hinweistext in den gebündelten Client-Jars und kein „Zahnrad: Einstellungen“ mehr (Stichprobe 1.8.9, 1.21.11, 26.3), News und Changelog im `launcher-core-0.3.90.jar`.
+
 **0.3.89 (2026-11-20):**
 - **Inhalt:** Launcher: „Multiple instances“ erlaubt jetzt auch dieselbe Version mehrmals (bis zu 8 Läufe). `GameProcess.Slot` (Sperre `.lumora-running-n.lock`, eigene Ausgabe `lumora-game-output-n.log`, eigene Statusdatei `status-n.json`), `NativeExtractor` lässt gleiche, vom laufenden Spiel gehaltene Native-Dateien liegen, `PlayService` verfolgt alle laufenden Spiele. Beschreibung der Einstellung angepasst. Mit News-Eintrag (Bild: der vorhandene ältere Launcher-Screenshot `settings.png`, kein neuer, weil der automatische Screenshot den Schalter nicht zeigt) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 697 Unit-Tests ohne Fehler (1 übersprungen; neu: `GameProcessSlotTest` (2), `NativeExtractorTest` (2, davon einer mit unter Windows gehaltener Datei)). `integrationTest` enthält weiterhin keine Tests.

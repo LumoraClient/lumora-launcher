@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-crash-analysis",
+      "date": "2026-11-22",
+      "author": "Lumora",
+      "version": "0.3.92",
+      "title": "Abstürze analysieren und mit einem Klick beheben",
+      "text": "Der neue Knopf „Analyze“ unter Crashes erklärt, warum Minecraft abgestürzt ist, und behebt die Ursache auf Wunsch gleich selbst.",
+      "image": "news-crash-analysis.png",
+      "body": [
+        {"p": "Auf der Seite Crashes gibt es jetzt den Knopf „Analyze“: oben neben Version und Refresh für den neuesten Absturz und auf jeder Absturz-Karte für genau diesen. Lumora liest den Crash-Report, das Ende der Spielausgabe und ein Java-Absturzprotokoll aus derselben Zeit und zeigt:"},
+        {"list": [
+          "Was passiert ist, in einfachen Worten",
+          "Warum es passiert ist",
+          "Was hilft, Schritt für Schritt",
+          "Die Zeile im Report, an der die Ursache erkannt wurde"
+        ]},
+        {"p": "Wo Lumora selbst helfen kann, gibt es einen Knopf dafür: mehr oder weniger Speicher für Minecraft, auf Vulkan oder OpenGL umstellen (ab 26.2), Reparieren und Starten, eine Mod oder Erweiterung abschalten, neu anmelden oder die Bibliothek für ein Welt-Backup öffnen. Erkannt werden unter anderem Speichermangel, Abstürze im Grafiktreiber, falsches Java, beschädigte Dateien, unpassende Mods und Fehler in der Welt. Die Analyse läuft komplett auf deinem PC."}
+      ]
+    },
+    {
       "id": "lumora-hub-cards-click",
       "date": "2026-11-22",
       "author": "Lumora",

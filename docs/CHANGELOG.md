@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.92 (2026-11-22)
+
+### Launcher
+- **Absturz-Analyse:** Neuer Knopf „Analyze“ auf der Seite Crashes, oben neben Version und Refresh (neuester Absturz) und auf jeder Absturz-Karte. Lumora liest den Crash-Report, das Ende der Spielausgabe und ein Java-Absturzprotokoll (`hs_err_pid*.log`) aus derselben Zeit und zeigt, was passiert ist, warum, was hilft (Schritte) und die Zeile im Report, an der die Ursache erkannt wurde. Erkannt werden Speichermangel in Minecraft oder auf dem PC, Abstürze im Grafiktreiber (NVIDIA, AMD, Intel), Vulkan-Fehler, falsches Java, beschädigte oder unpassende Dateien, Mods, die nicht passen oder sich nicht einhaken können, Fehler in Lumoras eigenem Code, abgelehnte Anmeldung, Fehler in der Welt und in Ressourcenpaketen. Ein Knopf führt den Vorschlag aus: Speicher erhöhen oder senken, auf Vulkan oder OpenGL umstellen (26.2+), Reparieren und Starten, die Mod oder Erweiterung abschalten, neu anmelden oder die Bibliothek öffnen; danach bietet der Launcher den Neustart an. Die Analyse läuft komplett lokal.
+
 ## 0.3.90 (2026-11-22)
 
 ### Client

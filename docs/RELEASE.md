@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.92 (2026-11-22):**
+- **Inhalt:** Launcher: Absturz-Analyse. `CrashDiagnosis` (Crash-Report, Ende der Spielausgabe, hs_err-Log derselben Zeit; Regeln für Speicher, Grafiktreiber, Vulkan, Java, Dateien, Mods, Lumora-Mixins, Anmeldung, Welt, Ressourcen), Knopf „Analyze“ auf der Crash-Seite (Kopf und jede Karte) mit Fix-Knopf (Speicher, Grafik-Backend, Reparieren, Mod/Erweiterung abschalten, Anmelden, Bibliothek), `SettingsPage.reload` über `PageHost.settingsChanged`. Mit News-Eintrag (Bild: echter Screenshot der Crash-Seite aus dem Test-Ordner, `--ui-shot`) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 703 Unit-Tests ohne Fehler (1 übersprungen; neu: `CrashDiagnosisTest` (6)). `integrationTest` enthält weiterhin keine Tests.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Das Analysefenster und die Fix-Knöpfe sind nicht im laufenden Launcher durchgeklickt, nur die Regeln getestet und die Knöpfe per Screenshot geprüft.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `CrashDiagnosis`, Texte, News-Bild, News und Changelog im `launcher-core-0.3.92.jar`.
+
 **0.3.91 (2026-11-22):**
 - **Inhalt:** Neue Screenshots: 48 News-Bilder durch Aufnahmen aus Minecraft 26.3 (Smoke-Lauf im Test-Ordner, ohne Spotify-Addon, damit kein Song dieses PCs zu sehen ist) und aus dem Launcher 0.3.90 (`--ui-shot`, nicht angemeldet) ersetzt, gleiche Dateinamen; gezeichnete Titelbilder und Bilder ohne neue Aufnahme (Tastenanzeige, Kinobalken, Social, Hidden Armor, Inventar-HUD, Performance, Widget-Design, Namensschild-Symbole, Versionsmenü, Spotify-Layouts) bleiben. `docs/images`: 67 alte Screenshots entfernt, 24 `ingame-26.3-*` und 14 `launcher-*` neu, Logo und `social-launcher-group.png` (SOCIAL.md) bleiben; ältere Einträge hier verweisen deshalb auf nicht mehr vorhandene Bilder. Bilder mit lokalem Pfad nicht verwendet bzw. zugeschnitten. Auf Wunsch ohne News und Changelog.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 697 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.

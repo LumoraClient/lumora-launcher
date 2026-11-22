@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.91 (2026-11-22):**
+- **Inhalt:** Neue Screenshots: 48 News-Bilder durch Aufnahmen aus Minecraft 26.3 (Smoke-Lauf im Test-Ordner, ohne Spotify-Addon, damit kein Song dieses PCs zu sehen ist) und aus dem Launcher 0.3.90 (`--ui-shot`, nicht angemeldet) ersetzt, gleiche Dateinamen; gezeichnete Titelbilder und Bilder ohne neue Aufnahme (Tastenanzeige, Kinobalken, Social, Hidden Armor, Inventar-HUD, Performance, Widget-Design, Namensschild-Symbole, Versionsmenü, Spotify-Layouts) bleiben. `docs/images`: 67 alte Screenshots entfernt, 24 `ingame-26.3-*` und 14 `launcher-*` neu, Logo und `social-launcher-group.png` (SOCIAL.md) bleiben; ältere Einträge hier verweisen deshalb auf nicht mehr vorhandene Bilder. Bilder mit lokalem Pfad nicht verwendet bzw. zugeschnitten. Auf Wunsch ohne News und Changelog.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 697 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **Smoke-Test:** für das Release auf Wunsch nicht ausgeführt; die zwei Smoke-Läufe 26.3 für die Aufnahmen bestanden (vor diesem Build, gleicher Code ohne die Bilder).
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, News-Bilder im `launcher-core-0.3.91.jar` identisch mit den neuen Dateien (Stichprobe).
+
 **0.3.90 (2026-11-22):**
 - **Inhalt:** Hub: Zahnrad auf den Karten entfernt, Klick auf die Karte öffnet die Einstellungen, die Leiste unten schaltet an und aus (ohne Einstellungen schaltet die Karte wie bisher). Hover-Hinweis `lumora.hub.card.hint` in allen 16 Sprachdateien (Werkzeug `.t/add-card-hint-lang.pl`), Zoom-Kartentext aktualisiert, README angepasst. Mit News-Eintrag (Bild: der vorhandene ältere Screenshot `news-settings-sections.png` einer Einstellungsseite, kein neuer, weil ohne Spiellauf; das alte Hub-Bild zeigt noch das Zahnrad) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`) erfolgreich, 697 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.

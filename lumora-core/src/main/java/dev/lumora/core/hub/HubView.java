@@ -322,7 +322,7 @@ public final class HubView implements AddonView {
         List<Card> out = new ArrayList<>();
         if (host.has("zoomEnabled")) {
             String zoom = lang("lumora.module.zoom", "Zoom");
-            out.add(new Card("zoom", zoom, lang("lumora.module.zoom.description", "Zoom in with key %s, factor, mode, cinematic camera",
+            out.add(new Card("zoom", zoom, lang("lumora.module.zoom.description", "Zoom in with key %s, distance, transitions, cinematic camera",
                     host.zoomKey()), WidgetCategory.PLAYER, "zoom",
                     bool("zoomEnabled"), null, () -> host.set("zoomEnabled", !bool("zoomEnabled")), () -> host.openSettings(zoom,
                     t("Taste: ", "Key: ") + host.zoomKey(),
@@ -909,8 +909,8 @@ public final class HubView implements AddonView {
         int bx = x + 1;
         int bw = w - 2;
         int by = y + h - 1 - bh;
-        int gearW = c.settings() != null ? 16 : 0;
-        int mainW = bw - (gearW > 0 ? gearW + 1 : 0);
+        // the bar at the bottom switches on and off; the rest of the card opens the settings (no gear button)
+        int mainW = bw;
         boolean barHover = visible && in(mx, my, bx, by, mainW, bh);
         int col;
         String label;
@@ -930,17 +930,10 @@ public final class HubView implements AddonView {
             col = barHover ? OFF_HOVER : OFF;
             label = t("INAKTIV", "DISABLED");
         }
-        barPart(g, bx, by, mainW, bh, col, true, gearW == 0);
-        g.fill(bx + (gearW == 0 ? 4 : 4), by, bx + mainW - (gearW == 0 ? 4 : 0), by + 1, 0x38FFFFFF);
+        barPart(g, bx, by, mainW, bh, col, true, true);
+        g.fill(bx + 4, by, bx + mainW - 4, by + 1, 0x38FFFFFF);
         int lw = spacedWidth(g, label);
         spaced(g, label, bx + (mainW - lw) / 2, by + (bh - 8) / 2 + 1, 0xFFFFFFFF);
-        if (gearW > 0) {
-            int gx = bx + mainW + 1;
-            boolean gearHover = visible && in(mx, my, gx, by, gearW, bh);
-            int gc = gearHover ? LumoraTheme.mix(col, 0xFFFFFFFF, 0.15f) : LumoraTheme.mix(col, 0xFF000000, 0.32f);
-            barPart(g, gx, by, gearW, bh, gc, false, true);
-            HubGlyphs.draw(g, "gear", gx + (gearW - HubGlyphs.SIZE) / 2, by + (bh - HubGlyphs.SIZE) / 2, 0xFFFFFFFF);
-        }
         if (c.menu() != null) {
             boolean menuHover = visible && in(mx, my, x + w - 15, y + 3, 12, 12);
             if (menuHover) {
@@ -961,11 +954,13 @@ public final class HubView implements AddonView {
             int y2 = Math.min(y + h, contentBottom);
             if (y2 > y1) {
                 Runnable toggle = c.toggle();
-                if (toggle != null) {
-                    hits.add(new Hit(x, y1, x + w, y2, toggle));
+                // the card opens the settings (without settings it switches on and off), the bar on top switches
+                Runnable open = c.settings() != null ? c.settings() : toggle;
+                if (open != null) {
+                    hits.add(new Hit(x, y1, x + w, y2, open));
                 }
-                if (c.settings() != null && by >= y1 && by + bh <= y2) {
-                    hit(bx + mainW + 1, by, gearW, bh, c.settings());
+                if (toggle != null && by + bh > y1 && by < y2) {
+                    hits.add(new Hit(bx, Math.max(by, y1), bx + mainW, Math.min(by + bh, y2), toggle));
                 }
                 if (c.menu() != null && y + 3 >= y1) {
                     hit(x + w - 15, y + 3, 12, 12, c.menu());
@@ -1037,7 +1032,7 @@ public final class HubView implements AddonView {
             }
         }
         if (c.settings() != null) {
-            lines.add("§7" + t("Zahnrad: Einstellungen", "Gear: settings"));
+            lines.add("§7" + lang("lumora.hub.card.hint", "Click: settings, bar at the bottom: on/off"));
         }
         return lines.isEmpty() ? null : new Tip(c.name(), lines);
     }

@@ -1374,6 +1374,13 @@ final class LauncherWindow implements PageHost {
     }
 
     @Override
+    public void settingsChanged() {
+        if (settingsPage != null) {
+            settingsPage.reload();
+        }
+    }
+
+    @Override
     public void checkUpdates() {
         worker.submit(this::interactiveUpdateCheck);
     }

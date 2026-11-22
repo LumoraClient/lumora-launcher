@@ -420,6 +420,13 @@ public final class SettingsPage extends JPanel {
         return p;
     }
 
+    /** Builds the controls again from the current settings (after a change made elsewhere). */
+    public void reload() {
+        settings.clear();
+        build();
+        rebuild();
+    }
+
     private void build() {
         // --- Allgemein
         JTextField dir = field(cfg.installDir != null ? cfg.installDir : host.ctx().paths.root().toString(), "", 22);

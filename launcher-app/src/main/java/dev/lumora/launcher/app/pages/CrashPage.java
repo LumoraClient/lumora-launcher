@@ -4,6 +4,7 @@ import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.core.crash.CrashDiagnosis;
 import dev.lumora.launcher.core.crash.CrashReport;
 import dev.lumora.launcher.core.crash.CrashReports;
 import dev.lumora.launcher.core.diagnostics.CrashAnalyzer;
@@ -61,6 +62,8 @@ public final class CrashPage extends JPanel {
     private final JLabel summary = Ui.label(" ", 13, Font.PLAIN, Theme.MUTED);
     private final JPanel list = Ui.column();
     private String filter = ALL;
+    /** The crashes shown now (newest first): "Analyze" in the header looks at the first one. */
+    private List<CrashReport> shown = List.of();
     private int generation;
 
     public CrashPage(PageHost host, ExecutorService io) {
@@ -75,6 +78,7 @@ public final class CrashPage extends JPanel {
         titleRow.add(Ui.pageTitle(Lang.t("nav.crashes"), Lang.t("crash.subtitle")), BorderLayout.WEST);
         JPanel actions = Ui.row(8);
         actions.add(filterBar);
+        actions.add(button(Lang.t("crash.analyze"), Icons.Kind.PULSE, () -> analyze(shown.isEmpty() ? null : shown.getFirst())));
         actions.add(button(Lang.t("common.refresh"), Icons.Kind.REFRESH, this::refresh));
         JPanel aw = new JPanel(new BorderLayout());
         aw.setOpaque(false);
@@ -122,6 +126,7 @@ public final class CrashPage extends JPanel {
     }
 
     private void render(List<CrashReport> reports) {
+        shown = List.copyOf(reports);
         list.removeAll();
         Instant now = Instant.now();
         long week = reports.stream().filter(r -> r.time().isAfter(now.minusSeconds(7 * 86400))).count();
@@ -207,6 +212,7 @@ public final class CrashPage extends JPanel {
 
         body.add(Box.createVerticalStrut(12));
         JPanel buttons = Ui.row(8);
+        buttons.add(button(Lang.t("crash.analyze"), Icons.Kind.PULSE, () -> analyze(r)));
         JButton toggle = button(expanded ? Lang.t("crash.report.hide") : Lang.t("crash.report.show"), Icons.Kind.TERMINAL, null);
         toggle.addActionListener(e -> {
             boolean show = !detailScroll.isVisible();
@@ -385,6 +391,127 @@ public final class CrashPage extends JPanel {
         } catch (IOException | UnsupportedOperationException | IllegalArgumentException e) {
             host.openFolder(file.getParent());
         }
+    }
+
+    /** "Analyze": what happened, why, what helps, and a button for the fix the launcher can do itself. */
+    private void analyze(CrashReport r) {
+        if (r == null) {
+            JOptionPane.showMessageDialog(host.frame(), Lang.t("crash.analysis.none"), Lang.t("crash.analysis.title"),
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        String version = host.ctx().catalog.profile(r.profileId()).map(p -> p.minecraftVersion).orElse(r.profileId());
+        CrashDiagnosis.Context c = new CrashDiagnosis.Context(version, host.ctx().config.maxMemoryMb, SystemCheck.totalRamMb(),
+                host.ctx().config.graphicsBackend);
+        String before = summary.getText();
+        summary.setText(Lang.t("crash.analysis.running"));
+        io.submit(() -> {
+            CrashDiagnosis.Result res = CrashDiagnosis.analyze(r, host.ctx().gameDir(r.profileId()), c);
+            SwingUtilities.invokeLater(() -> {
+                summary.setText(before);
+                showAnalysis(r, version, res);
+            });
+        });
+    }
+
+    private void showAnalysis(CrashReport r, String version, CrashDiagnosis.Result res) {
+        JPanel p = Ui.column();
+        p.add(Ui.label(Lang.t("crash.analysis.of", r.description(), version, DATE.format(r.time())), 12, Font.PLAIN, new Color(0x7D8794)));
+        section(p, Lang.t("crash.analysis.what"), Ui.wrapText(res.what(), 13.5f, Theme.TEXT));
+        section(p, Lang.t("crash.analysis.why"), Ui.wrapText(res.why(), 13f, Theme.MUTED));
+        StringBuilder steps = new StringBuilder();
+        for (int i = 0; i < res.steps().size(); i++) {
+            steps.append(i + 1).append(". ").append(res.steps().get(i)).append(i + 1 < res.steps().size() ? "\n" : "");
+        }
+        section(p, Lang.t("crash.analysis.steps"), Ui.wrapText(steps.toString(), 13f, Theme.TEXT));
+        if (!res.evidence().isEmpty()) {
+            JTextArea ev = Ui.wrapText(res.evidence(), 12f, new Color(0xFFB4B6));
+            ev.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            section(p, Lang.t("crash.analysis.evidence"), ev);
+        }
+        p.setPreferredSize(new Dimension(560, p.getPreferredSize().height + 40));
+        String fix = fixLabel(res.fix());
+        Object[] options = fix == null ? new Object[]{Lang.t("crash.analysis.close")} : new Object[]{fix, Lang.t("crash.analysis.close")};
+        int choice = JOptionPane.showOptionDialog(host.frame(), p, Lang.t("crash.analysis.title"), JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (fix != null && choice == 0) {
+            applyFix(r, res.fix());
+        }
+    }
+
+    private static void section(JPanel p, String title, JComponent content) {
+        p.add(Box.createVerticalStrut(12));
+        p.add(Ui.label(title, 13, Font.BOLD, Theme.TEXT));
+        p.add(Box.createVerticalStrut(3));
+        content.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.add(content);
+    }
+
+    /** Text of the fix button, null if the launcher cannot fix it itself. */
+    private static String fixLabel(CrashDiagnosis.Fix f) {
+        return switch (f.action()) {
+            case MORE_MEMORY, LESS_MEMORY -> Lang.t("crash.analysis.fix.memory", gb(f.memoryMb()));
+            case GRAPHICS_BACKEND -> Lang.t("crash.analysis.fix.backend", backendName(f.backend()));
+            case REPAIR -> Lang.t("crash.analysis.fix.repair");
+            case DISABLE_SUSPECT -> Lang.t("crash.analysis.fix.disable", f.suspect().name());
+            case SIGN_IN -> Lang.t("crash.analysis.fix.sign_in");
+            case OPEN_LIBRARY -> Lang.t("crash.analysis.fix.library");
+            case NONE -> null;
+        };
+    }
+
+    private void applyFix(CrashReport r, CrashDiagnosis.Fix f) {
+        var cfg = host.ctx().config;
+        switch (f.action()) {
+            case MORE_MEMORY, LESS_MEMORY -> {
+                cfg.maxMemoryMb = f.memoryMb();
+                cfg.minMemoryMb = Math.min(cfg.minMemoryMb, cfg.maxMemoryMb);
+                host.saveConfig();
+                host.settingsChanged();
+                offerStart(r, Lang.t("crash.analysis.done.memory", gb(f.memoryMb())));
+            }
+            case GRAPHICS_BACKEND -> {
+                cfg.graphicsBackend = f.backend();
+                host.saveConfig();
+                host.settingsChanged();
+                offerStart(r, Lang.t("crash.analysis.done.backend", backendName(f.backend())));
+            }
+            case REPAIR -> {
+                host.selectProfile(r.profileId());
+                host.launch(null, true);
+            }
+            case DISABLE_SUSPECT -> {
+                Kind kind = kindOf(r.profileId(), f.suspect());
+                switch (kind.type) {
+                    case USER -> disableUserMod(f.suspect());
+                    case EXTENSION -> disableExtension(kind.key);
+                    case CORE, DEPENDENCY, RESOURCE_PACK -> {
+                        host.selectProfile(r.profileId());
+                        host.launch(null, true);
+                    }
+                }
+            }
+            case SIGN_IN -> host.signIn();
+            case OPEN_LIBRARY -> host.showPage("library");
+            case NONE -> {
+            }
+        }
+    }
+
+    private void offerStart(CrashReport r, String message) {
+        if (JOptionPane.showConfirmDialog(host.frame(), message, Lang.t("crash.analysis.done.title"),
+                JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION) {
+            host.selectProfile(r.profileId());
+            host.launch(null, false);
+        }
+    }
+
+    private static String gb(int mb) {
+        return String.format(java.util.Locale.ROOT, "%.1f GB", mb / 1024.0);
+    }
+
+    private static String backendName(String backend) {
+        return "vulkan".equals(backend) ? "Vulkan" : "OpenGL";
     }
 
     private static JButton button(String text, Icons.Kind icon, Runnable action) {

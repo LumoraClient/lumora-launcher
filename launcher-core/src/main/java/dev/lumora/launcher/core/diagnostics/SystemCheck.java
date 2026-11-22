@@ -65,7 +65,7 @@ public final class SystemCheck {
         return new Report(List.copyOf(items), gpus, ram);
     }
 
-    static long totalRamMb() {
+    public static long totalRamMb() {
         if (ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean b) {
             return b.getTotalMemorySize() / 1048576;
         }

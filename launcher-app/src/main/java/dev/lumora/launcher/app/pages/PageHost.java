@@ -40,4 +40,8 @@ public interface PageHost {
 
     /** The active account changed (switch / remove). */
     void accountsChanged();
+
+    /** Settings were changed outside the settings page (e.g. a fix from the crash analysis): the page shows them anew. */
+    default void settingsChanged() {
+    }
 }

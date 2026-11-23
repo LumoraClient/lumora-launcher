@@ -18,6 +18,12 @@ public abstract class ChatInputMixin {
         }
     }
 
+    /** Lumora chat windows: closing the chat goes back to the newest messages. */
+    @Inject(method = "removed", at = @At("HEAD"))
+    private void lumora$closed(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        dev.lumora.core.extras.ChatModule.chatScrollReset();
+    }
+
     @Inject(method = "handleMouse", at = @At("HEAD"), cancellable = true)
     private void lumora$scroll(CallbackInfo ci) {
         int wheel = org.lwjgl.input.Mouse.getEventDWheel();

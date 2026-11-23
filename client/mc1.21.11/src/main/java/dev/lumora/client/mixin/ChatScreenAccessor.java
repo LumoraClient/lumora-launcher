@@ -10,4 +10,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface ChatScreenAccessor {
     @Accessor("input")
     EditBox lumora$input();
+
+    /** Runs the click event (or with shift the insertion) of a style, as a click on chat text does. */
+    @org.spongepowered.asm.mixin.gen.Invoker("handleComponentClicked")
+    boolean lumora$clicked(net.minecraft.network.chat.Style style, boolean insertion);
 }

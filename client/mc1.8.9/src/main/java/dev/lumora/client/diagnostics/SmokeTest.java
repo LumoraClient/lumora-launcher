@@ -481,6 +481,7 @@ public final class SmokeTest {
                 ChatSmoke.fill(mc);
             } else if (ticks == 8) {
                 ChatSmoke.check(mc, extraProblems);
+                ChatSmoke.windowsCheck(extraProblems);
             } else if (ticks == 10) {
                 screenshot(mc, "chat-menu");
                 ChatSmoke.look();

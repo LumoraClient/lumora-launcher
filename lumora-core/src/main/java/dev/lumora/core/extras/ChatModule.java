@@ -66,6 +66,10 @@ public final class ChatModule implements LumoraAddon {
     BooleanSetting menu;
     BooleanSetting mention;
     IntegerSetting mentionVolume;
+    BooleanSetting windowsOn;
+    BooleanSetting heads;
+    /** Lumora's chat windows and tabs (null before the module is initialized). */
+    dev.lumora.core.chat.windows.ChatWindows windows;
 
     private final Stacker stacker = new Stacker();
     private final Supplier<LocalTime> clock;
@@ -116,11 +120,13 @@ public final class ChatModule implements LumoraAddon {
         backgroundOpacity = s.slider("background_opacity", 50, 0, 100).step(5).unit("%").name(k + "background_opacity")
                 .requires(background);
         textShadow = s.toggle("text_shadow", true).name(k + "text_shadow");
+        heads = s.toggle("heads", true).name(k + "heads").description(k + "heads.description");
         fade = s.toggle("fade", true).name(k + "fade").description(k + "fade.description");
         fadeSeconds = s.slider("fade_seconds", 10, 2, 120).unit(" s").name(k + "fade_seconds").requires(fade);
 
-        customSize = s.toggle("custom_size", false).name(k + "custom_size").description(k + "custom_size.description")
+        windowsOn = s.toggle("windows", true).name(k + "windows").description(k + "windows.description")
                 .section(k + "section.window");
+        customSize = s.toggle("custom_size", false).name(k + "custom_size").description(k + "custom_size.description");
         width = s.slider("width", 320, 40, 1000).step(5).unit(" px").name(k + "width").requires(customSize);
         heightOpen = s.slider("height_open", 180, 20, 800).step(5).unit(" px").name(k + "height_open").requires(customSize);
         heightClosed = s.slider("height_closed", 90, 20, 800).step(5).unit(" px").name(k + "height_closed")
@@ -141,6 +147,13 @@ public final class ChatModule implements LumoraAddon {
 
         width.onChange(v -> refreshChat());
         customSize.onChange(v -> refreshChat());
+        windowsOn.onChange(v -> refreshChat());
+
+        java.nio.file.Path config = platform == null ? null : platform.configDir();
+        dev.lumora.core.chat.windows.ChatLayout layout = new dev.lumora.core.chat.windows.ChatLayout(
+                config == null ? null : config.resolve("lumora").resolve("chat-tabs.json"));
+        layout.load();
+        windows = new dev.lumora.core.chat.windows.ChatWindows(new WindowsHost(), layout);
     }
 
     @Override
@@ -282,7 +295,11 @@ public final class ChatModule implements LumoraAddon {
     public static void renderChatScreen(HudGraphics g, int mouseX, int mouseY) {
         ChatModule m = active;
         if (m != null && m.platform != null) {
-            m.overlay.render(g, m.platform.extras(), mouseX, mouseY, System.currentTimeMillis());
+            if (drawsChat()) {
+                m.windows.renderScreen(g, mouseX, mouseY, System.currentTimeMillis());
+            } else {
+                m.overlay.render(g, m.platform.extras(), mouseX, mouseY, System.currentTimeMillis());
+            }
         }
         // buttons and panels at the chat input (Lumora API 1.9), also while the chat module is off
         dev.lumora.core.chat.ChatApi.renderScreen(g, mouseX, mouseY);
@@ -294,7 +311,248 @@ public final class ChatModule implements LumoraAddon {
             return true;
         }
         ChatModule m = active;
-        return m != null && m.platform != null && m.overlay.click(m.platform.extras(), x, y, button);
+        if (m == null || m.platform == null) {
+            return false;
+        }
+        return drawsChat() ? m.windows.click(x, y, button) : m.overlay.click(m.platform.extras(), x, y, button);
+    }
+
+    // --- Lumora's chat windows (tabs, windows, heads) instead of Minecraft's chat drawing
+
+    /** The chat windows of the active chat module, null while it is off. */
+    public static dev.lumora.core.chat.windows.ChatWindows windows() {
+        ChatModule m = active;
+        return m == null ? null : m.windows;
+    }
+
+    /** Lumora draws the chat: the module is on with "Tabs and windows" and the version can draw chat text. */
+    public static boolean drawsChat() {
+        ChatModule m = active;
+        return m != null && m.windows != null && m.windowsOn.get() && m.platform != null && m.platform.extras().chatText() != null;
+    }
+
+    /** Draws the chat windows where Minecraft would draw its chat; {@code focused}: the chat screen is open. */
+    public static void renderChat(HudGraphics g, int guiWidth, int guiHeight, boolean focused) {
+        ChatModule m = active;
+        if (drawsChat()) {
+            m.windows.render(g, guiWidth, guiHeight, focused, System.currentTimeMillis());
+        }
+    }
+
+    /**
+     * A message Minecraft shows in its chat (after Lumora's timestamp and "(x2)"); the windows keep their own list.
+     *
+     * @param component Minecraft's message object
+     */
+    public static void shown(Object component, boolean replacePrevious) {
+        ChatModule m = active;
+        if (m != null && m.windows != null && m.platform != null && m.platform.extras().chatText() != null) {
+            m.windows.received(component, replacePrevious);
+        }
+    }
+
+    /** Minecraft cleared its chat (leaving a world, F3+D). */
+    public static void chatCleared() {
+        ChatModule m = active;
+        if (m != null && m.windows != null) {
+            m.windows.clear();
+        }
+    }
+
+    /** The chat screen was closed or a message sent: back to the newest messages. */
+    public static void chatScrollReset() {
+        ChatModule m = active;
+        if (m != null && m.windows != null) {
+            m.windows.closed();
+        }
+    }
+
+    /** The mouse wheel in the open chat (after the chat input panels); true if the windows scrolled. */
+    public static boolean screenScroll(double x, double y, double amount) {
+        return drawsChat() && active.windows.scroll(x, y, amount);
+    }
+
+    /** Page up / down in the open chat; true if the windows scrolled. */
+    public static boolean screenKey(int key) {
+        return drawsChat() && active.windows.key(key);
+    }
+
+    /** What the chat module gives its windows. */
+    private final class WindowsHost implements dev.lumora.core.chat.windows.ChatWindows.Host {
+        @Override
+        public dev.lumora.core.chat.windows.ChatText text() {
+            return platform == null ? null : platform.extras().chatText();
+        }
+
+        @Override
+        public String own() {
+            return ownName();
+        }
+
+        @Override
+        public List<String> online() {
+            return tabNames();
+        }
+
+        @Override
+        public boolean customSize() {
+            return customSize.get();
+        }
+
+        @Override
+        public int width() {
+            return width.get();
+        }
+
+        @Override
+        public int heightOpen() {
+            return heightOpen.get();
+        }
+
+        @Override
+        public int heightClosed() {
+            return heightClosed.get();
+        }
+
+        @Override
+        public void setMainSize(int w, int hOpen) {
+            if (!customSize.get()) {
+                dev.lumora.core.chat.windows.ChatText.Options o = text() == null ? null : text().options();
+                if (o != null) {
+                    heightClosed.set(Math.max(heightClosed.min(), Math.min(heightClosed.max(), o.heightClosed())));
+                }
+                customSize.set(true);
+            }
+            int nw = Math.max(width.min(), Math.min(width.max(), w));
+            int nh = Math.max(heightOpen.min(), Math.min(heightOpen.max(), hOpen));
+            if (nh != heightOpen.get()) {
+                heightOpen.set(nh);
+            }
+            if (nw != width.get()) {
+                width.set(nw);
+            }
+        }
+
+        @Override
+        public int widthMax() {
+            return width.max();
+        }
+
+        @Override
+        public int heightMax() {
+            return heightOpen.max();
+        }
+
+        @Override
+        public boolean fade() {
+            return fade.get();
+        }
+
+        @Override
+        public int fadeSeconds() {
+            return fadeSeconds.get();
+        }
+
+        @Override
+        public double backgroundOpacity(double vanilla) {
+            return background.get() ? backgroundOpacity.get() / 100.0 : 0;
+        }
+
+        @Override
+        public boolean textShadow() {
+            return textShadow.get();
+        }
+
+        @Override
+        public int history() {
+            return history.get();
+        }
+
+        @Override
+        public boolean heads() {
+            return heads.get();
+        }
+
+        @Override
+        public boolean resize() {
+            return resize.get();
+        }
+
+        @Override
+        public boolean menu() {
+            return menu.get();
+        }
+
+        @Override
+        public String tr(String key, Object... args) {
+            return ChatModule.this.tr(key, args);
+        }
+
+        @Override
+        public void copy(String text) {
+            ChatModule.this.copy(text);
+        }
+
+        @Override
+        public void clickSound() {
+            click();
+        }
+
+        @Override
+        public void tabSound() {
+            if (platform != null) {
+                platform.extras().playSound("mention", mentionVolume.get() / 100f);
+            }
+        }
+
+        @Override
+        public void setChatInput(String text) {
+            if (platform != null) {
+                platform.extras().setChatInput(text);
+            }
+        }
+
+        @Override
+        public boolean mouseLeftDown() {
+            return platform != null && platform.extras().mouseLeftDown();
+        }
+
+        @Override
+        public boolean shiftDown() {
+            return platform != null && (platform.keys().isDown(dev.lumora.api.input.Keys.LEFT_SHIFT)
+                    || platform.keys().isDown(dev.lumora.api.input.Keys.RIGHT_SHIFT));
+        }
+
+        @Override
+        public void show(dev.lumora.api.screen.AddonView view) {
+            if (platform != null) {
+                platform.views().show(view);
+            }
+        }
+
+        @Override
+        public void closeView(dev.lumora.api.screen.AddonView view) {
+            if (platform != null) {
+                platform.views().close(view);
+            }
+        }
+
+        @Override
+        public String clipboard() {
+            return platform == null ? "" : platform.views().clipboard();
+        }
+
+        @Override
+        public List<dev.lumora.core.chat.windows.ChatWindows.MenuEntry> addonEntries(String text, String sender, List<String> links) {
+            dev.lumora.core.chat.ChatApi api = dev.lumora.core.chat.ChatApi.current();
+            List<dev.lumora.core.chat.windows.ChatWindows.MenuEntry> out = new ArrayList<>();
+            if (api != null) {
+                for (dev.lumora.core.chat.ChatApi.MenuItem i : api.menuEntries(new dev.lumora.api.chat.ChatLine(text, sender, links))) {
+                    out.add(new dev.lumora.core.chat.windows.ChatWindows.MenuEntry(i.label(), i.action()));
+                }
+            }
+            return out;
+        }
     }
 
     String tr(String key, Object... args) {
@@ -345,7 +603,7 @@ public final class ChatModule implements LumoraAddon {
     // --- message text
 
     /** The message without Lumora's own timestamp and "(x3)". */
-    static String clean(String text) {
+    public static String clean(String text) {
         String t = text == null ? "" : text.strip();
         t = STAMP.matcher(t).replaceFirst("");
         return STACKED.matcher(t).replaceFirst("");
@@ -358,7 +616,7 @@ public final class ChatModule implements LumoraAddon {
      *
      * @return the name, or null if no sender can be found
      */
-    static String sender(String text, List<String> insertions, List<String> commands, Collection<String> online) {
+    public static String sender(String text, List<String> insertions, List<String> commands, Collection<String> online) {
         String t = clean(text);
         for (String s : insertions) {
             String n = s == null ? "" : s.strip();
@@ -409,7 +667,7 @@ public final class ChatModule implements LumoraAddon {
     }
 
     /** Links of a message: those of its click events first, then web addresses in the text (at most 3). */
-    static List<String> links(String text, List<String> clickLinks) {
+    public static List<String> links(String text, List<String> clickLinks) {
         Set<String> out = new LinkedHashSet<>();
         for (String l : clickLinks) {
             if (l != null && !l.isBlank()) {
@@ -438,7 +696,7 @@ public final class ChatModule implements LumoraAddon {
     }
 
     /** Index of {@code word} in {@code text} as a whole name (case-insensitive), -1 if it is not there. */
-    static int indexOfWord(String text, String word) {
+    public static int indexOfWord(String text, String word) {
         String t = text.toLowerCase(Locale.ROOT);
         String w = word.toLowerCase(Locale.ROOT);
         int from = 0;

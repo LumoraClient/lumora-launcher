@@ -21,6 +21,11 @@ final class ChatSmoke {
             chat.addMessage(new net.minecraft.network.chat.TextComponent("Lumora Chat-Test, Zeile " + i));
         }
         chat.addMessage(new net.minecraft.network.chat.TextComponent("Eine lange Nachricht, damit sie umbricht: " + "abc ".repeat(30)));
+        String own = mc.player == null ? "Steve" : mc.player.getGameProfile().getName();
+        windows(own);
+        chat.addMessage(new net.minecraft.network.chat.TextComponent("[Lumora] Server-Ansage: Neustart in 5 Minuten"));
+        chat.addMessage(new net.minecraft.network.chat.TextComponent("[Lumora] Abstimmung: /vote fuer Belohnungen"));
+        chat.addMessage(new net.minecraft.network.chat.TextComponent("Spieler " + own + ": Hallo zusammen!"));
         chat.addMessage(new net.minecraft.network.chat.TextComponent("<").append(new net.minecraft.network.chat.TextComponent("Steve").withStyle(s -> s.withInsertion("Steve")))
                 .append(new net.minecraft.network.chat.TextComponent("> Schau mal: https://lumora.dev/chat")));
         mc.setScreen(new net.minecraft.client.gui.screens.ChatScreen(""));
@@ -58,6 +63,43 @@ final class ChatSmoke {
         int y = (int) (v.bottom() - (line - v.scroll() + 0.5) * v.rowHeight());
         if (!ChatModule.chatClick(v.left() + 20, y, 1)) {
             problems.add("chat: right-click did not open the menu");
+        }
+    }
+
+    /** Lumora chat windows: a player tab in the main chat and a window of its own for the "[Lumora]" messages. */
+    private static void windows(String own) {
+        dev.lumora.core.chat.windows.ChatWindows w = ChatModule.windows();
+        if (w == null) {
+            return;
+        }
+        dev.lumora.core.chat.windows.ChatLayout l = w.layout();
+        l.reset();
+        l.add(new dev.lumora.core.chat.windows.ChatTab(l.newTabId(), own,
+                new dev.lumora.core.chat.windows.ChatRule(dev.lumora.core.chat.windows.ChatRule.Kind.PLAYER, own)), l.main(), 0, 0, 0, 0);
+        dev.lumora.core.chat.windows.ChatTab server = new dev.lumora.core.chat.windows.ChatTab(l.newTabId(), "Lumora",
+                new dev.lumora.core.chat.windows.ChatRule(dev.lumora.core.chat.windows.ChatRule.Kind.PREFIX, "[Lumora]"));
+        server.keepInMain = false;
+        server.highlight = true;
+        l.add(server, null, 340, 40, 200, 70);
+        l.main().select(l.mainTab());
+    }
+
+    /** The chat windows draw the chat: two windows, the "[Lumora]" messages only in their own window. */
+    static void windowsCheck(List<String> problems) {
+        dev.lumora.core.chat.windows.ChatWindows w = ChatModule.windows();
+        boolean draws = ChatModule.drawsChat();
+        int windows = w == null ? 0 : w.layout().windows.size();
+        long inMain = w == null ? 0 : w.store().all().stream().filter(e -> e.clean().startsWith("[Lumora]"))
+                .filter(e -> w.layout().inMain(e, "")).count();
+        long heads = w == null ? 0 : w.store().all().stream().filter(e -> e.head() != null).count();
+        dev.lumora.client.LumoraClient.LOG.info("LUMORA_CHAT_WINDOWS draws={} windows={} messages={} lumoraInMain={} heads={}", draws, windows,
+                w == null ? 0 : w.store().size(), inMain, heads);
+        if (!draws || windows != 2) {
+            problems.add("chat windows: not drawn by Lumora or the window is missing (" + draws + ", " + windows + ")");
+        } else if (inMain != 0) {
+            problems.add("chat windows: [Lumora] messages still in the main chat");
+        } else if (heads == 0) {
+            problems.add("chat windows: no head for the own message");
         }
     }
 
@@ -114,6 +156,11 @@ final class ChatSmoke {
     }
 
     static void reset(Minecraft mc) {
+        dev.lumora.core.chat.windows.ChatWindows cw = ChatModule.windows();
+        if (cw != null) {
+            cw.layout().reset();
+            cw.layout().save();
+        }
         setting("custom_size", "false");
         setting("background", "true");
         setting("text_shadow", "true");

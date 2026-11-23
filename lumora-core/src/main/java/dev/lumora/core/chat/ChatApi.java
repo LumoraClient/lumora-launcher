@@ -332,8 +332,11 @@ public final class ChatApi {
     /** The mouse wheel in the open chat ({@code amount} positive = up); true if Lumora used it. */
     public static boolean screenScroll(double mouseX, double mouseY, double amount) {
         ChatApi c = current;
-        if (c == null || amount == 0) {
+        if (amount == 0) {
             return false;
+        }
+        if (c == null) {
+            return dev.lumora.core.extras.ChatModule.screenScroll(mouseX, mouseY, amount);
         }
         int x = (int) Math.floor(mouseX);
         int y = (int) Math.floor(mouseY);
@@ -342,21 +345,21 @@ public final class ChatApi {
                 return true;
             }
         }
-        return c.bar.scroll(x, y, amount);
+        return c.bar.scroll(x, y, amount) || dev.lumora.core.extras.ChatModule.screenScroll(mouseX, mouseY, amount);
     }
 
     /** A key in the open chat (GLFW code); true if Lumora used it (Minecraft must not see it). */
     public static boolean screenKey(int key) {
         ChatApi c = current;
         if (c == null) {
-            return false;
+            return dev.lumora.core.extras.ChatModule.screenKey(key);
         }
         for (ScreenLayer l : c.layers) {
             if (l.key(key)) {
                 return true;
             }
         }
-        return c.bar.key(key);
+        return c.bar.key(key) || dev.lumora.core.extras.ChatModule.screenKey(key);
     }
 
     /** Presses the input button {@code id} of addon {@code owner} like a click (smoke tests); false if there is none. */

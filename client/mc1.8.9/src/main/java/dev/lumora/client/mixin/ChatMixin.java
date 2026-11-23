@@ -42,6 +42,12 @@ public abstract class ChatMixin {
             return message;
         }
         ChatModule.Line line = c.onMessage(message.asUnformattedString());
+        Text shown = lumora$decorated(c, message, line);
+        ChatModule.shown(shown, line.replacePrevious());
+        return shown;
+    }
+
+    private Text lumora$decorated(ChatModule c, Text message, ChatModule.Line line) {
         Text out = message;
         if (line.replacePrevious() && !messages.isEmpty()) {
             messages.remove(0); // newest first: the same message one line up
@@ -100,5 +106,33 @@ public abstract class ChatMixin {
     @Redirect(method = "render(I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/font/TextRenderer;drawWithShadow(Ljava/lang/String;FFI)I"))
     private int lumora$text(net.minecraft.client.font.TextRenderer font, String text, float x, float y, int color) {
         return font.draw(text, x, y, color, ChatModule.textShadow());
+    }
+
+    // --- Lumora chat windows (tabs, windows, heads) instead of Minecraft's chat
+
+    @Inject(method = "render(I)V", at = @At("HEAD"), cancellable = true)
+    private void lumora$windows(int ticks, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (ChatModule.drawsChat()) {
+            dev.lumora.client.compat.GuiGraphics g = dev.lumora.client.compat.GuiGraphics.create();
+            dev.lumora.client.api.McHudGraphics hud = dev.lumora.client.api.LumoraRuntime.graphics(g);
+            hud.push();
+            hud.translate(0, -(g.guiHeight() - 48)); // Minecraft moved the chat down to its place
+            ChatModule.renderChat(hud, g.guiWidth(), g.guiHeight(), isChatFocused());
+            hud.pop();
+            ci.cancel();
+        }
+    }
+
+    /** Lumora chat windows: Minecraft's own lines are not on screen, so neither hover texts nor clicks find them. */
+    @Inject(method = "getTextAt", at = @At("HEAD"), cancellable = true)
+    private void lumora$noText(int x, int y, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.text.Text> cir) {
+        if (ChatModule.drawsChat()) {
+            cir.setReturnValue(null);
+        }
+    }
+
+    @Inject(method = "clear()V", at = @At("HEAD"))
+    private void lumora$cleared(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        ChatModule.chatCleared();
     }
 }

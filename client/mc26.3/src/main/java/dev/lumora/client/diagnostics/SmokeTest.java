@@ -615,6 +615,7 @@ public final class SmokeTest {
                 ChatSmoke.fill(mc);
             } else if (ticks == 8) {
                 ChatSmoke.check(mc, extraProblems);
+                ChatSmoke.windowsCheck(extraProblems);
             } else if (ticks == 10) {
                 screenshot(mc, "chat-menu");
                 ChatSmoke.look();
@@ -625,12 +626,15 @@ public final class SmokeTest {
                 ChatSmoke.emojiCheck(extraProblems);
                 screenshot(mc, "chat-emoji");
             } else if (ticks == 21) {
+                ChatSmoke.wizard();
+            } else if (ticks == 34) {
+                screenshot(mc, "chat-tab-wizard");
                 ChatSmoke.reset(mc);
                 FreelookSmoke.start();
-            } else if (ticks == 28) {
+            } else if (ticks == 41) {
                 FreelookSmoke.check(extraProblems);
                 screenshot(mc, "freelook");
-            } else if (ticks == 29) {
+            } else if (ticks == 42) {
                 FreelookSmoke.stop();
                 if (mc.player != null) {
                     lightPitch = mc.player.getXRot();
@@ -638,19 +642,19 @@ public final class SmokeTest {
                     mc.player.xRotO = 70f;
                 }
                 LightOverlaySmoke.start();
-            } else if (ticks == 60) {
+            } else if (ticks == 73) {
                 // module "Light Block Overlay": spawn positions found within the time budget, crosses then numbers
                 LightOverlaySmoke.check(extraProblems);
                 screenshot(mc, "light-overlay");
                 LightOverlaySmoke.style("number");
-            } else if (ticks == 66) {
+            } else if (ticks == 79) {
                 screenshot(mc, "light-overlay-number");
                 LightOverlaySmoke.mode("light"); // light level of every block, numbers by default
                 LightOverlaySmoke.lightStyle("number");
-            } else if (ticks == 74) {
+            } else if (ticks == 87) {
                 screenshot(mc, "light-level");
                 LightOverlaySmoke.lightStyle("tile");
-            } else if (ticks == 80) {
+            } else if (ticks == 93) {
                 screenshot(mc, "light-level-tile");
                 LightOverlaySmoke.lightStyle("number");
                 LightOverlaySmoke.stop();

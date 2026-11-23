@@ -22,6 +22,11 @@ public final class McHudGraphics implements HudGraphics {
     private final Map<TextureRef, Identifier> textures = new HashMap<>();
     private GuiGraphicsExtractor g;
 
+    /** The Minecraft graphics of this frame (Lumora chat windows draw Minecraft text through it). */
+    public GuiGraphicsExtractor graphics() {
+        return g;
+    }
+
     public McHudGraphics with(GuiGraphicsExtractor graphics) {
         this.g = graphics;
         if (dev.lumora.core.perf.PerformanceEngine.smartHud) {

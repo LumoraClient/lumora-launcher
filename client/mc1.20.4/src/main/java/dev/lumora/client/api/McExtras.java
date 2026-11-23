@@ -367,6 +367,11 @@ final class McExtras implements GameExtras {
     }
 
     @Override
+    public dev.lumora.core.chat.windows.ChatText chatText() {
+        return McChatText.INSTANCE;
+    }
+
+    @Override
     public ChatView chatView() {
         net.minecraft.client.gui.components.ChatComponent chat = chat();
         if (chat == null) {
@@ -429,7 +434,7 @@ final class McExtras implements GameExtras {
         return found == null ? null : chatMessage(found.content(), lo, hi);
     }
 
-    private static ChatMessage chatMessage(net.minecraft.network.chat.Component content, int lo, int hi) {
+    static ChatMessage chatMessage(net.minecraft.network.chat.Component content, int lo, int hi) {
         List<String> insertions = new ArrayList<>();
         List<String> commands = new ArrayList<>();
         List<String> links = new ArrayList<>();

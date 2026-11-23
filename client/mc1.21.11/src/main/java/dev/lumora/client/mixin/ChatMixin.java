@@ -42,6 +42,12 @@ public abstract class ChatMixin {
             return dev.lumora.client.render.ChatEmojis.decorate(message);
         }
         ChatModule.Line line = c.onMessage(message.getString());
+        Component shown = lumora$decorated(c, message, line);
+        ChatModule.shown(shown, line.replacePrevious());
+        return shown;
+    }
+
+    private Component lumora$decorated(ChatModule c, Component message, ChatModule.Line line) {
         Component out = message;
         if (line.replacePrevious() && !allMessages.isEmpty()) {
             allMessages.remove(0); // newest first: the same message one line up
@@ -91,9 +97,33 @@ public abstract class ChatMixin {
         return value;
     }
 
-    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;IIIZZ)V", at = @At("HEAD"))
-    private void lumora$drawStart(CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;IIIZZ)V", at = @At("HEAD"), cancellable = true)
+    private void lumora$drawStart(net.minecraft.client.gui.GuiGraphics graphics, net.minecraft.client.gui.Font font, int ticks,
+                                  int mouseX, int mouseY, boolean focused, boolean insertions, CallbackInfo ci) {
         ChatModule.renderingChat(true);
+        if (ChatModule.drawsChat()) {
+            // Lumora's chat windows (tabs, heads) instead of Minecraft's chat
+            try {
+                ChatModule.renderChat(dev.lumora.client.api.LumoraRuntime.graphics(graphics), graphics.guiWidth(), graphics.guiHeight(), focused);
+            } finally {
+                ChatModule.renderingChat(false);
+            }
+            ci.cancel();
+        }
+    }
+
+    /** Lumora chat windows: Minecraft's own line positions are not on screen, so clicks find nothing there. */
+    @Inject(method = "captureClickableText", at = @At("HEAD"), cancellable = true)
+    private void lumora$clickable(net.minecraft.client.gui.ActiveTextCollector collector, int screenHeight, int ticks, boolean focused,
+                                  CallbackInfo ci) {
+        if (ChatModule.drawsChat()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "clearMessages", at = @At("HEAD"))
+    private void lumora$cleared(boolean history, CallbackInfo ci) {
+        ChatModule.chatCleared();
     }
 
     @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;IIIZZ)V", at = @At("RETURN"))

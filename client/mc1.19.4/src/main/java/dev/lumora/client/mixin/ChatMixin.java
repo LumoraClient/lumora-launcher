@@ -42,6 +42,12 @@ public abstract class ChatMixin {
             return dev.lumora.client.render.ChatEmojis.decorate(message);
         }
         ChatModule.Line line = c.onMessage(message.getString());
+        Component shown = lumora$decorated(c, message, line);
+        ChatModule.shown(shown, line.replacePrevious());
+        return shown;
+    }
+
+    private Component lumora$decorated(ChatModule c, Component message, ChatModule.Line line) {
         Component out = message;
         if (line.replacePrevious() && !allMessages.isEmpty()) {
             allMessages.remove(0); // newest first: the same message one line up
@@ -106,5 +112,36 @@ public abstract class ChatMixin {
     @Redirect(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;III)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Font;drawShadow(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/util/FormattedCharSequence;FFI)I"))
     private int lumora$text(net.minecraft.client.gui.Font font, com.mojang.blaze3d.vertex.PoseStack pose, net.minecraft.util.FormattedCharSequence text, float x, float y, int color) {
         return ChatModule.textShadow() ? font.drawShadow(pose, text, x, y, color) : font.draw(pose, text, x, y, color);
+    }
+
+    // --- Lumora chat windows (tabs, windows, heads) instead of Minecraft's chat
+
+    @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;III)V", at = @At("HEAD"), cancellable = true)
+    private void lumora$windows(com.mojang.blaze3d.vertex.PoseStack pose, int ticks, int mouseX, int mouseY, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (ChatModule.drawsChat()) {
+            dev.lumora.client.compat.GuiGraphics g = dev.lumora.client.compat.GuiGraphics.of(pose);
+            ChatModule.renderChat(dev.lumora.client.api.LumoraRuntime.graphics(g), g.guiWidth(), g.guiHeight(), isChatFocused());
+            ci.cancel();
+        }
+    }
+
+    /** Lumora chat windows: Minecraft's own lines are not on screen, so neither hover texts nor clicks find them. */
+    @Inject(method = "getClickedComponentStyleAt", at = @At("HEAD"), cancellable = true)
+    private void lumora$noStyle(double x, double y, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.network.chat.Style> cir) {
+        if (ChatModule.drawsChat()) {
+            cir.setReturnValue(null);
+        }
+    }
+
+    @Inject(method = "handleChatQueueClicked", at = @At("HEAD"), cancellable = true)
+    private void lumora$noQueue(double x, double y, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+        if (ChatModule.drawsChat()) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    @Inject(method = "clearMessages", at = @At("HEAD"))
+    private void lumora$cleared(boolean history, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        ChatModule.chatCleared();
     }
 }

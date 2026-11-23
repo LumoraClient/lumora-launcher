@@ -22,9 +22,66 @@ final class ChatSmoke {
             chat.addClientSystemMessage(Component.literal("Lumora Chat-Test, Zeile " + i));
         }
         chat.addClientSystemMessage(Component.literal("Eine lange Nachricht, damit sie umbricht: " + "abc ".repeat(30)));
+        String own = mc.player == null ? "Steve" : mc.player.getGameProfile().name();
+        windows(own);
+        chat.addClientSystemMessage(Component.literal("[Lumora] Server-Ansage: Neustart in 5 Minuten"));
+        chat.addClientSystemMessage(Component.literal("[Lumora] Abstimmung: /vote fuer Belohnungen"));
+        chat.addClientSystemMessage(Component.literal("Spieler " + own + ": Hallo zusammen!"));
         chat.addClientSystemMessage(Component.literal("<").append(Component.literal("Steve").withStyle(s -> s.withInsertion("Steve")))
                 .append(Component.literal("> Schau mal: https://lumora.dev/chat")));
         mc.gui.openChatScreen(ChatComponent.ChatMethod.MESSAGE);
+    }
+
+    /** Lumora chat windows: a player tab in the main chat and a window of its own for the "[Lumora]" messages. */
+    private static void windows(String own) {
+        dev.lumora.core.chat.windows.ChatWindows w = ChatModule.windows();
+        if (w == null) {
+            return;
+        }
+        dev.lumora.core.chat.windows.ChatLayout l = w.layout();
+        l.reset();
+        l.add(new dev.lumora.core.chat.windows.ChatTab(l.newTabId(), own,
+                new dev.lumora.core.chat.windows.ChatRule(dev.lumora.core.chat.windows.ChatRule.Kind.PLAYER, own)), l.main(), 0, 0, 0, 0);
+        dev.lumora.core.chat.windows.ChatTab server = new dev.lumora.core.chat.windows.ChatTab(l.newTabId(), "Lumora",
+                new dev.lumora.core.chat.windows.ChatRule(dev.lumora.core.chat.windows.ChatRule.Kind.PREFIX, "[Lumora]"));
+        server.keepInMain = false;
+        server.highlight = true;
+        l.add(server, null, 340, 40, 200, 70);
+        l.main().select(l.mainTab());
+    }
+
+    /** The window for a new tab, with the suggestions of the newest message that has a sender. */
+    static void wizard() {
+        dev.lumora.core.chat.windows.ChatWindows w = ChatModule.windows();
+        if (w == null) {
+            return;
+        }
+        dev.lumora.core.chat.windows.ChatEntry from = null;
+        for (dev.lumora.core.chat.windows.ChatEntry e : w.store().all()) {
+            if (e.sender() != null) {
+                from = e;
+            }
+        }
+        w.newTab(from);
+    }
+
+    /** The chat windows draw the chat: two windows, the "[Lumora]" messages only in their own window. */
+    static void windowsCheck(List<String> problems) {
+        dev.lumora.core.chat.windows.ChatWindows w = ChatModule.windows();
+        boolean draws = ChatModule.drawsChat();
+        int windows = w == null ? 0 : w.layout().windows.size();
+        long inMain = w == null ? 0 : w.store().all().stream().filter(e -> e.clean().startsWith("[Lumora]"))
+                .filter(e -> w.layout().inMain(e, "")).count();
+        long heads = w == null ? 0 : w.store().all().stream().filter(e -> e.head() != null).count();
+        dev.lumora.client.LumoraClient.LOG.info("LUMORA_CHAT_WINDOWS draws={} windows={} messages={} lumoraInMain={} heads={}", draws, windows,
+                w == null ? 0 : w.store().size(), inMain, heads);
+        if (!draws || windows != 2) {
+            problems.add("chat windows: not drawn by Lumora or the window is missing (" + draws + ", " + windows + ")");
+        } else if (inMain != 0) {
+            problems.add("chat windows: [Lumora] messages still in the main chat");
+        } else if (heads == 0) {
+            problems.add("chat windows: no head for the own message");
+        }
     }
 
     /** Checks the chat window and the newest message, then right-clicks it (opens the menu). */
@@ -115,6 +172,11 @@ final class ChatSmoke {
     }
 
     static void reset(Minecraft mc) {
+        dev.lumora.core.chat.windows.ChatWindows w = ChatModule.windows();
+        if (w != null) {
+            w.layout().reset();
+            w.layout().save();
+        }
         setting("custom_size", "false");
         setting("background", "true");
         setting("text_shadow", "true");

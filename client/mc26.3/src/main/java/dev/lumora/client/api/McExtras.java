@@ -373,6 +373,11 @@ final class McExtras implements GameExtras {
     }
 
     @Override
+    public dev.lumora.core.chat.windows.ChatText chatText() {
+        return McChatText.INSTANCE;
+    }
+
+    @Override
     public ChatView chatView() {
         net.minecraft.client.gui.components.ChatComponent chat = chat();
         if (chat == null) {

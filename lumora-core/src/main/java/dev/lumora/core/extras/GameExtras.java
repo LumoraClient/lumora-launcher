@@ -274,6 +274,11 @@ public interface GameExtras {
         return null;
     }
 
+    /** Chat text, heads and options for Lumora's chat windows; null if this version has none (Minecraft's chat stays). */
+    default dev.lumora.core.chat.windows.ChatText chatText() {
+        return null;
+    }
+
     /** Wraps the chat lines again (after the chat width changed). */
     default void refreshChat() {
     }

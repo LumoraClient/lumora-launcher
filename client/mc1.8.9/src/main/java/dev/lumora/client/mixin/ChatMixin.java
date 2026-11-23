@@ -131,8 +131,10 @@ public abstract class ChatMixin {
         }
     }
 
-    @Inject(method = "clear()V", at = @At("HEAD"))
+    @Inject(method = "clear()V", at = @At("HEAD"), cancellable = true)
     private void lumora$cleared(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
-        ChatModule.chatCleared();
+        if (ChatModule.chatCleared(true)) {
+            ci.cancel(); // "Keep when leaving": the chat stays
+        }
     }
 }

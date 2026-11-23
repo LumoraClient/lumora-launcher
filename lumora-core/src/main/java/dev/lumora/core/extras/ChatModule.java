@@ -67,6 +67,9 @@ public final class ChatModule implements LumoraAddon {
     BooleanSetting mention;
     IntegerSetting mentionVolume;
     BooleanSetting windowsOn;
+    BooleanSetting keepOnLeave;
+    /** Held: the chat shows like the open chat (all messages, no fading) without opening it. */
+    private volatile dev.lumora.api.input.Keybind peekKey;
     BooleanSetting heads;
     /** Lumora's chat windows and tabs (null before the module is initialized). */
     dev.lumora.core.chat.windows.ChatWindows windows;
@@ -114,7 +117,8 @@ public final class ChatModule implements LumoraAddon {
         format = s.selection("format", "24h", "24h", "24h_seconds", "12h").name(k + "format").requires(timestamps);
         timestampColor = s.color("timestamp_color", 0xFF8D9BB8, false).name(k + "timestamp_color").requires(timestamps);
         stack = s.toggle("stack", true).name(k + "stack");
-        history = s.slider("history", 500, 100, 1000).step(50).name(k + "history").description(k + "history.description");
+        history = s.slider("history", 500, 100, 5000).step(100).name(k + "history").description(k + "history.description");
+        keepOnLeave = s.toggle("keep_on_leave", true).name(k + "keep_on_leave").description(k + "keep_on_leave.description");
 
         background = s.toggle("background", true).name(k + "background").section(k + "section.look");
         backgroundOpacity = s.slider("background_opacity", 50, 0, 100).step(5).unit("%").name(k + "background_opacity")
@@ -160,6 +164,8 @@ public final class ChatModule implements LumoraAddon {
     public void onEnable(AddonContext context) {
         stacker.reset();
         overlay.reset();
+        peekKey = context.keybinds().register("peek", "lumora.extras.chat.peek", dev.lumora.api.input.Keys.Z, () -> {
+        });
         active = this;
         refreshChat();
     }
@@ -335,7 +341,9 @@ public final class ChatModule implements LumoraAddon {
     public static void renderChat(HudGraphics g, int guiWidth, int guiHeight, boolean focused) {
         ChatModule m = active;
         if (drawsChat()) {
-            m.windows.render(g, guiWidth, guiHeight, focused, System.currentTimeMillis());
+            // peek key held in game: the chat like the open chat, without opening it
+            boolean peek = !focused && m.peekKey != null && m.peekKey.isDown();
+            m.windows.render(g, guiWidth, guiHeight, focused, peek, System.currentTimeMillis());
         }
     }
 
@@ -351,12 +359,23 @@ public final class ChatModule implements LumoraAddon {
         }
     }
 
-    /** Minecraft cleared its chat (leaving a world, F3+D). */
-    public static void chatCleared() {
+    /**
+     * Minecraft clears its chat: {@code leaving} a world or server, or on request (F3+D).
+     *
+     * @return true if the chat stays (setting "Keep when leaving"): Minecraft must not clear it either
+     */
+    public static boolean chatCleared(boolean leaving) {
         ChatModule m = active;
-        if (m != null && m.windows != null) {
+        if (m == null) {
+            return false;
+        }
+        if (leaving && m.keepOnLeave != null && m.keepOnLeave.get()) {
+            return true;
+        }
+        if (m.windows != null) {
             m.windows.clear();
         }
+        return false;
     }
 
     /** The chat screen was closed or a message sent: back to the newest messages. */

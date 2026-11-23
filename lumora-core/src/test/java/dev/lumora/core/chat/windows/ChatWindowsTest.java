@@ -219,7 +219,7 @@ class ChatWindowsTest {
 
     static void frame(ChatWindows w, FakeGraphics g, boolean open, int mx, int my) {
         long now = System.currentTimeMillis();
-        w.render(g, 400, 300, open, now);
+        w.render(g, 400, 300, open, false, now);
         if (open) {
             w.renderScreen(g, mx, my, now);
         }
@@ -308,13 +308,50 @@ class ChatWindowsTest {
         assertEquals(7, layout.main().scroll);
         frame(w, g, true, 0, 0);
         b = w.box(layout.main(), host.text.options(), true, 400, 300);
-        assertTrue(w.click(b.x() + ChatWindows.PAD + 3, b.bottom() - 4, 0));
+        int tx = b.x() + ChatWindows.PAD + 3;
+        assertTrue(w.click(tx, b.bottom() - 4, 0));
+        assertEquals(0, host.text.clicked.size(), "the click event comes when the mouse goes up");
+        host.mouseDown = false;
+        frame(w, g, true, tx, b.bottom() - 4);
         assertEquals(1, host.text.clicked.size());
         assertTrue(host.text.clicked.get(0).toString().startsWith("style:"));
+
+        // holding the left button and dragging scrolls the messages; the window stays where it is
+        int xBefore = layout.main().x;
+        int bottomBefore = layout.main().bottom;
+        int scrollBefore = layout.main().scroll;
+        assertTrue(w.click(tx, b.bottom() - 30, 0));
+        host.mouseDown = true;
+        frame(w, g, true, tx, b.bottom() - 30 + 27); // three lines down
+        assertEquals(scrollBefore + 3, layout.main().scroll, "dragging down shows older messages");
+        frame(w, g, true, tx, b.bottom() - 30 - 9); // one line up from the start
+        assertEquals(scrollBefore - 1, layout.main().scroll);
+        host.mouseDown = false;
+        frame(w, g, true, tx, b.bottom() - 30 - 9);
+        assertEquals(1, host.text.clicked.size(), "a drag is no click");
+        assertEquals(xBefore, layout.main().x);
+        assertEquals(bottomBefore, layout.main().bottom);
+
+        // the left edge at the screen edge is easy to grab
+        assertEquals(1, ChatWindows.edgesAt(new ChatWindows.Box(0, 100, 200, 200, 88), 2, 150) & 1);
 
         // right-click: message menu with "Filter"
         assertTrue(w.click(b.x() + 20, b.bottom() - 4, 1));
         assertTrue(w.menu.items.stream().anyMatch(i -> i.label().equals("tabs.filter")));
+    }
+
+    @Test
+    void peekShowsFadedMessagesWithoutOpeningTheChat() {
+        FakeHost host = new FakeHost();
+        ChatWindows w = new ChatWindows(host, new ChatLayout(null));
+        w.received("an old message", false);
+        long later = System.currentTimeMillis() + 60_000; // long after it faded (10 s)
+        FakeGraphics g = new FakeGraphics();
+        w.render(g, 400, 300, false, false, later);
+        assertTrue(host.text.drawn.isEmpty(), "closed chat: faded out");
+        w.render(g, 400, 300, false, true, later);
+        assertEquals(List.of("an old message"), host.text.drawn, "peek key held: shown again");
+        assertFalse(w.click(10, 255, 0), "nothing to click while peeking");
     }
 
     @Test

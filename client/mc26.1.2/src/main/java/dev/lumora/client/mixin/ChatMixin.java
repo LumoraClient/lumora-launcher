@@ -121,9 +121,11 @@ public abstract class ChatMixin {
         }
     }
 
-    @Inject(method = "clearMessages", at = @At("HEAD"))
+    @Inject(method = "clearMessages", at = @At("HEAD"), cancellable = true)
     private void lumora$cleared(boolean history, CallbackInfo ci) {
-        ChatModule.chatCleared();
+        if (ChatModule.chatCleared(history)) {
+            ci.cancel(); // "Keep when leaving": the chat stays
+        }
     }
 
     @Inject(method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;Z)V", at = @At("RETURN"))

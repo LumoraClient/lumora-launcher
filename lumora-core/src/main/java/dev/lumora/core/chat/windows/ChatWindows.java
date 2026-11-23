@@ -131,7 +131,7 @@ public final class ChatWindows {
         final Map<Long, List<Object>> lines = new HashMap<>();
     }
 
-    enum Drag { NONE, PENDING_MOVE, MOVE, RESIZE }
+    enum Drag { NONE, PENDING_MOVE, MOVE, RESIZE, PENDING_SCROLL, SCROLL }
 
     private final Host host;
     private final ChatLayout layout;
@@ -164,6 +164,10 @@ public final class ChatWindows {
     private int startBottom;
     private int startW;
     private int startH;
+    private int startScroll;
+    /** The message line pressed: a click on it when the mouse comes up without dragging. */
+    private Hit pressed;
+    private int pressedX;
 
     PopupMenu menu;
     private Hit dotsHit;
@@ -316,9 +320,10 @@ public final class ChatWindows {
     // --- drawing (called instead of Minecraft's chat)
 
     /**
-     * Draws all windows. {@code focused}: the chat screen is open (tab bars, full height, scrolling).
+     * Draws all windows. {@code focused}: the chat screen is open (tab bars, full height, scrolling); {@code peek}: the
+     * peek key is held (full height and every message, but nothing to click).
      */
-    public void render(HudGraphics g, int gw, int gh, boolean focused, long now) {
+    public void render(HudGraphics g, int gw, int gh, boolean focused, boolean peek, long now) {
         ChatText text = host.text();
         if (text == null) {
             return;
@@ -338,17 +343,17 @@ public final class ChatWindows {
         boxes.clear();
         boolean first = true;
         for (ChatWindow w : layout.windows) {
-            Box b = box(w, o, focused, gw, gh);
+            Box b = box(w, o, focused || peek, gw, gh);
             boxes.put(w, b);
             if (!first) {
                 text.layer(g); // a window covers the windows below it, their text too
             }
             first = false;
-            drawWindow(g, text, o, w, b, focused, now);
+            drawWindow(g, text, o, w, b, focused, focused || peek, now);
         }
     }
 
-    private void drawWindow(HudGraphics g, ChatText text, ChatText.Options o, ChatWindow w, Box b, boolean focused, long now) {
+    private void drawWindow(HudGraphics g, ChatText text, ChatText.Options o, ChatWindow w, Box b, boolean focused, boolean full, long now) {
         ChatTab tab = w.activeTab();
         if (tab == null) {
             return;
@@ -390,7 +395,7 @@ public final class ChatWindows {
         for (int i = entries.size() - 1; i >= 0; i--) {
             ChatEntry e = entries.get(i);
             float alpha = 1f;
-            if (!focused) {
+            if (!full) {
                 long age = now - e.time();
                 double t = fadeMs == Long.MAX_VALUE ? 0 : (double) age / fadeMs;
                 double a = Math.max(0, Math.min(1, (1.0 - t) * 10.0));
@@ -412,7 +417,7 @@ public final class ChatWindows {
                 }
                 int rowBottom = -row * lh;
                 int rowTop = rowBottom - lh;
-                g.fill(0, rowTop, localW, rowBottom, alphaBlack(bg * (focused ? 0.9 : alpha)));
+                g.fill(0, rowTop, localW, rowBottom, alphaBlack(bg * (full ? 0.9 : alpha)));
                 if (light != 0) {
                     g.fill(0, rowTop, localW, rowBottom, LumoraTheme.alpha(light, (int) (0x58 * alpha)));
                     g.fill(0, rowTop, 2, rowBottom, LumoraTheme.alpha(light, (int) (0xFF * alpha)));
@@ -433,7 +438,7 @@ public final class ChatWindows {
                 row++;
             }
         }
-        if (focused) {
+        if (full) {
             // the open window is dark all over, also above the oldest line
             int top = (int) -Math.ceil(b.h() / s);
             if (-row * lh > top) {
@@ -585,7 +590,7 @@ public final class ChatWindows {
     }
 
     private boolean dragging() {
-        return drag == Drag.MOVE || drag == Drag.RESIZE;
+        return drag == Drag.MOVE || drag == Drag.RESIZE || drag == Drag.SCROLL;
     }
 
     /** Which edges of a window are under the mouse: bits 1 left, 2 right, 4 top, 8 bottom. */
@@ -594,9 +599,10 @@ public final class ChatWindows {
         if (mx < b.x() - GRAB || mx > b.right() + GRAB || my < top - GRAB || my > b.bottom() + GRAB) {
             return 0;
         }
-        // GRAB pixels outside the window, 2 inside (the tabs and buttons stay clickable)
+        // GRAB pixels outside the window, 2 inside (the tabs and buttons stay clickable); at the screen edge, where
+        // there is nothing outside, GRAB inside
         int e = 0;
-        if (mx < b.x() + 2) {
+        if (mx < b.x() + (b.x() <= 0 ? GRAB : 2)) {
             e |= 1;
         }
         if (mx > b.right() - 2) {
@@ -852,9 +858,15 @@ public final class ChatWindows {
             return true;
         }
         if (button == 0 && mx < h.x1()) {
-            ChatText text = host.text();
-            Object style = text == null ? null : text.styleAt(h.line(), (int) ((mx - h.textX()) / h.scale()));
-            return style != null && text.click(style, host.shiftDown());
+            // dragging scrolls the messages, a click without dragging runs the click event of the text (on release)
+            drag = Drag.PENDING_SCROLL;
+            dragWindow = h.window();
+            dragMx = (int) mx;
+            dragMy = (int) my;
+            startScroll = h.window().scroll;
+            pressed = h;
+            pressedX = (int) mx;
+            return true;
         }
         return false;
     }
@@ -877,14 +889,19 @@ public final class ChatWindows {
         }
         ChatWindow w = windowAt(mouseX, mouseY);
         Box b = boxes.get(w);
-        ChatText text = host.text();
-        int rows = 10;
-        if (b != null && text != null) {
-            ChatText.Options o = text.options();
-            rows = Math.max(1, (int) (b.h() / ((int) (9.0 * (o.lineSpacing() + 1.0)) * Math.max(0.1, o.scale()))));
-        }
+        int rows = b == null ? 10 : Math.max(1, (int) (b.h() / rowHeight()));
         w.scroll = Math.max(0, w.scroll + (key == Keys.PAGE_UP ? rows - 1 : -(rows - 1)));
         return true;
+    }
+
+    /** Height of one message line on screen (GUI pixels). */
+    private double rowHeight() {
+        ChatText text = host.text();
+        if (text == null) {
+            return 9;
+        }
+        ChatText.Options o = text.options();
+        return Math.max(1, (int) (9.0 * (o.lineSpacing() + 1.0)) * Math.max(0.1, o.scale()));
     }
 
     /** The chat was closed: back to the newest messages. */
@@ -893,6 +910,9 @@ public final class ChatWindows {
             w.scroll = 0;
         }
         menu = null;
+        if (drag == Drag.PENDING_SCROLL) {
+            drag = Drag.NONE; // closed while pressed: no click
+        }
         if (drag != Drag.NONE) {
             endDrag();
         }
@@ -957,6 +977,17 @@ public final class ChatWindows {
         }
         int dx = mx - dragMx;
         int dy = my - dragMy;
+        if (drag == Drag.PENDING_SCROLL) {
+            if (Math.abs(dy) < MOVE_THRESHOLD) {
+                return;
+            }
+            drag = Drag.SCROLL;
+        }
+        if (drag == Drag.SCROLL) {
+            // the messages follow the mouse: down shows older ones (clamped while drawing)
+            w.scroll = Math.max(0, startScroll + (int) Math.round(dy / rowHeight()));
+            return;
+        }
         if (drag == Drag.PENDING_MOVE) {
             if (Math.abs(dx) < MOVE_THRESHOLD && Math.abs(dy) < MOVE_THRESHOLD) {
                 return;
@@ -1005,6 +1036,19 @@ public final class ChatWindows {
     }
 
     private void endDrag() {
+        if (drag == Drag.PENDING_SCROLL && pressed != null) {
+            Hit h = pressed;
+            ChatText text = host.text();
+            Object style = text == null ? null : text.styleAt(h.line(), (int) ((pressedX - h.textX()) / h.scale()));
+            pressed = null;
+            drag = Drag.NONE;
+            dragWindow = null;
+            if (style != null) {
+                text.click(style, host.shiftDown());
+            }
+            return;
+        }
+        pressed = null;
         boolean changed = drag == Drag.MOVE || drag == Drag.RESIZE;
         drag = Drag.NONE;
         dragWindow = null;

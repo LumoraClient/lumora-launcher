@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.93 (2026-11-24)
+
+### Client
+- **Chat: Tabs, eigene Fenster, Filter und Spielerköpfe:** Lumora zeichnet den Chat jetzt selbst (Chat-Modul, Einstellung „Tabs und Fenster“, an). Im offenen Chat sitzt eine Tab-Leiste über jedem Chat-Fenster: „+“ für einen neuen Tab, „≡“ für die Liste aller Tabs und Fenster (wechseln, bearbeiten, neuer Tab, Fenster zurück an ihren Platz), Stift am aktiven Tab zum Bearbeiten, Rechtsklick auf einen Tab: bearbeiten, in ein eigenes Fenster bzw. in den Haupt-Chat, löschen. Inaktive Tabs zählen neue Nachrichten. Ein Assistent in drei Schritten (Start, Anpassen, Name und Ort) legt Tabs an: Vorschläge aus den letzten 50 Nachrichten (Spieler, Präfix, Rang, mit Anzahl) oder eigene Regeln (Erwähnungen von mir mit weiteren Wörtern, Spieler, Präfix, Rang, Wörter, Nachrichten ohne Spieler, alle), auch im Haupt-Chat behalten oder herausnehmen, Ton, farbige Hervorhebung, Vorschau. Eigene Fenster lassen sich an der Leiste verschieben und an jedem Rand und jeder Ecke in der Größe ziehen, der Haupt-Chat ebenso. Das Nachrichtenmenü (Rechtsklick oder „⋯“) hat „Filter …“ mit Vorschlägen aus dieser Nachricht. Vor Nachrichten von Spielern aus der Tabliste steht ihr Kopf (Einstellung „Spielerköpfe“). Die Zeilen bleiben Minecrafts eigener Text: Schriften, Farben, Klick- und Hover-Ereignisse der Server funktionieren wie vorher. Tabs und Fenster werden in `config/lumora/chat-tabs.json` gespeichert. Für alle Minecraft-Versionen 1.8.9–26.3.
+
 ## 0.3.92 (2026-11-22)
 
 ### Launcher

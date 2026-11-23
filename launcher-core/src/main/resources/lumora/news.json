@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-chat-tabs",
+      "date": "2026-11-24",
+      "author": "Lumora",
+      "version": "0.3.93",
+      "title": "Großes Chat-Update: Tabs, eigene Fenster und Spielerköpfe",
+      "text": "Sortiere den Chat in Tabs und eigene Fenster, filtere nach Spieler, Rang oder Präfix und sieh die Köpfe der Spieler vor ihren Nachrichten.",
+      "image": "news-chat-tabs.png",
+      "body": [
+        {"p": "Im offenen Chat sitzt jetzt eine Tab-Leiste über dem Chat. Mit „+“ legst du einen neuen Tab an, „≡“ zeigt alle Tabs und Fenster zum Wechseln und Bearbeiten. Tabs mit neuen Nachrichten zeigen, wie viele dazugekommen sind."},
+        {"p": "Ein Assistent führt in drei Schritten durch einen neuen Tab:"},
+        {"list": [
+          "Start: Vorschläge aus deinem Chat (Spieler, Präfix, Rang) oder selbst wählen: Erwähnungen von dir, bestimmte Wörter, Nachrichten ohne Spieler",
+          "Anpassen: auch im Haupt-Chat behalten oder herausnehmen, Ton abspielen, mit einer Farbe hervorheben, mit Vorschau",
+          "Name und Ort: im selben Fenster oder in einem eigenen Fenster"
+        ]},
+        {"p": "Eigene Fenster schiebst du an ihrer Leiste überall hin und ziehst sie an jedem Rand und jeder Ecke größer oder kleiner, den Haupt-Chat auch. Rechtsklick oder „⋯“ an einer Nachricht bietet jetzt „Filter …“: Lumora schlägt vor, was diese Nachricht hat, zum Beispiel ihren Absender, Rang oder Präfix. Vor den Nachrichten von Spielern aus der Tabliste steht ihr Kopf. Schriften, Farben, Klicks und Hover-Texte der Server bleiben, wie sie sind. Für alle Minecraft-Versionen von 1.8.9 bis 26.3; im Chat-Modul lassen sich „Tabs und Fenster“ und „Spielerköpfe“ abschalten."}
+      ]
+    },
+    {
       "id": "lumora-crash-analysis",
       "date": "2026-11-22",
       "author": "Lumora",

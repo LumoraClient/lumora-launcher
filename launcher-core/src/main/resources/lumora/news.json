@@ -1,6 +1,24 @@
 {
   "news": [
     {
+      "id": "lumora-chat-scroll-keep-peek",
+      "date": "2026-11-24",
+      "author": "Lumora",
+      "version": "0.3.94",
+      "title": "Chat: Ziehen zum Scrollen, Behalten beim Verlassen und Vorschau per Taste",
+      "text": "Scrolle den Chat mit gedrückter Maustaste, nimm ihn beim Serverwechsel mit und wirf per Taste einen Blick hinein, ohne ihn zu öffnen.",
+      "image": "news-chat-tabs.png",
+      "body": [
+        {"p": "Drei Ergänzungen zum neuen Chat:"},
+        {"list": [
+          "Ziehen zum Scrollen: Im offenen Chat die linke Maustaste auf den Nachrichten halten und hoch oder runter ziehen. Das Fenster bleibt, wo es ist. Ein kurzer Klick ohne Ziehen öffnet weiter Links und Befehle.",
+          "Beim Verlassen behalten: Der Chat bleibt, wenn du eine Welt oder einen Server verlässt, und ist in der nächsten noch zu lesen. F3+D leert ihn weiterhin. An ab Werk, abschaltbar im Chat-Modul.",
+          "Chat anschauen: Solange du die Taste hältst (ab Werk Z), zeigt der Chat alle Nachrichten in voller Höhe, auch die schon ausgeblendeten, ohne dass du ihn öffnest. Die Taste lässt sich in den Einstellungen des Chat-Moduls ändern."
+        ]},
+        {"p": "Außerdem kann der Verlauf jetzt bis zu 5000 Nachrichten halten (Minecraft: 100), und die Ränder eines Chat-Fensters am Bildschirmrand lassen sich leichter greifen. Für alle Minecraft-Versionen von 1.8.9 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-chat-tabs",
       "date": "2026-11-24",
       "author": "Lumora",

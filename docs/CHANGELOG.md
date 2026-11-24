@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.94 (2026-11-24)
+
+### Client
+- **Chat: Ziehen zum Scrollen:** Im offenen Chat die linke Maustaste auf den Nachrichten halten und ziehen scrollt die Nachrichten (nach unten ziehen zeigt ältere), das Fenster bleibt an seiner Stelle. Ein Klick ohne Ziehen führt das Klick-Ereignis der Nachricht beim Loslassen aus wie bisher. Die Ränder eines Fensters am Bildschirmrand sind leichter zu greifen.
+- **Chat: Beim Verlassen behalten:** Neue Einstellung (an): Der Chat bleibt beim Verlassen einer Welt oder eines Servers erhalten, Minecraft leert ihn dann auch nicht (auch ohne „Tabs und Fenster“). F3+D leert weiterhin.
+- **Chat: Längerer Verlauf:** Die Einstellung „Verlauf“ geht jetzt bis 5000 Nachrichten (vorher 1000).
+- **Chat anschauen:** Neue Taste (ab Werk Z): solange gedrückt, zeigt der Chat im Spiel alle Nachrichten in voller Höhe ohne Ausblenden, ohne ihn zu öffnen.
+
 ## 0.3.93 (2026-11-24)
 
 ### Client

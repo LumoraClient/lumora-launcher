@@ -1,0 +1,32 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.lumora_cape.idle": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"cape": {
+					"rotation": ["4 + math.sin(query.anim_time * 90) * 2 + (query.is_sneaking ? 22 : 0)", 0, 0]
+				}
+			}
+		},
+		"animation.lumora.lumora_cape.move": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"cape": {
+					"rotation": ["8 + math.clamp(query.ground_speed * 9, 0, 60) + math.sin(query.anim_time * 360) * 3 + (query.is_sneaking ? 20 : 0)", 0, 0]
+				}
+			}
+		},
+		"animation.lumora.lumora_cape.air": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"cape": {
+					"rotation": ["math.clamp(25 - query.vertical_speed * 6, 5, 70) + math.sin(query.anim_time * 360) * 4", 0, 0]
+				}
+			}
+		}
+	}
+}

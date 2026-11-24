@@ -1,0 +1,29 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.lumora.halo",
+				"texture_width": 64,
+				"texture_height": 16
+			},
+			"bones": [
+				{
+					"name": "head",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "ring",
+					"parent": "head",
+					"pivot": [0, 36.5, 0],
+					"cubes": [
+						{"origin": [-4, 36, -4], "size": [8, 1, 1], "uv": [0, 0]},
+						{"origin": [-4, 36, 3], "size": [8, 1, 1], "uv": [18, 0]},
+						{"origin": [-4, 36, -3], "size": [1, 1, 6], "uv": [36, 0]},
+						{"origin": [3, 36, -3], "size": [1, 1, 6], "uv": [50, 0]}
+					]
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.wizard_hat.sway": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"tip": {
+					"rotation": ["math.sin(query.anim_time * 90) * 3", 0, "math.cos(query.anim_time * 90) * 4"]
+				},
+				"tip2": {
+					"rotation": ["math.sin(query.anim_time * 90 - 40) * 5", 0, "math.cos(query.anim_time * 90 - 40) * 6"]
+				}
+			}
+		}
+	}
+}

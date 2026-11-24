@@ -1,0 +1,23 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.starry_cape.idle": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"cape": {
+					"rotation": ["4 + math.sin(query.anim_time * 90) * 2 + (query.is_sneaking ? 22 : 0)", 0, 0]
+				}
+			}
+		},
+		"animation.lumora.starry_cape.move": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"cape": {
+					"rotation": ["8 + math.clamp(query.ground_speed * 9, 0, 60) + math.sin(query.anim_time * 360) * 3", 0, 0]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,27 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.lumora.spirit_orb",
+				"texture_width": 64,
+				"texture_height": 16
+			},
+			"bones": [
+				{
+					"name": "orbit",
+					"pivot": [0, 26, 0]
+				},
+				{
+					"name": "orb",
+					"parent": "orbit",
+					"pivot": [11, 28, 4],
+					"cubes": [
+						{"origin": [9.5, 26.5, 2.5], "size": [3, 3, 3], "uv": [0, 0]},
+						{"origin": [9.5, 26.5, 2.5], "size": [3, 3, 3], "inflate": 0.8, "uv": [12, 0]}
+					]
+				}
+			]
+		}
+	]
+}

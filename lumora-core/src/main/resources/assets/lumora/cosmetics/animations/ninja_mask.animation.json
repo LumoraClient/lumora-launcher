@@ -1,0 +1,14 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.ninja_mask.idle": {
+			"loop": true,
+			"animation_length": 2,
+			"bones": {
+				"knot": {
+					"rotation": ["8 + math.sin(query.anim_time * 180) * 6 + math.clamp(query.ground_speed * 8, 0, 50)", 0, 0]
+				}
+			}
+		}
+	}
+}

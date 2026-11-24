@@ -555,4 +555,72 @@ final class McExtras implements GameExtras {
         net.minecraft.client.player.LocalPlayer p = mc().player;
         return p == null ? null : new float[]{p.getYRot(), p.getXRot()};
     }
+
+    // --- module "Cosmetics & Emotes"
+
+    @Override
+    public boolean drawPlayerPreview(dev.lumora.api.render.HudGraphics g, int x, int y, int width, int height,
+                                     float yaw, float pitch, float zoom) {
+        LocalPlayer p = mc().player;
+        net.minecraft.client.gui.GuiGraphicsExtractor gg = g.unwrap(net.minecraft.client.gui.GuiGraphicsExtractor.class).orElse(null);
+        if (p == null || gg == null || width < 8 || height < 8) {
+            return false;
+        }
+        net.minecraft.client.renderer.entity.EntityRenderer<? super LocalPlayer, ?> renderer = mc().getEntityRenderDispatcher().getRenderer(p);
+        net.minecraft.client.renderer.entity.state.EntityRenderState state;
+        dev.lumora.client.render.CosmeticsRender.preview = true;
+        try {
+            state = renderer.createRenderState(p, 1.0F);
+        } finally {
+            dev.lumora.client.render.CosmeticsRender.preview = false;
+        }
+        state.shadowPieces.clear();
+        state.outlineColor = 0;
+        state.nameTag = null;
+        if (state instanceof net.minecraft.client.renderer.entity.state.LivingEntityRenderState living) {
+            living.bodyRot = 180.0F + yaw;
+            living.yRot = 0;
+            living.xRot = 0;
+            living.boundingBoxWidth = living.boundingBoxWidth / living.scale;
+            living.boundingBoxHeight = living.boundingBoxHeight / living.scale;
+            living.scale = 1.0F;
+        }
+        float tall = Math.max(1.2f, state.boundingBoxHeight);
+        float size = height * 0.78f / tall * zoom;
+        org.joml.Quaternionf tilt = new org.joml.Quaternionf().rotateX((float) Math.toRadians(pitch));
+        org.joml.Quaternionf rotation = new org.joml.Quaternionf().rotateZ((float) Math.PI).mul(tilt);
+        org.joml.Vector3f translation = new org.joml.Vector3f(0, state.boundingBoxHeight / 2.0F, 0);
+        gg.entity(state, size, translation, rotation, tilt, x, y, x + width, y + height);
+        return true;
+    }
+
+    @Override
+    public void playSoundEvent(String sound, float volume) {
+        LocalPlayer p = mc().player;
+        if (p == null || mc().level == null || sound == null) {
+            return;
+        }
+        float pitch = 1.0f;
+        String id = sound;
+        if (!sound.contains(":")) {
+            switch (sound) {
+                case "clap" -> {
+                    id = "minecraft:entity.player.attack.weak";
+                    pitch = 1.7f;
+                }
+                case "pop" -> id = "minecraft:entity.chicken.egg";
+                case "whoosh" -> id = "minecraft:entity.player.attack.sweep";
+                default -> {
+                    return;
+                }
+            }
+        }
+        net.minecraft.resources.Identifier key = net.minecraft.resources.Identifier.tryParse(id);
+        if (key == null) {
+            return;
+        }
+        float pitchF = pitch;
+        BuiltInRegistries.SOUND_EVENT.getOptional(key).ifPresent(event -> mc().level.playLocalSound(p.getX(), p.getY(), p.getZ(), event,
+                net.minecraft.sounds.SoundSource.PLAYERS, volume, pitchF, false));
+    }
 }

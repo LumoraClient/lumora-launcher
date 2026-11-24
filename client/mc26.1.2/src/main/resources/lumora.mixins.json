@@ -3,6 +3,10 @@
   "package": "dev.lumora.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "CosmeticsStateMixin",
+    "CosmeticsLayerInvoker",
+    "CosmeticsAvatarMixin",
+    "CosmeticsModelMixin",
     "SpriteContentsAccessor",
     "BuildingUseMixin",
     "BuildingClientMixin",

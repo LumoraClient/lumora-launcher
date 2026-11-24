@@ -1,0 +1,29 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.shoulder_fox.idle": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"fox_tail": {
+					"rotation": [10, "math.sin(query.anim_time * 180) * 25", 0]
+				},
+				"fox_head": {
+					"rotation": ["math.sin(query.anim_time * 90) * 6", "math.sin(query.anim_time * 45) * 15", 0]
+				}
+			}
+		},
+		"animation.lumora.shoulder_fox.air": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"fox_tail": {
+					"rotation": [35, "math.sin(query.anim_time * 720) * 10", 0]
+				},
+				"fox": {
+					"position": [0, "math.sin(query.anim_time * 360) * 0.4", 0]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,25 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.lumora.sunglasses",
+				"texture_width": 64,
+				"texture_height": 16
+			},
+			"bones": [
+				{
+					"name": "head",
+					"pivot": [0, 24, 0],
+					"cubes": [
+						{"origin": [-3.5, 26.5, -5], "size": [3, 2, 1], "uv": [0, 0]},
+						{"origin": [0.5, 26.5, -5], "size": [3, 2, 1], "uv": [8, 0]},
+						{"origin": [-0.5, 27.5, -5], "size": [1, 1, 1], "uv": [16, 0]},
+						{"origin": [-4.6, 27.5, -4.8], "size": [1, 1, 5], "uv": [20, 0]},
+						{"origin": [3.6, 27.5, -4.8], "size": [1, 1, 5], "uv": [32, 0]}
+					]
+				}
+			]
+		}
+	]
+}

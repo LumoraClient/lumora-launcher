@@ -1,0 +1,42 @@
+{
+  "cosmetics": [
+    {"id": "angel_wings", "category": "wings", "type": "wings", "slot": "wings", "rarity": "legendary", "model": "angel_wings", "texture": "angel_wings", "attach": "body", "render": "cutout", "previewYaw": 180, "animationFile": "angel_wings", "animations": {"idle": "animation.lumora.angel_wings.idle", "walk": "animation.lumora.angel_wings.walk", "air": "animation.lumora.angel_wings.flap", "fly": "animation.lumora.angel_wings.glide", "sneak": "animation.lumora.angel_wings.fold"}},
+    {"id": "dragon_wings", "category": "wings", "type": "wings", "slot": "wings", "rarity": "epic", "model": "dragon_wings", "texture": "dragon_wings", "attach": "body", "render": "cutout", "previewYaw": 180, "animationFile": "dragon_wings", "animations": {"idle": "animation.lumora.dragon_wings.idle", "walk": "animation.lumora.dragon_wings.walk", "air": "animation.lumora.dragon_wings.flap", "fly": "animation.lumora.dragon_wings.glide", "sneak": "animation.lumora.dragon_wings.fold"}},
+    {"id": "lumora_cape", "category": "capes", "type": "cape", "slot": "cape", "rarity": "rare", "model": "lumora_cape", "texture": "lumora_cape", "attach": "body", "render": "cutout", "previewYaw": 180, "animationFile": "lumora_cape", "animations": {"idle": "animation.lumora.lumora_cape.idle", "walk": "animation.lumora.lumora_cape.move", "air": "animation.lumora.lumora_cape.air", "fly": "animation.lumora.lumora_cape.air"}},
+    {"id": "starry_cape", "category": "capes", "type": "cape", "slot": "cape", "rarity": "epic", "model": "starry_cape", "texture": "starry_cape", "attach": "body", "render": "cutout", "previewYaw": 180, "animationFile": "starry_cape", "animations": {"idle": "animation.lumora.starry_cape.idle", "walk": "animation.lumora.starry_cape.move", "air": "animation.lumora.starry_cape.move"}},
+    {"id": "top_hat", "category": "hats", "type": "hat", "slot": "head_top", "rarity": "uncommon", "model": "top_hat", "texture": "top_hat", "attach": "head", "render": "cutout", "previewYaw": 20},
+    {"id": "crown", "category": "hats", "type": "hat", "slot": "head_top", "rarity": "epic", "model": "crown", "texture": "crown", "attach": "head", "render": "cutout", "previewYaw": 20},
+    {"id": "halo", "category": "hats", "type": "animated_hat", "slot": "head_top", "rarity": "rare", "model": "halo", "texture": "halo", "attach": "head", "render": "emissive", "previewYaw": 20, "animationFile": "halo", "overlay": "animation.lumora.halo.float"},
+    {"id": "wizard_hat", "category": "hats", "type": "animated_hat", "slot": "head_top", "rarity": "rare", "model": "wizard_hat", "texture": "wizard_hat", "attach": "head", "render": "cutout", "previewYaw": 20, "animationFile": "wizard_hat", "overlay": "animation.lumora.wizard_hat.sway"},
+    {"id": "cat_ears", "category": "accessories", "type": "head", "slot": "head_top", "rarity": "common", "model": "cat_ears", "texture": "cat_ears", "attach": "head", "render": "cutout", "previewYaw": 20},
+    {"id": "sunglasses", "category": "accessories", "type": "face", "slot": "face", "rarity": "common", "model": "sunglasses", "texture": "sunglasses", "attach": "head", "render": "cutout", "previewYaw": 0},
+    {"id": "ninja_mask", "category": "accessories", "type": "mask", "slot": "face", "rarity": "uncommon", "model": "ninja_mask", "texture": "ninja_mask", "attach": "head", "render": "cutout", "previewYaw": 200, "animationFile": "ninja_mask", "animations": {"idle": "animation.lumora.ninja_mask.idle"}},
+    {"id": "backpack", "category": "accessories", "type": "back", "slot": "back", "rarity": "uncommon", "model": "backpack", "texture": "backpack", "attach": "body", "render": "cutout", "previewYaw": 180},
+    {"id": "shoulder_fox", "category": "companions", "type": "shoulder", "slot": "shoulder", "rarity": "rare", "model": "shoulder_fox", "texture": "shoulder_fox", "attach": "body", "render": "cutout", "previewYaw": 30, "animationFile": "shoulder_fox", "animations": {"idle": "animation.lumora.shoulder_fox.idle", "air": "animation.lumora.shoulder_fox.air"}},
+    {"id": "spirit_orb", "category": "companions", "type": "floating", "slot": "companion", "rarity": "rare", "model": "spirit_orb", "texture": "spirit_orb", "attach": "root", "render": "emissive", "previewYaw": 300, "animationFile": "spirit_orb", "overlay": "animation.lumora.spirit_orb.float"},
+    {"id": "flame_aura", "category": "effects", "type": "aura", "slot": "aura", "rarity": "epic", "model": "flame_aura", "texture": "flame_aura", "attach": "root", "render": "emissive", "previewYaw": 20, "animationFile": "flame_aura", "overlay": "animation.lumora.flame_aura.spin"},
+    {"id": "sparkle_trail", "category": "effects", "type": "trail", "slot": "trail", "rarity": "rare", "model": "sparkle_trail", "texture": "sparkle_trail", "attach": "root", "render": "emissive", "previewYaw": 160, "animationFile": "sparkle_trail", "animations": {"idle": "animation.lumora.sparkle_trail.idle", "walk": "animation.lumora.sparkle_trail.move", "air": "animation.lumora.sparkle_trail.move"}}
+  ],
+  "emotes": [
+    {"id": "wave", "category": "social", "rarity": "common", "file": "emotes", "animation": "animation.lumora.wave", "icon": "wave", "stopOnMove": false},
+    {"id": "clap", "category": "social", "rarity": "common", "file": "emotes", "animation": "animation.lumora.clap", "icon": "clap", "stopOnMove": false},
+    {"id": "point", "category": "actions", "rarity": "common", "file": "emotes", "animation": "animation.lumora.point", "icon": "point", "stopOnMove": false},
+    {"id": "salute", "category": "social", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.salute", "icon": "salute", "stopOnMove": false},
+    {"id": "bow", "category": "social", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.bow", "icon": "bow", "stopOnMove": true},
+    {"id": "groove", "category": "dance", "rarity": "rare", "file": "emotes", "animation": "animation.lumora.groove", "icon": "dance", "stopOnMove": true},
+    {"id": "robot", "category": "dance", "rarity": "epic", "file": "emotes", "animation": "animation.lumora.robot", "icon": "robot", "stopOnMove": true},
+    {"id": "sit", "category": "sitting", "rarity": "common", "file": "emotes", "animation": "animation.lumora.sit", "icon": "sit", "stopOnMove": true},
+    {"id": "lay_down", "category": "sitting", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.lay_down", "icon": "lay", "stopOnMove": true},
+    {"id": "laugh", "category": "reactions", "rarity": "common", "file": "emotes", "animation": "animation.lumora.laugh", "icon": "laugh", "stopOnMove": false},
+    {"id": "cry", "category": "reactions", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.cry", "icon": "cry", "stopOnMove": false},
+    {"id": "facepalm", "category": "funny", "rarity": "common", "file": "emotes", "animation": "animation.lumora.facepalm", "icon": "facepalm", "stopOnMove": false},
+    {"id": "shrug", "category": "reactions", "rarity": "common", "file": "emotes", "animation": "animation.lumora.shrug", "icon": "shrug", "stopOnMove": false},
+    {"id": "celebrate", "category": "celebrations", "rarity": "rare", "file": "emotes", "animation": "animation.lumora.celebrate", "icon": "celebrate", "stopOnMove": true},
+    {"id": "spin", "category": "funny", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.spin", "icon": "spin", "stopOnMove": true},
+    {"id": "yes", "category": "reactions", "rarity": "common", "file": "emotes", "animation": "animation.lumora.yes", "icon": "yes", "stopOnMove": false},
+    {"id": "no", "category": "reactions", "rarity": "common", "file": "emotes", "animation": "animation.lumora.no", "icon": "no", "stopOnMove": false},
+    {"id": "think", "category": "actions", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.think", "icon": "think", "stopOnMove": false},
+    {"id": "air_guitar", "category": "celebrations", "rarity": "epic", "file": "emotes", "animation": "animation.lumora.air_guitar", "icon": "guitar", "stopOnMove": true},
+    {"id": "cheer", "category": "celebrations", "rarity": "uncommon", "file": "emotes", "animation": "animation.lumora.cheer", "icon": "cheer", "stopOnMove": true}
+  ]
+}

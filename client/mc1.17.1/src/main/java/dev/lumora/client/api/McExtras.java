@@ -573,4 +573,99 @@ final class McExtras implements GameExtras {
         net.minecraft.client.player.LocalPlayer p = mc().player;
         return p == null ? null : new float[]{p.getYRot(), p.getXRot()};
     }
+
+    // --- module "Cosmetics & Emotes"
+
+    @Override
+    public boolean drawPlayerPreview(dev.lumora.api.render.HudGraphics g, int x, int y, int width, int height,
+                                     float yaw, float pitch, float zoom) {
+        net.minecraft.client.player.LocalPlayer p = net.minecraft.client.Minecraft.getInstance().player;
+        if (p == null || width < 8 || height < 8) {
+            return false;
+        }
+
+        float tall = Math.max(1.2f, p.getBbHeight());
+        float size = height * 0.78f / tall * zoom;
+        g.enableScissor(x, y, x + width, y + height);
+        dev.lumora.client.render.CosmeticsRender.preview = true;
+        try {
+            float bodyRot = p.yBodyRot;
+            float yRot = p.getYRot();
+            float xRot = p.getXRot();
+            float headO = p.yHeadRotO;
+            float head = p.yHeadRot;
+            p.yBodyRot = 180.0F + yaw;
+            p.setYRot(180.0F + yaw);
+            p.setXRot(0);
+            p.yHeadRot = 180.0F + yaw;
+            p.yHeadRotO = 180.0F + yaw;
+            try {
+                com.mojang.blaze3d.vertex.PoseStack view = com.mojang.blaze3d.systems.RenderSystem.getModelViewStack();
+                view.pushPose();
+                view.translate(x + width / 2.0, y + height * 0.89, 1050.0);
+                view.scale(1.0F, 1.0F, -1.0F);
+                com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
+                com.mojang.blaze3d.vertex.PoseStack pose = new com.mojang.blaze3d.vertex.PoseStack();
+                pose.translate(0.0, 0.0, 1000.0);
+                pose.scale(size, size, size);
+                com.mojang.math.Quaternion rotation = com.mojang.math.Vector3f.ZP.rotationDegrees(180.0F);
+                com.mojang.math.Quaternion tilt = com.mojang.math.Vector3f.XP.rotationDegrees(pitch);
+                rotation.mul(tilt);
+                pose.mulPose(rotation);
+                com.mojang.blaze3d.platform.Lighting.setupForEntityInInventory();
+                net.minecraft.client.renderer.entity.EntityRenderDispatcher dispatcher = net.minecraft.client.Minecraft.getInstance().getEntityRenderDispatcher();
+                tilt.conj();
+                dispatcher.overrideCameraOrientation(tilt);
+                dispatcher.setRenderShadow(false);
+                net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers = net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource();
+                com.mojang.blaze3d.systems.RenderSystem.runAsFancy(() -> dispatcher.render(p, 0.0, 0.0, 0.0, 0.0F, 1.0F, pose, buffers, 15728880));
+                buffers.endBatch();
+                dispatcher.setRenderShadow(true);
+                view.popPose();
+                com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
+                com.mojang.blaze3d.platform.Lighting.setupFor3DItems();
+            } finally {
+                p.yBodyRot = bodyRot;
+                p.setYRot(yRot);
+                p.setXRot(xRot);
+                p.yHeadRotO = headO;
+                p.yHeadRot = head;
+            }
+        } finally {
+            dev.lumora.client.render.CosmeticsRender.preview = false;
+            g.disableScissor();
+        }
+        return true;
+    }
+
+    @Override
+    public void playSoundEvent(String sound, float volume) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        net.minecraft.client.player.LocalPlayer p = mc.player;
+        if (p == null || mc.level == null || sound == null) {
+            return;
+        }
+        float pitch = 1.0f;
+        String id = sound;
+        if (!sound.contains(":")) {
+            switch (sound) {
+                case "clap" -> {
+                    id = "minecraft:entity.player.attack.weak";
+                    pitch = 1.7f;
+                }
+                case "pop" -> id = "minecraft:entity.chicken.egg";
+                case "whoosh" -> id = "minecraft:entity.player.attack.sweep";
+                default -> {
+                    return;
+                }
+            }
+        }
+        net.minecraft.resources.ResourceLocation key = net.minecraft.resources.ResourceLocation.tryParse(id);
+        if (key == null) {
+            return;
+        }
+        float pitchF = pitch;
+        net.minecraft.core.Registry.SOUND_EVENT.getOptional(key).ifPresent(event -> mc.level.playLocalSound(p.getX(), p.getY(), p.getZ(), event,
+                net.minecraft.sounds.SoundSource.PLAYERS, volume, pitchF, false));
+    }
 }

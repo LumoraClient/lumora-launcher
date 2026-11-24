@@ -1,0 +1,59 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.sparkle_trail.move": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"spark0": {
+					"position": [0, "((query.anim_time + 0) % 1) * 10", "((query.anim_time + 0) % 1) * 9"],
+					"scale": ["1 - ((query.anim_time + 0) % 1)", "1 - ((query.anim_time + 0) % 1)", "1 - ((query.anim_time + 0) % 1)"]
+				},
+				"spark1": {
+					"position": [1.4875, "((query.anim_time + 0.1667) % 1) * 10", "((query.anim_time + 0.1667) % 1) * 9"],
+					"scale": ["1 - ((query.anim_time + 0.1667) % 1)", "1 - ((query.anim_time + 0.1667) % 1)", "1 - ((query.anim_time + 0.1667) % 1)"]
+				},
+				"spark2": {
+					"position": [-0.3833, "((query.anim_time + 0.3333) % 1) * 10", "((query.anim_time + 0.3333) % 1) * 9"],
+					"scale": ["1 - ((query.anim_time + 0.3333) % 1)", "1 - ((query.anim_time + 0.3333) % 1)", "1 - ((query.anim_time + 0.3333) % 1)"]
+				},
+				"spark3": {
+					"position": [-1.3887, "((query.anim_time + 0.5) % 1) * 10", "((query.anim_time + 0.5) % 1) * 9"],
+					"scale": ["1 - ((query.anim_time + 0.5) % 1)", "1 - ((query.anim_time + 0.5) % 1)", "1 - ((query.anim_time + 0.5) % 1)"]
+				},
+				"spark4": {
+					"position": [0.7412, "((query.anim_time + 0.6667) % 1) * 10", "((query.anim_time + 0.6667) % 1) * 9"],
+					"scale": ["1 - ((query.anim_time + 0.6667) % 1)", "1 - ((query.anim_time + 0.6667) % 1)", "1 - ((query.anim_time + 0.6667) % 1)"]
+				},
+				"spark5": {
+					"position": [1.1977, "((query.anim_time + 0.8333) % 1) * 10", "((query.anim_time + 0.8333) % 1) * 9"],
+					"scale": ["1 - ((query.anim_time + 0.8333) % 1)", "1 - ((query.anim_time + 0.8333) % 1)", "1 - ((query.anim_time + 0.8333) % 1)"]
+				}
+			}
+		},
+		"animation.lumora.sparkle_trail.idle": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"spark0": {
+					"scale": [0, 0, 0]
+				},
+				"spark1": {
+					"scale": [0, 0, 0]
+				},
+				"spark2": {
+					"scale": [0, 0, 0]
+				},
+				"spark3": {
+					"scale": [0, 0, 0]
+				},
+				"spark4": {
+					"scale": [0, 0, 0]
+				},
+				"spark5": {
+					"scale": [0, 0, 0]
+				}
+			}
+		}
+	}
+}

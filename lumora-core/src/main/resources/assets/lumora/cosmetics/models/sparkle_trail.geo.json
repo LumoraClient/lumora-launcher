@@ -1,0 +1,66 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.lumora.sparkle_trail",
+				"texture_width": 64,
+				"texture_height": 16
+			},
+			"bones": [
+				{
+					"name": "trail",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "spark0",
+					"parent": "trail",
+					"pivot": [-3, 2, 6],
+					"cubes": [
+						{"origin": [-3.5, 1.5, 5.5], "size": [1, 1, 1], "uv": [0, 0]}
+					]
+				},
+				{
+					"name": "spark1",
+					"parent": "trail",
+					"pivot": [0, 2, 6],
+					"cubes": [
+						{"origin": [-0.5, 1.5, 5.5], "size": [1, 1, 1], "uv": [4, 0]}
+					]
+				},
+				{
+					"name": "spark2",
+					"parent": "trail",
+					"pivot": [3, 2, 6],
+					"cubes": [
+						{"origin": [2.5, 1.5, 5.5], "size": [1, 1, 1], "uv": [8, 0]}
+					]
+				},
+				{
+					"name": "spark3",
+					"parent": "trail",
+					"pivot": [-3, 2, 6],
+					"cubes": [
+						{"origin": [-3.5, 1.5, 5.5], "size": [1, 1, 1], "uv": [12, 0]}
+					]
+				},
+				{
+					"name": "spark4",
+					"parent": "trail",
+					"pivot": [0, 2, 6],
+					"cubes": [
+						{"origin": [-0.5, 1.5, 5.5], "size": [1, 1, 1], "uv": [16, 0]}
+					]
+				},
+				{
+					"name": "spark5",
+					"parent": "trail",
+					"pivot": [3, 2, 6],
+					"cubes": [
+						{"origin": [2.5, 1.5, 5.5], "size": [1, 1, 1], "uv": [20, 0]}
+					]
+				}
+			]
+		}
+	]
+}

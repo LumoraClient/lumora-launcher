@@ -351,6 +351,25 @@ public interface GameExtras {
     default void setPerspective(int perspective) {
     }
 
+    /**
+     * Module "Cosmetics & Emotes": draws the own player into the rectangle (GUI coordinates of {@code g}) as the
+     * inventory does, turned by {@code yaw}/{@code pitch} degrees and scaled by {@code zoom} (1 = fits the height),
+     * marked as the local preview so the cosmetics hooks use the preview selection and emote. Returns {@code false}
+     * outside a world or on versions without it (then the menu shows a hint instead).
+     */
+    default boolean drawPlayerPreview(dev.lumora.api.render.HudGraphics g, int x, int y, int width, int height,
+                                      float yaw, float pitch, float zoom) {
+        return false;
+    }
+
+    /**
+     * Plays a Minecraft sound at the own player for this client only (sound keyframes of emotes), e.g.
+     * {@code "minecraft:entity.player.attack.weak"}; a name without namespace is a Lumora name ({@code "clap"}) that
+     * the version maps to a fitting vanilla sound. Unknown names are ignored.
+     */
+    default void playSoundEvent(String sound, float volume) {
+    }
+
     /** Yaw and pitch of the own player in degrees, or null outside a world. */
     default float[] playerRotation() {
         return null;

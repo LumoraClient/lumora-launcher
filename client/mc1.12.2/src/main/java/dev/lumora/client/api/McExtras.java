@@ -564,4 +564,61 @@ final class McExtras implements GameExtras {
         net.minecraft.entity.Entity p = mc().player;
         return p == null ? null : new float[]{p.yaw, p.pitch};
     }
+
+    // --- module "Cosmetics & Emotes"
+
+    /** The own player as in the inventory (SurvivalInventoryScreen.renderEntity), but turned freely. */
+    @Override
+    public boolean drawPlayerPreview(dev.lumora.api.render.HudGraphics g, int x, int y, int width, int height,
+                                     float yaw, float pitch, float zoom) {
+        net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+        net.minecraft.entity.player.ClientPlayerEntity p = mc.player;
+        if (p == null || width < 8 || height < 8) {
+            return false;
+        }
+        float size = height * 0.78f / 1.8f * zoom;
+        float bodyYaw = p.bodyYaw;
+        float playerYaw = p.yaw;
+        float playerPitch = p.pitch;
+        float prevHead = p.prevHeadYaw;
+        float head = p.headYaw;
+        g.enableScissor(x, y, x + width, y + height);
+        com.mojang.blaze3d.platform.GlStateManager.enableColorMaterial();
+        com.mojang.blaze3d.platform.GlStateManager.pushMatrix();
+        dev.lumora.client.render.CosmeticsRender.preview = true;
+        try {
+            com.mojang.blaze3d.platform.GlStateManager.translate(x + width / 2.0F, y + height * 0.89F, 50.0F);
+            com.mojang.blaze3d.platform.GlStateManager.scale(-size, size, size);
+            com.mojang.blaze3d.platform.GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
+            com.mojang.blaze3d.platform.GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
+            net.minecraft.client.render.DiffuseLighting.enableNormally();
+            com.mojang.blaze3d.platform.GlStateManager.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
+            com.mojang.blaze3d.platform.GlStateManager.rotate(-pitch, 1.0F, 0.0F, 0.0F);
+            p.bodyYaw = yaw;
+            p.yaw = yaw;
+            p.pitch = 0;
+            p.headYaw = yaw;
+            p.prevHeadYaw = yaw;
+            net.minecraft.client.render.entity.EntityRenderDispatcher dispatcher = mc.getEntityRenderManager();
+            dispatcher.setYaw(180.0F);
+            dispatcher.setRenderShadows(false);
+            dispatcher.method_12446(p, 0.0, 0.0, 0.0, 0.0F, 1.0F, false);
+            dispatcher.setRenderShadows(true);
+        } finally {
+            dev.lumora.client.render.CosmeticsRender.preview = false;
+            p.bodyYaw = bodyYaw;
+            p.yaw = playerYaw;
+            p.pitch = playerPitch;
+            p.prevHeadYaw = prevHead;
+            p.headYaw = head;
+            com.mojang.blaze3d.platform.GlStateManager.popMatrix();
+            net.minecraft.client.render.DiffuseLighting.disable();
+            com.mojang.blaze3d.platform.GlStateManager.disableRescaleNormal();
+            com.mojang.blaze3d.platform.GlStateManager.activeTexture(com.mojang.blaze3d.platform.GLX.lightmapTextureUnit);
+            com.mojang.blaze3d.platform.GlStateManager.disableTexture();
+            com.mojang.blaze3d.platform.GlStateManager.activeTexture(com.mojang.blaze3d.platform.GLX.textureUnit);
+            g.disableScissor();
+        }
+        return true;
+    }
 }

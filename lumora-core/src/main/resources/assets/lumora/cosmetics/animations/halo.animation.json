@@ -1,0 +1,15 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.halo.float": {
+			"loop": true,
+			"animation_length": 9,
+			"bones": {
+				"ring": {
+					"position": [0, "math.sin(query.anim_time * 80) * 0.6", 0],
+					"rotation": [0, "query.anim_time * 40", 0]
+				}
+			}
+		}
+	}
+}

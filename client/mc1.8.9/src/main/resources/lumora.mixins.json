@@ -3,6 +3,9 @@
   "package": "dev.lumora.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "CosmeticsLayerInvoker",
+    "CosmeticsAvatarMixin",
+    "CosmeticsModelMixin",
     "ScreenTextInvoker",
     "FlySpeedMixin",
     "FlySpeedVerticalMixin",

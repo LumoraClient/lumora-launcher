@@ -1,0 +1,27 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.lumora.lumora_cape",
+				"texture_width": 64,
+				"texture_height": 32
+			},
+			"bones": [
+				{
+					"name": "body",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "cape",
+					"parent": "body",
+					"pivot": [0, 24, 2.5],
+					"cubes": [
+						{"origin": [-5, 8, 2.5], "size": [10, 16, 1], "uv": [0, 0]},
+						{"origin": [-1, 15, 3.4], "size": [2, 4, 1], "inflate": -0.2, "uv": [22, 0]}
+					]
+				}
+			]
+		}
+	]
+}

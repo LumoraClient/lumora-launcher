@@ -1,0 +1,30 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.lumora.ninja_mask",
+				"texture_width": 64,
+				"texture_height": 16
+			},
+			"bones": [
+				{
+					"name": "head",
+					"pivot": [0, 24, 0],
+					"cubes": [
+						{"origin": [-4, 24, -4], "size": [8, 4, 8], "inflate": 0.55, "uv": [0, 0]}
+					]
+				},
+				{
+					"name": "knot",
+					"parent": "head",
+					"pivot": [0, 26, 4.6],
+					"cubes": [
+						{"origin": [-1.5, 25, 4.6], "size": [1, 4, 1], "uv": [32, 0]},
+						{"origin": [0.5, 24.5, 4.6], "size": [1, 4, 1], "uv": [36, 0]}
+					]
+				}
+			]
+		}
+	]
+}

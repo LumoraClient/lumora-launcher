@@ -706,7 +706,40 @@ public final class SmokeTest {
                 worldStep++;
                 ticks = 0;
             }
-        } else if (worldStep == modes.length + 15 && ticks >= 5) {
+        } else if (worldStep == modes.length + 15) {
+            // module "Cosmetics & Emotes": worn cosmetics from behind and in front, two emotes, menu, wheel, emote menu
+            if (ticks == 1) {
+                if (!CosmeticsSmoke.start(mc, extraProblems)) {
+                    worldStep++;
+                    ticks = 0;
+                }
+            } else if (ticks == 12) {
+                screenshot(mc, "cosmetics-back");
+                CosmeticsSmoke.front(mc);
+            } else if (ticks == 18) {
+                screenshot(mc, "cosmetics-front");
+                CosmeticsSmoke.checkDrawn(extraProblems);
+                CosmeticsSmoke.emote("wave", extraProblems);
+            } else if (ticks == 27) {
+                CosmeticsSmoke.checkPosed(extraProblems);
+                screenshot(mc, "emote-wave");
+                CosmeticsSmoke.emote("sit", extraProblems);
+            } else if (ticks == 40) {
+                screenshot(mc, "emote-sit");
+                CosmeticsSmoke.openMenu(extraProblems);
+            } else if (ticks == 52) {
+                screenshot(mc, "cosmetics-menu");
+                CosmeticsSmoke.openWheel(mc);
+            } else if (ticks == 60) {
+                screenshot(mc, "emote-wheel");
+                CosmeticsSmoke.openEmotes(mc);
+            } else if (ticks == 70) {
+                screenshot(mc, "emote-menu");
+                CosmeticsSmoke.finish(mc, extraProblems);
+                worldStep++;
+                ticks = 0;
+            }
+        } else if (worldStep == modes.length + 16 && ticks >= 5) {
             phase = Phase.DONE;
             finish(mc);
         }

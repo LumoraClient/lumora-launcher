@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.3.95 (2026-11-24)
+
+### Client
+- **Cosmetics & Emotes:** Neues eingebautes Modul (an). Cosmetics am Spielermodell, unabhängig von Items und Inventar-Plätzen, und Emotes für den ganzen Körper ohne Item in der Hand. Nur lokal: nur du siehst sie, es wird nichts gesendet.
+  - **Start-Set:** 16 Cosmetics in den Kategorien Flügel, Umhänge, Hüte, Accessoires, Effekte und Begleiter (viele animiert, je nach Zustand: stehen, laufen, rennen, schleichen, springen, fallen, gleiten, schwimmen) und 20 Emotes in den Kategorien Tanzen, Sozial, Lustig, Aktionen, Reaktionen, Sitzen, Feiern und Spezial.
+  - **Emotes und Bewegung:** Ein Emote bewegt nur die Körperteile, die es animiert, und blendet weich ein und aus. Die übrigen behalten Minecrafts Bewegung. Ganzkörper-Emotes enden beim Laufen (Einstellung). Auf Wunsch wechselt die Kamera währenddessen in die dritte Person.
+  - **Cosmetics-Menü (Taste J):** Kategorien, Suche, Filter nach Seltenheit, Favoriten, „Angelegt“, Live-Vorschau des eigenen Spielers (ziehen: 360° drehen, Mausrad: zoomen). Klicks probieren Cosmetics und Kombinationen an, ohne sie anzulegen, „Übernehmen“ legt sie an. Ein Platz pro Art: ein zweiter Hut ersetzt den ersten.
+  - **Emote-Menü, Rad und Tasten:** Emote-Menü mit Kategorien, Suche, Favoriten, Vorschau in Schleife, Abspielen und Beenden. Emote-Rad (Taste R, 4 bis 10 Plätze, Belegung im Emote-Menü). Frei belegbare Tasten für Emote-Menü, Emote beenden und die Plätze 1 bis 4.
+  - **GeckoLib-Format:** Modelle und Animationen im GeckoLib-/Blockbench-Format (`.geo.json`, `.animation.json`). Die Teile ohne Minecraft-Bezug sind aus GeckoLib 5 portiert (MIT): Easing-Kurven, Keyframes mit Pre/Post und Catmull-Rom, Modell-Baking mit Box- und Face-UVs. Dazu Molang und Animations-Controller mit Übergängen, gleichzeitigen Animationen, Overlays und Sound-Keyframes (nicht auf 1.8.9 und 1.12.2).
+  - **Eigene Inhalte:** eigene Cosmetics in `config/lumora/cosmetics/<name>/` (Modell, Textur, optional Animationen und `cosmetic.json`), eigene Emotes in `config/lumora/emotes/*.animation.json`. Beschreibung in `docs/COSMETICS.md`.
+  - **Verfügbarkeit und Speicherort:** für alle Minecraft-Versionen 1.8.9–26.3. Gespeichert in `config/lumora/cosmetics.json`.
+
 ## 0.3.94 (2026-11-24)
 
 ### Client

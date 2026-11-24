@@ -1,6 +1,26 @@
 {
   "news": [
     {
+      "id": "lumora-cosmetics-emotes",
+      "date": "2026-11-24",
+      "author": "Lumora",
+      "version": "0.3.95",
+      "title": "Neu: Cosmetics & Emotes mit Emote-Rad und Live-Vorschau",
+      "text": "Trage Flügel, Umhänge, Hüte, Begleiter und Effekte, probiere sie in der 360°-Vorschau an und spiele 20 Emotes ohne Item in der Hand, auch über ein Emote-Rad.",
+      "image": "news-cosmetics.png",
+      "body": [
+        {"p": "Das neue Modul „Cosmetics & Emotes“ bringt Cosmetics an deinen Spieler und Emotes für den ganzen Körper:"},
+        {"list": [
+          "16 Cosmetics zum Start: Engels- und Drachenflügel, Lumora- und Sternenumhang, Zylinder, Krone, Heiligenschein, Zauberhut, Katzenohren, Sonnenbrille, Ninja-Maske, Rucksack, Schulterfuchs, Geisterkugel, Flammenaura und Funkenspur. Viele sind animiert: Flügel schlagen beim Springen, Umhänge wehen beim Laufen, der Fuchs wedelt mit dem Schwanz.",
+          "20 Emotes: Winken, Klatschen, Zeigen, Salutieren, Verbeugen, Groove, Roboter, Hinsetzen, Hinlegen, Lachen, Weinen, Facepalm, Schulterzucken, Jubeln, Drehen, Ja, Nein, Nachdenken, Luftgitarre und Siegessprung. Ein Emote bewegt nur die Teile, die es animiert: Beim Winken laufen deine Beine weiter. Tanzen und Sitzen enden, sobald du losläufst.",
+          "Cosmetics-Menü (Taste J): Kategorien, Suche, Seltenheit, Favoriten. Ein Klick probiert ein Cosmetic in der Vorschau an, ohne es anzulegen. Mehrere ergeben eine Kombination, die „Übernehmen“ anlegt. Die Vorschau dreht sich beim Ziehen um 360° und zoomt mit dem Mausrad.",
+          "Emote-Menü mit Kategorien, Suche, Favoriten und Vorschau in Schleife, dazu das Emote-Rad (Taste R) mit 4 bis 10 Plätzen und eigene Tasten für die ersten vier Plätze.",
+          "Eigene Cosmetics und Emotes aus Blockbench (GeckoLib-Format) legst du einfach in den Ordner config/lumora."
+        ]},
+        {"p": "Die Cosmetics und Emotes siehst nur du; es wird nichts gesendet. Während eines Emotes wechselt die Kamera auf Wunsch in die dritte Person. Für alle Minecraft-Versionen von 1.8.9 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-chat-scroll-keep-peek",
       "date": "2026-11-24",
       "author": "Lumora",

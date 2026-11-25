@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-cosmetics-multiplayer",
+      "date": "2026-11-25",
+      "author": "Lumora",
+      "version": "0.3.96",
+      "title": "Cosmetics & Emotes: jetzt für andere Spieler sichtbar, mit Varianten und neuem Emote-Rad",
+      "text": "Andere Lumora-Spieler sehen deine Cosmetics und Emotes. Dazu Farbvarianten, Versatz, ein Emote-Rad zum Halten und Loslassen mit mehreren Seiten und ein Fenster zum Tauschen.",
+      "image": "news-cosmetics.png",
+      "body": [
+        {"p": "Das Modul „Cosmetics & Emotes“ wird mehrspielerfähig:"},
+        {"list": [
+          "Andere Lumora-Spieler sehen deine Cosmetics und Emotes, und du siehst ihre. Voraussetzung: Ihr seid mit demselben Lumora-Social-Server verbunden (Adresse im Launcher unter „Freunde“). Mit „Sichtbar für“ legst du fest, wer sie sieht: Alle, Freunde oder Niemand. „Cosmetics anderer Spieler zeigen“ blendet die der anderen aus.",
+          "Emote-Rad per Halten: Taste R halten, auf ein Emote zeigen und loslassen. Kurz tippen lässt das Rad offen wie bisher.",
+          "Bis zu 8 Seiten im Emote-Rad mit je 4 bis 10 Plätzen. „Bearbeiten“ im Emote-Menü öffnet das Rad zum Bearbeiten. Ein Klick auf einen Platz zeigt alle Emotes zum Durchsuchen und Tauschen.",
+          "Farbvarianten für 14 Cosmetics, etwa Engelsflügel in Gold oder Schwarz, Zylinder in Braun oder Weiß und Umhänge in vier Farben. Dazu ein Versatz X/Y/Z, wenn ein Hut höher sitzen soll. Beides siehst du sofort in der Vorschau, und andere Spieler sehen es auch."
+        ]},
+        {"p": "Gesendet werden nur die eingebauten Cosmetics und Emote-Starts an Spieler in deiner Nähe. Eigene Dateien und die Vorschau bleiben auf deinem PC. Für alle Minecraft-Versionen von 1.8.9 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-cosmetics-emotes",
       "date": "2026-11-24",
       "author": "Lumora",

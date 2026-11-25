@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.3.96 (2026-11-25)
+
+### Client
+- **Cosmetics & Emotes für andere Lumora-Spieler:** Andere Lumora-Spieler sehen deine Cosmetics (mit Variante und Versatz) und deine Emotes, und du siehst ihre, wenn ihr mit demselben Lumora-Social-Server verbunden seid (Adresse im Launcher unter „Freunde“). Neue Einstellungen im Bereich „Mehrspieler“: „Sichtbar für“ (Alle, Freunde, Niemand; Standard Alle) und „Cosmetics anderer Spieler zeigen“ (an). Gesendet werden nur die eingebauten Cosmetics und der Start oder das Ende eines Emotes an Spieler im Umkreis von 48 Blöcken. Eigene Dateien und die Vorschau im Menü bleiben lokal. Spieler ohne Lumora werden unverändert gezeichnet.
+- **Emote-Rad per Halten:** Taste (ab Werk R) halten, auf ein Emote zeigen, loslassen spielt es. Kurz tippen lässt das Rad offen wie bisher.
+- **Emote-Rad mit Seiten und Tauschen:** 1 bis 8 Seiten mit je 4 bis 10 Plätzen (Einstellungen, Standard 3 Seiten mit 6 Plätzen). Blättern mit Mausrad, Pfeiltasten oder den Knöpfen unter dem Rad. „Bearbeiten“ im Emote-Menü öffnet das Rad zum Bearbeiten: Ein Platz öffnet ein Fenster mit kleinem Rad und einer durchsuchbaren Liste aller Emotes zum Tauschen, mit „Platz leeren“ und „Abbrechen“. Rechtsklick leert einen Platz.
+- **Varianten und Versatz:** 14 der 16 Cosmetics gibt es in Farbvarianten (z. B. Zylinder Schwarz, Braun, Weiß; Engelsflügel Weiß, Gold, Schwarz; Umhang Blau, Rot, Grün, Lila). Unter der Vorschau stellst du Variante und Versatz X/Y/Z (±8 Pixel in halben Pixeln, Rechtsklick setzt auf 0) für das gewählte Cosmetic ein. Beides wirkt sofort in der Vorschau, am angelegten Cosmetic und bei anderen Spielern und wird gespeichert.
+
+### Lumora Social Server
+- **Neue Nachrichten** `cosmetics.set`, `cosmetics.watch`, `emote.play`, `emote.stop` (Server → Client: `cosmetics`, `emote`): Der Server hält die Ausrüstung nur, solange die Verbindung steht, schickt Änderungen nur an Spieler, die den Spieler in der Nähe haben, leitet Emotes weiter, ohne sie zu speichern, prüft und kürzt alle Werte und begrenzt die Rate. Ältere Clients ignorieren die neuen Nachrichten.
+
 ## 0.3.95 (2026-11-24)
 
 ### Client

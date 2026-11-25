@@ -56,6 +56,47 @@ class InstanceManagerTest {
     }
 
     @Test
+    void onlyAddedLumoraVersionsAreListed() throws IOException {
+        InstanceManager m = manager();
+        LauncherConfig c = new LauncherConfig();
+        c.selectedProfile = "26.3";
+        c.instances.put("1.21.11", new LauncherConfig.InstanceChoice(true, true));
+        c.instances.put("1.20.4", new LauncherConfig.InstanceChoice(false, true));
+        c.instances.put("1.20.6", new LauncherConfig.InstanceChoice(true, true));
+        Path world = dev.lumora.launcher.core.InstanceLayout.of(m.paths(), c, "1.21.11").gameDir().resolve("saves/Welt");
+        Files.createDirectories(world);
+        Files.writeString(world.resolve("level.dat"), "x");
+        Path testWorld = dev.lumora.launcher.core.InstanceLayout.of(m.paths(), c, "1.20.6").gameDir().resolve("saves/Lumora_SmokeTest");
+        Files.createDirectories(testWorld);
+        Files.writeString(testWorld.resolve("level.dat"), "x"); // left by a start test, not the player's
+        // first time: the selected version and own folders with worlds; shared-folder and empty own folders stay hidden
+        List<String> ids = m.builtIns(c).stream().map(i -> i.id).toList();
+        assertEquals(List.of("26.3", "1.21.11"), ids, "not every Lumora version, not every old folder");
+        assertTrue(c.addedInstances.contains("26.3"));
+        assertTrue(m.addableBuiltIns(c).stream().noneMatch(i -> ids.contains(i.id)));
+
+        // added through "Instanz erstellen", taken off the list again (files untouched)
+        Instance vanilla = m.addBuiltIn(c, "1.20.1", dev.lumora.launcher.core.profile.Flavor.VANILLA);
+        assertEquals("1.20.1-vanilla", vanilla.id);
+        assertTrue(m.builtIns(c).stream().anyMatch(i -> i.id.equals("1.20.1-vanilla")));
+        m.removeBuiltIn(c, vanilla);
+        assertTrue(m.builtIns(c).stream().noneMatch(i -> i.id.equals("1.20.1-vanilla")));
+        // the selected one always stays listed, and selecting a built-in puts it on the list
+        m.removeBuiltIn(c, m.selected(c));
+        assertTrue(m.builtIns(c).stream().anyMatch(i -> i.id.equals("26.3")), "the play button's target stays visible");
+        Instance other = m.addableBuiltIns(c).stream().filter(i -> i.id.equals("1.8.9")).findFirst().orElseThrow();
+        InstanceManager.select(c, other);
+        assertTrue(c.addedInstances.contains("1.8.9"));
+
+        assertEquals("ElocinDev", InstanceManager.cleanAuthor("  Elocin\u0000Dev ".replace("\u0000", "")));
+        assertEquals(null, InstanceManager.cleanAuthor("   "));
+        assertEquals(InstanceManager.MAX_NAME, InstanceManager.cleanAuthor("x".repeat(200)).length());
+        Instance pack = spec("Pack", InstanceKind.FABRIC, "1.21.4");
+        pack.author = "Line\nbreak";
+        assertEquals("Line break", m.create(pack).author);
+    }
+
+    @Test
     void ownInstancesAreCreatedRenamedCopiedAndDeleted() throws IOException {
         InstanceManager m = manager();
         LauncherConfig c = new LauncherConfig();

@@ -37,6 +37,23 @@ Sicherheitsregeln und den Stand der Etappen.
   Während des Ziehens erscheinen die Ablagezonen; jede Datei wird am Inhalt erkannt, nicht am Namen.
 - **Datenpakete pro Welt**: In „Welten“ zeigt jede Welt ihre Datenpakete mit Hinzufügen, Entfernen und Suchen.
 
+## Instanz-Auswahl und Instanzliste (nach 0.3.98)
+
+- **Startseite:** Der Pfeil neben „Spielen“ und der Knopf in der Spielleiste öffnen die Instanz-Auswahl
+  (`pages/InstancePicker`): Suche, die gewählte Instanz oben, darunter deine Instanzen und die Lumora-Versionen auf der
+  Liste, dann je Herkunft eine Gruppe („Importiert aus CurseForge“). Beim Überfahren erscheinen „Öffnen“ (Zahnrad) und
+  „Spielen“, unten „Instanz erstellen“ und „Dateien prüfen und spielen“.
+- **Nur gewünschte Lumora-Versionen:** Eingebaute Instanzen stehen nur auf der Liste, wenn sie hinzugefügt wurden
+  (`LauncherConfig.addedInstances`), plus immer die gewählte. Beim ersten Start übernimmt Lumora die gewählte Version
+  und Versionen mit eigenem Ordner, in dem echte Welten liegen (Testwelten der Starttests zählen nicht). Hinzufügen über
+  „Instanz erstellen“ › Lumora oder Vanilla › „Gemeinsamen Minecraft-Ordner nutzen“; „Aus der Liste entfernen“ löscht
+  nichts. Der Spielordner einer eingebauten Version wird auf ihrer Instanzseite unter „Einstellungen“ gewählt.
+- **Versionswahl beim Erstellen:** Kacheln je Hauptversion wie im früheren Versionsmenü (`ui/VersionGrid`), Unterversionen
+  als Chips, was nicht passt, hinter „›“; Snapshots teilen sich eine Kachel.
+- **Instanzkarten** (`pages/InstanceTile`): Bild (eigenes Symbol, sonst Mojangs Bild des Updates, sonst Pixel-Art),
+  Loader und Minecraft-Version als Plaketten, Name und Ersteller („Meine Erstellung“, „Von …“ beim Modpack-Autor,
+  „Importiert aus …“, „Lumora“). Der Autor kommt aus Modrinth (Entdecken) oder dem CurseForge-Manifest (`Instance.author`).
+
 ## Referenzanalyse
 
 Zwölf Referenzbilder, jedes einzeln betrachtet. Übernommen werden Ideen, keine Oberflächen.

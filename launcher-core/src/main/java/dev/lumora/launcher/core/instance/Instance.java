@@ -39,6 +39,8 @@ public final class Instance {
     public List<String> jvmArgs = new ArrayList<>();
     /** Where it came from: null (created by hand), "mrpack", "modrinth". */
     public String source;
+    /** Creator shown on the card (modpack author); null = created by the player. */
+    public String author;
     /** Modpack project and version id when {@link #source} is a platform. */
     public String sourceProject;
     public String sourceVersion;
@@ -89,6 +91,7 @@ public final class Instance {
         c.windowHeight = windowHeight;
         c.jvmArgs = jvmArgs == null ? new ArrayList<>() : new ArrayList<>(jvmArgs);
         c.source = source;
+        c.author = author;
         c.sourceProject = sourceProject;
         c.sourceVersion = sourceVersion;
         c.group = group;

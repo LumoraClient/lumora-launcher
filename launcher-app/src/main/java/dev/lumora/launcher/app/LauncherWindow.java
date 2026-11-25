@@ -149,9 +149,7 @@ final class LauncherWindow implements PageHost {
     private JLabel accountName;
     private JLabel accountHint;
     private Avatar avatar;
-    private JComboBox<ProfileCatalog.Profile> profileBox;
-    /** Name of the selected own instance for the play bar, null while a built-in instance is selected. */
-    private String ownInstanceLabel;
+    private JButton instanceButton;
     /** "3 Std. gespielt" per profile, shown in the version menu. */
     private Map<String, String> playInfo = Map.of();
     private boolean syncingProfile;
@@ -208,10 +206,28 @@ final class LauncherWindow implements PageHost {
 
     /** Documentation screenshot of the whole window (developer option --ui-shot; Swing thread). */
     void capture(java.nio.file.Path file) throws java.io.IOException {
+        // an open dialog of the launcher (e.g. "Neue Instanz") instead of the window behind it
         java.awt.Container root = frame.getRootPane();
+        for (java.awt.Window w : frame.getOwnedWindows()) {
+            if (w.isShowing() && w instanceof javax.swing.JDialog d) {
+                root = d.getRootPane();
+            }
+        }
         java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(root.getWidth(), root.getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB);
         java.awt.Graphics2D g = img.createGraphics();
         root.paint(g);
+        // open popups (the instance choice) are own windows with FlatLaf: paint them at their place
+        if (root == frame.getRootPane() && root.isShowing()) {
+            java.awt.Point origin = root.getLocationOnScreen();
+            for (java.awt.Window w : frame.getOwnedWindows()) {
+                if (w.isShowing() && !(w instanceof java.awt.Dialog)) {
+                    java.awt.Point p = w.getLocationOnScreen();
+                    java.awt.Graphics2D pg = (java.awt.Graphics2D) g.create(p.x - origin.x, p.y - origin.y, w.getWidth(), w.getHeight());
+                    w.paint(pg);
+                    pg.dispose();
+                }
+            }
+        }
         g.dispose();
         java.nio.file.Files.createDirectories(file.getParent());
         javax.imageio.ImageIO.write(img, "png", file.toFile());
@@ -224,6 +240,14 @@ final class LauncherWindow implements PageHost {
     /** Used by documentation screenshots; "account/security" or "settings/game" also open a tab or category. */
     @Override
     public void showPage(String id) {
+        int hashAt = id.indexOf('#');
+        if (hashAt > 0 && !id.startsWith("instances/")) {
+            // "home#picker", "instances#create-versions": the page, then that popup or dialog (documentation screenshots)
+            String action = id.substring(hashAt + 1);
+            showPage(id.substring(0, hashAt));
+            SwingUtilities.invokeLater(() -> pageAction(action));
+            return;
+        }
         int slash = id.indexOf('/');
         if (newsPage != null) {
             newsPage.closeArticle();
@@ -250,6 +274,17 @@ final class LauncherWindow implements PageHost {
         } else if (slash > 0 && id.startsWith("browser/")) {
             // "browser/mod", "browser/shader": Entdecken for that content type
             browserPage.show(dev.lumora.launcher.core.platform.ProjectType.of(id.substring(slash + 1)), null);
+        }
+    }
+
+    private void pageAction(String action) {
+        switch (action) {
+            case "picker" -> showVersionMenu();
+            case "picker-bar" -> dev.lumora.launcher.app.pages.InstancePicker.show(this, pageIo, instanceButton, true);
+            case "create" -> instancesPage.showCreate(false);
+            case "create-versions" -> instancesPage.showCreate(true);
+            case "create-versions-fabric" -> instancesPage.showCreate(dev.lumora.launcher.core.instance.InstanceKind.FABRIC);
+            default -> Log.warn("Unknown page action " + action);
         }
     }
 
@@ -675,152 +710,29 @@ final class LauncherWindow implements PageHost {
         });
     }
 
-    /**
-     * Version menu of the arrow next to "Spiel starten": start type (Lumora Client / Vanilla), every version
-     * grouped by major version (newest first) and "Dateien prüfen und starten".
-     */
+    /** Instance choice of the arrow next to "Spiel starten" (see InstancePicker). */
     private void showVersionMenu() {
-        javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
-        popup.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
-        popup.add(versionMenuBody(() -> popup.setVisible(false)));
-        Dimension size = popup.getPreferredSize();
-        int w = Math.max(size.width, 520);
-        popup.setPopupSize(w, size.height);
-        // right edge under the arrow
-        popup.show(heroArrow, heroArrow.getWidth() - w, heroArrow.getHeight() + 6);
+        dev.lumora.launcher.app.pages.InstancePicker.show(this, pageIo, heroArrow, false);
     }
 
-    /** Subtitle of the version menu: how many versions are shown (installer / settings choice). */
-    private String versionCountText() {
-        int all = ctx.catalog.profiles().size();
-        int shown = ctx.visibleProfiles().size();
-        return shown < all
-                ? Lang.t("versions.shown_of", shown, all)
-                : Lang.t("versions.all", all);
+    @Override
+    public java.awt.Image versionArt(String family, Runnable loaded) {
+        return newsPage == null ? null : newsPage.updateArt(family, loaded);
     }
 
-    /** Content of the version menu; {@code close} hides the menu. */
-    JPanel versionMenuBody(Runnable close) {
-        JPanel body = column();
-        body.setOpaque(true);
-        body.setBackground(Theme.SURFACE);
-        body.setBorder(BorderFactory.createEmptyBorder(14, 16, 14, 16));
-
-        JLabel title = label(Lang.t("versions.choose"), 15, Font.BOLD, Theme.TEXT);
-        body.add(title);
-        body.add(Box.createVerticalStrut(2));
-        body.add(label(versionCountText(), 12, Font.PLAIN, Theme.MUTED));
-        body.add(Box.createVerticalStrut(12));
-
-        // own instances (Fabric, Forge, modpacks ...): one click selects them, "Alle Instanzen" opens the page
-        java.util.List<dev.lumora.launcher.core.instance.Instance> own = ctx.instances.own();
-        if (!own.isEmpty()) {
-            JPanel ownRow = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 6));
-            ownRow.setOpaque(false);
-            ownRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-            String current = ctx.selectedInstance().key();
-            for (dev.lumora.launcher.core.instance.Instance i : own.subList(0, Math.min(8, own.size()))) {
-                javax.swing.JToggleButton b = new javax.swing.JToggleButton(i.name + "  ·  " + i.kind().label() + " " + i.minecraftVersion,
-                        i.key().equals(current));
-                b.setFont(Theme.font(Font.BOLD, 12f));
-                b.setFocusable(false);
-                b.addActionListener(e -> {
-                    selectInstance(i);
-                    close.run();
-                });
-                ownRow.add(b);
-            }
-            JButton all = new JButton(Lang.t("versions.all_instances"));
-            all.setFocusable(false);
-            all.addActionListener(e -> {
-                close.run();
-                showPage("instances");
-            });
-            ownRow.add(all);
-            body.add(label(Lang.t("versions.own_instances"), 12, Font.BOLD, Theme.MUTED));
-            body.add(ownRow);
-            body.add(Box.createVerticalStrut(8));
+    @Override
+    public JComponent folderChooser(dev.lumora.launcher.core.instance.Instance builtIn) {
+        if (builtIn == null || !builtIn.builtIn) {
+            return null;
         }
-
-        // start type: Lumora or plain Minecraft (selectable mod loaders are removed for now)
-        JPanel flavors = new JPanel(new GridLayout(1, 2, 6, 0));
-        flavors.setOpaque(false);
-        flavors.setAlignmentX(Component.LEFT_ALIGNMENT);
-        javax.swing.ButtonGroup fg = new javax.swing.ButtonGroup();
-        Runnable[] syncInstance = {() -> { }};
-        for (dev.lumora.launcher.core.profile.Flavor fl : dev.lumora.launcher.core.profile.Flavor.values()) {
-            Icons.Kind kind = switch (fl) {
-                case LUMORA -> Icons.Kind.R_STAR;
-                case VANILLA -> Icons.Kind.CUBE;
-            };
-            javax.swing.JToggleButton b = new javax.swing.JToggleButton(fl.label(), Icons.of(kind, 14, Theme.TEXT), fl == currentFlavor());
-            b.setFont(Theme.font(Font.BOLD, 12.5f));
-            b.setFocusable(false);
-            b.setIconTextGap(7);
-            b.setToolTipText(switch (fl) {
-                case LUMORA -> Lang.t("flavor.lumora.desc");
-                case VANILLA -> Lang.t("flavor.vanilla.desc");
-            });
-            b.addActionListener(e -> {
-                setFlavor(fl);
-                syncInstance[0].run();
-            });
-            fg.add(b);
-            flavors.add(b);
-        }
-        flavors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        body.add(flavors);
-        body.add(Box.createVerticalStrut(10));
-        body.add(instanceChooser(syncInstance));
-        body.add(Box.createVerticalStrut(12));
-
-        // versions by major version: cards with the update picture (else newest screenshot or own pixel art)
-        List<VersionGrid.Version> list = new ArrayList<>();
-        for (ProfileCatalog.Profile p : ctx.visibleProfiles()) {
-            boolean recommended = p.id.equals(ctx.catalog.defaultProfile());
-            String played = playInfo.get(p.id);
-            list.add(new VersionGrid.Version(p.id, p.minecraftVersion, "<html><b>Minecraft " + p.minecraftVersion + "</b>"
-                    + (recommended ? "  ·  " + Lang.t("versions.recommended") : "") + "<br>Lumora Loader"
-                    + (played == null ? "" : "<br>" + played) + "</html>"));
-        }
-        VersionGrid grid = new VersionGrid(list, id -> ctx.gameDir(id).resolve("screenshots"), id -> {
-            if (ctx.config.selectedInstance != null) {
-                // a version from the grid is its built-in instance, not an own instance any more
-                ctx.config.selectedInstance = null;
-                saveConfigQuietly();
-            }
-            selectProfile(id);
-            ctx.catalog.profile(id).ifPresent(this::refreshVersionInfo);
-            close.run();
-        }, 104, 8);
-        if (ctx.config.rememberPatch) {
-            grid.remember(ctx.config.lastPatch);
-        }
-        grid.setSelected(ctx.selectedProfile().id);
-        grid.setPlayInfo(playInfo);
-        // Mojang's update pictures as backgrounds (patch notes, loaded with the news at start, cached on disk)
-        grid.setArt(newsPage::updateArt);
-        grid.setPreferredSize(new Dimension(3 * 228 + 2 * 8, grid.getMaximumSize().height));
-        body.add(grid);
-
-        body.add(Box.createVerticalStrut(12));
-        JButton repair = new JButton(Lang.t("versions.repair"), Icons.of(Icons.Kind.CHECK, 14, Theme.TEXT));
-        repair.setFocusable(false);
-        repair.setAlignmentX(Component.LEFT_ALIGNMENT);
-        repair.addActionListener(e -> {
-            close.run();
-            startPlay(true);
-        });
-        body.add(repair);
-        return body;
+        return instanceChooser(builtIn.id, builtIn.kind() == dev.lumora.launcher.core.instance.InstanceKind.LUMORA);
     }
 
     /**
-     * Game folder of the selected version: the standard folder (.minecraft, shared with Vanilla and the other versions)
-     * or an own instance, and whether its Lumora settings are shared by all versions. {@code sync[0]} is set to refresh
-     * the controls (after a change of the start type).
+     * Game folder of a built-in instance: the standard folder (.minecraft, shared with Vanilla and the other versions)
+     * or an own folder, and (Lumora) whether its Lumora settings are shared by all versions.
      */
-    private JPanel instanceChooser(Runnable[] sync) {
+    private JPanel instanceChooser(String id, boolean lumora) {
         JPanel box = column();
         box.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel modes = new JPanel(new GridLayout(1, 2, 6, 0));
@@ -838,7 +750,7 @@ final class LauncherWindow implements PageHost {
             g.add(b);
             modes.add(b);
         }
-        modes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        modes.setMaximumSize(new Dimension(520, 34));
         box.add(modes);
         box.add(Box.createVerticalStrut(6));
         javax.swing.JCheckBox shared = new javax.swing.JCheckBox(Lang.t("instance.share_settings"));
@@ -847,39 +759,38 @@ final class LauncherWindow implements PageHost {
         shared.setFont(Theme.font(Font.PLAIN, 12.5f));
         shared.setForeground(Theme.TEXT);
         shared.setAlignmentX(Component.LEFT_ALIGNMENT);
+        shared.setVisible(lumora);
         box.add(shared);
         box.add(Box.createVerticalStrut(2));
         JLabel where = label("", 11.5f, Font.PLAIN, Theme.MUTED);
         where.setAlignmentX(Component.LEFT_ALIGNMENT);
         box.add(where);
-        sync[0] = () -> {
-            dev.lumora.launcher.core.InstanceLayout l = ctx.layout(currentFlavor().instanceId(ctx.selectedProfile().id));
+        Runnable sync = () -> {
+            dev.lumora.launcher.core.InstanceLayout l = ctx.layout(id);
             standard.setSelected(!l.own());
             own.setSelected(l.own());
             shared.setSelected(l.sharedSettings());
-            shared.setVisible(currentFlavor() == dev.lumora.launcher.core.profile.Flavor.LUMORA);
             where.setText(Lang.t("instance.game_dir", l.gameDir()));
             where.setToolTipText(Lang.t("instance.config_dir", l.configDir()));
         };
         standard.addActionListener(e -> {
-            setInstanceChoice(false, shared.isSelected());
-            sync[0].run();
+            setInstanceChoice(id, false, shared.isSelected());
+            sync.run();
         });
         own.addActionListener(e -> {
-            setInstanceChoice(true, shared.isSelected());
-            sync[0].run();
+            setInstanceChoice(id, true, shared.isSelected());
+            sync.run();
         });
         shared.addActionListener(e -> {
-            setInstanceChoice(own.isSelected(), shared.isSelected());
-            sync[0].run();
+            setInstanceChoice(id, own.isSelected(), shared.isSelected());
+            sync.run();
         });
-        sync[0].run();
+        sync.run();
         return box;
     }
 
-    /** Stores the selected version's game folder choice; its Lumora settings come along into a new, empty settings folder. */
-    private void setInstanceChoice(boolean own, boolean shared) {
-        String id = currentFlavor().instanceId(ctx.selectedProfile().id);
+    /** Stores a built-in instance's game folder choice; its Lumora settings come along into a new, empty settings folder. */
+    private void setInstanceChoice(String id, boolean own, boolean shared) {
         dev.lumora.launcher.core.InstanceLayout before = ctx.layout(id);
         if (before.own() == own && before.sharedSettings() == shared) {
             return;
@@ -902,6 +813,7 @@ final class LauncherWindow implements PageHost {
         });
         refreshVersionInfo(ctx.selectedProfile());
     }
+
 
     private javax.swing.JPopupMenu moreMenu() {
         javax.swing.JPopupMenu m = new javax.swing.JPopupMenu();
@@ -1029,10 +941,7 @@ final class LauncherWindow implements PageHost {
     private void refreshVersionInfo(ProfileCatalog.Profile p) {
         dev.lumora.launcher.core.profile.Flavor fl = currentFlavor();
         dev.lumora.launcher.core.instance.Instance own = ctx.selectedInstance();
-        ownInstanceLabel = own.builtIn ? null : own.name;
-        if (profileBox != null) {
-            profileBox.repaint();
-        }
+        updateInstanceButton();
         if (heroOverline != null) {
             if (!own.builtIn) {
                 // an own instance: its name, loader and version
@@ -1049,6 +958,17 @@ final class LauncherWindow implements PageHost {
             dashboard.idle();
         }
         refreshQuickPlay();
+    }
+
+    /** Play bar: name of the selected instance (shortened), full name, loader and version as tooltip. */
+    private void updateInstanceButton() {
+        if (instanceButton == null) {
+            return;
+        }
+        dev.lumora.launcher.core.instance.Instance i = ctx.selectedInstance();
+        String n = i.name.length() > 22 ? i.name.substring(0, 21) + "…" : i.name;
+        instanceButton.setText(n);
+        instanceButton.setToolTipText(Lang.t("picker.tooltip", i.name, i.minecraftVersion, i.kind().label()));
     }
 
     @Override
@@ -1075,9 +995,6 @@ final class LauncherWindow implements PageHost {
                 saveConfigQuietly();
             }
             ctx.catalog.profile(id).ifPresent(this::refreshVersionInfo);
-            if (profileBox != null) {
-                ctx.catalog.profile(id).ifPresent(profileBox::setSelectedItem);
-            }
         } finally {
             syncingProfile = false;
         }
@@ -1144,42 +1061,22 @@ final class LauncherWindow implements PageHost {
         right.setOpaque(false);
         barRight = right;
         right.setVisible(nav == null || !"home".equals(nav.selected()));
-        profileBox = new JComboBox<>();
-        profileBox.setMaximumRowCount(12);
-        for (ProfileCatalog.Profile p : ctx.visibleProfiles()) {
-            profileBox.addItem(p);
-        }
-        profileBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
-                super.getListCellRendererComponent(list, value, index, selected, focus);
-                if (value instanceof ProfileCatalog.Profile p) {
-                    // the closed box shows an own instance by its name while it is the selected one
-                    setText(index < 0 && ownInstanceLabel != null ? ownInstanceLabel : "Minecraft " + p.minecraftVersion);
-                }
-                return this;
-            }
-        });
-        profileBox.setPreferredSize(new Dimension(170, 40));
-        profileBox.addActionListener(e -> {
-            ProfileCatalog.Profile sel = (ProfileCatalog.Profile) profileBox.getSelectedItem();
-            if (sel != null && !syncingProfile) {
-                if (ctx.config.selectedInstance != null) {
-                    // a version chosen here is its built-in instance
-                    ctx.config.selectedInstance = null;
-                    saveConfigQuietly();
-                }
-                selectProfile(sel.id);
-                refreshVersionInfo(sel);
-            }
-        });
+        // the selected instance; a click opens the instance choice above the bar
+        instanceButton = new JButton(" ", Icons.of(Icons.Kind.CHEVRON_DOWN, 13, Theme.MUTED));
+        instanceButton.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+        instanceButton.setIconTextGap(10);
+        instanceButton.setFont(Theme.font(Font.BOLD, 13f));
+        instanceButton.setFocusable(false);
+        instanceButton.setPreferredSize(new Dimension(200, 40));
+        instanceButton.addActionListener(e -> dev.lumora.launcher.app.pages.InstancePicker.show(this, pageIo, instanceButton, true));
+        updateInstanceButton();
         stopButton = new JButton(Lang.t("play.stop"));
         stopButton.setVisible(false);
         stopButton.setPreferredSize(new Dimension(100, 40));
         stopButton.addActionListener(e -> ctx.play.runningGame().ifPresent(g -> worker.submit(() -> g.stop(java.time.Duration.ofSeconds(15)))));
         playButton = new PlayButton(Lang.t("play.play"));
         playButton.addActionListener(e -> startPlay(false));
-        right.add(profileBox);
+        right.add(instanceButton);
         right.add(stopButton);
         right.add(playButton);
         bar.add(right, BorderLayout.EAST);

@@ -58,6 +58,30 @@ final class InstanceUi {
         return Lang.t("instances.origin.own");
     }
 
+    /** "import:prism" -> "Prism Launcher". */
+    static String importSource(String source) {
+        String s = source == null ? "" : source.startsWith("import:") ? source.substring(7) : source;
+        return s.matches("[a-z_]{1,24}") ? Lang.t("import.source." + s) : s;
+    }
+
+    /**
+     * Group of an instance in the version menu and on the instance page: null for the player's own and the Lumora
+     * versions, else where it was imported from ("CurseForge", "Prism Launcher", "Modrinth" for modpacks …).
+     */
+    static String importGroup(Instance i) {
+        if (i.builtIn || i.source == null || "archive".equals(i.source)) {
+            return null;
+        }
+        if (i.source.startsWith("import:")) {
+            return importSource(i.source);
+        }
+        return switch (i.source) {
+            case "curseforge" -> "CurseForge";
+            case "modrinth", "mrpack" -> "Modrinth";
+            default -> null;
+        };
+    }
+
     static String lastPlayed(AppContext ctx, Instance i) {
         PlayStats.Entry e = ctx.play.stats().get(i.key());
         Instant last = e == null || e.lastPlayed == 0 ? null : e.lastPlayedInstant();

@@ -171,4 +171,23 @@ final class InstanceActions {
             }
         });
     }
+
+    /**
+     * Takes a Lumora or Vanilla version off the instance list. Nothing is deleted: worlds, packs and settings stay in its
+     * folder, and "Instanz erstellen" adds it again. If it was selected, the next listed instance is selected.
+     */
+    static void removeBuiltIn(PageHost host, Instance i, Runnable done) {
+        if (!i.builtIn) {
+            return;
+        }
+        var ctx = host.ctx();
+        ctx.instances.removeBuiltIn(ctx.config, i);
+        if (ctx.selectedInstance().key().equals(i.key())) {
+            ctx.instances.list(ctx.config).stream().filter(o -> !o.key().equals(i.key())).findFirst().ifPresent(host::selectInstance);
+        }
+        host.saveConfig();
+        Log.info("Instance " + i.id + " removed from the list (files kept)");
+        host.instancesChanged();
+        done.run();
+    }
 }

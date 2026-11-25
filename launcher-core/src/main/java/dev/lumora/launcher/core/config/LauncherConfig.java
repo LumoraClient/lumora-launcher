@@ -24,6 +24,11 @@ public final class LauncherConfig {
      * Einstellungen › Spiel › Versionen. Empty = all versions.
      */
     public List<String> visibleProfiles = new ArrayList<>();
+    /**
+     * Built-in instances (Lumora/Vanilla per version, ids like "26.3" or "26.3-vanilla") the player added to the instance
+     * list; the others stay hidden until added. null = not set up yet (filled once from the versions used before).
+     */
+    public List<String> addedInstances;
     /** Design for the game chosen in the installer: "lumora" or "vanilla"; null = untouched (see GameThemeSeeder). */
     public String gameTheme;
     /** Id of the installer run that chose {@link #gameTheme}; every instance gets that choice once. */

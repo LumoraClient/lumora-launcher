@@ -37,6 +37,9 @@ public final class InstanceManager {
     private static final Pattern COPY_SKIP = Pattern.compile(
             "(minecraft/)?(logs|crash-reports)(/.*)?|.*\\.lumora-running[^/]*\\.lock|(minecraft/)?\\.lumora/status[^/]*\\.json|\\.natives(/.*)?");
 
+    /** Worlds of the launcher's start and smoke tests (demo mode), not the player's. */
+    private static final java.util.Set<String> TEST_WORLDS = java.util.Set.of("Lumora_SmokeTest", "Demo_World");
+
     private final LauncherPaths paths;
     private final ProfileCatalog catalog;
 
@@ -58,25 +61,105 @@ public final class InstanceManager {
         return out;
     }
 
-    /** The Lumora instance of every shown Lumora version, and its Vanilla instance where the player used one. */
+    /**
+     * The built-in instances the player added to the list (see {@link LauncherConfig#addedInstances}), plus the selected
+     * one so the play button's target is always listed. The other Lumora versions stay hidden until added.
+     */
     public List<Instance> builtIns(LauncherConfig config) {
+        List<String> added = added(config);
+        String selected = selectedKey(config);
         List<Instance> out = new ArrayList<>();
         for (ProfileCatalog.Profile p : catalog.profiles()) {
-            boolean visible = config.visibleProfiles == null || config.visibleProfiles.isEmpty()
-                    || config.visibleProfiles.contains(p.id) || p.id.equals(config.selectedProfile);
-            if (visible) {
-                out.add(builtIn(p, Flavor.LUMORA));
-            }
-            String vanillaId = Flavor.VANILLA.instanceId(p.id);
-            boolean usedVanilla = (config.instances != null && config.instances.containsKey(vanillaId))
-                    || Files.isDirectory(paths.instance(vanillaId))
-                    || vanillaId.equals(config.selectedInstance)
-                    || (p.id.equals(config.selectedProfile) && Flavor.VANILLA.id().equals(config.selectedFlavor) && config.selectedInstance == null);
-            if (usedVanilla) {
-                out.add(builtIn(p, Flavor.VANILLA));
+            for (Flavor f : Flavor.values()) {
+                String id = f.instanceId(p.id);
+                if (added.contains(id) || id.equals(selected)) {
+                    out.add(builtIn(p, f));
+                }
             }
         }
         return out;
+    }
+
+    /** Built-in instances that can still be added (not in the list yet), newest version first. */
+    public List<Instance> addableBuiltIns(LauncherConfig config) {
+        List<String> listed = builtIns(config).stream().map(i -> i.id).toList();
+        List<Instance> out = new ArrayList<>();
+        for (ProfileCatalog.Profile p : catalog.profiles()) {
+            for (Flavor f : Flavor.values()) {
+                if (!listed.contains(f.instanceId(p.id))) {
+                    out.add(builtIn(p, f));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Adds a built-in instance (Lumora or Vanilla of one version) to the instance list; returns it. */
+    public Instance addBuiltIn(LauncherConfig config, String profileId, Flavor flavor) throws IOException {
+        ProfileCatalog.Profile p = catalog.profile(profileId).orElseThrow(() -> new IOException(Lang.t("instances.error.version")));
+        String id = flavor.instanceId(p.id);
+        List<String> added = added(config);
+        if (!added.contains(id)) {
+            added.add(id);
+        }
+        return builtIn(p, flavor);
+    }
+
+    /** Takes a built-in instance off the list; its folders and worlds stay untouched. */
+    public void removeBuiltIn(LauncherConfig config, Instance i) {
+        if (i.builtIn) {
+            added(config).remove(i.id);
+        }
+    }
+
+    /**
+     * The added built-in ids. The first time (field not set yet): the selected version and the versions with an own game
+     * folder that holds worlds (they are not in the shared folder, so they must stay reachable; empty own folders came
+     * from an old automatic move). Versions on the shared Minecraft folder lose nothing by being hidden and are added
+     * again through "Instanz erstellen".
+     */
+    List<String> added(LauncherConfig config) {
+        if (config.addedInstances != null) {
+            return config.addedInstances;
+        }
+        java.util.LinkedHashSet<String> used = new java.util.LinkedHashSet<>();
+        used.add(selectedKey(config));
+        for (ProfileCatalog.Profile p : catalog.profiles()) {
+            for (Flavor f : Flavor.values()) {
+                String id = f.instanceId(p.id);
+                LauncherConfig.InstanceChoice choice = config.instances == null ? null : config.instances.get(id);
+                if (choice != null && choice.own && hasWorlds(InstanceLayout.of(paths, config, id).gameDir())) {
+                    used.add(id);
+                }
+            }
+        }
+        config.addedInstances = new ArrayList<>(used);
+        return config.addedInstances;
+    }
+
+    /**
+     * True if the game folder has at least one world of the player (a folder with level.dat in saves/). The worlds the
+     * launcher's own start tests leave behind (demo mode) do not count.
+     */
+    static boolean hasWorlds(Path gameDir) {
+        Path saves = gameDir == null ? null : gameDir.resolve("saves");
+        if (saves == null || !Files.isDirectory(saves)) {
+            return false;
+        }
+        try (var s = Files.list(saves)) {
+            return s.anyMatch(d -> Files.isRegularFile(d.resolve("level.dat"))
+                    && !TEST_WORLDS.contains(d.getFileName().toString()));
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /** Selection key of the selected instance (own: custom:&lt;id&gt;, built-in: its instance id). */
+    static String selectedKey(LauncherConfig config) {
+        if (config.selectedInstance != null) {
+            return config.selectedInstance;
+        }
+        return Flavor.of(config.selectedFlavor).instanceId(config.selectedProfile == null ? "" : config.selectedProfile);
     }
 
     Instance builtIn(ProfileCatalog.Profile p, Flavor flavor) {
@@ -135,6 +218,7 @@ public final class InstanceManager {
         if (i.jvmArgs == null) {
             i.jvmArgs = new ArrayList<>();
         }
+        i.author = cleanAuthor(i.author);
         if (InstanceKind.of(i.kind) == null || i.minecraftVersion == null || !MC_VERSION.matcher(i.minecraftVersion).matches()) {
             throw new IOException("invalid kind or Minecraft version");
         }
@@ -191,6 +275,9 @@ public final class InstanceManager {
     public static void select(LauncherConfig config, Instance instance) {
         config.selectedInstance = instance.key();
         if (instance.builtIn) {
+            if (config.addedInstances != null && !config.addedInstances.contains(instance.id)) {
+                config.addedInstances.add(instance.id); // what is selected is in the list
+            }
             config.selectedProfile = instance.profileId;
             config.selectedFlavor = instance.kind() == InstanceKind.VANILLA ? Flavor.VANILLA.id() : Flavor.LUMORA.id();
         }
@@ -246,6 +333,7 @@ public final class InstanceManager {
         i.builtIn = false;
         i.profileId = null;
         i.name = spec.name == null ? null : spec.name.strip();
+        i.author = cleanAuthor(spec.author);
         validate(i);
         i.id = freeId(i.name);
         i.dir = paths.customInstances().resolve(i.id);
@@ -257,11 +345,21 @@ public final class InstanceManager {
         return i;
     }
 
+    /** Author shown on the card: one line, no control characters, at most {@value #MAX_NAME} characters; null if blank. */
+    static String cleanAuthor(String author) {
+        if (author == null) {
+            return null;
+        }
+        String a = author.replaceAll("\\p{Cntrl}", " ").strip();
+        return a.isEmpty() ? null : a.length() > MAX_NAME ? a.substring(0, MAX_NAME) : a;
+    }
+
     /** Writes {@code instance.json} of an own instance (atomic). */
     public void save(Instance i) throws IOException {
         if (i.builtIn || i.dir == null) {
             throw new IOException(Lang.t("instances.error.builtin"));
         }
+        i.author = cleanAuthor(i.author);
         validate(i);
         FileUtil.writeAtomically(i.dir.resolve(FILE), Json.GSON.toJson(i).getBytes(StandardCharsets.UTF_8));
     }

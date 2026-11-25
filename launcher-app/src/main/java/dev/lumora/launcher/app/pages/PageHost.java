@@ -56,4 +56,14 @@ public interface PageHost {
 
     /** The instance list changed (created, copied, renamed, deleted, imported): pages that show instances reload. */
     void instancesChanged();
+
+    /** Mojang's picture of a major update ("1.21"), or null while loading ({@code loaded} repaints once it is there). */
+    default java.awt.Image versionArt(String family, Runnable loaded) {
+        return null;
+    }
+
+    /** Game folder choice of a built-in instance (standard or own folder, shared Lumora settings), or null. */
+    default javax.swing.JComponent folderChooser(dev.lumora.launcher.core.instance.Instance builtIn) {
+        return null;
+    }
 }

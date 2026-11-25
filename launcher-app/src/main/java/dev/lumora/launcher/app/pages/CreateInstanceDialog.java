@@ -4,6 +4,7 @@ import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.ui.Theme;
 import dev.lumora.launcher.app.ui.Ui;
+import dev.lumora.launcher.app.ui.VersionGrid;
 import dev.lumora.launcher.core.i18n.Lang;
 import dev.lumora.launcher.core.instance.Instance;
 import dev.lumora.launcher.core.instance.InstanceKind;
@@ -16,7 +17,6 @@ import dev.lumora.launcher.core.profile.ProfileCatalog;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -24,13 +24,11 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -65,9 +63,16 @@ final class CreateInstanceDialog {
     private final CardLayout steps = new CardLayout();
     private final JPanel stepPanel = new JPanel(steps);
     private final JLabel[] stepLabels = new JLabel[3];
-    private InstanceKind kind = InstanceKind.FABRIC;
-    private final DefaultListModel<String> versions = new DefaultListModel<>();
-    private final JList<String> versionList = new JList<>(versions);
+    private InstanceKind kind = InstanceKind.LUMORA;
+    /** Version cards (rebuilt on every filter change) and the chosen Minecraft version. */
+    private final JPanel gridHolder = new JPanel(new BorderLayout());
+    private String chosen;
+    private boolean loading;
+    private final JLabel chosenLabel = Ui.label(" ", 13, Font.BOLD, Theme.TEXT);
+    private final JCheckBox sharedFolder = new JCheckBox(Lang.t("create.shared_folder"));
+    /** Name filled in automatically (replaced when kind or version change, kept once the player typed one). */
+    private String autoName;
+    private boolean startAtVersions;
     private final JTextField versionFilter = new JTextField();
     private final JCheckBox snapshots = new JCheckBox(Lang.t("create.snapshots"));
     private List<MetadataService.GameVersion> allVersions = List.of();
@@ -87,7 +92,22 @@ final class CreateInstanceDialog {
     }
 
     static void show(PageHost host, ExecutorService io, Consumer<Instance> created) {
-        new CreateInstanceDialog(host, io, created).open();
+        show(host, io, created, false);
+    }
+
+    /** @param versions start at the version step (own instance) */
+    static void show(PageHost host, ExecutorService io, Consumer<Instance> created, boolean versions) {
+        show(host, io, created, versions, null);
+    }
+
+    /** @param startKind kind chosen at the start (null = Lumora) */
+    static void show(PageHost host, ExecutorService io, Consumer<Instance> created, boolean versions, InstanceKind startKind) {
+        CreateInstanceDialog d = new CreateInstanceDialog(host, io, created);
+        d.startAtVersions = versions;
+        if (startKind != null) {
+            d.kind = startKind;
+        }
+        d.open();
     }
 
     private void open() {
@@ -114,7 +134,12 @@ final class CreateInstanceDialog {
         root.registerKeyboardAction(e -> dialog.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
         dialog.setSize(860, 640);
         dialog.setLocationRelativeTo(host.frame());
-        step(0);
+        if (startAtVersions) {
+            loadVersions();
+            step(1);
+        } else {
+            step(0);
+        }
         dialog.setVisible(true);
     }
 
@@ -232,26 +257,18 @@ final class CreateInstanceDialog {
         filterRow.add(snapshots);
         top.add(filterRow);
         p.add(top, BorderLayout.NORTH);
-        versionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        versionList.setFont(Theme.font(Font.BOLD, 14f));
-        versionList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-        versionList.setVisibleRowCount(-1);
-        versionList.setFixedCellWidth(120);
-        versionList.setFixedCellHeight(36);
-        versionList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    toFinish();
-                }
-            }
-        });
-        JScrollPane sp = new JScrollPane(versionList);
-        sp.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
+        gridHolder.setOpaque(false);
+        JScrollPane sp = Ui.scroll(gridHolder);
+        sp.setBorder(BorderFactory.createEmptyBorder());
         p.add(sp, BorderLayout.CENTER);
         JPanel south = new JPanel(new BorderLayout());
         south.setOpaque(false);
-        south.add(versionError, BorderLayout.NORTH);
+        JPanel status = Ui.column();
+        chosenLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        versionError.setAlignmentX(Component.LEFT_ALIGNMENT);
+        status.add(chosenLabel);
+        status.add(versionError);
+        south.add(status, BorderLayout.NORTH);
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         buttons.setOpaque(false);
         buttons.add(Ui.button(Lang.t("common.back"), null, () -> step(0)));
@@ -263,31 +280,30 @@ final class CreateInstanceDialog {
     }
 
     private void loadVersions() {
-        versions.clear();
-        versions.addElement(Lang.t("common.loading"));
+        loading = true;
+        filterVersions();
         boolean snaps = snapshots.isSelected();
         io.submit(() -> {
             try {
                 List<MetadataService.GameVersion> list = new MetadataService(host.ctx().downloader, host.ctx().paths.versions()).gameVersions(snaps);
                 SwingUtilities.invokeLater(() -> {
+                    loading = false;
                     allVersions = list;
                     filterVersions();
                 });
             } catch (IOException e) {
                 SwingUtilities.invokeLater(() -> {
+                    loading = false;
                     allVersions = List.of();
-                    versions.clear();
-                    versionError.setText(Lang.t("create.version.offline", e.getMessage()));
                     filterVersions();
+                    versionError.setText(Lang.t("create.version.offline", e.getMessage()));
                 });
             }
         });
     }
 
-    private void filterVersions() {
-        String keep = versionList.getSelectedValue();
-        versions.clear();
-        versionError.setText(" ");
+    /** Versions of the chosen kind matching the search, newest first. */
+    private List<String> versionSource() {
         String q = versionFilter.getText().strip();
         List<String> source = new ArrayList<>();
         if (kind == InstanceKind.LUMORA) {
@@ -304,29 +320,68 @@ final class CreateInstanceDialog {
                 }
             }
         }
-        for (String v : source) {
-            if (q.isEmpty() || v.contains(q)) {
-                versions.addElement(v);
+        source.removeIf(v -> !q.isEmpty() && !v.contains(q));
+        return source;
+    }
+
+    /** Releases group by major version ("1.21"), everything else (snapshots, pre-releases) on one card. */
+    private static String familyOf(String version) {
+        return version.matches("\\d+\\.\\d+(\\.\\d+)?") ? VersionGrid.family(version) : Lang.t("create.snapshots.family");
+    }
+
+    /** Rebuilds the version cards (like the version menu of the start page): a click on a card or chip chooses. */
+    private void filterVersions() {
+        versionError.setText(" ");
+        gridHolder.removeAll();
+        List<String> source = loading && kind != InstanceKind.LUMORA ? List.of() : versionSource();
+        if (source.isEmpty()) {
+            chosen = null;
+            String text = loading && kind != InstanceKind.LUMORA ? Lang.t("common.loading")
+                    : versionFilter.getText().isBlank() ? Lang.t("create.version.none") : Lang.t("create.version.no_match", versionFilter.getText().strip());
+            gridHolder.add(Ui.label(text, 13.5f, Font.PLAIN, Theme.MUTED), BorderLayout.NORTH);
+        } else {
+            if (chosen == null || !source.contains(chosen)) {
+                chosen = source.get(0);
             }
+            List<VersionGrid.Version> list = new ArrayList<>();
+            for (String v : source) {
+                list.add(new VersionGrid.Version(v, v, "Minecraft " + v));
+            }
+            VersionGrid[] grid = new VersionGrid[1];
+            grid[0] = new VersionGrid(list, v -> null, v -> {
+                chosen = v;
+                grid[0].setSelected(v);
+                showChosen();
+            }, 104, 8, CreateInstanceDialog::familyOf);
+            grid[0].setArt(host::versionArt);
+            grid[0].setSelected(chosen);
+            gridHolder.add(grid[0], BorderLayout.NORTH);
         }
-        if (keep != null && versions.contains(keep)) {
-            versionList.setSelectedValue(keep, true);
-        } else if (!versions.isEmpty()) {
-            versionList.setSelectedIndex(0);
-        }
+        showChosen();
+        gridHolder.revalidate();
+        gridHolder.repaint();
+    }
+
+    private void showChosen() {
+        chosenLabel.setText(chosen == null ? " " : Lang.t("create.version.chosen", kind.label(), chosen));
     }
 
     /** Checks that the loader exists for the version (network), then goes to the last step. */
     private void toFinish() {
-        String mc = versionList.getSelectedValue();
+        String mc = chosen;
         if (mc == null || mc.equals(Lang.t("common.loading"))) {
             versionError.setText(Lang.t("create.version.choose"));
             return;
         }
         name.putClientProperty("JTextField.placeholderText", kind.label() + " " + mc);
-        if (name.getText().isBlank()) {
+        if (name.getText().isBlank() || name.getText().equals(autoName)) {
             name.setText(kind.label() + " " + mc);
         }
+        autoName = kind.label() + " " + mc;
+        // Lumora and Vanilla of a Lumora version can also be the built-in instance with the shared Minecraft folder
+        sharedFolder.setVisible(!kind.modded() && profileFor(mc) != null);
+        sharedFolder.setSelected(false);
+        name.setEnabled(true);
         loaderVersion.removeAllItems();
         loaderIds.clear();
         if (!kind.modded()) {
@@ -401,7 +456,17 @@ final class CreateInstanceDialog {
         loaderVersion.setAlignmentX(Component.LEFT_ALIGNMENT);
         loaderVersion.setMaximumSize(new Dimension(420, Ui.CONTROL_HEIGHT));
         form.add(loaderVersion);
-        form.add(Box.createVerticalStrut(14));
+        form.add(Box.createVerticalStrut(12));
+        sharedFolder.setOpaque(false);
+        sharedFolder.setFocusable(false);
+        sharedFolder.setFont(Theme.font(Font.PLAIN, 13f));
+        sharedFolder.setForeground(Theme.TEXT);
+        sharedFolder.setAlignmentX(Component.LEFT_ALIGNMENT);
+        sharedFolder.setToolTipText(Lang.t("create.shared_folder.tip"));
+        sharedFolder.addActionListener(e -> name.setEnabled(!sharedFolder.isSelected()));
+        sharedFolder.setVisible(false);
+        form.add(sharedFolder);
+        form.add(Box.createVerticalStrut(10));
         form.add(Ui.wrapText(Lang.t("create.finish.hint"), 12.5f, Theme.MUTED));
         p.add(form, BorderLayout.NORTH);
         JPanel south = new JPanel(new BorderLayout());
@@ -417,6 +482,30 @@ final class CreateInstanceDialog {
         return p;
     }
 
+    /** Puts the built-in Lumora/Vanilla instance of the chosen version on the list (shared Minecraft folder, nothing copied). */
+    private void addBuiltIn() {
+        ProfileCatalog.Profile p = profileFor(chosen);
+        if (p == null) {
+            return;
+        }
+        dev.lumora.launcher.core.profile.Flavor flavor = kind == InstanceKind.VANILLA
+                ? dev.lumora.launcher.core.profile.Flavor.VANILLA : dev.lumora.launcher.core.profile.Flavor.LUMORA;
+        try {
+            Instance inst = host.ctx().instances.addBuiltIn(host.ctx().config, p.id, flavor);
+            host.saveConfig();
+            dialog.dispose();
+            host.instancesChanged();
+            created.accept(inst);
+        } catch (IOException e) {
+            createError.setText(e.getMessage());
+        }
+    }
+
+    /** The Lumora version (profile) of a Minecraft version, or null. */
+    private ProfileCatalog.Profile profileFor(String mc) {
+        return host.ctx().catalog.profiles().stream().filter(p -> p.minecraftVersion.equals(mc)).findFirst().orElse(null);
+    }
+
     private void validateName() {
         String n = name.getText().strip();
         String reason = n.isEmpty() ? Lang.t("instances.error.name_empty")
@@ -428,10 +517,14 @@ final class CreateInstanceDialog {
     }
 
     private void create() {
+        if (sharedFolder.isVisible() && sharedFolder.isSelected()) {
+            addBuiltIn();
+            return;
+        }
         Instance spec = new Instance();
         spec.name = name.getText().strip();
         spec.kind = kind.id();
-        spec.minecraftVersion = versionList.getSelectedValue();
+        spec.minecraftVersion = chosen;
         int i = loaderVersion.getSelectedIndex();
         spec.loaderVersion = kind.modded() && i > 0 && i < loaderIds.size() ? loaderIds.get(i) : null;
         spec.loaderPinned = spec.loaderVersion != null;

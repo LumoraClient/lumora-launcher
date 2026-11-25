@@ -178,7 +178,8 @@ public final class CurseForgePackImporter {
             String name = str(o, "name");
             return new MrpackImporter.Preview(file, name == null || name.isBlank() ? file.getFileName().toString() : name.strip(), str(o, "version"),
                     str(o, "author") == null ? null : Lang.t("cfpack.by", str(o, "author")), mc, kind, loaderVersion, files, folders,
-                    overrideFiles, bytes, overrideBytes, icon, problems, 0, overrides, manual, "curseforge");
+                    overrideFiles, bytes, overrideBytes, icon, problems, 0, overrides, manual, "curseforge",
+                    str(o, "author") == null || str(o, "author").isBlank() ? null : str(o, "author").strip());
         } catch (java.util.zip.ZipException e) {
             throw new IOException(Lang.t("mrpack.error.zip"), e);
         } catch (IllegalStateException | ClassCastException | UnsupportedOperationException | NumberFormatException | NullPointerException e) {

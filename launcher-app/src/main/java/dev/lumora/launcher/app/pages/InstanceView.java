@@ -700,6 +700,19 @@ final class InstanceView extends JPanel {
             c.setAlignmentX(Component.LEFT_ALIGNMENT);
             c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height + 10));
             col.add(c);
+            JComponent folder = host.folderChooser(instance);
+            if (folder != null) {
+                Card f = new Card(new BorderLayout(0, 8)).calm();
+                JPanel ft = Ui.column();
+                ft.add(Ui.label(Lang.t("instance.settings.folder"), 15, Font.BOLD, Theme.TEXT));
+                ft.add(Box.createVerticalStrut(8));
+                ft.add(folder);
+                f.add(ft, BorderLayout.CENTER);
+                f.setAlignmentX(Component.LEFT_ALIGNMENT);
+                f.setMaximumSize(new Dimension(Integer.MAX_VALUE, f.getPreferredSize().height + 10));
+                col.add(Box.createVerticalStrut(12));
+                col.add(f);
+            }
             return Ui.scroll(col);
         }
         Instance edit = instance.copy();

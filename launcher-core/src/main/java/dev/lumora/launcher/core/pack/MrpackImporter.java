@@ -70,12 +70,12 @@ public final class MrpackImporter {
     public record Preview(Path file, String name, String version, String summary, String minecraftVersion, InstanceKind kind,
                           String loaderVersion, List<PackFile> files, Map<String, Integer> folders, int overrideFiles,
                           long downloadBytes, long overrideBytes, byte[] icon, List<String> problems, int skippedServerOnly,
-                          String overrides, List<String> manual, String format) {
+                          String overrides, List<String> manual, String format, String author) {
         public Preview(Path file, String name, String version, String summary, String minecraftVersion, InstanceKind kind,
                        String loaderVersion, List<PackFile> files, Map<String, Integer> folders, int overrideFiles,
                        long downloadBytes, long overrideBytes, byte[] icon, List<String> problems, int skippedServerOnly) {
             this(file, name, version, summary, minecraftVersion, kind, loaderVersion, files, folders, overrideFiles, downloadBytes,
-                    overrideBytes, icon, problems, skippedServerOnly, "overrides", List.of(), "mrpack");
+                    overrideBytes, icon, problems, skippedServerOnly, "overrides", List.of(), "mrpack", null);
         }
 
         public boolean importable() {
@@ -269,6 +269,7 @@ public final class MrpackImporter {
         spec.loaderVersion = p.loaderVersion();
         spec.loaderPinned = p.loaderVersion() != null;
         spec.source = source;
+        spec.author = p.author();
         spec.sourceProject = sourceProject;
         spec.sourceVersion = sourceVersion != null ? sourceVersion : p.version();
         Instance inst = instances.create(spec);

@@ -67,13 +67,19 @@ public final class VersionGrid extends JPanel {
 
     /** @param cardHeight height of one card, @param gap space between cards (compact grid for the version menu) */
     public VersionGrid(List<Version> versions, Function<String, Path> screenshots, Consumer<String> onSelect, int cardHeight, int gap) {
+        this(versions, screenshots, onSelect, cardHeight, gap, VersionGrid::family);
+    }
+
+    /** @param familyOf groups versions into cards (default {@link #family}; e.g. all snapshots on one card) */
+    public VersionGrid(List<Version> versions, Function<String, Path> screenshots, Consumer<String> onSelect, int cardHeight, int gap,
+                       Function<String, String> familyOf) {
         super(new GridLayout(0, 3, gap, gap));
         this.onSelect = onSelect;
         this.cardH = cardHeight;
         setOpaque(false);
         setAlignmentX(Component.LEFT_ALIGNMENT);
         for (Version v : versions) {
-            families.computeIfAbsent(family(v.version()), k -> new ArrayList<>()).add(v);
+            families.computeIfAbsent(familyOf.apply(v.version()), k -> new ArrayList<>()).add(v);
         }
         for (Map.Entry<String, List<Version>> f : families.entrySet()) {
             Image shot = newestScreenshot(f.getValue(), screenshots);
@@ -181,6 +187,8 @@ public final class VersionGrid extends JPanel {
         private final String family;
         private final List<Version> versions;
         private final List<Rectangle> chipBoxes = new ArrayList<>();
+        /** "›" chip for the versions that do not fit, null when all fit. */
+        private Rectangle more;
         private boolean hover;
         private int hoverChip = -1;
 
@@ -192,6 +200,10 @@ public final class VersionGrid extends JPanel {
             MouseAdapter m = new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
+                    if (more != null && more.contains(e.getX(), e.getY())) {
+                        moreMenu().show(Card.this, more.x, more.y + more.height + 2);
+                        return;
+                    }
                     int chip = chipAt(e.getX(), e.getY());
                     String id = chip >= 0 ? versions.get(chip).id() : lastInFamily.getOrDefault(family, versions.get(0).id());
                     onSelect.accept(id);
@@ -223,6 +235,20 @@ public final class VersionGrid extends JPanel {
             };
             addMouseListener(m);
             addMouseMotionListener(m);
+        }
+
+        /** The versions that did not fit as chips. */
+        private javax.swing.JPopupMenu moreMenu() {
+            javax.swing.JPopupMenu m = new javax.swing.JPopupMenu();
+            for (int i = chipBoxes.size(); i < versions.size(); i++) {
+                Version v = versions.get(i);
+                javax.swing.JMenuItem it = new javax.swing.JMenuItem(v.version());
+                it.setFont(Theme.font(v.id().equals(selected) ? Font.BOLD : Font.PLAIN, 13f));
+                it.setToolTipText(v.tooltip());
+                it.addActionListener(ev -> onSelect.accept(v.id()));
+                m.add(it);
+            }
+            return m;
         }
 
         private Version current() {
@@ -284,15 +310,27 @@ public final class VersionGrid extends JPanel {
             }
             // sub-version chips
             chipBoxes.clear();
+            more = null;
             if (versions.size() > 1) {
                 g.setFont(Theme.font(Font.BOLD, 12f));
                 FontMetrics cm = g.getFontMetrics();
                 int x = 10;
                 int y = h - 30;
+                int moreW = 24;
                 for (int i = 0; i < versions.size(); i++) {
                     Version v = versions.get(i);
                     int cw = cm.stringWidth(v.version()) + 16;
-                    if (x + cw > w - 10) {
+                    boolean last = i == versions.size() - 1;
+                    if (x + cw + (last ? 0 : moreW + 6) > w - 10) {
+                        // the rest goes behind a "›" chip (popup list)
+                        more = new Rectangle(x, y, moreW, 22);
+                        boolean moreSel = versions.subList(i, versions.size()).stream().anyMatch(o -> o.id().equals(selected));
+                        g.setColor(moreSel ? Theme.ACCENT_PRESSED : new Color(14, 17, 22, 220));
+                        Theme.fillRound(g, x, y, moreW, 22, 8, 8);
+                        g.setColor(moreSel ? Theme.ACCENT_HOVER : new Color(255, 255, 255, 40));
+                        Theme.drawRound(g, x, y, moreW, 22, 8, 8);
+                        g.setColor(Color.WHITE);
+                        g.drawString("›", x + (moreW - cm.stringWidth("›")) / 2, y + 15);
                         break;
                     }
                     boolean chipSel = v.id().equals(selected);

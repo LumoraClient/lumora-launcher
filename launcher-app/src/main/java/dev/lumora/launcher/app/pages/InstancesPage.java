@@ -189,9 +189,21 @@ public final class InstancesPage extends JPanel {
             content.add(emptyState());
             content.add(Box.createVerticalStrut(18));
         }
-        if (!own.isEmpty()) {
-            content.add(Ui.sectionTitle(Lang.t("instances.section.own"), Lang.plural("instances.count", own.size())));
-            content.add(group(own, selected));
+        // own instances first, then one group per origin ("Importiert aus CurseForge" …), then the Lumora versions
+        java.util.Map<String, List<Instance>> groups = new java.util.LinkedHashMap<>();
+        for (Instance i : own) {
+            String g = InstanceUi.importGroup(i);
+            groups.computeIfAbsent(g == null ? "" : g, k -> new ArrayList<>()).add(i);
+        }
+        List<Instance> mine = groups.remove("");
+        if (mine != null) {
+            content.add(Ui.sectionTitle(Lang.t("instances.section.own"), Lang.plural("instances.count", mine.size())));
+            content.add(group(mine, selected));
+            content.add(Box.createVerticalStrut(18));
+        }
+        for (java.util.Map.Entry<String, List<Instance>> g : groups.entrySet()) {
+            content.add(Ui.sectionTitle(Lang.t("instances.section.imported", g.getKey()), Lang.plural("instances.count", g.getValue().size())));
+            content.add(group(g.getValue(), selected));
             content.add(Box.createVerticalStrut(18));
         }
         if (!builtIn.isEmpty()) {
@@ -260,6 +272,18 @@ public final class InstancesPage extends JPanel {
     }
 
     private JComponent card(Instance i, boolean selected, boolean grid) {
+        if (grid) {
+            InstanceTile[] tile = new InstanceTile[1];
+            tile[0] = new InstanceTile(host, i, selected, () -> open(i), () -> {
+                host.selectInstance(i);
+                host.launch(null, false);
+            }, e -> menu(i).show(e.getComponent(), e.getX(), e.getY()));
+            DropSupport.instanceSource(tile[0], i);
+            DropSupport.target(tile[0], new DropSupport.Handlers(files -> ImportFlow.open(host, io, files, i, this::open),
+                    key -> host.ctx().instances.find(host.ctx().config, key).ifPresent(src -> InstanceActions.mergeInto(host, io, src, i, this::open)),
+                    on -> tile[0].setDropTarget(on), this::dragActive));
+            return tile[0];
+        }
         Card c = new Card(new BorderLayout(12, 0));
         c.padding(12, 14, 12, 12);
         if (selected) {
@@ -276,7 +300,7 @@ public final class InstancesPage extends JPanel {
                 12.5f, Font.PLAIN, Theme.MUTED));
         text.add(line);
         text.add(Box.createVerticalStrut(3));
-        text.add(Ui.label(InstanceUi.origin(i) + " · " + InstanceUi.lastPlayed(host.ctx(), i), 12, Font.PLAIN, Theme.MUTED));
+        text.add(Ui.label(InstanceTile.creator(i) + " · " + InstanceUi.lastPlayed(host.ctx(), i), 12, Font.PLAIN, Theme.MUTED));
         c.add(text, BorderLayout.CENTER);
         // drag: onto another instance or the copy zone; drop: files into this instance, an instance to merge
         DropSupport.instanceSource(c, i);
@@ -346,6 +370,9 @@ public final class InstancesPage extends JPanel {
             m.add(item(Lang.t("instances.action.rename"), Icons.Kind.EDIT, () -> InstanceActions.rename(host, i, r -> rebuild())));
             m.addSeparator();
             m.add(item(Lang.t("instances.action.delete"), Icons.Kind.TRASH, () -> InstanceActions.delete(host, io, i, this::showList)));
+        } else {
+            m.addSeparator();
+            m.add(item(Lang.t("instances.action.remove_builtin"), Icons.Kind.X, () -> InstanceActions.removeBuiltIn(host, i, this::showList)));
         }
         return m;
     }
@@ -358,6 +385,16 @@ public final class InstancesPage extends JPanel {
 
     private void create() {
         CreateInstanceDialog.show(host, io, this::open);
+    }
+
+    /** "Neue Instanz" from outside the page; {@code versions}: straight to the version step. */
+    public void showCreate(boolean versions) {
+        CreateInstanceDialog.show(host, io, this::open, versions);
+    }
+
+    /** "Neue Instanz" at the version step with {@code kind} chosen. */
+    public void showCreate(InstanceKind kind) {
+        CreateInstanceDialog.show(host, io, this::open, true, kind);
     }
 
     private void importPack() {

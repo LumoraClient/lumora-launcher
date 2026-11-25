@@ -70,7 +70,7 @@ final class ModpackInstall {
                 ProjectVersion chosen = v;
                 SwingUtilities.invokeLater(() -> {
                     wait.dispose();
-                    MrpackDialog.show(host, io, target, pack.id(), chosen.id(), host::openInstance);
+                    MrpackDialog.show(host, io, target, pack.id(), chosen.id(), pack.author(), host::openInstance);
                 });
             } catch (IOException | RuntimeException e) {
                 Log.warn("Modpack download failed: " + e.getMessage());

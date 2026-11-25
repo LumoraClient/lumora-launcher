@@ -51,6 +51,12 @@ final class MrpackDialog {
      * @param sourceProject Modrinth project of the pack when it came from Entdecken (null for a local file)
      */
     static void show(PageHost host, ExecutorService io, Path file, String sourceProject, String sourceVersion, Consumer<Instance> done) {
+        show(host, io, file, sourceProject, sourceVersion, null, done);
+    }
+
+    /** @param author creator of the pack (Entdecken), shown on the instance card; null = from the pack itself */
+    static void show(PageHost host, ExecutorService io, Path file, String sourceProject, String sourceVersion, String author,
+                     Consumer<Instance> done) {
         JDialog d = new JDialog(host.frame(), Lang.t("mrpack.title"), java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         Card c = new Card(new BorderLayout(0, 14)).fill(Theme.SURFACE).outline(null).radius(0).padding(18, 22, 18, 22);
         c.add(Ui.heading(Lang.t("mrpack.title")), BorderLayout.NORTH);
@@ -149,6 +155,10 @@ final class MrpackDialog {
                                 bar.setValue((int) (total > 0 ? bytes * 1000 / total : files * 1000L / Math.max(1, filesTotal)));
                                 status.setText(Lang.t("mrpack.progress", files, filesTotal, Ui.size(bytes), Ui.size(Math.max(total, bytes))));
                             }));
+                    if (author != null && inst.author == null) {
+                        inst.author = author;
+                        host.ctx().instances.save(inst);
+                    }
                     SwingUtilities.invokeLater(() -> {
                         d.dispose();
                         host.instancesChanged();

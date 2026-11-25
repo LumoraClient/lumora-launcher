@@ -144,8 +144,8 @@ Protokoll (JSON-Textnachrichten, Feld `op`; Anfragen mit `rid` werden mit `ok`/`
 | Richtung | Nachrichten |
 |---|---|
 | Anmeldung | `hello` (Protokoll, Profil) → `challenge` (Server-ID) → `login` → `welcome` (Freunde, Anfragen, Gruppen, Unterhaltungen) oder `rejected` |
-| Client → Server | `presence`, `status.set`, `status.get`, `friend.request/accept/decline/remove`, `group.create/update/delete/add/kick/leave`, `group.role.save/delete`, `group.member.role`, `conv.mute`, `msg.send/history/read` |
-| Server → Client | `friends`, `requests`, `presence`, `group`, `group.removed`, `conv` (Ungelesen, Lesestand), `msg`, `history`, `notice` |
+| Client → Server | `presence`, `status.set`, `status.get`, `cosmetics.set`, `cosmetics.watch`, `emote.play`, `emote.stop`, `friend.request/accept/decline/remove`, `group.create/update/delete/add/kick/leave`, `group.role.save/delete`, `group.member.role`, `conv.mute`, `msg.send/history/read` |
+| Server → Client | `friends`, `requests`, `presence`, `cosmetics`, `emote`, `group`, `group.removed`, `conv` (Ungelesen, Lesestand), `msg`, `history`, `notice` |
 
 ## 6. Tests
 

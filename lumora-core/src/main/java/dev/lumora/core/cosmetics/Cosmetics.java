@@ -39,12 +39,16 @@ public final class Cosmetics {
     static final long FORGET_MS = 10_000;
     private static final String[] EMOTE_BONES = {"head", "body", "right_arm", "left_arm", "right_leg", "left_leg", "root"};
 
-    /** Cosmetics and emotes of other players; the local-only version knows none. */
+    /** One worn cosmetic: id and its options (variant, offset). */
+    public record Worn(String id, CosmeticsState.Options options) {
+    }
+
+    /** Cosmetics and emotes of other players (from the sync), none by default. Read on the render thread. */
     public interface RemoteSource {
         RemoteSource NONE = new RemoteSource() {
         };
 
-        default Collection<String> loadout(UUID player) {
+        default Collection<Worn> loadout(UUID player) {
             return List.of();
         }
 
@@ -52,6 +56,7 @@ public final class Cosmetics {
             return null;
         }
 
+        /** When the player's current emote started (seconds on {@link #now()}'s clock); a new value restarts it. */
         default double emoteStart(UUID player) {
             return 0;
         }
@@ -77,9 +82,14 @@ public final class Cosmetics {
     private final Set<String> previewSet = new LinkedHashSet<>();
     private List<CosmeticDefinition> previewDefs = List.of();
     private boolean showOwn = true;
+    private boolean showOthers = true;
+    private final List<CosmeticDefinition> defsBuf = new ArrayList<>();
+    private final List<CosmeticsState.Options> optsBuf = new ArrayList<>();
     private boolean animate = true;
     private boolean stopOnMove = true;
     private Consumer<Animation.Event> events = e -> { };
+    /** Told when the own emote starts ({@code def}) or is stopped by the player or by walking ({@code null}). */
+    private Consumer<EmoteDefinition> emoteListener = e -> { };
     private long lastCleanup;
     /** Frames built (diagnostics, smoke test). */
     private volatile int frames;
@@ -119,8 +129,13 @@ public final class Cosmetics {
         this.events = sink == null ? e -> { } : sink;
     }
 
-    public void options(boolean showOwn, boolean animate, boolean stopOnMove) {
+    public void emoteListener(Consumer<EmoteDefinition> listener) {
+        this.emoteListener = listener == null ? e -> { } : listener;
+    }
+
+    public void options(boolean showOwn, boolean showOthers, boolean animate, boolean stopOnMove) {
         this.showOwn = showOwn;
+        this.showOthers = showOthers;
         this.animate = animate;
         this.stopOnMove = stopOnMove;
     }
@@ -129,7 +144,8 @@ public final class Cosmetics {
         return frames;
     }
 
-    static double now() {
+    /** The runtime clock in seconds. */
+    public static double now() {
         return System.nanoTime() / 1e9;
     }
 
@@ -232,11 +248,16 @@ public final class Cosmetics {
             return false;
         }
         self.playEmote(e, now(), true);
+        emoteListener.accept(e);
         return true;
     }
 
     public void stopEmote() {
+        boolean was = self.emote.current() != null;
         self.stopEmote(now());
+        if (was) {
+            emoteListener.accept(null);
+        }
     }
 
     /** The emote the own player plays, {@code null} if none (also while it fades out). */
@@ -269,37 +290,51 @@ public final class Cosmetics {
         long ms = System.currentTimeMillis();
         double now = now();
         PlayerAnimState st;
-        Collection<CosmeticDefinition> loadout;
+        defsBuf.clear();
+        optsBuf.clear();
         if (in.preview) {
             st = preview;
-            loadout = previewDefs;
+            for (CosmeticDefinition d : previewDefs) {
+                defsBuf.add(d);
+                optsBuf.add(state.options(d.id()));
+            }
         } else if (in.self) {
             st = self;
-            loadout = showOwn ? equipped : List.of();
+            if (showOwn) {
+                for (CosmeticDefinition d : equipped) {
+                    defsBuf.add(d);
+                    optsBuf.add(state.options(d.id()));
+                }
+            }
         } else {
-            Collection<String> ids = remote.loadout(in.id);
+            if (!showOthers) {
+                return null;
+            }
+            Collection<Worn> worn = remote.loadout(in.id);
             EmoteDefinition e = remote.emote(in.id);
             PlayerAnimState existing = others.get(in.id);
-            if (ids.isEmpty() && e == null && existing == null) {
+            if (worn.isEmpty() && e == null && existing == null) {
                 return null;
             }
             st = existing != null ? existing : new PlayerAnimState();
             others.put(in.id, st);
-            if (e != st.emoteDef) {
-                if (e == null) {
+            double start = remote.emoteStart(in.id);
+            if (e == null) {
+                if (st.emote.current() != null) {
                     st.stopEmote(now);
-                } else {
-                    st.playEmote(e, remote.emoteStart(in.id) > 0 ? remote.emoteStart(in.id) : now, false);
+                }
+                st.remoteStart = 0;
+            } else if (start != st.remoteStart) {
+                st.remoteStart = start;
+                st.playEmote(e, start > 0 ? Math.min(start, now) : now, true);
+            }
+            for (Worn w : worn) {
+                CosmeticDefinition d = registry.cosmetic(w.id());
+                if (d != null && !d.custom()) {
+                    defsBuf.add(d);
+                    optsBuf.add(w.options() == null ? CosmeticsState.Options.DEFAULT : w.options());
                 }
             }
-            List<CosmeticDefinition> list = new ArrayList<>();
-            for (String id : ids) {
-                CosmeticDefinition d = registry.cosmetic(id);
-                if (d != null) {
-                    list.add(d);
-                }
-            }
-            loadout = list;
         }
         st.lastSeen = ms;
         cleanup(ms);
@@ -309,6 +344,7 @@ public final class Cosmetics {
         if (in.self && !in.preview && stopOnMove && st.emoteDef != null && st.emoteDef.stopOnMove()
                 && st.emote.current() != null && moving(in) && now - st.emote.currentStart() > 0.3) {
             st.stopEmote(now);
+            emoteListener.accept(null);
         }
         if (st.emote.active(now)) {
             st.emoteBuffer.clear();
@@ -324,8 +360,10 @@ public final class Cosmetics {
         st.frame.clearItems();
         String playerState = in.state();
         boolean emoting = st.emote.current() != null;
-        for (CosmeticDefinition d : loadout) {
-            String texture = texture(d);
+        for (int i = 0; i < defsBuf.size(); i++) {
+            CosmeticDefinition d = defsBuf.get(i);
+            CosmeticsState.Options opts = optsBuf.get(i);
+            String texture = texture(d, opts);
             if (texture == null) {
                 continue;
             }
@@ -336,9 +374,12 @@ public final class Cosmetics {
             }
             c.used = ms;
             CosmeticMesh mesh = c.build(now, playerState, emoting, animate);
+            if (opts.hasOffset()) {
+                mesh.translate(opts.x() / 16f, -opts.y() / 16f, opts.z() / 16f);
+            }
             st.frame.add(d.id(), mesh, texture, d.render());
         }
-        if (st.cosmetics.size() > loadout.size()) {
+        if (st.cosmetics.size() > defsBuf.size()) {
             st.cosmetics.values().removeIf(c -> c.used != ms);
         }
         frames++;
@@ -349,9 +390,10 @@ public final class Cosmetics {
         return in.groundSpeed > 0.06f || !in.onGround && in.verticalSpeed > 0.1f || in.swimming || in.gliding;
     }
 
-    private String texture(CosmeticDefinition d) {
+    private String texture(CosmeticDefinition d, CosmeticsState.Options opts) {
         if (d.texture() != null) {
-            return d.texture();
+            CosmeticDefinition.Variant v = d.variant(opts.variant());
+            return v == null ? d.texture() : v.texture();
         }
         String done = uploaded.get(d.id());
         if (done != null || uploader == null || d.pixels() == null || failedUploads.contains(d.id())) {
@@ -395,6 +437,8 @@ public final class Cosmetics {
         final PlayerFrame frame = new PlayerFrame();
         EmoteDefinition emoteDef;
         long lastSeen;
+        /** Start of the remote emote being shown (to notice a replay of the same emote). */
+        double remoteStart;
         private double lastAge = Double.NaN;
 
         void playEmote(EmoteDefinition e, double start, boolean restart) {

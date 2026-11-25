@@ -20,8 +20,18 @@ public interface UiHost {
     /** {@code true} while playing in a world (emotes can be played). */
     boolean inWorld();
 
-    /** Number of emote wheel slots (setting). */
+    /** Number of emote wheel slots per page (setting). */
     int wheelSlots();
+
+    /** Number of emote wheel pages (setting). */
+    default int wheelPages() {
+        return 1;
+    }
+
+    /** {@code true} while the emote wheel key is physically held (also with the wheel open). */
+    default boolean wheelKeyDown() {
+        return false;
+    }
 
     /** Opens the module's settings in the hub. */
     void openSettings();

@@ -178,7 +178,7 @@ public final class LumoraCore implements Lumora {
         // the core's own modules (crosshair, toggle sprint, fullbright, chat, tab list, info widgets) come first
         List<AddonCandidate> all = new java.util.ArrayList<>(candidates);
         if (candidates.stream().noneMatch(c -> c.descriptor() != null && c.descriptor().id().equals("lumora-info"))) {
-            all.addAll(Math.min(1, all.size()), dev.lumora.core.extras.Extras.candidates(platform));
+            all.addAll(Math.min(1, all.size()), dev.lumora.core.extras.Extras.candidates(platform, this::social));
         }
         // addon jars from the addons folder, loaded by Lumora itself (after the adapter's own candidates)
         all.addAll(jarAddons.discover());

@@ -68,6 +68,8 @@ final class Hub implements WsServer.Handler {
     private final Verifier verifier;
     private final boolean dev;
     private final Map<String, List<Client>> online = new HashMap<>();
+    /** Cosmetics: game sessions that watch a player (player UUID to sessions), told when the player's loadout changes. */
+    private final Map<String, Set<Client>> cosmeticWatchers = new HashMap<>();
     /** uuid -> recent nonces of sent messages -> message id (repeated sends after a reconnect are answered, not stored again) */
     private final Map<String, LinkedHashMap<String, Long>> nonces = new HashMap<>();
     private final Map<String, ArrayDeque<Long>> rate = new HashMap<>();
@@ -143,6 +145,11 @@ final class Hub implements WsServer.Handler {
         Presence presence = Presence.OFFLINE;
         /** Shared status lines of this session by key (addon id): text and scope; gone with the connection. */
         final Map<String, String[]> statuses = new HashMap<>();
+        /** Worn cosmetics (cleaned loadout) and who sees them; null if none. Gone with the connection. */
+        JsonArray cosmetics;
+        String cosmeticsScope = "all";
+        /** Players whose cosmetics this session watches (the players near it in the game). */
+        Set<String> watching = new LinkedHashSet<>();
         boolean verifying;
 
         Client(WsServer.Conn conn) {
@@ -295,6 +302,18 @@ final class Hub implements WsServer.Handler {
     private void logout(Client c) {
         String uuid = c.profile.uuid;
         Presence before = presence(uuid);
+        for (String w : c.watching) {
+            Set<Client> set = cosmeticWatchers.get(w);
+            if (set != null) {
+                set.remove(c);
+                if (set.isEmpty()) {
+                    cosmeticWatchers.remove(w);
+                }
+            }
+        }
+        c.watching.clear();
+        boolean hadCosmetics = c.cosmetics != null;
+        c.cosmetics = null;
         List<Client> list = online.get(uuid);
         if (list != null) {
             list.remove(c);
@@ -310,6 +329,62 @@ final class Hub implements WsServer.Handler {
             dirty = true;
         }
         presenceChanged(uuid, before);
+        if (hadCosmetics) {
+            cosmeticsChanged(uuid);
+        }
+    }
+
+    // ------------------------------------------------------------------ cosmetics and emotes
+
+    /** The loadout {@code viewer} may see of {@code player} (its game session), null if none. */
+    private JsonArray visibleCosmetics(String viewer, String player) {
+        for (Client s : online.getOrDefault(player, List.of())) {
+            if (s.cosmetics != null && mayShow(s.cosmeticsScope, viewer, player)) {
+                return s.cosmetics;
+            }
+        }
+        return null;
+    }
+
+    private boolean mayShow(String scope, String viewer, String player) {
+        return scope.equals("all") || viewer.equals(player) || scope.equals("friends") && friends(viewer, player);
+    }
+
+    /** Tells every session watching {@code player} what it now sees of the player's cosmetics. */
+    private void cosmeticsChanged(String player) {
+        for (Client w : List.copyOf(cosmeticWatchers.getOrDefault(player, Set.of()))) {
+            if (w.profile == null) {
+                continue;
+            }
+            JsonArray l = visibleCosmetics(w.profile.uuid, player);
+            w.conn.send(Js.op("cosmetics").put("uuid", player).put("loadout", l == null ? new JsonArray() : l).toString());
+        }
+    }
+
+    /** Sends to the game sessions of a player only (the launcher has no use for cosmetics). */
+    private void sendToGame(String uuid, String msg) {
+        for (Client c : online.getOrDefault(uuid, List.of())) {
+            if (c.kind.equals("game")) {
+                c.conn.send(msg);
+            }
+        }
+    }
+
+    private static Set<String> uuidList(JsonObject o, String key, int max) {
+        Set<String> out = new LinkedHashSet<>();
+        JsonElement a = o.get(key);
+        if (a != null && a.isJsonArray()) {
+            for (JsonElement e : a.getAsJsonArray()) {
+                if (out.size() >= max) {
+                    break;
+                }
+                String u = e.isJsonPrimitive() ? Rules.uuid(e.getAsString()) : null;
+                if (u != null) {
+                    out.add(u);
+                }
+            }
+        }
+        return out;
     }
 
     /** Highest presence of all sessions of a player. */
@@ -596,6 +671,62 @@ final class Hub implements WsServer.Handler {
                     }
                 }
                 reply = Js.op("ok").put("rid", rid).put("statuses", found).json();
+            }
+            case "cosmetics.set" -> {
+                // the cosmetics this game session wears; only kept while connected
+                limit(me + ":cosmetics", 30, 60_000, "Zu viele Änderungen an Cosmetics, bitte kurz warten.");
+                JsonArray loadout = Rules.cosmetics(o.get("loadout"));
+                String scope = Rules.statusScope(Js.str(o, "scope", "all"));
+                JsonArray before = c.cosmetics;
+                String beforeScope = c.cosmeticsScope;
+                c.cosmeticsScope = scope;
+                c.cosmetics = loadout.size() == 0 || scope.equals("none") ? null : loadout;
+                if (!java.util.Objects.equals(before, c.cosmetics) || !beforeScope.equals(scope)) {
+                    cosmeticsChanged(me);
+                }
+            }
+            case "cosmetics.watch" -> {
+                // the players near this session in the game: their loadouts now, changes later as "cosmetics"
+                limit(me + ":cosmeticswatch", 60, 60_000, "Zu viele Abfragen, bitte kurz warten.");
+                Set<String> next = uuidList(o, "uuids", Rules.COSMETICS_WATCH_MAX);
+                next.remove(me);
+                for (String old : c.watching) {
+                    if (!next.contains(old)) {
+                        Set<Client> set = cosmeticWatchers.get(old);
+                        if (set != null) {
+                            set.remove(c);
+                            if (set.isEmpty()) {
+                                cosmeticWatchers.remove(old);
+                            }
+                        }
+                    }
+                }
+                JsonObject found = new JsonObject();
+                for (String u : next) {
+                    cosmeticWatchers.computeIfAbsent(u, k -> new HashSet<>()).add(c);
+                    JsonArray l = visibleCosmetics(me, u);
+                    if (l != null) {
+                        found.add(u, l);
+                    }
+                }
+                c.watching = next;
+                reply = Js.op("ok").put("rid", rid).put("loadouts", found).json();
+            }
+            case "emote.play", "emote.stop" -> {
+                // an emote to the players near the sender (who may see it), no echo, nothing stored
+                limit(me + ":emote", 40, 60_000, "Zu viele Emotes, bitte kurz warten.");
+                String id = op.equals("emote.stop") ? "" : Rules.cosmeticId(Js.str(o, "id", null));
+                if (id == null) {
+                    throw new Refusal("Ungültiges Emote");
+                }
+                if (!c.cosmeticsScope.equals("none")) {
+                    String msg = Js.op("emote").put("uuid", me).put("id", id).toString();
+                    for (String t : uuidList(o, "targets", Rules.EMOTE_TARGETS_MAX)) {
+                        if (!t.equals(me) && mayShow(c.cosmeticsScope, t, me)) {
+                            sendToGame(t, msg);
+                        }
+                    }
+                }
             }
             case "friend.request" -> {
                 limit(me + ":friend", 10, 60_000, "Zu viele Freundschaftsanfragen, bitte kurz warten.");

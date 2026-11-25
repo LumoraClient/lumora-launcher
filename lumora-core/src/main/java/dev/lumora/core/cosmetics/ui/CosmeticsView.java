@@ -127,7 +127,12 @@ public final class CosmeticsView implements AddonView {
         // right: preview + info
         int px = x0 + pw - pv - 6;
         int infoH = Math.min(118, bodyH / 2);
-        preview.draw(g, host, px, top, pv, bodyH - infoH - 4, mx, my);
+        int optH = selected == null ? 0 : selected.variants().isEmpty() ? 22 : 40;
+        int previewH = bodyH - infoH - 4 - (optH > 0 ? optH + 4 : 0);
+        preview.draw(g, host, px, top, pv, previewH, mx, my);
+        if (optH > 0) {
+            options(g, px, top + previewH + 4, pv, optH, mx, my);
+        }
         info(g, px, top + bodyH - infoH, pv, infoH, mx, my);
     }
 
@@ -235,6 +240,96 @@ public final class CosmeticsView implements AddonView {
         preview.face(d.previewYaw());
     }
 
+    // --- variant and offset of the selected cosmetic (applied at once, also to what is worn and synced)
+
+    private int dragAxis = -1;
+    /** Slider rectangles per axis: x, y, w, h. */
+    private final int[][] sliders = new int[3][4];
+
+    private void options(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
+        g.card(x, y, w, h, 6, Ui.CARD, Ui.BORDER);
+        CosmeticDefinition d = selected;
+        dev.lumora.core.cosmetics.CosmeticsState.Options o = cosmetics.state().options(d.id());
+        int ry = y + 4;
+        int labelW = Math.max(g.textWidth(tr("option.variant")), g.textWidth(tr("option.offset"))) + 8;
+        if (!d.variants().isEmpty()) {
+            CosmeticDefinition.Variant v = d.variant(o.variant());
+            int idx = d.variants().indexOf(v);
+            g.text(tr("option.variant"), x + 6, ry + 4, Ui.MUTED, false);
+            int bx = x + 6 + labelW;
+            int bw = w - 12 - labelW;
+            Ui.button(g, regions, bx, ry, 14, 14, "<", false, d.variants().size() > 1, mx, my,
+                    () -> setVariant(d, d.variants().get((idx + d.variants().size() - 1) % d.variants().size())));
+            Ui.button(g, regions, bx + bw - 14, ry, 14, 14, ">", false, d.variants().size() > 1, mx, my,
+                    () -> setVariant(d, d.variants().get((idx + 1) % d.variants().size())));
+            String name = d.translated() ? host.tr(v.name()) : v.name();
+            g.centeredText(Ui.fit(g, name, bw - 32), bx + bw / 2, ry + 4, Ui.TEXT, false);
+            ry += 18;
+        }
+        g.text(tr("option.offset"), x + 6, ry + 4, Ui.MUTED, false);
+        int sx = x + 6 + labelW;
+        int sw = (w - 12 - labelW - 8) / 3;
+        float[] vals = {o.x(), o.y(), o.z()};
+        String[] axes = {"X", "Y", "Z"};
+        for (int a = 0; a < 3; a++) {
+            int bx = sx + a * (sw + 4);
+            sliders[a] = new int[] {bx, ry, sw, 14};
+            boolean hot = Ui.hover(mx, my, bx, ry, sw, 14) || dragAxis == a;
+            g.card(bx, ry, sw, 14, 3, Ui.FIELD, hot ? Ui.ACCENT : Ui.BORDER);
+            float max = dev.lumora.core.cosmetics.CosmeticsState.MAX_OFFSET;
+            int kx = bx + 2 + Math.round((vals[a] + max) / (2 * max) * (sw - 6));
+            g.fill(kx, ry + 2, kx + 2, ry + 12, vals[a] == 0 ? Ui.DIM : Ui.ACCENT);
+            String text = axes[a] + ": " + (vals[a] == Math.round(vals[a]) ? Integer.toString(Math.round(vals[a])) : Float.toString(vals[a]));
+            g.centeredText(Ui.fit(g, text, sw - 4), bx + sw / 2, ry + 3, Ui.TEXT, false);
+        }
+    }
+
+    private void setVariant(CosmeticDefinition d, CosmeticDefinition.Variant v) {
+        dev.lumora.core.cosmetics.CosmeticsState.Options o = cosmetics.state().options(d.id());
+        cosmetics.state().setOptions(d.id(), o.withVariant(v.id().equals(d.variants().get(0).id()) ? null : v.id()));
+    }
+
+    /** Left click on a slider sets and drags the value, right click resets it to 0. */
+    private boolean sliderPress(double x, double y, int button) {
+        if (selected == null) {
+            return false;
+        }
+        for (int a = 0; a < 3; a++) {
+            int[] s = sliders[a];
+            if (s[2] > 0 && x >= s[0] && x < s[0] + s[2] && y >= s[1] && y < s[1] + s[3]) {
+                if (button == 1) {
+                    setAxis(a, 0);
+                } else if (button == 0) {
+                    dragAxis = a;
+                    sliderSet(a, x);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void sliderSet(int axis, double x) {
+        int[] s = sliders[axis];
+        float max = dev.lumora.core.cosmetics.CosmeticsState.MAX_OFFSET;
+        double t = Math.max(0, Math.min(1, (x - s[0] - 2) / Math.max(1, s[2] - 6)));
+        setAxis(axis, (float) (t * 2 * max - max));
+    }
+
+    private void setAxis(int axis, float value) {
+        if (selected == null) {
+            return;
+        }
+        dev.lumora.core.cosmetics.CosmeticsState.Options o = cosmetics.state().options(selected.id());
+        float[] v = {o.x(), o.y(), o.z()};
+        v[axis] = value;
+        if (dragAxis >= 0) {
+            cosmetics.state().setOptionsQuiet(selected.id(), o.withOffset(v[0], v[1], v[2]));
+        } else {
+            cosmetics.state().setOptions(selected.id(), o.withOffset(v[0], v[1], v[2]));
+        }
+    }
+
     private void info(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
         g.card(x, y, w, h, 6, Ui.CARD, Ui.BORDER);
         int ty = y + 6;
@@ -292,16 +387,28 @@ public final class CosmeticsView implements AddonView {
         if (preview.press(x, y, button)) {
             return true;
         }
+        if (sliderPress(x, y, button)) {
+            return true;
+        }
         return regions.click(x, y, button);
     }
 
     @Override
     public boolean mouseDragged(double x, double y, int button) {
+        if (dragAxis >= 0) {
+            sliderSet(dragAxis, x);
+            return true;
+        }
         return preview.drag(x, y);
     }
 
     @Override
     public boolean mouseReleased(double x, double y, int button) {
+        if (dragAxis >= 0) {
+            dragAxis = -1;
+            cosmetics.state().flush();
+            return true;
+        }
         return preview.release();
     }
 

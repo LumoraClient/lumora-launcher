@@ -348,6 +348,63 @@ class SocialServerTest {
     }
 
     @Test
+    void cosmeticsAndEmotesReachWatchingPlayers() throws Exception {
+        startServer();
+        com.google.gson.JsonArray wings = dev.lumora.social.Js.object(
+                "{\"l\":[{\"id\":\"angel_wings\",\"variant\":\"gold\",\"offset\":[0,99,0.26]},{\"id\":\"Bad Id!\"},{\"id\":\"halo\"}]}")
+                .getAsJsonArray("l");
+        // set before the login: sent with it
+        SocialClient max = connect(MAX, "game", c -> c.setCosmetics(wings, "all"));
+        SocialClient toby = connect(TOBY, "game");
+        SocialClient sarah = connect(SARAH, "launcher");
+        java.util.Map<String, com.google.gson.JsonArray> seen = new java.util.concurrent.ConcurrentHashMap<>();
+        java.util.List<String> emotes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        toby.setCosmeticsListener(new SocialClient.CosmeticsListener() {
+            @Override
+            public void loadout(String uuid, com.google.gson.JsonArray loadout) {
+                seen.put(uuid, loadout);
+            }
+
+            @Override
+            public void emote(String uuid, String id) {
+                emotes.add(uuid + ":" + id);
+            }
+        });
+        java.util.Map<String, com.google.gson.JsonArray> now = get(toby.watchCosmetics(java.util.List.of(MAX.uuid, SARAH.uuid)));
+        assertEquals(1, now.size(), "only Max wears something");
+        com.google.gson.JsonArray l = now.get(MAX.uuid);
+        assertEquals(2, l.size(), "the bad id is dropped");
+        assertEquals("gold", l.get(0).getAsJsonObject().get("variant").getAsString());
+        assertEquals(8.0, l.get(0).getAsJsonObject().getAsJsonArray("offset").get(1).getAsDouble(), 1e-9, "offset clamped");
+        assertEquals(0.5, l.get(0).getAsJsonObject().getAsJsonArray("offset").get(2).getAsDouble(), 1e-9, "half pixels");
+
+        // a change is pushed to the watcher
+        max.setCosmetics(dev.lumora.social.Js.object("{\"l\":[{\"id\":\"crown\"}]}").getAsJsonArray("l"), "all");
+        await(() -> seen.containsKey(MAX.uuid) && seen.get(MAX.uuid).size() == 1, "push of the new loadout");
+        assertEquals("crown", seen.get(MAX.uuid).get(0).getAsJsonObject().get("id").getAsString());
+
+        // emotes go to the targets' game sessions, not to strangers when only friends may see it
+        max.sendEmote("wave", java.util.List.of(TOBY.uuid, SARAH.uuid));
+        await(() -> emotes.contains(MAX.uuid + ":wave"), "emote arrives");
+        max.sendEmote("", java.util.List.of(TOBY.uuid));
+        await(() -> emotes.contains(MAX.uuid + ":"), "stop arrives");
+        max.setCosmetics(dev.lumora.social.Js.object("{\"l\":[{\"id\":\"crown\"}]}").getAsJsonArray("l"), "friends");
+        await(() -> seen.get(MAX.uuid).size() == 0, "strangers no longer see the loadout");
+        int before = emotes.size();
+        max.sendEmote("clap", java.util.List.of(TOBY.uuid));
+        get(max.watchCosmetics(java.util.List.of()));
+        Thread.sleep(200);
+        assertEquals(before, emotes.size(), "no emote to a stranger with scope friends");
+
+        // gone with the connection
+        max.setCosmetics(dev.lumora.social.Js.object("{\"l\":[{\"id\":\"crown\"}]}").getAsJsonArray("l"), "all");
+        await(() -> seen.get(MAX.uuid).size() == 1, "visible again");
+        max.close();
+        await(() -> seen.get(MAX.uuid).size() == 0, "cleared when Max leaves");
+        sarah.close();
+    }
+
+    @Test
     void sameAccountInLauncherAndGameShowsTheHigherPresence() throws Exception {
         startServer();
         SocialClient max = connect(MAX, "launcher");

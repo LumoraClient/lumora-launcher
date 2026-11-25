@@ -127,7 +127,7 @@ public final class CosmeticRegistry {
                             Rarity.of(str(o, "rarity", null)), !o.has("unlocked") || o.get("unlocked").getAsBoolean(), model,
                             "lumora:textures/cosmetics/" + str(o, "texture", id) + ".png", null, 0, 0,
                             stateAnimations(o, available, id), overlay(o, available, id), RenderMode.of(str(o, "render", null)),
-                            o.has("previewYaw") ? o.get("previewYaw").getAsFloat() : 0, false));
+                            o.has("previewYaw") ? o.get("previewYaw").getAsFloat() : 0, false, variants(o, str(o, "texture", id))));
                 } catch (RuntimeException e) {
                     warn.accept("cosmetic skipped: " + e.getMessage());
                 }
@@ -152,6 +152,22 @@ public final class CosmeticRegistry {
                 }
             }
         }
+    }
+
+    /** Built-in variants: the first uses the base texture, the others {@code <texture>_<variant>.png}. */
+    private static List<CosmeticDefinition.Variant> variants(JsonObject o, String texture) {
+        List<CosmeticDefinition.Variant> out = new ArrayList<>();
+        if (o.has("variants") && o.get("variants").isJsonArray()) {
+            for (JsonElement e : o.getAsJsonArray("variants")) {
+                String v = e.isJsonObject() ? str(e.getAsJsonObject(), "id", null) : e.isJsonPrimitive() ? e.getAsString() : null;
+                if (v == null || !v.matches("[a-z0-9_-]{1,32}")) {
+                    continue;
+                }
+                String file = out.isEmpty() ? texture : texture + "_" + v;
+                out.add(new CosmeticDefinition.Variant(v, "lumora.cosmetics.variant." + v, "lumora:textures/cosmetics/" + file + ".png"));
+            }
+        }
+        return List.copyOf(out);
     }
 
     private Map<String, Animation> stateAnimations(JsonObject o, Map<String, Animation> available, String id) {
@@ -260,7 +276,7 @@ public final class CosmeticRegistry {
         register(new CosmeticDefinition(id, str(o, "name", pretty(folder)), str(o, "description", ""), false,
                 CosmeticCategory.of(str(o, "category", null)), str(o, "type", ""), str(o, "slot", id), Rarity.of(str(o, "rarity", null)),
                 true, geo, null, pixels, size[0], size[1], states, overlay(o, available, id), RenderMode.of(str(o, "render", null)),
-                o.has("previewYaw") ? o.get("previewYaw").getAsFloat() : 0, true));
+                o.has("previewYaw") ? o.get("previewYaw").getAsFloat() : 0, true, List.of()));
     }
 
     private static Path file(Path dir, String named, String suffix) throws IOException {

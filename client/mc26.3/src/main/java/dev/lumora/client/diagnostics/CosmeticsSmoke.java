@@ -96,12 +96,40 @@ final class CosmeticsSmoke {
         }
     }
 
+    static void openWheelEditor(Minecraft mc) {
+        mc.gui.setScreen(null);
+        CosmeticsModule m = CosmeticsModule.active();
+        if (m != null) {
+            m.openWheelEditor();
+        }
+    }
+
+    static void openPicker(Minecraft mc) {
+        mc.gui.setScreen(null);
+        CosmeticsModule m = CosmeticsModule.active();
+        if (m != null) {
+            m.openEmotePicker(0, 0);
+        }
+    }
+
+    /** A variant and an offset on two worn cosmetics (shown in the front screenshot). */
+    static void options() {
+        Cosmetics c = Cosmetics.get();
+        if (c != null) {
+            c.state().setOptionsQuiet("halo", dev.lumora.core.cosmetics.CosmeticsState.Options.DEFAULT.withVariant("pink").withOffset(0, 2, 0));
+            c.state().setOptionsQuiet("angel_wings", dev.lumora.core.cosmetics.CosmeticsState.Options.DEFAULT.withVariant("gold"));
+        }
+    }
+
     static void finish(Minecraft mc, List<String> problems) {
         mc.gui.setScreen(null);
         Cosmetics c = Cosmetics.get();
         if (c != null) {
             c.stopEmote();
             c.setEquipped(before);
+            c.state().setOptionsQuiet("halo", null);
+            c.state().setOptionsQuiet("angel_wings", null);
+            c.state().flush();
             LOG.info("LUMORA_COSMETICS cosmetics={} emotes={} frames={} vertices={} posed={}", c.registry().cosmetics().size(),
                     c.registry().emotes().size(), c.frames(), CosmeticsRender.vertices - verticesAtStart,
                     CosmeticsRender.posed - posedAtStart);

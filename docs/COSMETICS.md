@@ -4,17 +4,18 @@ Eingebautes Modul `lumora-cosmetics`: Cosmetics am Spielermodell (Flügel, Umhä
 Begleiter) und Emotes (Animationen des ganzen Körpers, ohne Item in der Hand), mit Menü, Emote-Menü, Emote-Rad,
 Tasten und einer Live-Vorschau. Alle 16 Versionen von 1.8.9 bis 26.3.
 
-**Nur lokal:** In dieser Version sieht nur der eigene Client die Cosmetics und Emotes. Es wird nichts gesendet.
-Spieler ohne Daten werden genau so gezeichnet wie von Minecraft (der Kern gibt für sie keinen Frame zurück).
-Der Kern hat dafür eine Schnittstelle (`Cosmetics.RemoteSource`), über die später eine Synchronisierung die
-Ausrüstung und Emotes anderer Spieler liefern kann, ohne dass Renderer oder UI geändert werden müssen.
+**Andere Spieler (seit 0.3.96):** Andere Lumora-Spieler sehen deine Cosmetics und Emotes, wenn ihr mit demselben
+Lumora-Social-Server verbunden seid (Adresse im Launcher unter „Freunde“, siehe [SOCIAL.md](SOCIAL.md)). Einstellung
+„Sichtbar für“: Alle (Standard), Freunde, Niemand. „Cosmetics anderer Spieler zeigen“ schaltet die Anzeige der anderen
+ab. Spieler ohne Lumora oder auf einem anderen Social-Server haben keine Daten und werden genau so gezeichnet wie von
+Minecraft. Die Vorschau im Menü ist immer nur lokal.
 
 ## Bedienung
 
 | Was | Wo |
 |---|---|
 | Cosmetics-Menü | Taste **J**, Hub → Addons → Cosmetics & Emotes → „Cosmetics öffnen“ |
-| Emote-Rad | Taste **R** (nur in einer Welt): Segment anklicken, Ziffern 1–0, Mitte beendet ein laufendes Emote, Rechtsklick oder Esc schließt |
+| Emote-Rad | Taste **R** (nur in einer Welt) **halten**, auf ein Emote zeigen und loslassen. Kurz tippen lässt das Rad offen: dann Segment anklicken oder Ziffern 1–0. Mausrad, Pfeiltasten oder die Knöpfe blättern die Seiten. Die Mitte beendet ein laufendes Emote, Rechtsklick oder Esc schließt |
 | Emote-Menü | Reiter „Emotes“ im Menü, eigene Taste (frei belegbar) |
 | Emote beenden | eigene Taste (frei belegbar), Mitte des Rads, „Emote beenden“ im Emote-Menü, Laufen bei Ganzkörper-Emotes |
 | Emote auf Platz 1–4 | vier frei belegbare Tasten |
@@ -23,10 +24,15 @@ Im Menü: Kategorien, Suche, Filter nach Seltenheit, Favoriten (Stern oder Recht
 eine Karte probiert das Cosmetic in der Vorschau an, ohne es anzulegen. Mehrere Klicks ergeben eine Kombination,
 die „Übernehmen“ anlegt und „Zurücksetzen“ verwirft. Die Vorschau dreht sich beim Ziehen um 360° und zoomt mit dem
 Mausrad. Sie zeigt den eigenen Spieler und gibt es daher nur in einer Welt. Das Emote-Menü spielt das gewählte Emote
-in der Vorschau in einer Schleife. Darunter liegen die Plätze des Emote-Rads (4–10, Einstellung): erst ein Emote wählen,
-dann einen Platz anklicken. Ein Rechtsklick leert einen Platz.
+in der Vorschau in einer Schleife. Darunter liegen die Plätze des Emote-Rads (4–10 pro Seite, 1–8 Seiten, Einstellungen): erst ein Emote wählen,
+dann einen Platz anklicken. Ein Rechtsklick leert einen Platz. „Bearbeiten“ öffnet das Rad mit allen Seiten: ein Platz
+öffnet ein Fenster mit kleinem Rad und einer durchsuchbaren Liste aller Emotes zum Tauschen.
 
-Einstellungen: eigene Cosmetics zeigen, animierte Cosmetics, Emote beim Laufen beenden, Kamera beim Emote nach
+**Variante und Versatz:** Beim gewählten Cosmetic stehen unter der Vorschau die Variante (Farbe, z. B. Schwarz,
+Braun, Weiß) und der Versatz X/Y/Z in Pixeln (±8, halbe Pixel; Rechtsklick setzt auf 0). Beides gilt sofort für
+Vorschau, angelegtes Cosmetic und für andere Spieler.
+
+Einstellungen: eigene Cosmetics zeigen, Cosmetics anderer Spieler zeigen, Sichtbar für, animierte Cosmetics, Emote beim Laufen beenden, Kamera beim Emote nach
 hinten (dritte Person, danach zurück), Plätze im Emote-Rad. Gespeichert in `config/lumora/cosmetics.json`.
 
 ## Technik
@@ -126,3 +132,17 @@ Unbekannte Abfragen und Funktionen sind 0 (wie bei GeckoLib).
 Sound-Keyframes (`sound_effects`) spielen beim eigenen Emote einen Minecraft-Sound (`minecraft:…` oder `clap`,
 `pop`, `whoosh`), nur für dich und nicht auf 1.8.9 und 1.12.2. Partikel-Keyframes werden gelesen, aber noch nicht
 gezeichnet.
+
+## Synchronisierung
+
+Über die WebSocket-Verbindung von Lumora Social (Anmeldung über Mojang, siehe [SOCIAL.md](SOCIAL.md)):
+
+| Nachricht | Inhalt |
+|---|---|
+| `cosmetics.set` | eigene Ausrüstung: bis zu 16 Einträge `{id, variant?, offset?: [x, y, z]}` und `scope` (`all`, `friends`, `none`). Nur eingebaute Cosmetics, eigene Dateien bleiben lokal. Nach jeder Anmeldung erneut gesendet. Der Server hält sie nur, solange die Verbindung steht. |
+| `cosmetics.watch` | die Spieler in der Nähe (bis zu 128 UUIDs, nur wenn sich die Liste ändert, höchstens alle 2 s). Antwort: deren sichtbare Ausrüstung. Spätere Änderungen schiebt der Server als `cosmetics` `{uuid, loadout}`. |
+| `emote.play` / `emote.stop` | Start oder Ende des eigenen Emotes an die Spieler im Umkreis von 48 Blöcken (bis zu 64). Der Server leitet als `emote` `{uuid, id}` an deren Spielsitzungen weiter, die es sehen dürfen, und speichert nichts. |
+
+Der Server prüft und kürzt alles (`Rules.cosmetics`: gültige IDs, Varianten, Versatz ±8 in halben Pixeln) und
+begrenzt die Rate (30 Änderungen, 60 Abfragen und 40 Emotes pro Minute). Unbekannte IDs zeichnet der Empfänger
+einfach nicht. Ältere Clients ignorieren die neuen Nachrichten.

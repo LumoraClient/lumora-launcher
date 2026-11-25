@@ -716,6 +716,7 @@ public final class SmokeTest {
             } else if (ticks == 12) {
                 screenshot(mc, "cosmetics-back");
                 CosmeticsSmoke.front(mc);
+                CosmeticsSmoke.options();
             } else if (ticks == 18) {
                 screenshot(mc, "cosmetics-front");
                 CosmeticsSmoke.checkDrawn(extraProblems);
@@ -735,6 +736,12 @@ public final class SmokeTest {
                 CosmeticsSmoke.openEmotes(mc);
             } else if (ticks == 70) {
                 screenshot(mc, "emote-menu");
+                CosmeticsSmoke.openWheelEditor(mc);
+            } else if (ticks == 78) {
+                screenshot(mc, "emote-wheel-edit");
+                CosmeticsSmoke.openPicker(mc);
+            } else if (ticks == 86) {
+                screenshot(mc, "emote-picker");
                 CosmeticsSmoke.finish(mc, extraProblems);
                 worldStep++;
                 ticks = 0;

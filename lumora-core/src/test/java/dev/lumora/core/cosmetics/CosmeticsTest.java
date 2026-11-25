@@ -352,6 +352,83 @@ class CosmeticsTest {
         assertNull(c.currentEmote(), "sitting ends when walking");
     }
 
+    @Test
+    void otherPlayersShowSyncedCosmeticsWithVariantAndOffset() {
+        CosmeticRegistry r = new CosmeticRegistry(null);
+        r.loadBuiltIn();
+        Cosmetics c = new Cosmetics(r, new CosmeticsState(null));
+        CosmeticsSync sync = new CosmeticsSync(c, () -> null, () -> null);
+        c.remote(sync);
+        UUID other = UUID.fromString("0f8fad5b-d9cb-469f-a165-70867728950e");
+        PlayerInput in = new PlayerInput();
+        in.id = other;
+        assertNull(c.frame(in), "no data: drawn as Minecraft draws it");
+        // a push from the server: top hat in brown, 2 px higher; an unknown id and a bad one are skipped
+        sync.loadout("0f8fad5bd9cb469fa16570867728950e", dev.lumora.social.Js.object(
+                "{\"l\":[{\"id\":\"top_hat\",\"variant\":\"brown\",\"offset\":[0,2,0]},{\"id\":\"no_such_thing\"},{\"id\":\"X!\"}]}")
+                .getAsJsonArray("l"));
+        PlayerFrame f = c.frame(in);
+        assertNotNull(f);
+        assertEquals(1, f.count());
+        assertEquals("lumora:textures/cosmetics/top_hat_brown.png", f.item(0).texture());
+        float top = Float.MAX_VALUE;
+        CosmeticMesh mesh = f.item(0).mesh();
+        for (int v = 0; v < mesh.vertices(AttachPoint.HEAD); v++) {
+            top = Math.min(top, mesh.data(AttachPoint.HEAD)[v * CosmeticMesh.STRIDE + 1]);
+        }
+        // hat crown top at Bedrock y 40.5 = 16.5 px above the neck; offset 2 px up
+        assertEquals(-18.5f / 16f, top, EPS);
+        assertEquals(1, c.trackedPlayers());
+        // the option to hide other players' cosmetics
+        c.options(true, false, true, true);
+        assertNull(c.frame(in));
+        c.options(true, true, true, true);
+        // an emote arrives and plays; the same emote again restarts it; "" stops it
+        sync.emote("0f8fad5bd9cb469fa16570867728950e", "wave");
+        sleep(50);
+        assertTrue(c.frame(in).pose().active(), "the other player waves");
+        sync.emote("0f8fad5bd9cb469fa16570867728950e", "");
+        assertNull(sync.emote(other));
+        // leaving the world forgets it
+        sync.reset();
+        assertTrue(sync.loadout(other).isEmpty());
+    }
+
+    @Test
+    void ownLoadoutForTheServerSkipsOwnFilesAndCarriesOptions(@TempDir Path dir) throws Exception {
+        CosmeticRegistry r = new CosmeticRegistry(null);
+        r.loadBuiltIn();
+        CosmeticsState state = new CosmeticsState(dir.resolve("c.json"));
+        Cosmetics c = new Cosmetics(r, state);
+        c.equip(r.cosmetic("angel_wings"));
+        state.setOptions("angel_wings", CosmeticsState.Options.DEFAULT.withVariant("gold").withOffset(0, 0, 1.24f));
+        CosmeticsSync sync = new CosmeticsSync(c, () -> null, () -> null);
+        com.google.gson.JsonArray own = sync.ownLoadout();
+        assertEquals(1, own.size());
+        assertEquals("gold", own.get(0).getAsJsonObject().get("variant").getAsString());
+        assertEquals(1.0, own.get(0).getAsJsonObject().getAsJsonArray("offset").get(2).getAsDouble(), EPS, "half pixels");
+        // options and wheel pages are saved
+        state.setSlot(CosmeticsState.slotIndex(2, 3), "clap");
+        CosmeticsState again = new CosmeticsState(dir.resolve("c.json"));
+        again.load();
+        assertEquals("gold", again.options("angel_wings").variant());
+        assertEquals(1.0f, again.options("angel_wings").z(), EPS);
+        assertEquals("clap", again.slot(CosmeticsState.slotIndex(2, 3)));
+        assertEquals(CosmeticsState.Options.DEFAULT, again.options("crown"));
+        // the own frame uses the variant texture
+        PlayerInput in = new PlayerInput();
+        in.self = true;
+        in.id = UUID.randomUUID();
+        assertEquals("lumora:textures/cosmetics/angel_wings_gold.png", c.frame(in).item(0).texture());
+        // variants of the start set exist as textures
+        for (CosmeticDefinition d : r.cosmetics()) {
+            for (CosmeticDefinition.Variant v : d.variants()) {
+                String path = "/assets/" + v.texture().replace("lumora:", "lumora/");
+                assertNotNull(CosmeticsTest.class.getResourceAsStream(path), path);
+            }
+        }
+    }
+
     private static void sleep(long ms) {
         try {
             Thread.sleep(ms);

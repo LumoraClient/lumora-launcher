@@ -112,6 +112,10 @@ public final class SocialClient implements AutoCloseable {
     private Presence presence;
     /** Own shared status lines by key: text and scope; sent again after every login. */
     private final Map<String, String[]> statuses = new LinkedHashMap<>();
+    /** Own cosmetics loadout and its scope; sent again after every login (null: none). */
+    private com.google.gson.JsonArray cosmetics;
+    private String cosmeticsScope = "all";
+    private volatile CosmeticsListener cosmeticsListener;
     private String focused;
 
     // connection
@@ -434,6 +438,21 @@ public final class SocialClient implements AutoCloseable {
                 }
                 fire(SocialEvent.of(SocialEvent.Kind.PARTY));
             }
+            case "cosmetics" -> {
+                CosmeticsListener l = cosmeticsListener;
+                String u = Rules.uuid(Js.str(o, "uuid", null));
+                if (l != null && u != null) {
+                    l.loadout(u, Rules.cosmetics(o.get("loadout")));
+                }
+            }
+            case "emote" -> {
+                CosmeticsListener l = cosmeticsListener;
+                String u = Rules.uuid(Js.str(o, "uuid", null));
+                String id = Js.str(o, "id", "");
+                if (l != null && u != null && (id.isEmpty() || Rules.cosmeticId(id) != null)) {
+                    l.emote(u, id);
+                }
+            }
             case "msg" -> onMessage(o);
             case "history" -> onHistory(o);
             case "notice" -> fire(new SocialEvent(SocialEvent.Kind.NOTICE, null, null, Rules.clean(Js.str(o, "text", ""), 200, false)));
@@ -488,6 +507,7 @@ public final class SocialClient implements AutoCloseable {
         Presence p;
         String focus;
         Map<String, String[]> ownStatuses;
+        String ownCosmetics;
         synchronized (this) {
             self = me;
             friends.clear();
@@ -513,10 +533,14 @@ public final class SocialClient implements AutoCloseable {
             p = presence;
             focus = focused;
             ownStatuses = new LinkedHashMap<>(statuses);
+            ownCosmetics = cosmetics == null ? null : cosmeticsOp(cosmetics, cosmeticsScope).toString();
         }
         setStatus(Status.ONLINE, "");
         sendRaw(Js.op("presence").put("presence", p.json()).toString());
         ownStatuses.forEach((key, st) -> sendRaw(statusOp(key, st[0], st[1]).toString()));
+        if (ownCosmetics != null) {
+            sendRaw(ownCosmetics);
+        }
         for (Pending m : resend) {
             sendPending(m);
         }
@@ -704,6 +728,87 @@ public final class SocialClient implements AutoCloseable {
         }
         if (status() == Status.ONLINE) {
             sendRaw(statusOp(k, clear ? "" : t, s).toString());
+        }
+    }
+
+    // --- cosmetics and emotes (game sessions)
+
+    /** Pushes from the server about the cosmetics and emotes of watched players (called on the WebSocket thread). */
+    public interface CosmeticsListener {
+        /** The loadout {@code uuid} now shows to this player (empty: none or not visible). */
+        void loadout(String uuid, com.google.gson.JsonArray loadout);
+
+        /** {@code uuid} started the emote {@code id} near this player; an empty id stops it. */
+        void emote(String uuid, String id);
+    }
+
+    public void setCosmeticsListener(CosmeticsListener listener) {
+        this.cosmeticsListener = listener;
+    }
+
+    /**
+     * The cosmetics this player wears ({@link Rules#cosmetics} cleans them) and who sees them ({@code scope} "all",
+     * "friends" or "none"). Sent now if connected and again after every login; the server forgets it with the
+     * connection. Unchanged values send nothing.
+     */
+    public void setCosmetics(com.google.gson.JsonArray loadout, String scope) {
+        com.google.gson.JsonArray l = Rules.cosmetics(loadout);
+        String s = Rules.statusScope(scope);
+        String msg;
+        synchronized (this) {
+            com.google.gson.JsonArray next = l.size() == 0 ? null : l;
+            if (java.util.Objects.equals(next, cosmetics) && s.equals(cosmeticsScope)) {
+                return;
+            }
+            cosmetics = next;
+            cosmeticsScope = s;
+            msg = cosmeticsOp(next == null ? new com.google.gson.JsonArray() : next, s).toString();
+        }
+        if (status() == Status.ONLINE) {
+            sendRaw(msg);
+        }
+    }
+
+    private static Js.Obj cosmeticsOp(com.google.gson.JsonArray loadout, String scope) {
+        return Js.op("cosmetics.set").put("loadout", loadout).put("scope", scope);
+    }
+
+    /**
+     * The players near this one in the game (UUIDs, at most {@link Rules#COSMETICS_WATCH_MAX}): completes with the
+     * loadouts this player may see; later changes arrive through the {@link CosmeticsListener}. Replaces the previous
+     * list, so send it only when the players around change.
+     */
+    public CompletableFuture<Map<String, com.google.gson.JsonArray>> watchCosmetics(java.util.Collection<String> uuids) {
+        com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+        uuids.stream().map(Rules::uuid).filter(java.util.Objects::nonNull).distinct().limit(Rules.COSMETICS_WATCH_MAX)
+                .forEach(u -> a.add(Js.prim(u)));
+        return call(Js.op("cosmetics.watch").put("uuids", a)).thenApply(r -> {
+            Map<String, com.google.gson.JsonArray> m = new HashMap<>();
+            JsonObject found = Js.obj(r, "loadouts");
+            if (found != null) {
+                for (Map.Entry<String, com.google.gson.JsonElement> e : found.entrySet()) {
+                    String u = Rules.uuid(e.getKey());
+                    if (u != null) {
+                        m.put(u, Rules.cosmetics(e.getValue()));
+                    }
+                }
+            }
+            return m;
+        });
+    }
+
+    /** Tells the players near this one ({@code targets}, UUIDs) that this player started emote {@code id}; "" stops it. */
+    public void sendEmote(String id, java.util.Collection<String> targets) {
+        if (status() != Status.ONLINE || targets.isEmpty()) {
+            return;
+        }
+        com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+        targets.stream().map(Rules::uuid).filter(java.util.Objects::nonNull).distinct().limit(Rules.EMOTE_TARGETS_MAX)
+                .forEach(u -> a.add(Js.prim(u)));
+        if (id == null || id.isEmpty()) {
+            sendRaw(Js.op("emote.stop").put("targets", a).toString());
+        } else if (Rules.cosmeticId(id) != null) {
+            sendRaw(Js.op("emote.play").put("id", id).put("targets", a).toString());
         }
     }
 

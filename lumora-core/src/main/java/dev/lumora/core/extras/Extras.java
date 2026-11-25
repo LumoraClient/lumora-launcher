@@ -22,6 +22,11 @@ public final class Extras {
     }
 
     public static List<AddonCandidate> candidates(Platform platform) {
+        return candidates(platform, () -> null);
+    }
+
+    /** The modules; {@code social} gives Lumora Social (cosmetics of other players) once it runs. */
+    public static List<AddonCandidate> candidates(Platform platform, java.util.function.Supplier<dev.lumora.core.social.LumoraSocial> social) {
         return List.of(
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-info", "Info Widgets",
                         "Potion effects, item counter, compass, memory, day, resource packs, combo", InfoWidgetsModule.class),
@@ -95,7 +100,7 @@ public final class Extras {
                 AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.cosmetics.CosmeticsModule.ID, "Cosmetics & Emotes",
                         "Wings, capes, hats, accessories, effects and companions on your player, emotes with menu and wheel (only you see them)",
                         dev.lumora.core.cosmetics.CosmeticsModule.class),
-                        () -> new dev.lumora.core.cosmetics.CosmeticsModule(platform)),
+                        () -> new dev.lumora.core.cosmetics.CosmeticsModule(platform, social)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(HiddenArmorModule.ID, "Hidden Armor",
                         "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
                         HiddenArmorModule.class),

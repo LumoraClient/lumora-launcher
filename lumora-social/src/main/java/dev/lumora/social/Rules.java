@@ -27,9 +27,17 @@ public final class Rules {
     public static final int STATUS_MAX = 96;
     /** Players asked for in one status lookup. */
     public static final int STATUS_LOOKUP_MAX = 100;
+    /** Cosmetics a player shows at once, players one client watches, players one emote reaches. */
+    public static final int COSMETICS_MAX = 16;
+    public static final int COSMETICS_WATCH_MAX = 128;
+    public static final int EMOTE_TARGETS_MAX = 64;
+    /** Largest cosmetic offset in pixels per axis. */
+    public static final double COSMETIC_OFFSET_MAX = 8;
     /** Who sees a shared status: every Lumora player, only friends, nobody (cleared). */
     public static final List<String> STATUS_SCOPES = List.of("all", "friends", "none");
     private static final Pattern STATUS_KEY = Pattern.compile("[a-z0-9_.-]{1,64}");
+    private static final Pattern COSMETIC_ID = Pattern.compile("[a-z0-9_./-]{1,64}");
+    private static final Pattern VARIANT_ID = Pattern.compile("[a-z0-9_-]{1,32}");
     public static final int HISTORY_PAGE = 50;
     /** Messages kept per conversation on the server. */
     public static final int HISTORY_KEPT = 1000;
@@ -121,6 +129,60 @@ public final class Rules {
     /** The key of a shared status (an addon id), or null if it is not one. */
     public static String statusKey(String s) {
         return s != null && STATUS_KEY.matcher(s).matches() ? s : null;
+    }
+
+    /** A cosmetic or emote id of the built-in set ({@code [a-z0-9_./-]}, 1 to 64 characters), or null. */
+    public static String cosmeticId(String s) {
+        return s != null && COSMETIC_ID.matcher(s).matches() ? s : null;
+    }
+
+    /**
+     * A cleaned loadout: at most {@link #COSMETICS_MAX} entries {@code {"id", "variant"?, "offset"?: [x, y, z]}} with
+     * valid ids, valid variants and offsets clamped to {@link #COSMETIC_OFFSET_MAX} in half pixels; anything else is
+     * dropped. Never null.
+     */
+    public static com.google.gson.JsonArray cosmetics(com.google.gson.JsonElement in) {
+        com.google.gson.JsonArray out = new com.google.gson.JsonArray();
+        if (in == null || !in.isJsonArray()) {
+            return out;
+        }
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (com.google.gson.JsonElement e : in.getAsJsonArray()) {
+            if (out.size() >= COSMETICS_MAX) {
+                break;
+            }
+            if (!e.isJsonObject()) {
+                continue;
+            }
+            com.google.gson.JsonObject o = e.getAsJsonObject();
+            String id = o.has("id") && o.get("id").isJsonPrimitive() ? cosmeticId(o.get("id").getAsString()) : null;
+            if (id == null || !seen.add(id)) {
+                continue;
+            }
+            com.google.gson.JsonObject c = new com.google.gson.JsonObject();
+            c.addProperty("id", id);
+            if (o.has("variant") && o.get("variant").isJsonPrimitive() && VARIANT_ID.matcher(o.get("variant").getAsString()).matches()) {
+                c.addProperty("variant", o.get("variant").getAsString());
+            }
+            if (o.has("offset") && o.get("offset").isJsonArray() && o.getAsJsonArray("offset").size() == 3) {
+                com.google.gson.JsonArray off = new com.google.gson.JsonArray();
+                boolean any = false;
+                for (com.google.gson.JsonElement v : o.getAsJsonArray("offset")) {
+                    double d = v.isJsonPrimitive() && v.getAsJsonPrimitive().isNumber() ? v.getAsDouble() : 0;
+                    if (Double.isNaN(d) || Double.isInfinite(d)) {
+                        d = 0;
+                    }
+                    d = Math.round(Math.max(-COSMETIC_OFFSET_MAX, Math.min(COSMETIC_OFFSET_MAX, d)) * 2) / 2.0;
+                    any |= d != 0;
+                    off.add(new com.google.gson.JsonPrimitive(d));
+                }
+                if (any) {
+                    c.add("offset", off);
+                }
+            }
+            out.add(c);
+        }
+        return out;
     }
 
     /** A known status scope, "none" for anything else. */

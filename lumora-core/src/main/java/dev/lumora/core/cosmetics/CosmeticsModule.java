@@ -37,7 +37,13 @@ public final class CosmeticsModule implements LumoraAddon {
             "laugh", "shrug");
 
     private final Platform platform;
+    private final java.util.function.Supplier<dev.lumora.core.social.LumoraSocial> social;
     BooleanSetting showOwn;
+    BooleanSetting showOthers;
+    dev.lumora.api.config.ChoiceSetting visibility;
+    IntegerSetting wheelPages;
+    private Keybind wheelKey;
+    private CosmeticsSync sync;
     BooleanSetting animate;
     BooleanSetting stopOnMove;
     BooleanSetting emoteCamera;
@@ -53,7 +59,12 @@ public final class CosmeticsModule implements LumoraAddon {
     private static volatile CosmeticsModule active;
 
     public CosmeticsModule(Platform platform) {
+        this(platform, () -> null);
+    }
+
+    public CosmeticsModule(Platform platform, java.util.function.Supplier<dev.lumora.core.social.LumoraSocial> social) {
         this.platform = platform;
+        this.social = social == null ? () -> null : social;
     }
 
     @Override
@@ -68,8 +79,16 @@ public final class CosmeticsModule implements LumoraAddon {
         stopOnMove = s.toggle("stop_on_move", true).name(K + "setting.stop_on_move").description(K + "setting.stop_on_move.description")
                 .section(K + "section.emotes");
         emoteCamera = s.toggle("emote_camera", true).name(K + "setting.emote_camera").description(K + "setting.emote_camera.description");
-        wheelSlots = s.slider("wheel_slots", 8, 4, CosmeticsState.MAX_SLOTS).name(K + "setting.wheel_slots")
+        wheelSlots = s.slider("wheel_slots", 6, 4, CosmeticsState.MAX_SLOTS).name(K + "setting.wheel_slots")
                 .description(K + "setting.wheel_slots.description");
+        wheelPages = s.slider("wheel_pages", 3, 1, CosmeticsState.MAX_PAGES).name(K + "setting.wheel_pages")
+                .description(K + "setting.wheel_pages.description");
+        showOthers = s.toggle("show_others", true).name(K + "setting.show_others").description(K + "setting.show_others.description")
+                .section(K + "section.multiplayer");
+        visibility = s.selection("visibility", "all", "all", "friends", "none").name(K + "setting.visibility")
+                .description(K + "setting.visibility.description");
+        showOthers.onChange(v -> applyOptions());
+        visibility.onChange(v -> applyOptions());
         showOwn.onChange(v -> applyOptions());
         animate.onChange(v -> applyOptions());
         stopOnMove.onChange(v -> applyOptions());
@@ -99,6 +118,12 @@ public final class CosmeticsModule implements LumoraAddon {
             String path = "cosmetics/custom/" + key;
             return platform != null && platform.uploadTexture(path, w, h, argb) ? "lumora:" + path : null;
         });
+        sync = new CosmeticsSync(cosmetics, () -> {
+            dev.lumora.core.social.LumoraSocial ls = social.get();
+            return ls == null ? null : ls.client();
+        }, () -> platform == null ? null : platform.world());
+        cosmetics.remote(sync);
+        cosmetics.emoteListener(sync::ownEmote);
         cosmetics.events(e -> {
             if ("sound".equals(e.kind()) && platform != null) {
                 extras().playSoundEvent(e.value(), 0.6f);
@@ -112,7 +137,7 @@ public final class CosmeticsModule implements LumoraAddon {
         active = this;
         Cosmetics.set(cosmetics);
         context.keybinds().register("menu", K + "key.menu", Keys.J, this::openMenu);
-        context.keybinds().register("wheel", K + "key.wheel", Keys.R, this::openWheel);
+        wheelKey = context.keybinds().register("wheel", K + "key.wheel", Keys.R, this::openWheel);
         context.keybinds().register("emotes", K + "key.emotes", Keys.UNBOUND, this::openEmotes);
         context.keybinds().register("stop", K + "key.stop", Keys.UNBOUND, () -> cosmetics.stopEmote());
         slotKeys.clear();
@@ -123,6 +148,7 @@ public final class CosmeticsModule implements LumoraAddon {
         context.events().subscribe(ClientTickEvent.class, e -> tick());
         context.events().subscribe(WorldLeaveEvent.class, e -> {
             cosmetics.reset();
+            sync.reset();
             restoreCamera();
         });
         context.events().subscribe(ClientStoppingEvent.class, e -> restoreCamera());
@@ -139,7 +165,10 @@ public final class CosmeticsModule implements LumoraAddon {
 
     private void applyOptions() {
         if (cosmetics != null) {
-            cosmetics.options(showOwn.get(), animate.get(), stopOnMove.get());
+            cosmetics.options(showOwn.get(), showOthers == null || showOthers.get(), animate.get(), stopOnMove.get());
+            if (sync != null && visibility != null) {
+                sync.configure(true, visibility.get());
+            }
         }
     }
 
@@ -152,6 +181,7 @@ public final class CosmeticsModule implements LumoraAddon {
         if (platform == null) {
             return;
         }
+        sync.tick();
         GameExtras x = extras();
         boolean emoting = cosmetics.currentEmote() != null;
         if (emoting && emoteCamera.get() && previousPerspective < 0 && x.perspective() == 0) {
@@ -220,6 +250,16 @@ public final class CosmeticsModule implements LumoraAddon {
             }
 
             @Override
+            public int wheelPages() {
+                return wheelPages.get();
+            }
+
+            @Override
+            public boolean wheelKeyDown() {
+                return platform != null && wheelKey != null && wheelKey.key() != Keys.UNBOUND && platform.keys().isDown(wheelKey.key());
+            }
+
+            @Override
             public void openSettings() {
                 if (platform != null) {
                     platform.views().openAddonSettings(ID);
@@ -244,6 +284,20 @@ public final class CosmeticsModule implements LumoraAddon {
     public void openEmotes() {
         if (platform != null) {
             platform.views().show(new EmotesView(cosmetics, host()));
+        }
+    }
+
+    /** Opens the emote wheel editor (all pages; a slot opens the emote list to swap). */
+    public void openWheelEditor() {
+        if (platform != null) {
+            platform.views().show(new EmoteWheelView(cosmetics, host(), true, 0));
+        }
+    }
+
+    /** Opens the emote list for one wheel slot. */
+    public void openEmotePicker(int page, int slot) {
+        if (platform != null) {
+            platform.views().show(new dev.lumora.core.cosmetics.ui.EmotePickerView(cosmetics, host(), page, slot));
         }
     }
 

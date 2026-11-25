@@ -15,12 +15,30 @@ import java.util.Map;
  * @param texture   texture id {@code namespace:path} for built-in ones; for own ones {@code null} until uploaded
  * @param pixels    own texture as ARGB pixels ({@code null} for built-in ones)
  * @param previewYaw angle (degrees) the preview turns the player to, e.g. 180 to show wings from behind
+ * @param variants   colours or styles to choose from (empty: only the texture); the first is the default
  */
 public record CosmeticDefinition(String id, String name, String description, boolean translated, CosmeticCategory category,
                                  String type, String slot, Rarity rarity, boolean unlocked, GeoModel model,
                                  String texture, int[] pixels, int pixelWidth, int pixelHeight,
                                  Map<String, Animation> animations, Animation overlay, RenderMode render,
-                                 float previewYaw, boolean custom) {
+                                 float previewYaw, boolean custom, java.util.List<Variant> variants) {
+
+    /** A colour or style of a cosmetic: id ({@code [a-z0-9_-]}), language key (built-in) or name, its texture. */
+    public record Variant(String id, String name, String texture) {
+    }
+
+    /** The variant with this id, else the first one; {@code null} if the cosmetic has none. */
+    public Variant variant(String id) {
+        if (variants.isEmpty()) {
+            return null;
+        }
+        for (Variant v : variants) {
+            if (v.id().equals(id)) {
+                return v;
+            }
+        }
+        return variants.get(0);
+    }
 
     /** {@code true} if it has any animation. */
     public boolean animated() {

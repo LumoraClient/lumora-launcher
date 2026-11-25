@@ -32,6 +32,19 @@ public final class CosmeticMesh {
         return data[point.ordinal()];
     }
 
+    /** Moves every vertex (blocks, Minecraft model space); used for the player's offset of a cosmetic. */
+    public void translate(float dx, float dy, float dz) {
+        for (int p = 0; p < data.length; p++) {
+            float[] d = data[p];
+            for (int v = 0; v < vertices[p]; v++) {
+                int o = v * STRIDE;
+                d[o] += dx;
+                d[o + 1] += dy;
+                d[o + 2] += dz;
+            }
+        }
+    }
+
     public boolean isEmpty() {
         for (int v : vertices) {
             if (v > 0) {

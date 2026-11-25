@@ -32,6 +32,7 @@ public final class EmotesView implements AddonView {
     private boolean favoritesOnly;
     private EmoteDefinition selected;
     private long previewEnded = -1;
+    private int stripPage;
     private int scroll;
     private int maxScroll;
     private int gridX;
@@ -253,17 +254,33 @@ public final class EmotesView implements AddonView {
 
     private void wheelSlots(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
         g.card(x, y, w, h, 6, Ui.CARD, Ui.BORDER);
-        g.text(tr("wheel.title"), x + 6, y + 5, Ui.TEXT, false);
+        int pages = Math.max(1, Math.min(dev.lumora.core.cosmetics.CosmeticsState.MAX_PAGES, host.wheelPages()));
+        stripPage = Math.min(stripPage, pages - 1);
+        String title = pages > 1 ? tr("wheel.title_page", stripPage + 1, pages) : tr("wheel.title");
+        g.text(title, x + 6, y + 5, Ui.TEXT, false);
+        int right = x + w - 6;
+        int ew = Math.max(60, g.textWidth(tr("wheel.edit")) + 12);
+        Ui.button(g, regions, right - ew, y + 2, ew, 13, tr("wheel.edit"), false, true, mx, my, () -> {
+            host.close(this);
+            host.show(new EmoteWheelView(cosmetics, host, true, stripPage));
+        });
+        right -= ew + 4;
+        if (pages > 1) {
+            Ui.button(g, regions, right - 14, y + 2, 14, 13, ">", false, stripPage < pages - 1, mx, my, () -> stripPage++);
+            Ui.button(g, regions, right - 32, y + 2, 14, 13, "<", false, stripPage > 0, mx, my, () -> stripPage--);
+            right -= 36;
+        }
         String hint = selected == null ? tr("wheel.hint_select") : tr("wheel.hint_assign", name(host, selected));
-        g.text(Ui.fit(g, hint, w - 18 - g.textWidth(tr("wheel.title"))), x + 12 + g.textWidth(tr("wheel.title")), y + 5, Ui.MUTED, false);
+        int hx = x + 12 + g.textWidth(title);
+        g.text(Ui.fit(g, hint, Math.max(0, right - hx - 4)), hx, y + 5, Ui.MUTED, false);
         int n = host.wheelSlots();
         int sx = x + 6;
         int sy = y + 17;
         int sw = (w - 12 - (n - 1) * 4) / n;
         for (int i = 0; i < n; i++) {
-            int slot = i;
+            int slot = dev.lumora.core.cosmetics.CosmeticsState.slotIndex(stripPage, i);
             int bx = sx + i * (sw + 4);
-            EmoteDefinition e = cosmetics.registry().emote(cosmetics.state().slot(i));
+            EmoteDefinition e = cosmetics.registry().emote(cosmetics.state().slot(slot));
             boolean hot = Ui.hover(mx, my, bx, sy, sw, 18);
             g.card(bx, sy, sw, 18, 4, hot ? Ui.ROW_HOVER : Ui.ROW, Ui.BORDER);
             String label = (i + 1) + " " + (e == null ? "–" : name(host, e));

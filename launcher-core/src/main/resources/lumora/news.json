@@ -1,6 +1,27 @@
 {
   "news": [
     {
+      "id": "lumora-mods-instances",
+      "date": "2026-11-25",
+      "author": "Lumora",
+      "version": "0.3.98",
+      "title": "Mods & Instanzen: Fabric, Quilt, Forge und NeoForge direkt im Launcher",
+      "text": "Eigene Instanzen mit jedem Mod-Loader, Mods und Modpacks von Modrinth und CurseForge entdecken und geprüft installieren, Updates, Sicherungen, Import aus anderen Launchern und Drag & Drop.",
+      "image": "news-mods-instances.png",
+      "body": [
+        {"p": "Der Launcher bekommt ein eigenes Mod- und Instanzsystem:"},
+        {"list": [
+          "Instanzen für alles: Neben den Lumora- und Vanilla-Versionen legst du eigene Instanzen mit Fabric, Quilt, Forge, NeoForge oder Vanilla an. Jede hat ihren eigenen Ordner mit Mods, Welten und Einstellungen und startet direkt von ihrer Karte.",
+          "Entdecken: Mods, Modpacks, Ressourcenpakete, Shader und Datenpakete von Modrinth, mit Kategorien, Filtern, Favoriten und einer Detailseite mit Galerie und Änderungsprotokoll. „Nur passende“ zeigt nur, was zur gewählten Instanz passt.",
+          "Geprüft installieren: Loader, Minecraft-Version, Abhängigkeiten und Konflikte werden vor der Installation geprüft, jede Datei wird mit ihrer Prüfsumme kontrolliert. Geht etwas schief, wird alles zurückgerollt.",
+          "Updates mit einem Klick, nur stabile Versionen, auf Wunsch mit Sicherung vorher. Sicherungen lassen sich wiederherstellen, Instanzen als .mrpack oder Lumora-Archiv exportieren.",
+          "Import: Modpacks (.mrpack, CurseForge-Zip) mit Vorschau, dazu Instanzen aus Prism Launcher, MultiMC, der CurseForge-App, der Modrinth App und dem offiziellen Launcher. Die anderen Launcher werden nur gelesen.",
+          "Drag & Drop: Dateien aus dem Explorer einfach auf den Launcher oder eine Instanz ziehen. Eine Instanzkarte auf eine andere gezogen kopiert Mods und Pakete hinüber."
+        ]},
+        {"p": "CurseForge nutzt du mit deinem eigenen API-Schlüssel (Optionen › Integrationen). Er wird verschlüsselt auf deinem PC gespeichert, Lumora liefert keinen mit. Der Launcher ist jetzt außerdem vollständig auf Deutsch, Englisch lässt sich unter Optionen wählen."}
+      ]
+    },
+    {
       "id": "lumora-cosmetics-multiplayer",
       "date": "2026-11-25",
       "author": "Lumora",

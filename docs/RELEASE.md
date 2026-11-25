@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.98 (2026-11-25):**
+- **Inhalt:** Launcher: Mod- und Instanzsystem (siehe `docs/MODS.md`). Instanzen für alles mit Fabric, Quilt, Forge, NeoForge und Vanilla; Entdecken mit Modrinth und optional CurseForge (eigener API-Schlüssel des Spielers, DPAPI); Installer mit Kompatibilitätsprüfung, Abhängigkeiten und Rollback; Updates, Sicherungen, Export, Import aus anderen Launchern, Drag & Drop, Datenpakete pro Welt; Deutsch als Standardsprache (`de_de.json`). Behoben: Quilt-Loaderliste unsortiert, Spielende hing am Ende der Ausgabe. Neue Bibliothek TwelveMonkeys imageio-webp 3.15.3 (BSD-3-Clause). Mit News-Eintrag (Bild: echter Launcher-Screenshot von „Entdecken“ aus dem Test-Home) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 761 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.
+- **Vorab geprüft (Test-Home, stumm):** Live gegen Modrinth (`.t/e2e/ModsE2E.java`, `.t/e2e/Stage2E2E.java`); Starts eigener Instanzen mit Fabric 1.21.11, Quilt 1.21.1, NeoForge 1.21.1 und Forge 1.20.1 (`--launch-test --instance`). CurseForge nur gegen einen lokalen Ersatzserver, kein Live-Test (kein Schlüssel); Drag & Drop nicht mit echter Maus.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `LumoraLauncherCli.exe --version` meldet 0.3.98, News, Sprachdatei und neue Klassen im `launcher-core-0.3.98.jar`, imageio-webp im App-Ordner.
+
 **0.3.97 (2026-11-25):**
 - **Inhalt:** Client: Cosmetics-Generator (`.t/cosmetics/CosmeticArt.java`) neu mit Flächen-Malern, Silhouetten-Masken, Kantenschattierung und neuen Mustern; alle 16 Cosmetics überarbeitet, 8 neue (Fischerhut, Mütze, Basecap, Teufelshörner, Hasenohren, Kopfhörer, Schal, Schmetterlingsflügel), 24 insgesamt, alle mit Farbvarianten (neu: Beige, Oliv). 22 neue Emotes, 42 insgesamt. Variante im Cosmetics-Menü als Ausklappliste (Mausrad blättert). 62 neue Texte und 13 geänderte Beschreibungen in allen Sprachdateien. Changelog-Eintrag, auf Wunsch kein News-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 728 Unit-Tests ohne Fehler (1 übersprungen; `CosmeticsTest` an die neue Zylinderhöhe angepasst). `integrationTest` enthält weiterhin keine Tests.

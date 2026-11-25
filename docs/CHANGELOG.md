@@ -1,5 +1,20 @@
 # Änderungen
 
+## 0.3.98 (2026-11-25)
+
+### Launcher
+- **Instanzen für alles:** Neuer Bereich „Instanzen“. Die Lumora- und Vanilla-Versionen sind jetzt Instanzen, dazu beliebig viele eigene mit Fabric, Quilt, Forge, NeoForge oder Vanilla für jede passende Minecraft-Version. Erstellen, kopieren, umbenennen, löschen, eigenes Symbol; Starten direkt von der Karte. „Spielen“ und die Schnellauswahl folgen der gewählten Instanz.
+- **Entdecken:** Mods, Modpacks, Ressourcenpakete, Shader und Datenpakete von Modrinth, auf Wunsch auch von CurseForge. Suche, Sortierung, Kategorien, Umgebung, Favoriten, „Nur passende“ für die gewählte Instanz, Ansichten Liste, Raster und Kompakt. Detailseite mit Beschreibung, Galerie, Versionen, Änderungsprotokoll und Abhängigkeiten.
+- **Installer mit Prüfung:** Vor jeder Installation werden Loader, Minecraft-Version, Abhängigkeiten und Konflikte geprüft; der Abhängigkeitsbaum wird angezeigt. Jede Datei wird mit ihrer Prüfsumme kontrolliert, bei einem Fehler wird alles zurückgerollt.
+- **Mod-Verwaltung je Instanz:** Mods, Ressourcenpakete, Shader, Lumora-Addons, Welten mit ihren Datenpaketen und eigene Einstellungen (Java, Arbeitsspeicher). Ein- und ausschalten, entfernen, Version festhalten, Mehrfachauswahl, Konfliktprüfung.
+- **Updates:** Bereich „Updates“ je Instanz mit „Alle aktualisieren“, auf Wunsch mit vorheriger Sicherung. Angeboten werden nur stabile Versionen.
+- **Sicherungen und Export:** Sicherungen erstellen und wiederherstellen (höchstens 10 je Instanz, vor dem Wiederherstellen wird der aktuelle Stand gesichert). Export als `.mrpack` oder als Lumora-Archiv samt Welten; ausgewählte Mods in eine andere Instanz kopieren.
+- **Import:** Modpacks als `.mrpack` und CurseForge-Zip mit Vorschau vor dem Import. Instanzen aus Prism Launcher, MultiMC, CurseForge-App, Modrinth App (`profile.json`) und dem offiziellen Launcher übernehmen; die anderen Launcher werden nur gelesen.
+- **Drag & Drop:** Dateien aus dem Explorer auf das Fenster, eine Instanzkarte oder die Instanzseite ziehen; Lumora erkennt den Inhalt. Instanzkarten auf eine andere Instanz ziehen kopiert Mods und Pakete oder übernimmt die Einstellungen (mit Rückfrage und Sicherung). Archive werden gegen Zip-Slip geprüft.
+- **CurseForge mit eigenem Schlüssel:** Unter Optionen › Integrationen trägst du deinen eigenen CurseForge-API-Schlüssel ein. Er wird verschlüsselt gespeichert (Windows DPAPI) und nie protokolliert. Lumora liefert keinen Schlüssel mit; ohne Schlüssel bleibt CurseForge aus. Dateien, deren Autor keine Downloads über andere Apps erlaubt, werden nie auf anderem Weg geladen, sondern mit Link zur Seite genannt.
+- **Deutsch als Standardsprache:** Der Launcher ist vollständig auf Deutsch, Englisch lässt sich unter Optionen wählen.
+- **Behoben:** Ein beendetes Spiel galt weiter als laufend, wenn ein Kindprozess (z. B. das Fehlerfenster eines Mod-Loaders) die Ausgabe offen hielt. „Beenden“ schließt jetzt auch Kindprozesse.
+
 ## 0.3.97 (2026-11-25)
 
 ### Client

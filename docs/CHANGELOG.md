@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.99 (2026-11-26)
+
+### Launcher
+- **Instanz-Auswahl auf der Startseite:** Der Pfeil neben „Spielen“ und der Knopf in der Spielleiste öffnen eine Liste deiner Instanzen statt der Versionskacheln. Mit Suche, der gewählten Instanz oben und importierten Instanzen in eigenen Gruppen („Importiert aus CurseForge“). Ein Klick wählt die Instanz; beim Überfahren öffnet das Zahnrad die Instanz, der Start-Knopf startet sie direkt. Unten „Instanz erstellen“ und „Dateien prüfen und spielen“.
+- **Nur gewünschte Lumora-Versionen:** In der Instanzliste stehen nicht mehr alle Lumora-Versionen, sondern nur die, die du hinzufügst, und immer die gewählte. Hinzufügen über „Instanz erstellen“ › Lumora oder Vanilla › „Gemeinsamen Minecraft-Ordner nutzen“. „Aus der Liste entfernen“ löscht nichts. Beim ersten Start bleiben die gewählte Version und Versionen mit eigenem Ordner, in dem Welten liegen.
+- **Versionswahl als Kacheln:** Beim Erstellen einer Instanz wählst du die Version wie früher im Versionsmenü: eine Kachel je Hauptversion mit Bild, Unterversionen als Chips, weitere hinter „›“. Snapshots teilen sich eine Kachel.
+- **Neue Instanzkarten:** Großes Bild (eigenes Symbol oder das Bild des Updates), Loader und Version als Plaketten, darunter Name und Ersteller („Meine Erstellung“, „Von …“ beim Modpack-Autor, „Importiert aus …“). Instanzen sind nach Herkunft gruppiert.
+- **Spielordner einer Lumora-Version:** Die Wahl zwischen Standard-Ordner und eigenem Ordner steht jetzt auf der Instanzseite unter „Einstellungen“.
+
 ## 0.3.98 (2026-11-25)
 
 ### Launcher

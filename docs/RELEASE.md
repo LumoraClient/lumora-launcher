@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.99 (2026-11-26):**
+- **Inhalt:** Launcher: Instanz-Auswahl auf der Startseite und in der Spielleiste (`pages/InstancePicker`), eingebaute Lumora-/Vanilla-Versionen nur noch, wenn hinzugefügt (`LauncherConfig.addedInstances`, einmalige Übernahme: gewählte Version und eigene Ordner mit echten Welten), Versionskacheln beim Erstellen (`VersionGrid` mit „›“ für weitere Unterversionen), neue Instanzkarten (`pages/InstanceTile`) mit Ersteller (`Instance.author`), Ordnerwahl eingebauter Versionen auf der Instanzseite. 18 neue bzw. geänderte Texte in `de_de.json` und `en_us.json`. Changelog-Eintrag, auf Wunsch kein News-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 762 Unit-Tests ohne Fehler (1 übersprungen; neu: `InstanceManagerTest.onlyAddedLumoraVersionsAreListed`). `integrationTest` enthält weiterhin keine Tests.
+- **Vorab geprüft (Test-Home):** Oberfläche per `--ui-shot` (Seitenaktionen `home#picker`, `instances`, `instances#create-versions`, `instances#create-versions-fabric`). Nicht mit echter Maus durchgeklickt.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `LumoraLauncherCli.exe --version` meldet 0.3.99, neue Klassen im `launcher-app-0.3.99.jar`, neue Texte im `launcher-core-0.3.99.jar`.
+
 **0.3.98 (2026-11-25):**
 - **Inhalt:** Launcher: Mod- und Instanzsystem (siehe `docs/MODS.md`). Instanzen für alles mit Fabric, Quilt, Forge, NeoForge und Vanilla; Entdecken mit Modrinth und optional CurseForge (eigener API-Schlüssel des Spielers, DPAPI); Installer mit Kompatibilitätsprüfung, Abhängigkeiten und Rollback; Updates, Sicherungen, Export, Import aus anderen Launchern, Drag & Drop, Datenpakete pro Welt; Deutsch als Standardsprache (`de_de.json`). Behoben: Quilt-Loaderliste unsortiert, Spielende hing am Ende der Ausgabe. Neue Bibliothek TwelveMonkeys imageio-webp 3.15.3 (BSD-3-Clause). Mit News-Eintrag (Bild: echter Launcher-Screenshot von „Entdecken“ aus dem Test-Home) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 761 Unit-Tests ohne Fehler (1 übersprungen). `integrationTest` enthält weiterhin keine Tests.

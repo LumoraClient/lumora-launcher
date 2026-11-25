@@ -28,8 +28,8 @@ in der Vorschau in einer Schleife. Darunter liegen die Plätze des Emote-Rads (4
 dann einen Platz anklicken. Ein Rechtsklick leert einen Platz. „Bearbeiten“ öffnet das Rad mit allen Seiten: ein Platz
 öffnet ein Fenster mit kleinem Rad und einer durchsuchbaren Liste aller Emotes zum Tauschen.
 
-**Variante und Versatz:** Beim gewählten Cosmetic stehen unter der Vorschau die Variante (Farbe, z. B. Schwarz,
-Braun, Weiß) und der Versatz X/Y/Z in Pixeln (±8, halbe Pixel; Rechtsklick setzt auf 0). Beides gilt sofort für
+**Variante und Versatz:** Beim gewählten Cosmetic stehen unter der Vorschau die Variante als Ausklappliste
+(Farbe, z. B. Schwarz, Beige, Oliv; das Mausrad über dem Feld blättert weiter) und der Versatz X/Y/Z in Pixeln (±8, halbe Pixel; Rechtsklick setzt auf 0). Beides gilt sofort für
 Vorschau, angelegtes Cosmetic und für andere Spieler.
 
 Einstellungen: eigene Cosmetics zeigen, Cosmetics anderer Spieler zeigen, Sichtbar für, animierte Cosmetics, Emote beim Laufen beenden, Kamera beim Emote nach
@@ -66,7 +66,9 @@ hinten (dritte Person, danach zurück), Plätze im Emote-Rad. Gespeichert in `co
   werden. Puffer werden wiederverwendet. Zustände von Spielern, die 10 s nicht gezeichnet wurden, fallen weg, ebenso
   alle beim Verlassen der Welt. Ohne Daten kostet ein Spieler einen Map-Zugriff.
 - **Werkzeuge:** `.t/cosmetics/CosmeticArt.java` erzeugt das Start-Set (Modelle mit Box-UV, Pixel-Texturen,
-  Animationen, `index.json`). `.t/cosmetics/MeshRender.java` und `EmoteRender.java` zeichnen Cosmetics und
+  Animationen, `index.json`). Jede Fläche bekommt ein Muster (Strick, Leder, Metall, Flammen …) oder einen
+  eigenen Maler, leichtes Licht und einen dunkleren Rand. Platten mit Silhouette (Federn, Membranen, Ohren) haben
+  Löcher, die der Cutout-Render weglässt. Varianten färben die Hauptfarbe um. `.t/cosmetics/MeshRender.java` und `EmoteRender.java` zeichnen Cosmetics und
   Emote-Posen mit dem echten Kern-Code als PNG, zum Prüfen ohne Spiel.
 
 ## Eigene Cosmetics

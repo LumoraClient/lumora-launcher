@@ -376,8 +376,8 @@ class CosmeticsTest {
         for (int v = 0; v < mesh.vertices(AttachPoint.HEAD); v++) {
             top = Math.min(top, mesh.data(AttachPoint.HEAD)[v * CosmeticMesh.STRIDE + 1]);
         }
-        // hat crown top at Bedrock y 40.5 = 16.5 px above the neck; offset 2 px up
-        assertEquals(-18.5f / 16f, top, EPS);
+        // hat top (flare) at Bedrock y 41.6 = 17.6 px above the neck; offset 2 px up
+        assertEquals(-19.6f / 16f, top, EPS);
         assertEquals(1, c.trackedPlayers());
         // the option to hide other players' cosmetics
         c.options(true, false, true, true);

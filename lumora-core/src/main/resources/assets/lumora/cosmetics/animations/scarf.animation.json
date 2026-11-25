@@ -1,0 +1,17 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.scarf.flow": {
+			"loop": true,
+			"animation_length": 2,
+			"bones": {
+				"scarf_front": {
+					"rotation": ["-math.clamp(query.ground_speed * 5, 0, 30) - math.sin(query.anim_time * 180) * 2", 0, "math.sin(query.anim_time * 180) * 3"]
+				},
+				"scarf_back": {
+					"rotation": ["8 + math.clamp(query.ground_speed * 10, 0, 65) + math.sin(query.anim_time * 360) * 4", 0, 0]
+				}
+			}
+		}
+	}
+}

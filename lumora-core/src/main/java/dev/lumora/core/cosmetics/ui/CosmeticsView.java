@@ -89,6 +89,7 @@ public final class CosmeticsView implements AddonView {
     @Override
     public void render(HudGraphics g, int width, int height, int mx, int my) {
         regions.clear();
+        variantField = null;
         g.fill(0, 0, width, height, Ui.BACKDROP);
         int m = width < 520 ? 6 : 12;
         int x0 = m;
@@ -134,6 +135,7 @@ public final class CosmeticsView implements AddonView {
             options(g, px, top + previewH + 4, pv, optH, mx, my);
         }
         info(g, px, top + bodyH - infoH, pv, infoH, mx, my);
+        variantList(g, height, mx, my);
     }
 
     private void sidebar(HudGraphics g, int x, int y, int w, int h, int mx, int my) {
@@ -236,6 +238,7 @@ public final class CosmeticsView implements AddonView {
 
     private void select(CosmeticDefinition d) {
         selected = d;
+        variantOpen = false;
         cosmetics.togglePreview(d);
         preview.face(d.previewYaw());
     }
@@ -258,12 +261,16 @@ public final class CosmeticsView implements AddonView {
             g.text(tr("option.variant"), x + 6, ry + 4, Ui.MUTED, false);
             int bx = x + 6 + labelW;
             int bw = w - 12 - labelW;
-            Ui.button(g, regions, bx, ry, 14, 14, "<", false, d.variants().size() > 1, mx, my,
-                    () -> setVariant(d, d.variants().get((idx + d.variants().size() - 1) % d.variants().size())));
-            Ui.button(g, regions, bx + bw - 14, ry, 14, 14, ">", false, d.variants().size() > 1, mx, my,
-                    () -> setVariant(d, d.variants().get((idx + 1) % d.variants().size())));
-            String name = d.translated() ? host.tr(v.name()) : v.name();
-            g.centeredText(Ui.fit(g, name, bw - 32), bx + bw / 2, ry + 4, Ui.TEXT, false);
+            // drop-down field: click opens the list (drawn last, over everything), the wheel steps through it
+            boolean many = d.variants().size() > 1;
+            boolean hot = many && Ui.hover(mx, my, bx, ry, bw, 14);
+            g.card(bx, ry, bw, 14, 3, hot ? Ui.ROW_HOVER : Ui.FIELD, variantOpen ? Ui.ACCENT : hot ? Ui.ACCENT_DIM : Ui.BORDER);
+            g.text(Ui.fit(g, variantName(d, v), bw - 18), bx + 5, ry + 3, Ui.TEXT, false);
+            if (many) {
+                g.text(variantOpen ? "▴" : "▾", bx + bw - 10, ry + 3, Ui.MUTED, false);
+                regions.add(bx, ry, bw, 14, () -> variantOpen = !variantOpen);
+            }
+            variantField = new int[] {bx, ry, bw, 14, idx};
             ry += 18;
         }
         g.text(tr("option.offset"), x + 6, ry + 4, Ui.MUTED, false);
@@ -282,6 +289,59 @@ public final class CosmeticsView implements AddonView {
             String text = axes[a] + ": " + (vals[a] == Math.round(vals[a]) ? Integer.toString(Math.round(vals[a])) : Float.toString(vals[a]));
             g.centeredText(Ui.fit(g, text, sw - 4), bx + sw / 2, ry + 3, Ui.TEXT, false);
         }
+    }
+
+    private boolean variantOpen;
+    /** Variant field: x, y, w, h, index of the current variant; {@code null} while no field is shown. */
+    private int[] variantField;
+
+    private String variantName(CosmeticDefinition d, CosmeticDefinition.Variant v) {
+        return d.translated() ? host.tr(v.name()) : v.name();
+    }
+
+    /** The open variant list below the field (above it when there is no room), on top of the whole menu. */
+    private void variantList(HudGraphics g, int height, int mx, int my) {
+        CosmeticDefinition d = selected;
+        int[] f = variantField;
+        if (!variantOpen || d == null || f == null || d.variants().size() < 2) {
+            variantOpen = false;
+            return;
+        }
+        int row = 14;
+        int n = d.variants().size();
+        int lh = n * row + 4;
+        int ly = f[1] + f[3] + 2 + lh <= height - 4 ? f[1] + f[3] + 2 : f[1] - 2 - lh;
+        // a click anywhere else only closes the list
+        regions.add(0, 0, 1 << 14, 1 << 14, () -> variantOpen = false, () -> variantOpen = false);
+        g.card(f[0], ly, f[2], lh, 4, Ui.CARD, Ui.ACCENT);
+        for (int i = 0; i < n; i++) {
+            CosmeticDefinition.Variant v = d.variants().get(i);
+            int ry = ly + 2 + i * row;
+            boolean hot = Ui.hover(mx, my, f[0] + 2, ry, f[2] - 4, row);
+            if (hot || i == f[4]) {
+                g.fill(f[0] + 2, ry, f[0] + f[2] - 2, ry + row, hot ? Ui.ROW_HOVER : Ui.ROW);
+            }
+            g.text(Ui.fit(g, variantName(d, v), f[2] - 18), f[0] + 6, ry + 3, i == f[4] ? Ui.ACCENT : Ui.TEXT, false);
+            if (i == f[4]) {
+                Ui.check(g, f[0] + f[2] - 12, ry + 3, Ui.ACCENT);
+            }
+            regions.add(f[0] + 2, ry, f[2] - 4, row, () -> {
+                setVariant(d, v);
+                variantOpen = false;
+            });
+        }
+    }
+
+    /** Mouse wheel over the variant field steps to the previous or next variant. */
+    private boolean variantScroll(double x, double y, double delta) {
+        int[] f = variantField;
+        CosmeticDefinition d = selected;
+        if (f == null || d == null || d.variants().size() < 2 || x < f[0] || x >= f[0] + f[2] || y < f[1] || y >= f[1] + f[3]) {
+            return false;
+        }
+        int n = d.variants().size();
+        setVariant(d, d.variants().get(((f[4] + (delta > 0 ? -1 : 1)) % n + n) % n));
+        return true;
     }
 
     private void setVariant(CosmeticDefinition d, CosmeticDefinition.Variant v) {
@@ -384,6 +444,9 @@ public final class CosmeticsView implements AddonView {
 
     @Override
     public boolean mouseClicked(double x, double y, int button) {
+        if (variantOpen) {
+            return regions.click(x, y, button);
+        }
         if (preview.press(x, y, button)) {
             return true;
         }
@@ -414,6 +477,9 @@ public final class CosmeticsView implements AddonView {
 
     @Override
     public boolean mouseScrolled(double x, double y, double delta) {
+        if (variantScroll(x, y, delta)) {
+            return true;
+        }
         if (preview.scroll(x, y, delta)) {
             return true;
         }
@@ -427,6 +493,10 @@ public final class CosmeticsView implements AddonView {
     @Override
     public boolean keyPressed(int key, boolean ctrl, boolean shift) {
         if (key == Keys.ESCAPE) {
+            if (variantOpen) {
+                variantOpen = false;
+                return true;
+            }
             return false;
         }
         if (search.key(key, ctrl, host.clipboard())) {

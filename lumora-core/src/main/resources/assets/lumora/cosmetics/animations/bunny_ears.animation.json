@@ -1,0 +1,17 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.bunny_ears.sway": {
+			"loop": true,
+			"animation_length": 3,
+			"bones": {
+				"ear_left2": {
+					"rotation": ["math.sin(query.anim_time * 120) * 4", 0, 0]
+				},
+				"ear_right2": {
+					"rotation": ["math.sin(query.anim_time * 120 + 60) * 8 + math.clamp(query.ground_speed * 6, 0, 20)", 0, "math.cos(query.anim_time * 120) * 5"]
+				}
+			}
+		}
+	}
+}

@@ -5,18 +5,24 @@
 			"description": {
 				"identifier": "geometry.lumora.backpack",
 				"texture_width": 64,
-				"texture_height": 16
+				"texture_height": 32
 			},
 			"bones": [
 				{
 					"name": "body",
 					"pivot": [0, 24, 0],
 					"cubes": [
-						{"origin": [-3.5, 13, 2], "size": [7, 9, 3], "uv": [0, 0]},
-						{"origin": [-2.5, 14, 5], "size": [5, 4, 1], "uv": [20, 0]},
-						{"origin": [-3.5, 21, 2], "size": [7, 1, 3], "inflate": 0.1, "uv": [32, 0]},
-						{"origin": [-3, 13, -2.6], "size": [1, 10, 1], "uv": [52, 0]},
-						{"origin": [2, 13, -2.6], "size": [1, 10, 1], "uv": [56, 0]}
+						{"origin": [-4, 12.5, 2], "size": [8, 9, 4], "uv": [0, 0]},
+						{"origin": [-4, 19.5, 2], "size": [8, 2, 4], "inflate": 0.2, "uv": [24, 0]},
+						{"origin": [-3, 17.5, 6], "size": [6, 2, 1], "uv": [48, 0]},
+						{"origin": [-3, 13.5, 6], "size": [6, 4, 1], "uv": [0, 13]},
+						{"origin": [4, 13.5, 3], "size": [1, 4, 2], "uv": [14, 13]},
+						{"origin": [-5, 13.5, 3], "size": [1, 4, 2], "uv": [20, 13]},
+						{"origin": [-5, 21.5, 2.5], "size": [10, 2, 3], "uv": [26, 13]},
+						{"origin": [-3, 13, -2.6], "size": [1, 10, 1], "uv": [52, 13]},
+						{"origin": [2, 13, -2.6], "size": [1, 10, 1], "uv": [56, 13]},
+						{"origin": [-3, 23.4, -2.6], "size": [1, 1, 5], "inflate": -0.1, "uv": [0, 24]},
+						{"origin": [2, 23.4, -2.6], "size": [1, 1, 5], "inflate": -0.1, "uv": [12, 24]}
 					]
 				}
 			]

@@ -10,6 +10,9 @@
 				},
 				"tip2": {
 					"rotation": ["math.sin(query.anim_time * 90 - 40) * 5", 0, "math.cos(query.anim_time * 90 - 40) * 6"]
+				},
+				"tip3": {
+					"rotation": ["math.sin(query.anim_time * 90 - 80) * 7", 0, "math.cos(query.anim_time * 90 - 80) * 8"]
 				}
 			}
 		}

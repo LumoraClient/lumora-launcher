@@ -1,0 +1,14 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.beanie.bounce": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"pom": {
+					"rotation": ["math.sin(query.anim_time * 360) * math.clamp(query.ground_speed * 4, 0, 14)", 0, "math.cos(query.anim_time * 360) * math.clamp(query.ground_speed * 3, 0, 10)"]
+				}
+			}
+		}
+	}
+}

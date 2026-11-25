@@ -1,0 +1,17 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.lumora.cat_ears.twitch": {
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"ear_left": {
+					"rotation": ["-math.max(0, math.sin(query.anim_time * 90) - 0.92) * 180", 0, 0]
+				},
+				"ear_right": {
+					"rotation": ["-math.max(0, math.sin(query.anim_time * 90 + 150) - 0.92) * 180", 0, 0]
+				}
+			}
+		}
+	}
+}

@@ -11,6 +11,9 @@
 				"orb": {
 					"position": [0, "math.sin(query.anim_time * 120) * 1.5", 0],
 					"rotation": ["query.anim_time * 60", "query.anim_time * 90", 0]
+				},
+				"motes": {
+					"rotation": [0, "query.anim_time * 240", "query.anim_time * 45"]
 				}
 			}
 		}

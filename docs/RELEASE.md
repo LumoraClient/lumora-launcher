@@ -66,6 +66,12 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.97 (2026-11-25):**
+- **Inhalt:** Client: Cosmetics-Generator (`.t/cosmetics/CosmeticArt.java`) neu mit Flächen-Malern, Silhouetten-Masken, Kantenschattierung und neuen Mustern; alle 16 Cosmetics überarbeitet, 8 neue (Fischerhut, Mütze, Basecap, Teufelshörner, Hasenohren, Kopfhörer, Schal, Schmetterlingsflügel), 24 insgesamt, alle mit Farbvarianten (neu: Beige, Oliv). 22 neue Emotes, 42 insgesamt. Variante im Cosmetics-Menü als Ausklappliste (Mausrad blättert). 62 neue Texte und 13 geänderte Beschreibungen in allen Sprachdateien. Changelog-Eintrag, auf Wunsch kein News-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 728 Unit-Tests ohne Fehler (1 übersprungen; `CosmeticsTest` an die neue Zylinderhöhe angepasst). `integrationTest` enthält weiterhin keine Tests.
+- **Smoke-Test:** auf Wunsch nicht ausgeführt. Neue Modelle, Emotes und die Ausklappliste sind nur offline mit `MeshRender`/`EmoteRender` (echter Kern-Code) geprüft, nicht im Spiel.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, Changelog im `launcher-core-0.3.97.jar`, neue Modelle, Texturen, Texte und die Ausklappliste in allen 16 Client-Jars.
+
 **0.3.96 (2026-11-25):**
 - **Inhalt:** Client: Cosmetics und Emotes für andere Lumora-Spieler über Lumora Social (`CosmeticsSync`, Einstellungen „Sichtbar für“ Alle/Freunde/Niemand, Standard Alle, und „Cosmetics anderer Spieler zeigen“). Farbvarianten (28 Texturen für 14 Cosmetics) und Versatz X/Y/Z pro Cosmetic, gespeichert und synchronisiert. Emote-Rad zum Halten und Loslassen, bis zu 8 Seiten, Bearbeiten mit Tausch-Fenster (`EmotePickerView`). Lumora Social Server: `cosmetics.set`, `cosmetics.watch`, `emote.play`, `emote.stop` (Pushes `cosmetics`, `emote`), Werte geprüft mit `Rules.cosmetics`, Raten begrenzt, nichts gespeichert. 50 neue bzw. geänderte Texte in allen Sprachdateien. Mit News-Eintrag (Bild: der echte Screenshot des Cosmetics-Menüs aus 0.3.95 wiederverwendet, kein neuer Spiellauf) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 728 Unit-Tests ohne Fehler (1 übersprungen; neu: `SocialServerTest.cosmeticsAndEmotesReachWatchingPlayers` mit echtem Server und echten Clients, 2 neue `CosmeticsTest`). `integrationTest` enthält weiterhin keine Tests.

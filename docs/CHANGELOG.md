@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.3.97 (2026-11-25)
+
+### Client
+- **Bessere Cosmetics-Modelle:** Alle 16 Cosmetics sind neu gebaut, mit mehr Teilen, Kantenschattierung und eigenen Mustern (Strick, Leder, Metall, Flammen). Engelsflügel haben einzelne Federn, außen länger; Drachenflügel Klauen und eine gewellte Membran zwischen den Fingern; der Umhang eine Goldborte, den Lumora-Stern, Fransen und Schließen auf der Brust; die Krone ein Samtkissen mit Kreuz; der Zylinder eine gebogene Krempe und eine Goldschnalle; die Katzenohren zucken ab und zu.
+- **8 neue Cosmetics:** Fischerhut (Schwarz, Beige, Oliv, Weiß, Blau), Mütze mit hüpfendem Bommel, Basecap, Teufelshörner, Hasenohren, Kopfhörer (lassen sich zusammen mit einem Hut tragen), Schal, der beim Laufen weht, und Schmetterlingsflügel. Alle in mehreren Farben. Insgesamt 24 Cosmetics.
+- **22 neue Emotes:** Dab, Hampelmann, Liegestütze, Knien, Meditieren, Zombie, Muskeln zeigen, Daumen hoch, Herz, Headbangen, Wiegen, Hip-Hop, Karate, Schattenboxen, Gähnen, T-Pose, Erschrecken, Wütend, Kusshand, Rückwärtssalto, Schweben und Hühnertanz. Insgesamt 42 Emotes.
+- **Variante als Ausklappliste:** Die Variante des gewählten Cosmetics wählst du jetzt aus einer Liste („Variante [Schwarz ▾]“), das Mausrad über dem Feld blättert weiter.
+
 ## 0.3.96 (2026-11-25)
 
 ### Client

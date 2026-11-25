@@ -45,6 +45,8 @@ public final class Main {
         boolean pixel = !look.has("pixelStyle") || look.get("pixelStyle").getAsBoolean()
                 || (look.has("schemaVersion") && look.get("schemaVersion").getAsInt() < 3);
         boolean calm = look.has("reduceMotion") && look.get("reduceMotion").getAsBoolean();
+        // interface language before the first text (splash); German unless English was chosen
+        Lang.use(look.has("language") && look.get("language").isJsonPrimitive() && "en_us".equals(look.get("language").getAsString()) ? "en_us" : "de_de");
         boolean tray = a.contains("--tray");
         SingleInstance instance = singleInstance(tray);
         Splash[] splash = new Splash[1];

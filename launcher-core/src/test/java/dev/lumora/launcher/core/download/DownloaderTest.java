@@ -122,8 +122,10 @@ class DownloaderTest {
         Downloader d = new Downloader();
         d.checkTrusted(URI.create("https://cdn.modrinth.com/data/x.jar"));
         d.checkTrusted(URI.create("https://piston-data.mojang.com/v1/objects/abc/client.jar"));
-        // no mod loader any more: Fabric's servers are not trusted
-        assertThrows(IOException.class, () -> d.checkTrusted(URI.create("https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar")));
+        // mod loaders: their official Maven and meta servers (files there still need the published hash)
+        d.checkTrusted(URI.create("https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar"));
+        d.checkTrusted(URI.create("https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.1/neoforge-21.1.1-installer.jar"));
+        assertThrows(IOException.class, () -> d.checkTrusted(URI.create("https://maven.example.net/x.jar")));
     }
 
     @Test

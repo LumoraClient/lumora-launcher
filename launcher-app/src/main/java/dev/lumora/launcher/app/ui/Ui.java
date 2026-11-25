@@ -61,7 +61,12 @@ public final class Ui {
 
     public static JLabel label(String text, float size, int style, Color color) {
         JLabel l = new JLabel(text);
-        l.setFont(Theme.font(style, size));
+        Font f = Theme.font(style, size);
+        if (text != null && f.canDisplayUpTo(text) >= 0) {
+            // texts from platforms (Chinese, Japanese, Cyrillic ...): Java's logical font falls back to system fonts
+            f = new Font(Font.DIALOG, style, Math.round(size));
+        }
+        l.setFont(f);
         l.setForeground(color);
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
         return l;
@@ -349,6 +354,46 @@ public final class Ui {
             p.add(b);
         }
         return p;
+    }
+
+    /** The one accent button of a bar or dialog (e.g. "Instanz erstellen", "Installieren"). */
+    public static JButton primary(String text, Icons.Kind icon, Runnable action) {
+        JButton b = button(text, null, action);
+        if (icon != null) {
+            b.setIcon(Icons.of(icon, 15, java.awt.Color.WHITE));
+        }
+        b.setBackground(Theme.ACCENT_PRESSED);
+        b.setForeground(java.awt.Color.WHITE);
+        b.setFont(Theme.font(Font.BOLD, 13f));
+        return b;
+    }
+
+    /** Button for a destructive action (red text). */
+    public static JButton danger(String text, Icons.Kind icon, Runnable action) {
+        JButton b = button(text, null, action);
+        if (icon != null) {
+            b.setIcon(Icons.of(icon, 15, Theme.FAIL));
+        }
+        b.setForeground(Theme.FAIL);
+        return b;
+    }
+
+    /** Small upper-case caption above a field. */
+    public static JLabel caption(String text) {
+        JLabel l = label(text.toUpperCase(Lang.locale()), 11.5f, Font.BOLD, Theme.MUTED);
+        l.setBorder(BorderFactory.createEmptyBorder(12, 0, 6, 0));
+        return l;
+    }
+
+    /** "12,3 Mio.", "45.600", "980": counts as platforms show them. */
+    public static String count(long n) {
+        if (n >= 1_000_000) {
+            return String.format(Lang.locale(), "%.1f%s", n / 1_000_000.0, Lang.t("format.million"));
+        }
+        if (n >= 10_000) {
+            return String.format(Lang.locale(), "%.1f%s", n / 1000.0, Lang.t("format.thousand"));
+        }
+        return String.format(Lang.locale(), "%,d", n);
     }
 
     /** "1,2 MB", "830 KB". */

@@ -78,6 +78,24 @@ public final class LauncherConfig {
     // --- Startart und Spiel
     /** What the play button starts: lumora or vanilla (see Flavor; old mod loader ids fall back to lumora). */
     public String selectedFlavor = "lumora";
+    /**
+     * Selected instance (see InstanceManager): a built-in instance id ("26.3", "26.3-vanilla") or "custom:&lt;id&gt;"; null =
+     * the built-in instance of {@link #selectedProfile} and {@link #selectedFlavor}.
+     */
+    public String selectedInstance;
+    /** Interface language of the launcher ("de_de", "en_us"). */
+    public String language = "de_de";
+    /** Instance page: sort ("recent", "name", "version", "loader") and view ("grid", "list"). */
+    public String instancesSort = "recent";
+    public String instancesView = "grid";
+    /** Entdecken: view ("grid", "list", "compact"), card size (1 small .. 3 large) and shown metadata. */
+    public String discoverView = "list";
+    public int discoverCardSize = 2;
+    public boolean discoverShowCategories = true;
+    /** Favourite projects ("modrinth:&lt;project id&gt;"), newest first. */
+    public List<String> favoriteProjects = new ArrayList<>();
+    /** Last searches in Entdecken, newest first (at most 10). */
+    public List<String> recentSearches = new ArrayList<>();
     /** After the game started: keep (launcher stays open), hide (minimise) or close (launcher ends, game keeps running). */
     public String afterLaunch = "keep";
     /**
@@ -296,6 +314,34 @@ public final class LauncherConfig {
             customServers = new ArrayList<>();
         }
         customServers.removeIf(s -> s == null || s.isBlank() || s.length() > 255 || s.contains("\n") || s.startsWith("-"));
+        if (selectedInstance != null && !selectedInstance.matches("(custom:)?[a-z0-9][a-z0-9.-]{0,47}")) {
+            notes.add("invalid selected instance reset");
+            selectedInstance = null;
+        }
+        if (!"en_us".equals(language) && !"de_de".equals(language)) {
+            language = "de_de";
+        }
+        if (!java.util.List.of("recent", "name", "version", "loader").contains(instancesSort)) {
+            instancesSort = "recent";
+        }
+        if (!"list".equals(instancesView)) {
+            instancesView = "grid";
+        }
+        if (!java.util.List.of("grid", "list", "compact").contains(discoverView)) {
+            discoverView = "list";
+        }
+        discoverCardSize = Math.max(1, Math.min(3, discoverCardSize));
+        if (favoriteProjects == null) {
+            favoriteProjects = new ArrayList<>();
+        }
+        favoriteProjects.removeIf(f -> f == null || !f.matches("[a-z]{2,16}:[A-Za-z0-9_-]{1,64}"));
+        if (recentSearches == null) {
+            recentSearches = new ArrayList<>();
+        }
+        recentSearches.removeIf(s -> s == null || s.isBlank() || s.length() > 100);
+        while (recentSearches.size() > 10) {
+            recentSearches.remove(recentSearches.size() - 1);
+        }
         if (java.util.Arrays.stream(dev.lumora.launcher.core.profile.Flavor.values()).noneMatch(f -> f.id().equals(selectedFlavor))) {
             selectedFlavor = "lumora";
         }

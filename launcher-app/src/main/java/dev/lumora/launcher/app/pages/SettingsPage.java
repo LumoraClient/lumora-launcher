@@ -411,6 +411,78 @@ public final class SettingsPage extends JPanel {
         return Ui.button(text, null, null);
     }
 
+    /**
+     * The player's own CurseForge API key: masked field, saved DPAPI-encrypted, never shown again in plain text and never
+     * logged. "Prüfen" makes one search request to confirm CurseForge accepts it.
+     */
+    private JComponent curseForgeKeyRow() {
+        JPanel col = Ui.column();
+        javax.swing.JPasswordField field = new javax.swing.JPasswordField(28);
+        boolean stored = host.ctx().curseForgeKey() != null;
+        field.putClientProperty("JTextField.placeholderText", Lang.t(stored ? "settings.integrations.curseforge.stored" : "settings.integrations.curseforge.placeholder"));
+        JLabel state = Ui.label(Lang.t(stored ? "settings.integrations.curseforge.state_on" : "settings.integrations.curseforge.state_off"), 12.5f,
+                Font.PLAIN, stored ? Theme.OK : Theme.MUTED);
+        JPanel buttons = Ui.row(8);
+        buttons.add(Ui.controlHeight(field));
+        buttons.add(Ui.button(Lang.t("common.save"), Icons.Kind.CHECK, () -> {
+            char[] value = field.getPassword();
+            try {
+                if (value.length == 0) {
+                    return;
+                }
+                host.ctx().setCurseForgeKey(new String(value));
+                field.setText("");
+                field.putClientProperty("JTextField.placeholderText", Lang.t("settings.integrations.curseforge.stored"));
+                state.setText(Lang.t("settings.integrations.curseforge.state_on"));
+                state.setForeground(Theme.OK);
+            } catch (java.io.IOException e) {
+                host.error(Lang.t("settings.integrations.curseforge.title"), e.getMessage());
+            } finally {
+                java.util.Arrays.fill(value, '\0');
+            }
+        }));
+        buttons.add(Ui.button(Lang.t("settings.integrations.curseforge.test"), Icons.Kind.REFRESH, () -> {
+            state.setText(Lang.t("common.loading"));
+            state.setForeground(Theme.MUTED);
+            new Thread(() -> {
+                String result;
+                java.awt.Color color;
+                try {
+                    var cf = host.ctx().repository.require(dev.lumora.launcher.core.platform.Platform.CURSEFORGE);
+                    cf.search(new dev.lumora.launcher.core.platform.PlatformModel.SearchQuery("jei", dev.lumora.launcher.core.platform.ProjectType.MOD,
+                            null, java.util.List.of(), java.util.List.of(), null, false, null, 0, 1));
+                    result = Lang.t("settings.integrations.curseforge.ok");
+                    color = Theme.OK;
+                } catch (java.io.IOException | RuntimeException e) {
+                    result = Lang.t("settings.integrations.curseforge.bad", e.getMessage());
+                    color = Theme.FAIL;
+                }
+                String r = result;
+                java.awt.Color c = color;
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    state.setText(r);
+                    state.setForeground(c);
+                });
+            }, "curseforge-test").start();
+        }));
+        buttons.add(Ui.button(Lang.t("common.remove"), Icons.Kind.TRASH, () -> {
+            try {
+                host.ctx().setCurseForgeKey(null);
+                field.putClientProperty("JTextField.placeholderText", Lang.t("settings.integrations.curseforge.placeholder"));
+                field.repaint();
+                state.setText(Lang.t("settings.integrations.curseforge.state_off"));
+                state.setForeground(Theme.MUTED);
+            } catch (java.io.IOException e) {
+                host.error(Lang.t("settings.integrations.curseforge.title"), e.getMessage());
+            }
+        }));
+        buttons.add(Ui.button(Lang.t("settings.integrations.curseforge.get"), Icons.Kind.GLOBE, () -> host.browse("https://console.curseforge.com/")));
+        col.add(buttons);
+        col.add(Box.createVerticalStrut(4));
+        col.add(state);
+        return col;
+    }
+
     private static JPanel row(JComponent... parts) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         p.setOpaque(false);
@@ -476,6 +548,16 @@ public final class SettingsPage extends JPanel {
         add("general", Icons.Kind.REFRESH, Lang.t("settings.general.update_auto.title"),
                 Lang.t("settings.general.update_auto.desc"), false,
                 toggle(cfg.checkForUpdates, on -> cfg.checkForUpdates = on));
+        // interface language: German (default) or English, both full; applies after a restart (all texts are built once)
+        add("general", Icons.Kind.GLOBE, Lang.t("settings.general.language.title"), Lang.t("settings.general.language.desc"), false,
+                Ui.segmented(List.of("de_de", "en_us"), List.of("Deutsch", "English"), cfg.language, v -> {
+                    if (!v.equals(cfg.language)) {
+                        cfg.language = v;
+                        save();
+                        javax.swing.JOptionPane.showMessageDialog(this, Lang.t("common.restart_hint"), Lang.t("settings.general.language.title"),
+                                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }));
         add("general", Icons.Kind.BOLT, Lang.t("settings.general.channel.title"), Lang.t("settings.general.channel.desc"), true,
                 Ui.segmented(List.of("stable", "pre"), List.of(Lang.t("settings.general.channel.stable"), Lang.t("settings.general.channel.pre")), cfg.prereleases ? "pre" : "stable", v -> {
                     cfg.prereleases = v.equals("pre");
@@ -721,6 +803,8 @@ public final class SettingsPage extends JPanel {
         ToggleSwitch discordServer = toggle(cfg.discordShowServer, on -> cfg.discordShowServer = on);
         discordServer.onChange(on -> hooks.discordChanged());
         add("integrations", Icons.Kind.DISCORD, Lang.t("settings.integrations.discord.title"), Lang.t("settings.integrations.discord.desc"), false, discordServer);
+        add("integrations", Icons.Kind.LOCK, Lang.t("settings.integrations.curseforge.title"), Lang.t("settings.integrations.curseforge.desc"), false,
+                curseForgeKeyRow());
         add("integrations", Icons.Kind.CHART, Lang.t("settings.integrations.stats.title"), Lang.t("settings.integrations.stats.desc"), false,
                 toggle(cfg.anonymousStats, on -> cfg.anonymousStats = on));
         add("integrations", Icons.Kind.GLOBE, Lang.t("settings.integrations.news.title"), Lang.t("settings.integrations.news.desc"),

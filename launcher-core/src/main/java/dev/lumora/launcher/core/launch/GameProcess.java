@@ -190,12 +190,19 @@ public final class GameProcess {
             } catch (IOException e) {
                 Log.warn("Game output pump stopped: " + e.getMessage());
             }
+        }, "game-output");
+        pump.setDaemon(true);
+        pump.start();
+        // The end of the game is the end of its process, not the end of the output: a child process (Fabric/Quilt
+        // error window, a helper a mod starts) inherits the pipe and can keep it open long after the game is gone.
+        Thread watcher = new Thread(() -> {
             int code;
             try {
                 code = p.waitFor();
+                pump.join(3000); // let the last lines reach the log
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                code = -1;
+                code = p.isAlive() ? -1 : p.exitValue();
             }
             try {
                 slot.close();
@@ -205,9 +212,9 @@ public final class GameProcess {
             Optional<Path> crash = code != 0 ? newestCrashReport(gameDir, startedAt) : Optional.empty();
             Log.info("Minecraft exited with code " + code + crash.map(c -> ", crash report: " + c).orElse(""));
             exit.complete(new Exit(code, crash, outputLog));
-        }, "game-output");
-        pump.setDaemon(true);
-        pump.start();
+        }, "game-exit");
+        watcher.setDaemon(true);
+        watcher.start();
         return new GameProcess(p, exit, gameDir);
     }
 
@@ -239,6 +246,8 @@ public final class GameProcess {
 
     /** Asks the game to close; force-kills after the timeout. */
     public void stop(java.time.Duration grace) {
+        // children first (loader error window, helpers started by mods); they would outlive the game otherwise
+        process.descendants().forEach(ProcessHandle::destroy);
         process.destroy();
         try {
             if (!process.waitFor(grace.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS)) {

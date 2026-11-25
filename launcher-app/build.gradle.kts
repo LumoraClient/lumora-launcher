@@ -13,6 +13,8 @@ dependencies {
     implementation(project(":launcher-core"))
     implementation(libs.flatlaf)
     implementation(libs.flatlaf.inter)
+    // WebP images (mod icons and screenshots from Modrinth) through ImageIO
+    implementation(libs.twelvemonkeys.webp)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

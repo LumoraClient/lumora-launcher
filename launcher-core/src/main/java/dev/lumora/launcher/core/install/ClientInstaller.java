@@ -25,6 +25,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -55,14 +56,27 @@ public final class ClientInstaller {
     private final ProfileCatalog catalog;
     private final Supplier<BundledMods> bundled;
     private final OsInfo os;
+    private final dev.lumora.launcher.core.loader.LoaderManager loaders;
 
     public ClientInstaller(LauncherPaths paths, Downloader downloader, ProfileCatalog catalog,
                            Supplier<BundledMods> bundled, OsInfo os) {
+        this(paths, downloader, catalog, bundled, os, new dev.lumora.launcher.core.loader.LoaderManager(
+                dev.lumora.launcher.core.loader.ModLoaders.standard(downloader, paths), paths.versions()));
+    }
+
+    public ClientInstaller(LauncherPaths paths, Downloader downloader, ProfileCatalog catalog,
+                           Supplier<BundledMods> bundled, OsInfo os, dev.lumora.launcher.core.loader.LoaderManager loaders) {
         this.paths = paths;
         this.downloader = downloader;
         this.catalog = catalog;
         this.bundled = bundled;
         this.os = os;
+        this.loaders = loaders;
+    }
+
+    /** Mod loaders: versions, installed state. */
+    public dev.lumora.launcher.core.loader.LoaderManager loaders() {
+        return loaders;
     }
 
     public Prepared prepare(ProfileCatalog.Profile profile, LauncherConfig config, boolean repair, ProgressListener progress) throws IOException {
@@ -75,6 +89,16 @@ public final class ClientInstaller {
      */
     public Prepared prepare(ProfileCatalog.Profile profile, Flavor flavor, LauncherConfig config, boolean repair,
                             ProgressListener progress) throws IOException {
+        return prepare(profile, flavor, dev.lumora.launcher.core.InstanceLayout.of(paths, config, flavor.instanceId(profile.id)), null,
+                config, repair, progress);
+    }
+
+    /**
+     * Like above with the folders given (own instances) and an optional own Java executable (null = launcher setting,
+     * else the official runtime).
+     */
+    public Prepared prepare(ProfileCatalog.Profile profile, Flavor flavor, dev.lumora.launcher.core.InstanceLayout layout,
+                            String javaOverride, LauncherConfig config, boolean repair, ProgressListener progress) throws IOException {
         MetadataService meta = new MetadataService(downloader, paths.versions());
         boolean vanillaOnly = flavor == Flavor.VANILLA;
         progress.stage(Lang.t("install.stage.version_info", profile.minecraftVersion
@@ -83,7 +107,6 @@ public final class ClientInstaller {
         // only Mojang's version JSON: Lumora needs no mod loader profile
         VersionJson vanilla = meta.vanilla(profile.minecraftVersion);
         ResolvedVersion version = ResolvedVersion.merge(null, vanilla, os);
-        String instanceId = flavor.instanceId(profile.id);
 
         Path verifiedMarker = FileUtil.resolveInside(paths.versions(), version.id() + "/.lumora-verified");
         Downloader.Verify verify = !repair && Files.isRegularFile(verifiedMarker) ? Downloader.Verify.QUICK : Downloader.Verify.FULL;
@@ -129,9 +152,8 @@ public final class ClientInstaller {
         }
 
         // Java
-        Path java = resolveJava(version, flavor == Flavor.LUMORA ? profile.javaComponent : null, config, verify, progress);
+        Path java = resolveJava(version, flavor == Flavor.LUMORA ? profile.javaComponent : null, javaOverride, config, verify, progress);
 
-        dev.lumora.launcher.core.InstanceLayout layout = dev.lumora.launcher.core.InstanceLayout.of(paths, config, instanceId);
         Path gameDir = layout.gameDir();
         Path natives = layout.nativesDir();
         if (vanillaOnly) {
@@ -182,6 +204,130 @@ public final class ClientInstaller {
                 new dev.lumora.launcher.core.launch.LaunchCommandBuilder.Loader(loaderJar, modResult.modFiles(), mappings));
     }
 
+    /**
+     * Prepares plain Minecraft ({@code loaderId} null) or Minecraft with a mod loader for any Minecraft version, in the
+     * folders of {@code layout}. The loader's launch profile inherits from Mojang's version JSON; every library comes with
+     * the hash its publisher states (Maven {@code .sha1} where the profile has none). Mods in {@code mods/} are the
+     * player's own and stay untouched.
+     *
+     * @param loaderVersion the loader version to install; null = the loader's recommended one
+     * @return the prepared start; {@link Prepared#profile()} is null
+     */
+    public Prepared prepareGame(String minecraftVersion, String loaderId, String loaderVersion,
+                                dev.lumora.launcher.core.InstanceLayout layout, String javaOverride, LauncherConfig config,
+                                boolean repair, ProgressListener progress) throws IOException {
+        MetadataService meta = new MetadataService(downloader, paths.versions());
+        dev.lumora.launcher.core.loader.ModLoader loader = loaderId == null ? null
+                : loaders.loaders().byId(loaderId).orElseThrow(() -> new IOException(Lang.t("loader.error.unknown", loaderId)));
+        if (loader != null && loaderVersion == null) {
+            loaderVersion = loaders.recommended(loaderId, minecraftVersion).map(dev.lumora.launcher.core.loader.LoaderVersion::version)
+                    .orElseThrow(() -> new IOException(Lang.t("loader.error.not_available", loader.displayName(), minecraftVersion)));
+        }
+        progress.stage(Lang.t("install.stage.version_info", minecraftVersion,
+                loader == null ? "Vanilla" : loader.displayName() + " " + loaderVersion));
+        progress.progress(-1, "");
+        Downloader.Verify quick = repair ? Downloader.Verify.FULL : Downloader.Verify.QUICK;
+        VersionJson vanilla = meta.vanilla(minecraftVersion);
+        Path clientJar = FileUtil.resolveInside(paths.versions(), vanilla.id + "/" + vanilla.id + ".jar");
+        Path java = null;
+        VersionJson child = null;
+        if (loader != null) {
+            if (loader.needsOwnClientJar()) {
+                // Forge / NeoForge patch the vanilla jar with their own tools: jar and Java first
+                ResolvedVersion base = ResolvedVersion.merge(null, vanilla, os);
+                downloader.download(new Downloader.Task(URI.create(base.clientJar().url), clientJar,
+                        Hashing.Expected.sha1(base.clientJar().sha1), base.clientJar().size), null, quick);
+                java = resolveJava(base, null, javaOverride, config, quick, progress);
+            }
+            child = loader.install(new dev.lumora.launcher.core.loader.ModLoader.Install(minecraftVersion, loaderVersion,
+                    vanilla, clientJar, java, repair), progress);
+            loaders.recordInstalled(loaderId, minecraftVersion, loaderVersion);
+        }
+        ResolvedVersion version = ResolvedVersion.merge(child, vanilla, os);
+
+        Path verifiedMarker = FileUtil.resolveInside(paths.versions(), version.id() + "/.lumora-verified");
+        Downloader.Verify verify = !repair && Files.isRegularFile(verifiedMarker) ? Downloader.Verify.QUICK : Downloader.Verify.FULL;
+        if (repair) {
+            Files.deleteIfExists(verifiedMarker);
+        }
+        Log.info("Preparing " + (loader == null ? "Vanilla" : loader.id() + " " + loaderVersion) + " " + minecraftVersion
+                + " for " + layout.instanceId() + ", verification " + verify);
+
+        progress.stage(Lang.t("install.stage.check_files"));
+        List<Downloader.Task> tasks = new ArrayList<>();
+        tasks.add(new Downloader.Task(URI.create(version.clientJar().url), clientJar,
+                Hashing.Expected.sha1(version.clientJar().sha1), version.clientJar().size));
+        for (ResolvedVersion.Library lib : version.libraries()) {
+            Path target = FileUtil.resolveInside(paths.libraries(), lib.path());
+            if (lib.url() == null) {
+                // created by the loader installer (no download source)
+                if (!Files.isRegularFile(target)) {
+                    throw new IOException(Lang.t("loader.error.library_missing", lib.name(), loader == null ? "?" : loader.displayName()));
+                }
+                continue;
+            }
+            String sha1 = lib.sha1() != null ? lib.sha1() : fetchMavenSha1(lib.url());
+            tasks.add(new Downloader.Task(URI.create(lib.url()), target, Hashing.Expected.sha1(sha1), lib.size()));
+        }
+        downloader.downloadAll(tasks, progressAdapter(progress, Lang.t("storage.kind.libraries")), verify);
+        if (loader != null && loader.needsOwnClientJar()) {
+            // like the official launcher: the vanilla jar under the loader's id, which Forge leaves out of its module layer
+            Path own = FileUtil.resolveInside(paths.versions(), version.id() + "/" + version.id() + ".jar");
+            Hashing.Expected vanillaHash = Hashing.Expected.sha1(version.clientJar().sha1);
+            if (!Hashing.matches(own, vanillaHash)) {
+                Path tmp = own.resolveSibling(own.getFileName() + ".part");
+                Files.createDirectories(own.getParent());
+                Files.copy(clientJar, tmp, StandardCopyOption.REPLACE_EXISTING);
+                FileUtil.moveReplacing(tmp, own);
+            }
+            clientJar = own;
+        }
+
+        List<Downloader.Task> nativeTasks = new ArrayList<>();
+        for (ResolvedVersion.NativeLibrary n : version.natives()) {
+            String sha1 = n.sha1() != null ? n.sha1() : fetchMavenSha1(n.url());
+            nativeTasks.add(new Downloader.Task(URI.create(n.url()), FileUtil.resolveInside(paths.libraries(), n.path()),
+                    Hashing.Expected.sha1(sha1), n.size()));
+        }
+        downloader.downloadAll(nativeTasks, progressAdapter(progress, Lang.t("install.native_libraries")), verify);
+
+        progress.stage(Lang.t("install.stage.assets"));
+        VersionJson.AssetIndex idx = version.assetIndex();
+        Path indexFile = FileUtil.resolveInside(paths.assets(), "indexes/" + idx.id + ".json");
+        downloader.download(new Downloader.Task(URI.create(idx.url), indexFile, Hashing.Expected.sha1(idx.sha1), idx.size), null);
+        AssetIndex assets = Json.read(indexFile, AssetIndex.class);
+        downloader.downloadAll(assets.tasks(paths.assets()), progressAdapter(progress, "Assets"), verify);
+
+        Path loggingConfig = null;
+        if (version.logging() != null && version.logging().file != null) {
+            VersionJson.Download f = version.logging().file;
+            loggingConfig = FileUtil.resolveInside(paths.assets(), "log_configs/" + f.id);
+            downloader.download(new Downloader.Task(URI.create(f.url), loggingConfig, Hashing.Expected.sha1(f.sha1), f.size), null, verify);
+        }
+
+        if (java == null) {
+            java = resolveJava(version, null, javaOverride, config, verify, progress);
+        }
+        Files.createDirectories(layout.gameDir());
+        if (loader != null) {
+            Files.createDirectories(layout.gameDir().resolve("mods"));
+        }
+        FileUtil.writeAtomically(verifiedMarker, version.id().getBytes(StandardCharsets.UTF_8));
+        Files.createDirectories(layout.nativesDir());
+        NativeExtractor.extract(version.natives(), paths.libraries(), layout.nativesDir());
+        progress.progress(1, "");
+        return new Prepared(null, version, java, clientJar, layout, loggingConfig, null);
+    }
+
+    private String fetchMavenSha1(String artifactUrl) throws IOException {
+        // loader launch profiles omit the hash for some artifacts (e.g. fabric-loader itself); Maven publishes
+        // <artifact>.sha1 next to every artifact on the same trusted host
+        String body = downloader.fetchString(URI.create(artifactUrl + ".sha1")).strip();
+        String sha1 = body.split("\\s+")[0];
+        Hashing.Expected.sha1(sha1);
+        return sha1;
+    }
+
     /** Java major version of Mojang's runtime components (all.json). */
     static int componentMajor(String component) {
         return switch (component) {
@@ -195,10 +341,11 @@ public final class ClientInstaller {
     }
 
     /** @param profileComponent the profile's own Java component (only for the Lumora flavor), null = the version's */
-    private Path resolveJava(ResolvedVersion version, String profileComponent, LauncherConfig config, Downloader.Verify verify,
-                             ProgressListener progress) throws IOException {
+    private Path resolveJava(ResolvedVersion version, String profileComponent, String javaOverride, LauncherConfig config,
+                             Downloader.Verify verify, ProgressListener progress) throws IOException {
+        String javaPath = javaOverride != null && !javaOverride.isBlank() ? javaOverride : config.javaPath;
         int required = version.javaVersion() != null ? version.javaVersion().majorVersion : 25;
-        if (profileComponent != null && config.javaPath == null) {
+        if (profileComponent != null && javaPath == null) {
             // newer official runtime than the version JSON asks for (the profile needs it, e.g. for the Lumora mod)
             int major = componentMajor(profileComponent);
             if (major < required) {
@@ -208,8 +355,8 @@ public final class ClientInstaller {
             JavaRuntimeInstaller jri = new JavaRuntimeInstaller(downloader, paths.runtimes(), os);
             return jri.install(profileComponent, progressAdapter(progress, "Java"), verify).javaExecutable();
         }
-        if (config.javaPath != null) {
-            Path custom = Path.of(config.javaPath);
+        if (javaPath != null) {
+            Path custom = Path.of(javaPath);
             int major = JavaProbe.majorVersion(custom);
             if (major < required) {
                 throw new IOException(Lang.t("install.custom_java_old", major,

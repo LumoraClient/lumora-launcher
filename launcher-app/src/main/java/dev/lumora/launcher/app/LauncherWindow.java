@@ -5,7 +5,8 @@ import dev.lumora.launcher.app.ui.Card;
 import dev.lumora.launcher.app.ui.HeroPanel;
 import dev.lumora.launcher.app.ui.Icons;
 import dev.lumora.launcher.app.pages.AccountPage;
-import dev.lumora.launcher.app.pages.BrowserPage;
+import dev.lumora.launcher.app.pages.DiscoverPage;
+import dev.lumora.launcher.app.pages.InstancesPage;
 import dev.lumora.launcher.app.pages.CrashPage;
 import dev.lumora.launcher.app.pages.LibraryPage;
 import dev.lumora.launcher.app.pages.PageHost;
@@ -119,7 +120,8 @@ final class LauncherWindow implements PageHost {
     private boolean startedInTray;
     private dev.lumora.launcher.core.util.SingleInstance instance;
     private boolean trayHintShown;
-    private BrowserPage browserPage;
+    private DiscoverPage browserPage;
+    private InstancesPage instancesPage;
     private AccountPage accountPage;
     private dev.lumora.launcher.app.pages.PerformancePage performancePage;
     private final dev.lumora.launcher.app.ui.PageFade pageFade = new dev.lumora.launcher.app.ui.PageFade();
@@ -148,6 +150,8 @@ final class LauncherWindow implements PageHost {
     private JLabel accountHint;
     private Avatar avatar;
     private JComboBox<ProfileCatalog.Profile> profileBox;
+    /** Name of the selected own instance for the play bar, null while a built-in instance is selected. */
+    private String ownInstanceLabel;
     /** "3 Std. gespielt" per profile, shown in the version menu. */
     private Map<String, String> playInfo = Map.of();
     private boolean syncingProfile;
@@ -224,13 +228,28 @@ final class LauncherWindow implements PageHost {
         if (newsPage != null) {
             newsPage.closeArticle();
         }
-        nav.select(slash < 0 ? id : id.substring(0, slash));
+        String navId = slash < 0 ? id : id.substring(0, slash);
+        nav.select(navId.equals("project") ? "browser" : navId);
         if (slash > 0 && id.startsWith("news/")) {
             newsPage.show(id.substring(slash + 1));
         } else if (slash > 0 && id.startsWith("account/")) {
             accountPage.selectTab(id.substring(slash + 1));
         } else if (slash > 0 && id.startsWith("settings/")) {
             settingsPage.showCategory(id.substring(slash + 1));
+        } else if (slash > 0 && id.startsWith("instances/")) {
+            // "instances/custom:my-pack" or "instances/26.3": the page of that instance
+            String rest = id.substring(slash + 1);
+            int hash = rest.indexOf('#');
+            ctx.instances.find(ctx.config, hash < 0 ? rest : rest.substring(0, hash)).ifPresent(instancesPage::open);
+            if (hash > 0) {
+                instancesPage.showSection(rest.substring(hash + 1));
+            }
+        } else if (slash > 0 && id.startsWith("project/")) {
+            // "project/sodium": the detail page of a Modrinth project
+            browserPage.openProject(id.substring(slash + 1), dev.lumora.launcher.core.platform.ProjectType.MOD);
+        } else if (slash > 0 && id.startsWith("browser/")) {
+            // "browser/mod", "browser/shader": Entdecken for that content type
+            browserPage.show(dev.lumora.launcher.core.platform.ProjectType.of(id.substring(slash + 1)), null);
         }
     }
 
@@ -281,8 +300,12 @@ final class LauncherWindow implements PageHost {
         pageHost.add(libraryPage, "library");
         accountPage = new AccountPage(this, pageIo);
         pageHost.add(accountPage, "account");
-        browserPage = new BrowserPage(this, pageIo);
+        browserPage = new DiscoverPage(this, pageIo);
         pageHost.add(browserPage, "browser");
+        instancesPage = new InstancesPage(this, pageIo);
+        pageHost.add(instancesPage, "instances");
+        // files from the Explorer dropped anywhere in the window (pages with their own drop targets come first)
+        dev.lumora.launcher.app.pages.ImportFlow.installWindowDrop(this, pageIo, pageHost);
         crashPage = new CrashPage(this, pageIo);
         pageHost.add(crashPage, "crashes");
         socialPage = new dev.lumora.launcher.app.social.SocialPage(this, social);
@@ -351,16 +374,19 @@ final class LauncherWindow implements PageHost {
                 accountPage.refresh();
             } else if (id.equals("browser")) {
                 browserPage.refresh();
+            } else if (id.equals("instances")) {
+                instancesPage.refresh();
             } else if (id.equals("crashes")) {
                 crashPage.refresh();
             }
         });
         nav.addItem("home", Lang.t("nav.home_page"), Icons.Kind.HOME);
+        nav.addItem("instances", Lang.t("nav.instances"), Icons.Kind.CUBE);
         nav.addItem("browser", Lang.t("nav.browser"), Icons.Kind.COMPASS);
         nav.addItem("performance", Lang.t("nav.performance"), Icons.Kind.CHART);
         nav.addItem("library", Lang.t("nav.library"), Icons.Kind.PUZZLE);
         nav.addItem("account", Lang.t("nav.account"), Icons.Kind.USER);
-        nav.addItem("settings", Lang.t("settings.title"), Icons.Kind.GEAR);
+        nav.addItem("settings", Lang.t("nav.settings"), Icons.Kind.GEAR);
         nav.addSeparator();
         nav.addItem("social", Lang.t("nav.social"), Icons.Kind.USERS);
         nav.addItem("servers", Lang.t("nav.servers"), Icons.Kind.GLOBE);
@@ -594,7 +620,8 @@ final class LauncherWindow implements PageHost {
             return;
         }
         int gen = ++quickPlayGeneration;
-        java.nio.file.Path game = ctx.gameDir(currentFlavor().instanceId(ctx.selectedProfile().id));
+        // the selected instance's server list (an own instance has its own servers.dat)
+        java.nio.file.Path game = ctx.layout(ctx.selectedInstance()).gameDir();
         boolean on = ctx.config.quickPlay;
         pageIo.submit(() -> {
             List<dev.lumora.launcher.core.library.InstanceLibrary.Server> servers = on
@@ -685,6 +712,36 @@ final class LauncherWindow implements PageHost {
         body.add(label(versionCountText(), 12, Font.PLAIN, Theme.MUTED));
         body.add(Box.createVerticalStrut(12));
 
+        // own instances (Fabric, Forge, modpacks ...): one click selects them, "Alle Instanzen" opens the page
+        java.util.List<dev.lumora.launcher.core.instance.Instance> own = ctx.instances.own();
+        if (!own.isEmpty()) {
+            JPanel ownRow = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 6));
+            ownRow.setOpaque(false);
+            ownRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+            String current = ctx.selectedInstance().key();
+            for (dev.lumora.launcher.core.instance.Instance i : own.subList(0, Math.min(8, own.size()))) {
+                javax.swing.JToggleButton b = new javax.swing.JToggleButton(i.name + "  ·  " + i.kind().label() + " " + i.minecraftVersion,
+                        i.key().equals(current));
+                b.setFont(Theme.font(Font.BOLD, 12f));
+                b.setFocusable(false);
+                b.addActionListener(e -> {
+                    selectInstance(i);
+                    close.run();
+                });
+                ownRow.add(b);
+            }
+            JButton all = new JButton(Lang.t("versions.all_instances"));
+            all.setFocusable(false);
+            all.addActionListener(e -> {
+                close.run();
+                showPage("instances");
+            });
+            ownRow.add(all);
+            body.add(label(Lang.t("versions.own_instances"), 12, Font.BOLD, Theme.MUTED));
+            body.add(ownRow);
+            body.add(Box.createVerticalStrut(8));
+        }
+
         // start type: Lumora or plain Minecraft (selectable mod loaders are removed for now)
         JPanel flavors = new JPanel(new GridLayout(1, 2, 6, 0));
         flavors.setOpaque(false);
@@ -727,7 +784,13 @@ final class LauncherWindow implements PageHost {
                     + (played == null ? "" : "<br>" + played) + "</html>"));
         }
         VersionGrid grid = new VersionGrid(list, id -> ctx.gameDir(id).resolve("screenshots"), id -> {
+            if (ctx.config.selectedInstance != null) {
+                // a version from the grid is its built-in instance, not an own instance any more
+                ctx.config.selectedInstance = null;
+                saveConfigQuietly();
+            }
             selectProfile(id);
+            ctx.catalog.profile(id).ifPresent(this::refreshVersionInfo);
             close.run();
         }, 104, 8);
         if (ctx.config.rememberPatch) {
@@ -864,8 +927,10 @@ final class LauncherWindow implements PageHost {
     }
 
     private void setFlavor(dev.lumora.launcher.core.profile.Flavor fl) {
-        if (fl != currentFlavor()) {
+        if (fl != currentFlavor() || ctx.config.selectedInstance != null) {
             ctx.config.selectedFlavor = fl.id();
+            // the version menu chooses a built-in instance
+            ctx.config.selectedInstance = null;
             saveConfigQuietly();
         }
         refreshVersionInfo(ctx.selectedProfile());
@@ -963,11 +1028,22 @@ final class LauncherWindow implements PageHost {
     /** True if the profile ships the Lumora client mod (Lumora menus, HUD editor, addons). */
     private void refreshVersionInfo(ProfileCatalog.Profile p) {
         dev.lumora.launcher.core.profile.Flavor fl = currentFlavor();
+        dev.lumora.launcher.core.instance.Instance own = ctx.selectedInstance();
+        ownInstanceLabel = own.builtIn ? null : own.name;
+        if (profileBox != null) {
+            profileBox.repaint();
+        }
         if (heroOverline != null) {
-            heroOverline.setText("MINECRAFT " + p.minecraftVersion + "  ·  " + switch (fl) {
-                case LUMORA -> "LUMORA CLIENT";
-                case VANILLA -> "VANILLA";
-            });
+            if (!own.builtIn) {
+                // an own instance: its name, loader and version
+                heroOverline.setText(own.name.toUpperCase(Lang.locale()) + "  ·  " + own.kind().label().toUpperCase(Lang.locale())
+                        + "  ·  MINECRAFT " + own.minecraftVersion);
+            } else {
+                heroOverline.setText("MINECRAFT " + p.minecraftVersion + "  ·  " + switch (fl) {
+                    case LUMORA -> "LUMORA CLIENT";
+                    case VANILLA -> "VANILLA";
+                });
+            }
         }
         if (dashboard != null && !dashboard.downloading()) {
             dashboard.idle();
@@ -983,6 +1059,10 @@ final class LauncherWindow implements PageHost {
         syncingProfile = true;
         try {
             boolean changed = !id.equals(ctx.config.selectedProfile);
+            if (changed) {
+                // choosing another version picks its built-in instance (Lumora or Vanilla)
+                ctx.config.selectedInstance = null;
+            }
             ctx.config.selectedProfile = id;
             if (ctx.config.rememberPatch) {
                 // "Ausgewählten Patch merken": this patch is picked again next time its family is chosen
@@ -1074,7 +1154,8 @@ final class LauncherWindow implements PageHost {
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
                 super.getListCellRendererComponent(list, value, index, selected, focus);
                 if (value instanceof ProfileCatalog.Profile p) {
-                    setText("Minecraft " + p.minecraftVersion);
+                    // the closed box shows an own instance by its name while it is the selected one
+                    setText(index < 0 && ownInstanceLabel != null ? ownInstanceLabel : "Minecraft " + p.minecraftVersion);
                 }
                 return this;
             }
@@ -1083,7 +1164,13 @@ final class LauncherWindow implements PageHost {
         profileBox.addActionListener(e -> {
             ProfileCatalog.Profile sel = (ProfileCatalog.Profile) profileBox.getSelectedItem();
             if (sel != null && !syncingProfile) {
+                if (ctx.config.selectedInstance != null) {
+                    // a version chosen here is its built-in instance
+                    ctx.config.selectedInstance = null;
+                    saveConfigQuietly();
+                }
                 selectProfile(sel.id);
+                refreshVersionInfo(sel);
             }
         });
         stopButton = new JButton(Lang.t("play.stop"));
@@ -1196,14 +1283,21 @@ final class LauncherWindow implements PageHost {
         }
         ProfileCatalog.Profile profile = ctx.selectedProfile();
         dev.lumora.launcher.core.profile.Flavor flavor = currentFlavor();
+        dev.lumora.launcher.core.instance.Instance instance = ctx.selectedInstance();
         LoginFlow flow = new LoginFlow(frame, ctx);
         currentLogin = flow;
         setPlay(Lang.t("play.preparing"), false);
         progress.setVisible(true);
         worker.submit(() -> {
             try {
-                ctx.play.play(profile, flavor, ctx.config, PlayService.Mode.ACCOUNT, repair,
-                        flow.interactive(), flow.cancelled(), null, quickPlay, playListener());
+                if (instance.builtIn) {
+                    ctx.play.play(profile, flavor, ctx.config, PlayService.Mode.ACCOUNT, repair,
+                            flow.interactive(), flow.cancelled(), null, quickPlay, playListener());
+                } else {
+                    // an own instance: its loader, folder, Java and memory
+                    ctx.play.playInstance(instance, ctx.layout(instance), ctx.catalog, ctx.config, PlayService.Mode.ACCOUNT, repair,
+                            flow.interactive(), flow.cancelled(), quickPlay, playListener());
+                }
                 SwingUtilities.invokeLater(() -> {
                     flow.closeDialogs();
                     refreshAccount();
@@ -1354,6 +1448,36 @@ final class LauncherWindow implements PageHost {
     @Override
     public void openFolder(Path dir) {
         open(dir);
+    }
+
+    @Override
+    public void selectInstance(dev.lumora.launcher.core.instance.Instance instance) {
+        dev.lumora.launcher.core.instance.InstanceManager.select(ctx.config, instance);
+        saveConfigQuietly();
+        if (instance.builtIn) {
+            selectProfile(instance.profileId);
+        }
+        refreshVersionInfo(ctx.selectedProfile());
+    }
+
+    @Override
+    public void openInstance(dev.lumora.launcher.core.instance.Instance instance) {
+        showPage("instances");
+        instancesPage.open(instance);
+    }
+
+    @Override
+    public void discover(dev.lumora.launcher.core.platform.ProjectType type, dev.lumora.launcher.core.instance.Instance target) {
+        showPage("browser");
+        browserPage.show(type, target);
+    }
+
+    @Override
+    public void instancesChanged() {
+        if (instancesPage != null && instancesPage.isShowing()) {
+            instancesPage.refresh();
+        }
+        refreshVersionInfo(ctx.selectedProfile());
     }
 
     @Override

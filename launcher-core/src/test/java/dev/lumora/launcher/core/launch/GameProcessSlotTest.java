@@ -40,6 +40,41 @@ class GameProcessSlotTest {
         }
     }
 
+    /** Stand-in for a game whose child (a loader error window) inherits the output pipe and outlives it. */
+    public static final class ParentWithChild {
+        public static void main(String[] args) throws Exception {
+            String javaExe = ProcessHandle.current().info().command().orElse("java");
+            new ProcessBuilder(javaExe, "-cp", System.getProperty("java.class.path"), Sleeper.class.getName()).inheritIO().start();
+            Thread.sleep(1500);
+            System.out.println("parent done");
+        }
+    }
+
+    public static final class Sleeper {
+        public static void main(String[] args) throws Exception {
+            System.out.println("child " + ProcessHandle.current().pid());
+            System.out.flush();
+            Thread.sleep(60_000);
+        }
+    }
+
+    @Test
+    void gameEndsWithItsProcessEvenIfAChildKeepsTheOutputOpen() throws Exception {
+        String javaExe = ProcessHandle.current().info().command().orElse("java");
+        java.util.List<String> lines = new java.util.concurrent.CopyOnWriteArrayList<>();
+        GameProcess game = GameProcess.start(java.util.List.of(javaExe, "-cp", System.getProperty("java.class.path"), ParentWithChild.class.getName()),
+                dir, "test", lines::add);
+        try {
+            GameProcess.Exit exit = game.onExit().get(20, java.util.concurrent.TimeUnit.SECONDS);
+            assertEquals(0, exit.code());
+            org.junit.jupiter.api.Assertions.assertTrue(lines.contains("parent done"), "output up to the end is read: " + lines);
+        } finally {
+            lines.stream().filter(l -> l.startsWith("child ")).findFirst()
+                    .flatMap(l -> ProcessHandle.of(Long.parseLong(l.substring(6).strip())))
+                    .ifPresent(ProcessHandle::destroyForcibly);
+        }
+    }
+
     @Test
     void atMostMaxSlots() throws Exception {
         java.util.List<GameProcess.Slot> slots = new java.util.ArrayList<>();

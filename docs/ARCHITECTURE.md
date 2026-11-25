@@ -71,7 +71,12 @@ Minecraft-Prozess (separater Prozess, Mojang-Java 25 für 26.x, sonst 21)
 
 ## Startarten
 
-Der Launcher startet ein Profil als **Lumora** (Minecraft mit dem Lumora Client über den Lumora Loader) oder als **Vanilla** (reines Minecraft; Instanz-ID `<version>-vanilla`, im Standard-Ordner wie Minecraft selbst). Mod-Loader (Fabric, Quilt, Forge, NeoForge) gibt es nicht mehr, ebenso keine Seite „Mods“; „Entdecken“ zeigt nur Ressourcenpakete. Eine gespeicherte Auswahl eines Loaders startet Lumora. Alte Spielordner `instances/<version>-<loader>` bleiben unangetastet liegen.
+Der Launcher startet **Instanzen** (`instance/InstanceManager`, Details in [MODS.md](MODS.md)):
+
+- **Eingebaute Instanzen:** jede Lumora-Version als **Lumora** (Minecraft mit dem Lumora Client über den Lumora Loader) und, wo der Spieler sie genutzt hat, als **Vanilla** (Instanz-ID `<version>-vanilla`). Sie behalten die Ordner aus `InstanceLayout` (Standard-Ordner oder eigene Instanz) und die globalen Einstellungen.
+- **Eigene Instanzen** unter `custom-instances/<id>/`: Lumora, Vanilla, Fabric, Quilt, Forge oder NeoForge für beliebige Minecraft-Versionen, jede mit eigenem Spielordner, eigener Loader-Version, Java, Arbeitsspeicher und Fenstergröße. Die Mod-Loader installiert `loader/` (Fabric/Quilt über ihre Meta-Server, Forge/NeoForge aus dem offiziellen Installer, dessen Prozessoren der Launcher selbst ausführt); `ClientInstaller.prepareGame` lädt alles mit den veröffentlichten Hashes.
+
+Der Spielen-Knopf startet die gewählte Instanz (`LauncherConfig.selectedInstance`); das Versionsmenü wählt eine eingebaute Instanz oder eine eigene.
 
 Lumora-Addons lädt der Client selbst aus dem Ordner `addons` neben seinen Einstellungen (siehe Abschnitt Client-Framework).
 
@@ -160,7 +165,7 @@ Konzept nach LiquidBounce, eigene Umsetzung. Minecraft baut die Verbindung weite
 
 ## Sicherheit
 
-- **Download-Allow-List** (`Downloader.DEFAULT_TRUSTED_HOSTS`): nur HTTPS zu Mojang- und Modrinth-Hosts (Fabric-Hosts sind entfernt). Jede Datei braucht einen erwarteten Hash. Erst nach erfolgreicher Prüfung wird die Datei an ihren Zielort verschoben.
+- **Download-Allow-List** (`Downloader.DEFAULT_TRUSTED_HOSTS`): nur HTTPS zu Mojang-, Modrinth- und den offiziellen Loader-Hosts (Fabric, Legacy Fabric, Quilt, Forge, NeoForge) sowie den Hosts, die das .mrpack-Format erlaubt (github.com, raw.githubusercontent.com, gitlab.com) und CurseForge (API nur mit dem eigenen Schlüssel des Spielers, Datei-CDN, Bilder). Jede Datei braucht einen erwarteten Hash. Erst nach erfolgreicher Prüfung wird die Datei an ihren Zielort verschoben.
 - **Pfad-Traversal-Schutz** (`FileUtil.resolveInside`) für alle Pfade aus entfernten Manifesten.
 - **Keine fest eingebauten Zugangsdaten.** Die Azure-Client-ID wird vom Verteiler oder Nutzer konfiguriert. Passwörter sieht der Launcher nie, die Anmeldung läuft auf Microsofts Webseite.
 - **Token-Schutz**: `Redactor` schwärzt registrierte Geheimnisse und typische Muster (Bearer, JWT, `--accessToken`) in allen Logs. Die Sitzung liegt unter Windows DPAPI-verschlüsselt. Unter Linux/macOS gilt `0600`. Das ist kein Keyring, siehe TROUBLESHOOTING.

@@ -136,23 +136,75 @@ public final class PlayService {
     public GameProcess play(ProfileCatalog.Profile profile, dev.lumora.launcher.core.profile.Flavor flavor, LauncherConfig config,
                             Mode mode, boolean repair, InteractiveLogin interactiveLogin, BooleanSupplier cancelled,
                             Path smokeReport, LaunchCommandBuilder.QuickPlay quickPlay, Listener listener) throws IOException, AuthException {
-        String instanceId = flavor.instanceId(profile.id);
+        Target target = new Target(flavor.instanceId(profile.id), profile.minecraftVersion,
+                flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA,
+                () -> installer.prepare(profile, flavor, config, repair, listener),
+                config.minMemoryMb, config.maxMemoryMb, config.windowWidth, config.windowHeight, List.of());
+        return run(target, config, mode, interactiveLogin, cancelled, smokeReport, quickPlay, listener);
+    }
+
+    /**
+     * Starts an instance (see InstanceManager): built-in Lumora/Vanilla instances like {@link #play}, own instances in
+     * their own folder with their own loader, Java, memory and window settings (unset values: launcher settings).
+     */
+    public GameProcess playInstance(dev.lumora.launcher.core.instance.Instance instance, dev.lumora.launcher.core.InstanceLayout layout,
+                                    ProfileCatalog catalog, LauncherConfig config, Mode mode, boolean repair,
+                                    InteractiveLogin interactiveLogin, BooleanSupplier cancelled,
+                                    LaunchCommandBuilder.QuickPlay quickPlay, Listener listener) throws IOException, AuthException {
+        dev.lumora.launcher.core.instance.InstanceKind kind = instance.kind();
+        if (instance.builtIn) {
+            ProfileCatalog.Profile profile = catalog.profile(instance.profileId).orElseThrow(() -> new IOException(instance.profileId));
+            return play(profile, kind == dev.lumora.launcher.core.instance.InstanceKind.VANILLA
+                    ? dev.lumora.launcher.core.profile.Flavor.VANILLA : dev.lumora.launcher.core.profile.Flavor.LUMORA,
+                    config, mode, repair, interactiveLogin, cancelled, null, quickPlay, listener);
+        }
+        ClientInstallerCall prepare;
+        if (kind == dev.lumora.launcher.core.instance.InstanceKind.LUMORA) {
+            ProfileCatalog.Profile profile = catalog.profiles().stream().filter(p -> p.minecraftVersion.equals(instance.minecraftVersion))
+                    .findFirst().orElseThrow(() -> new IOException(Lang.t("instances.error.lumora_version", instance.minecraftVersion)));
+            prepare = () -> installer.prepare(profile, dev.lumora.launcher.core.profile.Flavor.LUMORA, layout, instance.javaPath, config, repair, listener);
+        } else {
+            prepare = () -> installer.prepareGame(instance.minecraftVersion, kind.loaderId(), instance.loaderVersion, layout,
+                    instance.javaPath, config, repair, listener);
+        }
+        int max = instance.maxMemoryMb != null ? instance.maxMemoryMb : config.maxMemoryMb;
+        int min = Math.min(max, instance.minMemoryMb != null ? instance.minMemoryMb : config.minMemoryMb);
+        Target target = new Target(instance.key(), instance.minecraftVersion, kind == dev.lumora.launcher.core.instance.InstanceKind.LUMORA,
+                prepare, min, max, instance.windowWidth != null ? instance.windowWidth : config.windowWidth,
+                instance.windowHeight != null ? instance.windowHeight : config.windowHeight,
+                instance.jvmArgs == null ? List.of() : instance.jvmArgs);
+        return run(target, config, mode, interactiveLogin, cancelled, null, quickPlay, listener);
+    }
+
+    @FunctionalInterface
+    private interface ClientInstallerCall {
+        ClientInstaller.Prepared prepare() throws IOException;
+    }
+
+    /** What one start needs: instance id (locks, stats), Minecraft version, Lumora or not, preparation and launch settings. */
+    private record Target(String instanceId, String minecraftVersion, boolean lumora, ClientInstallerCall prepare,
+                          int minMemoryMb, int maxMemoryMb, Integer windowWidth, Integer windowHeight, List<String> jvmArgs) {
+    }
+
+    private GameProcess run(Target target, LauncherConfig config, Mode mode, InteractiveLogin interactiveLogin, BooleanSupplier cancelled,
+                            Path smokeReport, LaunchCommandBuilder.QuickPlay quickPlay, Listener listener) throws IOException, AuthException {
+        String instanceId = target.instanceId();
         if (runningGame().isPresent() && !config.multipleInstances) {
             throw new GameProcess.AlreadyRunningException(instanceId);
         }
         GameProcess.Slot slot = null; // until the game process owns it
         try {
             setState(listener, State.INSTALLING, Lang.t("play.status.checking"));
-            ClientInstaller.Prepared prepared = installer.prepare(profile, flavor, config, repair, listener);
+            ClientInstaller.Prepared prepared = target.prepare().prepare();
             // this run's lock in the instance folder (with "multiple instances" the next free one)
             slot = GameProcess.lock(prepared.gameDir(), instanceId, config.multipleInstances);
             try {
                 // render backend of 26.2+ (Einstellungen › Spiel › Grafik-Backend; "default" leaves options.txt alone)
-                dev.lumora.launcher.core.launch.GraphicsBackend.apply(prepared.gameDir(), profile.minecraftVersion, config.graphicsBackend);
+                dev.lumora.launcher.core.launch.GraphicsBackend.apply(prepared.gameDir(), target.minecraftVersion(), config.graphicsBackend);
             } catch (IOException e) {
                 Log.warn("Could not set the graphics backend: " + e.getMessage());
             }
-            if (flavor == dev.lumora.launcher.core.profile.Flavor.LUMORA) {
+            if (target.lumora()) {
                 dev.lumora.launcher.core.install.GameThemeSeeder.seed(prepared.layout().lumoraDir(), config);
             }
             LaunchCommandBuilder.Identity identity;
@@ -193,12 +245,13 @@ public final class PlayService {
                 sysProps.add("-Dlumora.social.shareServer=" + config.socialShareServer);
             }
             List<String> jvmArgs = new ArrayList<>(config.extraJvmArgs);
+            jvmArgs.addAll(target.jvmArgs());
             jvmArgs.addAll(dev.lumora.launcher.core.launch.LaunchOptions.jvmArgs(config, paths.diagnostics()));
             List<String> cmd = LaunchCommandBuilder.build(new LaunchCommandBuilder.Request(
                     prepared.version(), prepared.javaExecutable(), paths.libraries(), prepared.clientJar(),
                     paths.assets(), prepared.gameDir(), prepared.nativesDir(), prepared.loggingConfig(), identity,
-                    config.minMemoryMb, config.maxMemoryMb, jvmArgs,
-                    config.windowWidth, config.windowHeight, sysProps, quickPlay, prepared.loader()), os);
+                    target.minMemoryMb(), target.maxMemoryMb(), jvmArgs,
+                    target.windowWidth(), target.windowHeight(), sysProps, quickPlay, prepared.loader()), os);
 
             cmd = new ArrayList<>(cmd);
             cmd.addAll(dev.lumora.launcher.core.launch.LaunchOptions.gameArgs(config));

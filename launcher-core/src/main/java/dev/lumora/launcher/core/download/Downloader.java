@@ -41,8 +41,16 @@ public final class Downloader {
     public static final Set<String> DEFAULT_TRUSTED_HOSTS = Set.of(
             "piston-meta.mojang.com", "piston-data.mojang.com", "launchermeta.mojang.com", "launcher.mojang.com",
             "libraries.minecraft.net", "resources.download.minecraft.net",
-            // Modrinth: resource packs (Entdecken); no mod loader, so no Fabric or mod downloads
+            // mod loaders: Fabric and Legacy Fabric (1.8.9 / 1.12.2) meta and Maven, Quilt meta and Maven, Forge and NeoForge
+            // Maven (installers, libraries, version lists); every file is checked against the hash its publisher states
+            "meta.fabricmc.net", "maven.fabricmc.net", "meta.legacyfabric.net", "maven.legacyfabric.net",
+            "meta.quiltmc.org", "maven.quiltmc.org", "maven.minecraftforge.net", "files.minecraftforge.net", "maven.neoforged.net",
+            // Modrinth: API, files and images (Entdecken, instances, .mrpack)
             "api.modrinth.com", "cdn.modrinth.com",
+            // further download sources the .mrpack format allows (files there still need the SHA-512 from the pack)
+            "github.com", "raw.githubusercontent.com", "gitlab.com",
+            // CurseForge: official API (only with the player's own key), file CDN and images
+            "api.curseforge.com", "edge.forgecdn.net", "mediafilez.forgecdn.net", "media.forgecdn.net",
             // skins: official Mojang profile/texture services (read-only, public data)
             "sessionserver.mojang.com", "api.mojang.com", "api.minecraftservices.com", "textures.minecraft.net");
 
@@ -130,6 +138,115 @@ public final class Downloader {
                 throw new InterruptedIOException("Interrupted while fetching " + uri);
             } catch (IOException e) {
                 last = e;
+            }
+            sleepBackoff(attempt);
+        }
+        throw last;
+    }
+
+    /**
+     * API request to a trusted host with extra headers (e.g. an API key the player entered). Header values are never
+     * part of an error message or log line. {@code json} null = GET, else POST with that body. 4xx answers other than
+     * 408/429 fail at once; the response is capped at 8 MB.
+     */
+    public String api(URI uri, String json, java.util.Map<String, String> headers) throws IOException {
+        checkTrusted(uri);
+        IOException last = null;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                HttpRequest.Builder b = HttpRequest.newBuilder(uri)
+                        .timeout(Duration.ofSeconds(60))
+                        .header("User-Agent", UserAgent.VALUE)
+                        .header("Accept", "application/json");
+                headers.forEach(b::header);
+                if (json == null) {
+                    b.GET();
+                } else {
+                    b.header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(json, java.nio.charset.StandardCharsets.UTF_8));
+                }
+                HttpResponse<InputStream> resp = http.send(b.build(), HttpResponse.BodyHandlers.ofInputStream());
+                try (InputStream in = resp.body()) {
+                    byte[] data = in.readNBytes(8 * 1024 * 1024 + 1);
+                    if (resp.statusCode() == 200) {
+                        if (data.length > 8 * 1024 * 1024) {
+                            throw new IOException("Response too large: " + uri);
+                        }
+                        return new String(data, java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                }
+                IOException status = new HttpStatusException(resp.statusCode(), uri);
+                if (!isRetryable(resp.statusCode())) {
+                    throw status;
+                }
+                last = status;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new InterruptedIOException("Interrupted while calling " + uri);
+            } catch (HttpStatusException e) {
+                if (!isRetryable(e.status())) {
+                    throw e;
+                }
+                last = e;
+            } catch (IOException e) {
+                last = e;
+            }
+            sleepBackoff(attempt);
+        }
+        throw last;
+    }
+
+    /** An HTTP answer other than 200; {@link #status()} for callers that react to 401/403/404. */
+    public static final class HttpStatusException extends IOException {
+        private static final long serialVersionUID = 1L;
+        private final int status;
+
+        public HttpStatusException(int status, URI uri) {
+            super("HTTP " + status + " for " + uri);
+            this.status = status;
+        }
+
+        public int status() {
+            return status;
+        }
+    }
+
+    /**
+     * Sends a JSON body with POST to a trusted host and returns the response text (APIs that take a list in the body,
+     * e.g. Modrinth's hash lookups). Retried like {@link #fetchString}; the response is capped at 8 MB.
+     */
+    public String postJson(URI uri, String json) throws IOException {
+        checkTrusted(uri);
+        IOException last = null;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                HttpRequest req = HttpRequest.newBuilder(uri)
+                        .timeout(Duration.ofSeconds(60))
+                        .header("User-Agent", UserAgent.VALUE)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(json, java.nio.charset.StandardCharsets.UTF_8)).build();
+                HttpResponse<InputStream> resp = http.send(req, HttpResponse.BodyHandlers.ofInputStream());
+                try (InputStream in = resp.body()) {
+                    byte[] data = in.readNBytes(8 * 1024 * 1024 + 1);
+                    if (resp.statusCode() == 200) {
+                        if (data.length > 8 * 1024 * 1024) {
+                            throw new IOException("Response too large: " + uri);
+                        }
+                        return new String(data, java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                }
+                last = new IOException("HTTP " + resp.statusCode() + " for " + uri);
+                if (!isRetryable(resp.statusCode())) {
+                    throw last;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new InterruptedIOException("Interrupted while posting to " + uri);
+            } catch (IOException e) {
+                last = e;
+                if (e.getMessage() != null && e.getMessage().startsWith("HTTP 4") && !e.getMessage().startsWith("HTTP 429")
+                        && !e.getMessage().startsWith("HTTP 408")) {
+                    throw e;
+                }
             }
             sleepBackoff(attempt);
         }

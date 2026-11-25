@@ -33,6 +33,16 @@ public final class AppContext {
     public final ClientInstaller installer;
     public final AccountStore accounts;
     public final PlayService play;
+    /** All instances: built-in Lumora versions and the player's own (any loader). */
+    public final dev.lumora.launcher.core.instance.InstanceManager instances;
+    /** Content platforms (Modrinth; CurseForge later). */
+    public final dev.lumora.launcher.core.platform.ModRepository repository;
+    /** Whole-instance backups. */
+    public final dev.lumora.launcher.core.instance.BackupManager backups;
+    /** The player's own CurseForge API key, DPAPI-encrypted (none is built in). */
+    private final dev.lumora.launcher.core.auth.SecretStore curseForgeKeyStore;
+    private final java.util.concurrent.atomic.AtomicReference<String> curseForgeKey = new java.util.concurrent.atomic.AtomicReference<>();
+    private volatile boolean curseForgeKeyLoaded;
 
     public AppContext() throws IOException {
         os = OsInfo.current();
@@ -46,6 +56,8 @@ public final class AppContext {
                 && !java.nio.file.Files.exists(defaultRoot.resolve("libraries"));
         configLoad = configStore.load();
         config = configLoad.config();
+        // interface language (Einstellungen › Allgemein); German unless the player chose English
+        dev.lumora.launcher.core.i18n.Lang.use(config.language);
         if (fresh && config.installDir == null) {
             // new installation: all data next to Minecraft's own (.minecraft/LumoraClient), like other clients do;
             // the installer's choice below wins. Existing installations keep their folder.
@@ -74,6 +86,10 @@ public final class AppContext {
         }, os);
         accounts = new AccountStore(bootstrap.authFile().getParent(), os);
         play = new PlayService(paths, installer, accounts, os);
+        instances = new dev.lumora.launcher.core.instance.InstanceManager(paths, catalog);
+        curseForgeKeyStore = new dev.lumora.launcher.core.auth.SecretStore(bootstrap.authFile().getParent().resolve("curseforge.bin"), "curseforge", os);
+        repository = dev.lumora.launcher.core.platform.ModRepository.standard(downloader, this::curseForgeKey);
+        backups = new dev.lumora.launcher.core.instance.BackupManager(paths);
         play.history().setEnabled(config.connectionHistory);
         // Einstellungen › Speicher: cache limit and old game logs, in the background
         Thread housekeeping = new Thread(() -> {
@@ -108,6 +124,32 @@ public final class AppContext {
         } catch (IOException e) {
             Log.warn("Could not save the launcher settings", e);
         }
+    }
+
+    /** The stored CurseForge key (read once), or null. */
+    public String curseForgeKey() {
+        if (!curseForgeKeyLoaded) {
+            curseForgeKey.set(curseForgeKeyStore.load());
+            curseForgeKeyLoaded = true;
+        }
+        return curseForgeKey.get();
+    }
+
+    /** Saves (or with a blank value removes) the player's CurseForge key. */
+    public void setCurseForgeKey(String key) throws IOException {
+        curseForgeKeyStore.save(key);
+        curseForgeKey.set(key == null || key.isBlank() ? null : key.strip());
+        curseForgeKeyLoaded = true;
+    }
+
+    /** The instance the play button starts (see InstanceManager). */
+    public dev.lumora.launcher.core.instance.Instance selectedInstance() {
+        return instances.selected(config);
+    }
+
+    /** Folders of any instance (built-in or own). */
+    public dev.lumora.launcher.core.InstanceLayout layout(dev.lumora.launcher.core.instance.Instance instance) {
+        return instances.layout(config, instance);
     }
 
     /** Folders of an instance (standard folder or own, see InstanceLayout). */

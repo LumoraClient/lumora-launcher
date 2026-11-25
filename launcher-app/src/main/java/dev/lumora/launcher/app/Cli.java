@@ -53,10 +53,15 @@ final class Cli {
                 return 0;
             }
             if (a.contains("--ui-shot")) {
-                return uiShot(ctx, Path.of(option(a, "--ui-shot", "ui-shots")), List.of(option(a, "--pages", "home").split(",")));
+                return uiShot(ctx, Path.of(option(a, "--ui-shot", "ui-shots")), List.of(option(a, "--pages", "home").split(",")),
+                        Integer.parseInt(option(a, "--wait", "2500")));
             }
             if (a.contains("--launch-test")) {
-                return launchTest(ctx, profile, dev.lumora.launcher.core.profile.Flavor.of(option(a, "--loader", "lumora")),
+                // --instance <key>: start an instance (own instances with their loader), else the profile with --loader
+                String instanceKey = option(a, "--instance", null);
+                dev.lumora.launcher.core.instance.Instance instance = instanceKey == null ? null
+                        : ctx.instances.find(ctx.config, instanceKey).orElseThrow(() -> new IllegalArgumentException("unknown instance " + instanceKey));
+                return launchTest(ctx, profile, dev.lumora.launcher.core.profile.Flavor.of(option(a, "--loader", "lumora")), instance,
                         Integer.parseInt(option(a, "--timeout", "600")));
             }
             if (a.contains("--smoke-test")) {
@@ -147,8 +152,10 @@ final class Cli {
     /**
      * Developer option: opens the launcher window (test data folder recommended: LUMORA_HOME), shows the given pages
      * one after another and saves a PNG of each into {@code dir}, then closes. Used for the documentation images.
+     *
+     * @param waitMillis time per page for pages that load in the background (Entdecken loads from Modrinth)
      */
-    private static int uiShot(AppContext ctx, Path dir, List<String> pages) throws Exception {
+    private static int uiShot(AppContext ctx, Path dir, List<String> pages, int waitMillis) throws Exception {
         LauncherWindow[] w = new LauncherWindow[1];
         javax.swing.SwingUtilities.invokeAndWait(() -> {
             dev.lumora.launcher.app.ui.Theme.install(ctx.config.accentColor, ctx.config.pixelStyle, ctx.config.reduceMotion);
@@ -158,8 +165,8 @@ final class Cli {
         Thread.sleep(2500);
         for (String page : pages) {
             javax.swing.SwingUtilities.invokeAndWait(() -> w[0].showPage(page.strip()));
-            Thread.sleep(2500);
-            Path file = dir.resolve("launcher-" + page.strip().replace('/', '-') + ".png");
+            Thread.sleep(waitMillis);
+            Path file = dir.resolve("launcher-" + page.strip().replaceAll("[^A-Za-z0-9._-]", "-") + ".png");
             javax.swing.SwingUtilities.invokeAndWait(() -> {
                 try {
                     w[0].capture(file);
@@ -175,6 +182,9 @@ final class Cli {
 
     /** Log lines that every supported Minecraft version prints once the game is up (sound engine ready). */
     static final java.util.regex.Pattern STARTED = java.util.regex.Pattern.compile("Sound engine started|OpenAL initialized");
+    /** Fabric and Quilt Loader give up before the game window (missing or incompatible mods). */
+    static final java.util.regex.Pattern LOADER_FAILED = java.util.regex.Pattern.compile(
+            "/ERROR\\]: Crashed!|Incompatible mods found|Mod resolution encountered an incompatible mod set");
     /** How long the game must keep running after the marker. */
     static final int STABLE_SECONDS = 15;
 
@@ -184,8 +194,9 @@ final class Cli {
      * Passed = the marker appeared and the game did not exit or crash on its own.
      */
     private static int launchTest(AppContext ctx, ProfileCatalog.Profile profile, dev.lumora.launcher.core.profile.Flavor flavor,
-                                  int timeoutSeconds) throws Exception {
+                                  dev.lumora.launcher.core.instance.Instance instance, int timeoutSeconds) throws Exception {
         java.util.concurrent.CompletableFuture<String> marker = new java.util.concurrent.CompletableFuture<>();
+        java.util.concurrent.CompletableFuture<String> failed = new java.util.concurrent.CompletableFuture<>();
         java.util.List<String> loaded = new java.util.concurrent.CopyOnWriteArrayList<>();
         PlayService.Listener listener = new PlayService.Listener() {
             @Override
@@ -201,6 +212,9 @@ final class Cli {
                 if (STARTED.matcher(line).find()) {
                     marker.complete(line);
                 }
+                if (LOADER_FAILED.matcher(line).find()) {
+                    failed.complete(line); // Fabric/Quilt keep an error window open, the process would not exit
+                }
             }
 
             @Override
@@ -213,17 +227,27 @@ final class Cli {
             }
         };
         Path report = ctx.paths.diagnostics().resolve("launch-" + flavor.instanceId(profile.id) + ".json");
-        GameProcess game = ctx.play.play(profile, flavor, ctx.config, PlayService.Mode.SMOKE_TEST_DEMO, false,
-                (auth, cancelled) -> {
-                    throw new dev.lumora.launcher.core.auth.AuthException(
-                            dev.lumora.launcher.core.auth.AuthException.Reason.NOT_CONFIGURED, "Launch test does not sign in");
-                }, () -> false, report, null, listener);
+        PlayService.InteractiveLogin noLogin = (auth, cancelled) -> {
+            throw new dev.lumora.launcher.core.auth.AuthException(
+                    dev.lumora.launcher.core.auth.AuthException.Reason.NOT_CONFIGURED, "Launch test does not sign in");
+        };
+        GameProcess game = instance != null
+                ? ctx.play.playInstance(instance, ctx.layout(instance), ctx.catalog, ctx.config, PlayService.Mode.SMOKE_TEST_DEMO, false,
+                noLogin, () -> false, null, listener)
+                : ctx.play.play(profile, flavor, ctx.config, PlayService.Mode.SMOKE_TEST_DEMO, false, noLogin, () -> false, report, null, listener);
         String line;
         try {
-            line = java.util.concurrent.CompletableFuture.anyOf(marker, game.onExit()).get(timeoutSeconds, TimeUnit.SECONDS) instanceof String s ? s : null;
+            line = java.util.concurrent.CompletableFuture.anyOf(marker, failed, game.onExit()).get(timeoutSeconds, TimeUnit.SECONDS) instanceof String s ? s : null;
         } catch (TimeoutException e) {
             System.out.println("LAUNCH TEST FAILED: no start marker after " + timeoutSeconds + " s");
             game.stop(java.time.Duration.ofSeconds(20));
+            return 1;
+        }
+        if (failed.isDone() && !marker.isDone()) {
+            System.out.println("LAUNCH TEST FAILED: mod loader stopped: " + failed.getNow("").strip());
+            game.stop(java.time.Duration.ofSeconds(20));
+            Path crashes = (instance != null ? instance.gameDir() : ctx.gameDir(flavor.instanceId(profile.id))).resolve("crash-reports");
+            System.out.println("See " + crashes);
             return 1;
         }
         if (line == null) {
@@ -242,6 +266,11 @@ final class Cli {
             return 1;
         } catch (TimeoutException stillRunning) {
             game.stop(java.time.Duration.ofSeconds(20));
+        }
+        if (instance != null) {
+            System.out.println("LAUNCH TEST PASSED: instance " + instance.name + " (" + instance.kind().label() + " " + instance.minecraftVersion
+                    + ") started and ran " + STABLE_SECONDS + " s");
+            return 0;
         }
         System.out.println("LAUNCH TEST PASSED: Minecraft " + profile.minecraftVersion + " (" + flavor.label()
                 + (flavor == dev.lumora.launcher.core.profile.Flavor.VANILLA ? ""

@@ -416,7 +416,7 @@ final class HomeDashboard {
     /** Game installation running: what is loaded and how far. */
     void download(String detail, double fraction) {
         downloading = true;
-        dlTitle.setText("Minecraft " + host.ctx().selectedProfile().minecraftVersion);
+        dlTitle.setText(installTitle());
         String pct = fraction >= 0 ? Math.round(fraction * 100) + " %" : "";
         String d = detail == null || detail.isBlank() ? Lang.t("play.installing") : detail;
         dlDetail.setText(pct.isEmpty() ? d : d + "  –  " + pct);
@@ -429,13 +429,19 @@ final class HomeDashboard {
     /** No installation running: whether the selected version is installed, and component updates. */
     void idle() {
         downloading = false;
-        ProfileCatalog.Profile p = host.ctx().selectedProfile();
-        dlTitle.setText("Minecraft " + p.minecraftVersion);
-        boolean installed = Files.isRegularFile(host.ctx().paths.versions().resolve(p.minecraftVersion).resolve(p.minecraftVersion + ".jar"));
+        String mc = host.ctx().selectedInstance().minecraftVersion;
+        dlTitle.setText(installTitle());
+        boolean installed = Files.isRegularFile(host.ctx().paths.versions().resolve(mc).resolve(mc + ".jar"));
         dlDetail.setText(installed ? Lang.t("home.downloads.installed") : Lang.t("home.downloads.not_installed"));
         dlDetail.setIcon(installed ? Icons.of(Icons.Kind.CHECK, 14, Theme.OK) : Icons.of(Icons.Kind.DOWNLOAD, 14, Theme.MUTED));
         dlBar.setVisible(false);
         showUpdates();
+    }
+
+    /** "Minecraft 26.3" for a built-in instance, "My Pack · Fabric 1.21.4" for an own one. */
+    private String installTitle() {
+        dev.lumora.launcher.core.instance.Instance i = host.ctx().selectedInstance();
+        return i.builtIn ? "Minecraft " + i.minecraftVersion : i.name + " · " + i.kind().label() + " " + i.minecraftVersion;
     }
 
     /** Result of the background component update check. */

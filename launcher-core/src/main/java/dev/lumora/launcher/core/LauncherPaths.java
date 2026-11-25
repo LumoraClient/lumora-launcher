@@ -93,6 +93,11 @@ public record LauncherPaths(Path root) {
         return root.resolve("diagnostics");
     }
 
+    /** Instances the player created (any loader), each with instance.json and its game folder; see docs/MODS.md. */
+    public Path customInstances() {
+        return root.resolve("custom-instances");
+    }
+
     /** Addon library: Lumora addon jars offered in the hub (Addons) and installed into an instance from there. */
     public Path addonLibrary() {
         return root.resolve("addons");

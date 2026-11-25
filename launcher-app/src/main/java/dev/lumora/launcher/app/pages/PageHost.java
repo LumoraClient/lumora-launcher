@@ -44,4 +44,16 @@ public interface PageHost {
     /** Settings were changed outside the settings page (e.g. a fix from the crash analysis): the page shows them anew. */
     default void settingsChanged() {
     }
+
+    /** Makes an instance the selected one: the play button, the home page and the version menu follow. */
+    void selectInstance(dev.lumora.launcher.core.instance.Instance instance);
+
+    /** Shows the instance page with the details of {@code instance}. */
+    void openInstance(dev.lumora.launcher.core.instance.Instance instance);
+
+    /** Opens Entdecken for one content type, with filters for {@code target} (null = the selected instance). */
+    void discover(dev.lumora.launcher.core.platform.ProjectType type, dev.lumora.launcher.core.instance.Instance target);
+
+    /** The instance list changed (created, copied, renamed, deleted, imported): pages that show instances reload. */
+    void instancesChanged();
 }

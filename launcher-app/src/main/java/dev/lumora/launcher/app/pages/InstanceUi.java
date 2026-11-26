@@ -43,8 +43,13 @@ final class InstanceUi {
     /** "Fabric 0.16.9 · 1.21.4" / "Lumora · 26.3". */
     static String summary(Instance i) {
         InstanceKind k = i.kind();
-        String loader = k.label() + (k.modded() && i.loaderVersion != null ? " " + i.loaderVersion : "");
+        String loader = k.label() + (k.modded() && i.loaderVersion != null ? " " + i.loaderVersion : "") + lumoraSuffix(i);
         return loader + " · " + i.minecraftVersion;
+    }
+
+    /** " + Lumora" when the Lumora Client runs next to the mod loader, else empty. */
+    static String lumoraSuffix(Instance i) {
+        return i.lumoraClient && i.kind().modded() ? " + Lumora" : "";
     }
 
     /** Where it came from: "Lumora", "Modpack", "Eigene Instanz". */

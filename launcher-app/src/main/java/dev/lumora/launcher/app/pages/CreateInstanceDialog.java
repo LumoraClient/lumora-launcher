@@ -70,6 +70,8 @@ final class CreateInstanceDialog {
     private boolean loading;
     private final JLabel chosenLabel = Ui.label(" ", 13, Font.BOLD, Theme.TEXT);
     private final JCheckBox sharedFolder = new JCheckBox(Lang.t("create.shared_folder"));
+    /** Fabric/Quilt/Forge/NeoForge: also start the Lumora Client (Instance.lumoraClient). */
+    private final JCheckBox lumoraClient = new JCheckBox(Lang.t("create.lumora_client"));
     /** Name filled in automatically (replaced when kind or version change, kept once the player typed one). */
     private String autoName;
     private boolean startAtVersions;
@@ -381,6 +383,9 @@ final class CreateInstanceDialog {
         // Lumora and Vanilla of a Lumora version can also be the built-in instance with the shared Minecraft folder
         sharedFolder.setVisible(!kind.modded() && profileFor(mc) != null);
         sharedFolder.setSelected(false);
+        boolean lumoraPossible = kind.modded() && host.ctx().installer.hasLumoraFor(kind.loaderId(), mc);
+        lumoraClient.setVisible(lumoraPossible);
+        lumoraClient.setSelected(lumoraPossible);
         name.setEnabled(true);
         loaderVersion.removeAllItems();
         loaderIds.clear();
@@ -466,6 +471,14 @@ final class CreateInstanceDialog {
         sharedFolder.addActionListener(e -> name.setEnabled(!sharedFolder.isSelected()));
         sharedFolder.setVisible(false);
         form.add(sharedFolder);
+        lumoraClient.setOpaque(false);
+        lumoraClient.setFocusable(false);
+        lumoraClient.setFont(Theme.font(Font.PLAIN, 13f));
+        lumoraClient.setForeground(Theme.TEXT);
+        lumoraClient.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lumoraClient.setToolTipText(Lang.t("create.lumora_client.tip"));
+        lumoraClient.setVisible(false);
+        form.add(lumoraClient);
         form.add(Box.createVerticalStrut(10));
         form.add(Ui.wrapText(Lang.t("create.finish.hint"), 12.5f, Theme.MUTED));
         p.add(form, BorderLayout.NORTH);
@@ -528,6 +541,7 @@ final class CreateInstanceDialog {
         int i = loaderVersion.getSelectedIndex();
         spec.loaderVersion = kind.modded() && i > 0 && i < loaderIds.size() ? loaderIds.get(i) : null;
         spec.loaderPinned = spec.loaderVersion != null;
+        spec.lumoraClient = lumoraClient.isVisible() && lumoraClient.isSelected();
         try {
             Instance inst = host.ctx().instances.create(spec);
             dialog.dispose();

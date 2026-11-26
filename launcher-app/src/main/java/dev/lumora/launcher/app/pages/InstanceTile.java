@@ -216,6 +216,13 @@ final class InstanceTile extends JComponent {
         g.setColor(new Color(20, 22, 26, 215));
         g.fillRoundRect(lx, y, bh, bh, 6, 6);
         paintLoader(g, instance.kind(), lx, y, bh);
+        if (!InstanceUi.lumoraSuffix(instance).isEmpty()) {
+            // the Lumora Client runs next to the mod loader
+            int sx = lx - 4 - bh;
+            g.setColor(new Color(20, 22, 26, 215));
+            g.fillRoundRect(sx, y, bh, bh, 6, 6);
+            paintLoader(g, InstanceKind.LUMORA, sx, y, bh);
+        }
         // play button on hover
         int pb = 40;
         playBox.setBounds(w - pb - 10, IMAGE_H - pb - 10, pb, pb);

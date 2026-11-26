@@ -317,7 +317,7 @@ public final class InstancePicker {
             g.drawString(InstanceTile.ellipsize(instance.name, fm, textRight - tx), tx, h / 2 - 2);
             g.setFont(Theme.font(Font.PLAIN, 12.5f));
             g.setColor(Theme.MUTED);
-            String line = instance.minecraftVersion + " - " + instance.kind().label();
+            String line = instance.minecraftVersion + " - " + instance.kind().label() + InstanceUi.lumoraSuffix(instance);
             g.drawString(InstanceTile.ellipsize(line, g.getFontMetrics(), textRight - tx), tx, h / 2 + 15);
             g.dispose();
         }

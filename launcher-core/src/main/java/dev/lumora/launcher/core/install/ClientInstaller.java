@@ -122,6 +122,9 @@ public final class ClientInstaller {
         tasks.add(new Downloader.Task(URI.create(version.clientJar().url), clientJar,
                 Hashing.Expected.sha1(version.clientJar().sha1), version.clientJar().size));
         for (ResolvedVersion.Library lib : version.libraries()) {
+            if (lib.url() == null) {
+                continue; // only loader installers make libraries without a source; vanilla has none
+            }
             tasks.add(new Downloader.Task(URI.create(lib.url()), FileUtil.resolveInside(paths.libraries(), lib.path()),
                     Hashing.Expected.sha1(lib.sha1()), lib.size()));
         }
@@ -216,6 +219,16 @@ public final class ClientInstaller {
     public Prepared prepareGame(String minecraftVersion, String loaderId, String loaderVersion,
                                 dev.lumora.launcher.core.InstanceLayout layout, String javaOverride, LauncherConfig config,
                                 boolean repair, ProgressListener progress) throws IOException {
+        return prepareGame(minecraftVersion, loaderId, loaderVersion, layout, javaOverride, config, repair, progress, null);
+    }
+
+    /**
+     * @param javaComponent official Java runtime to use instead of the version's (the Lumora Client on Fabric needs the
+     *                      Java of its Lumora version, e.g. 21 for 1.16.5), null = the version's own
+     */
+    public Prepared prepareGame(String minecraftVersion, String loaderId, String loaderVersion,
+                                dev.lumora.launcher.core.InstanceLayout layout, String javaOverride, LauncherConfig config,
+                                boolean repair, ProgressListener progress, String javaComponent) throws IOException {
         MetadataService meta = new MetadataService(downloader, paths.versions());
         dev.lumora.launcher.core.loader.ModLoader loader = loaderId == null ? null
                 : loaders.loaders().byId(loaderId).orElseThrow(() -> new IOException(Lang.t("loader.error.unknown", loaderId)));
@@ -306,7 +319,7 @@ public final class ClientInstaller {
         }
 
         if (java == null) {
-            java = resolveJava(version, null, javaOverride, config, verify, progress);
+            java = resolveJava(version, javaComponent, javaOverride, config, verify, progress);
         }
         Files.createDirectories(layout.gameDir());
         if (loader != null) {
@@ -326,6 +339,45 @@ public final class ClientInstaller {
         String sha1 = body.split("\\s+")[0];
         Hashing.Expected.sha1(sha1);
         return sha1;
+    }
+
+    /**
+     * Variant of the Lumora Client for a mod loader: "fabric" (Fabric, Quilt: fabric.mod.json, Fabric's names) or "forge"
+     * (Forge, NeoForge: mods.toml, Mojang's names, which both use at run time from 1.20.6), null for other loaders.
+     */
+    public static String lumoraVariant(String loaderId) {
+        if (loaderId == null) {
+            return null;
+        }
+        return switch (loaderId) {
+            case "fabric", "quilt" -> "fabric";
+            case "forge", "neoforge" -> "forge";
+            default -> null;
+        };
+    }
+
+    /** File name of a loader variant of the Lumora Client (shipped in the bundled folder), e.g. lumora-client-mc1.21.11-fabric.jar. */
+    public static String variantJarName(String minecraftVersion, String variant) {
+        return "lumora-client-mc" + minecraftVersion + "-" + variant + ".jar";
+    }
+
+    /** Whether the launcher ships the Lumora Client for this mod loader and Minecraft version. */
+    public boolean hasLumoraFor(String loaderId, String minecraftVersion) {
+        String variant = lumoraVariant(loaderId);
+        try {
+            return variant != null && bundled.get().contains(variantJarName(minecraftVersion, variant));
+        } catch (RuntimeException e) {
+            return false; // incomplete installation: no bundled index
+        }
+    }
+
+    /** The loader variant of the Lumora Client, checked against its SHA-512 from the bundled index. */
+    public Path lumoraFor(String loaderId, String minecraftVersion) throws IOException {
+        String variant = lumoraVariant(loaderId);
+        if (variant == null) {
+            throw new IOException(Lang.t("lumora_mod.error.loader", loaderId));
+        }
+        return bundled.get().verified(variantJarName(minecraftVersion, variant));
     }
 
     /** Java major version of Mojang's runtime components (all.json). */

@@ -28,6 +28,11 @@ public final class Instance {
     public String loaderVersion;
     /** Keep {@link #loaderVersion} even if a newer recommended one appears. */
     public boolean loaderPinned;
+    /**
+     * Fabric/Quilt instances: also start the Lumora Client (its Fabric variant, added with -Dfabric.addMods, not copied
+     * into mods/). Only for Minecraft versions Lumora supports.
+     */
+    public boolean lumoraClient;
     /** Icon file name inside the instance folder (e.g. {@code icon.png}), null = generated icon. */
     public String icon;
     /** Own Java executable, null = the version's official runtime (or the launcher setting). */
@@ -83,6 +88,7 @@ public final class Instance {
         c.minecraftVersion = minecraftVersion;
         c.loaderVersion = loaderVersion;
         c.loaderPinned = loaderPinned;
+        c.lumoraClient = lumoraClient;
         c.icon = icon;
         c.javaPath = javaPath;
         c.minMemoryMb = minMemoryMb;

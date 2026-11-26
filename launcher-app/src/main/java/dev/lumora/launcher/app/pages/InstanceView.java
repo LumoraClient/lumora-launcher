@@ -743,6 +743,7 @@ final class InstanceView extends JPanel {
         g.add(iconRow);
         JComboBox<String> loader = null;
         JCheckBox pin = null;
+        JCheckBox lumoraBox = null;
         List<String> loaderIds = new ArrayList<>();
         if (edit.kind().modded()) {
             g.add(Ui.caption(Lang.t("instance.settings.loader_version", edit.kind().label())));
@@ -754,6 +755,14 @@ final class InstanceView extends JPanel {
             pin = new JCheckBox(Lang.t("instance.settings.pin"), edit.loaderPinned);
             pin.setOpaque(false);
             g.add(pin);
+            if (host.ctx().installer.hasLumoraFor(edit.kind().loaderId(), edit.minecraftVersion)) {
+                lumoraBox = new JCheckBox(Lang.t("create.lumora_client"), edit.lumoraClient);
+                lumoraBox.setOpaque(false);
+                lumoraBox.setToolTipText(Lang.t("create.lumora_client.tip"));
+                g.add(lumoraBox);
+            } else {
+                g.add(Ui.wrapText(Lang.t("instance.settings.lumora_unavailable", edit.kind().label(), edit.minecraftVersion), 12f, Theme.MUTED));
+            }
             JComboBox<String> box = loader;
             io.submit(() -> {
                 try {
@@ -845,6 +854,7 @@ final class InstanceView extends JPanel {
         col.add(error);
         JComboBox<String> loaderBox = loader;
         JCheckBox pinBox = pin;
+        JCheckBox lumoraCheck = lumoraBox;
         JPanel save = Ui.row(8);
         save.add(Ui.primary(Lang.t("common.save"), Icons.Kind.CHECK, () -> {
             Instance c = instance.copy();
@@ -855,6 +865,9 @@ final class InstanceView extends JPanel {
             }
             if (pinBox != null) {
                 c.loaderPinned = pinBox.isSelected() && c.loaderVersion != null;
+            }
+            if (lumoraCheck != null) {
+                c.lumoraClient = lumoraCheck.isSelected();
             }
             c.javaPath = java.getText().isBlank() ? null : java.getText().strip();
             c.maxMemoryMb = ownMemory.isSelected() ? (Integer) max.getValue() : null;

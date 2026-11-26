@@ -174,11 +174,10 @@ public final class ResolvedVersion {
                 sha1 = l.sha1 == null || l.sha1.isEmpty() ? null : l.sha1;
                 size = l.size != null ? l.size : 0;
             }
-            if (url == null || url.isEmpty()) {
-                continue;
-            }
+            // no URL: made by the loader's installer (e.g. Forge's patched client "forge:<v>:client", which Forge 1.20.6+
+            // finds on the class path); it stays on the class path, the installer checks that the file is there
             taken.add(key);
-            out.put(key, new Library(l.name, path, url, sha1, size));
+            out.put(key, new Library(l.name, path, url == null || url.isEmpty() ? null : url, sha1, size));
         }
     }
 

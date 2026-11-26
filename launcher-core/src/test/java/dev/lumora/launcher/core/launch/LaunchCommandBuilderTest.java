@@ -146,6 +146,17 @@ class LaunchCommandBuilderTest {
         VersionJson vanilla = Json.GSON.fromJson(VANILLA, VersionJson.class);
         VersionJson fabric = Json.GSON.fromJson(FABRIC.replace("\"inheritsFrom\":\"26.1.2\"", "\"inheritsFrom\":\"1.21.11\""), VersionJson.class);
         assertThrows(IllegalArgumentException.class, () -> ResolvedVersion.merge(fabric, vanilla, WIN));
+        // a library the loader's installer made itself (empty URL, e.g. Forge's patched client) stays on the class path
+        VersionJson forge = Json.GSON.fromJson("""
+                {"id":"forge-26.1.2-1.0","inheritsFrom":"26.1.2","mainClass":"net.minecraftforge.bootstrap.ForgeBootstrap",
+                 "libraries":[
+                  {"name":"net.minecraftforge:forge:26.1.2-1.0:universal","downloads":{"artifact":{"path":"net/minecraftforge/forge/26.1.2-1.0/forge-26.1.2-1.0-universal.jar","url":"https://maven.minecraftforge.net/u.jar","sha1":"%s","size":1}}},
+                  {"name":"net.minecraftforge:forge:26.1.2-1.0:client","downloads":{"artifact":{"path":"net/minecraftforge/forge/26.1.2-1.0/forge-26.1.2-1.0-client.jar","url":"","sha1":"%s","size":1}}}]}
+                """.formatted("6".repeat(40), "7".repeat(40)), VersionJson.class);
+        ResolvedVersion withForge = ResolvedVersion.merge(forge, vanilla, WIN);
+        ResolvedVersion.Library patched = withForge.libraries().stream().filter(l -> l.name().endsWith(":client")).findFirst().orElseThrow();
+        assertEquals(null, patched.url(), "made locally, nothing to download");
+        assertTrue(withForge.libraries().stream().anyMatch(l -> l.name().endsWith(":universal") && l.url() != null));
         // legacy format is supported (see LegacyVersionTest), but a version without client download is not
         VersionJson legacy = Json.GSON.fromJson("{\"id\":\"1.12.2\",\"minecraftArguments\":\"--username x\",\"libraries\":[]}", VersionJson.class);
         assertThrows(IllegalArgumentException.class, () -> ResolvedVersion.merge(null, legacy, WIN));

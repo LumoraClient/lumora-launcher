@@ -37,6 +37,15 @@ dependencies {
     for (v in gradle.extra["lumoraClientVersions"] as List<String>) {
         bundledMod(project(path = ":client-mc$v", configuration = "runtimeElements")) { isTransitive = false }
     }
+    // the Lumora Client for mod loaders: Fabric/Quilt (-fabric.jar) and Forge/NeoForge (-forge.jar)
+    @Suppress("UNCHECKED_CAST")
+    for (v in gradle.extra["lumoraFabricVersions"] as List<String>) {
+        bundledMod(project(path = ":client-mc$v", configuration = "fabricElements")) { isTransitive = false }
+    }
+    @Suppress("UNCHECKED_CAST")
+    for (v in gradle.extra["lumoraForgeVersions"] as List<String>) {
+        bundledMod(project(path = ":client-mc$v", configuration = "forgeElements")) { isTransitive = false }
+    }
     // the Lumora Loader (starts profiles with loader "lumora" without a mod loader)
     bundledMod(project(path = ":lumora-loader", configuration = "runtimeElements")) { isTransitive = false }
 }
@@ -61,7 +70,10 @@ val stageBundled = tasks.register("stageBundled") {
         }
         @Suppress("UNCHECKED_CAST")
         val expected = (gradle.extra["lumoraClientVersions"] as List<String>).map { "lumora-client-mc$it.jar" }
-        val missing = expected.filter { name -> bundledMod.files.none { it.name == name } }
+        @Suppress("UNCHECKED_CAST")
+        val variants = (gradle.extra["lumoraFabricVersions"] as List<String>).map { "lumora-client-mc$it-fabric.jar" } +
+            (gradle.extra["lumoraForgeVersions"] as List<String>).map { "lumora-client-mc$it-forge.jar" }
+        val missing = (expected + variants).filter { name -> bundledMod.files.none { it.name == name } }
         check(missing.isEmpty()) { "companion mod jars missing: $missing" }
         dir.resolve("bundled-mods.json").writeText("{\n" + entries.joinToString(",\n") + "\n}\n")
     }

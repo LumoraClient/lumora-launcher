@@ -69,7 +69,8 @@ public final class Diagnostics {
 
     public static Path write(String name, Map<String, Object> data) {
         Path dir = directory();
-        Path file = dir.resolve(name);
+        // own instances are "custom:<id>": characters Windows does not allow in file names become "-"
+        Path file = dir.resolve(name.replaceAll("[^A-Za-z0-9._-]", "-"));
         try {
             Files.createDirectories(dir);
             Files.writeString(file, GSON.toJson(data), StandardCharsets.UTF_8);

@@ -49,6 +49,11 @@ public final class BundledMods {
         }
     }
 
+    /** Whether the launcher ships this component (listed in the index). */
+    public boolean contains(String fileName) {
+        return hashes.containsKey(fileName);
+    }
+
     public Path verified(String fileName) throws IOException {
         String expected = hashes.get(fileName);
         if (expected == null) {

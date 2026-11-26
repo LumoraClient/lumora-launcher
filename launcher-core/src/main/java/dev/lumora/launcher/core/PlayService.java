@@ -159,20 +159,34 @@ public final class PlayService {
                     config, mode, repair, interactiveLogin, cancelled, null, quickPlay, listener);
         }
         ClientInstallerCall prepare;
+        List<String> extraSysProps = new ArrayList<>(); // filled while preparing (Lumora Client on a mod loader)
+        boolean lumoraOnLoader = false;
         if (kind == dev.lumora.launcher.core.instance.InstanceKind.LUMORA) {
             ProfileCatalog.Profile profile = catalog.profiles().stream().filter(p -> p.minecraftVersion.equals(instance.minecraftVersion))
                     .findFirst().orElseThrow(() -> new IOException(Lang.t("instances.error.lumora_version", instance.minecraftVersion)));
             prepare = () -> installer.prepare(profile, dev.lumora.launcher.core.profile.Flavor.LUMORA, layout, instance.javaPath, config, repair, listener);
         } else {
-            prepare = () -> installer.prepareGame(instance.minecraftVersion, kind.loaderId(), instance.loaderVersion, layout,
-                    instance.javaPath, config, repair, listener);
+            // the Lumora Client next to the mod loader (Fabric/Quilt/Forge/NeoForge), with the Java of its Lumora version
+            String loaderId = kind.loaderId();
+            ProfileCatalog.Profile lumora = instance.lumoraClient && installer.hasLumoraFor(loaderId, instance.minecraftVersion)
+                    ? catalog.profiles().stream().filter(p -> p.minecraftVersion.equals(instance.minecraftVersion)).findFirst().orElse(null)
+                    : null;
+            prepare = () -> {
+                ClientInstaller.Prepared p = installer.prepareGame(instance.minecraftVersion, loaderId, instance.loaderVersion, layout,
+                        instance.javaPath, config, repair, listener, lumora == null ? null : lumora.javaComponent);
+                Path jar = lumora == null ? null : installer.lumoraFor(loaderId, instance.minecraftVersion);
+                extraSysProps.addAll(dev.lumora.launcher.core.install.LumoraAddon.apply(p.gameDir(), loaderId, jar));
+                return p;
+            };
+            lumoraOnLoader = lumora != null;
         }
         int max = instance.maxMemoryMb != null ? instance.maxMemoryMb : config.maxMemoryMb;
         int min = Math.min(max, instance.minMemoryMb != null ? instance.minMemoryMb : config.minMemoryMb);
-        Target target = new Target(instance.key(), instance.minecraftVersion, kind == dev.lumora.launcher.core.instance.InstanceKind.LUMORA,
+        Target target = new Target(instance.key(), instance.minecraftVersion,
+                kind == dev.lumora.launcher.core.instance.InstanceKind.LUMORA || lumoraOnLoader,
                 prepare, min, max, instance.windowWidth != null ? instance.windowWidth : config.windowWidth,
                 instance.windowHeight != null ? instance.windowHeight : config.windowHeight,
-                instance.jvmArgs == null ? List.of() : instance.jvmArgs);
+                instance.jvmArgs == null ? List.of() : instance.jvmArgs, extraSysProps);
         return run(target, config, mode, interactiveLogin, cancelled, null, quickPlay, listener);
     }
 
@@ -183,7 +197,12 @@ public final class PlayService {
 
     /** What one start needs: instance id (locks, stats), Minecraft version, Lumora or not, preparation and launch settings. */
     private record Target(String instanceId, String minecraftVersion, boolean lumora, ClientInstallerCall prepare,
-                          int minMemoryMb, int maxMemoryMb, Integer windowWidth, Integer windowHeight, List<String> jvmArgs) {
+                          int minMemoryMb, int maxMemoryMb, Integer windowWidth, Integer windowHeight, List<String> jvmArgs,
+                          List<String> extraSysProps) {
+        Target(String instanceId, String minecraftVersion, boolean lumora, ClientInstallerCall prepare, int minMemoryMb, int maxMemoryMb,
+               Integer windowWidth, Integer windowHeight, List<String> jvmArgs) {
+            this(instanceId, minecraftVersion, lumora, prepare, minMemoryMb, maxMemoryMb, windowWidth, windowHeight, jvmArgs, List.of());
+        }
     }
 
     private GameProcess run(Target target, LauncherConfig config, Mode mode, InteractiveLogin interactiveLogin, BooleanSupplier cancelled,
@@ -239,6 +258,7 @@ public final class PlayService {
             if (mode == Mode.SMOKE_TEST_DEMO && smokeReport != null) {
                 sysProps.add("-Dlumora.smokeTest=" + smokeReport.toAbsolutePath());
             }
+            sysProps.addAll(target.extraSysProps());
             if (config.socialServer != null) {
                 // the address only; the game proves the account itself with its own session (no token on the command line)
                 sysProps.add("-Dlumora.social.server=" + config.socialServer);

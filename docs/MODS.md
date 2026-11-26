@@ -54,6 +54,42 @@ Sicherheitsregeln und den Stand der Etappen.
   Loader und Minecraft-Version als Plaketten, Name und Ersteller („Meine Erstellung“, „Von …“ beim Modpack-Autor,
   „Importiert aus …“, „Lumora“). Der Autor kommt aus Modrinth (Entdecken) oder dem CurseForge-Manifest (`Instance.author`).
 
+## Lumora Client neben einem Mod-Loader
+
+Eigene Instanzen mit Fabric, Quilt, Forge oder NeoForge können den Lumora Client mitstarten („Lumora Client mitladen“
+beim Erstellen und in den Einstellungen der Instanz, `Instance.lumoraClient`). Es läuft derselbe Client wie beim
+Lumora-Loader, nur gestartet vom Mod-Loader:
+
+- **Brücke** (`lumora-bridge`): füllt die Lumora-Loader-Schnittstelle (`LumoraLoader`: Spielordner, Version, geladene
+  Mods) und startet die Einstiegspunkte aus `lumora.loader.json`. Fabric/Quilt: `dev.lumora.fabric.LumoraFabric`
+  (`preLaunch` + `client`); Forge/NeoForge: `@Mod("lumora")`-Klassen in `dev.lumora.forge`, Ordner und Mod-Liste per
+  Reflexion aus FML. Die `@Mod`-Annotationen kommen beim Bauen aus kleinen Platzhaltern (Quellsatz `stubs`), es wird
+  kein Forge/NeoForge mitgeliefert.
+- **Varianten** (Root-`build.gradle.kts`):
+  - `lumora-client-mc<v>-fabric.jar` für Fabric/Quilt ab 1.16.5. 26.1+ ist unverschleiert, Fabric nutzt dort Mojangs
+    Namen, die JAR bleibt wie sie ist; 1.16.5 bis 1.21.11 werden mit Loom auf Fabrics Intermediary-Namen umbenannt
+    (samt Mixin-Zielen).
+  - `lumora-client-mc<v>-forge.jar` für Forge/NeoForge ab 1.20.6 (beide nutzen ab da Mojangs Namen):
+    `META-INF/mods.toml` (Forge, Mixins über `MixinConfigs` im Manifest) und `META-INF/neoforge.mods.toml`
+    (NeoForge, `[[mixins]]`).
+  - In beiden ist `lumora.mixins.json` nachgiebig (`required: false`, `defaultRequire: 0`): Ein Mixin, das neben einem
+    anderen Loader oder einer Mod nicht greift, schaltet nur seine eine Funktion ab, statt das Spiel zu beenden. Die
+    normale Lumora-JAR bleibt streng, damit die Starttests Fehler finden.
+  - Nur in der Forge-Variante: Kompatibilitätsstufe `JAVA_17` (Forges Mixin kennt `JAVA_21`/`JAVA_25` nicht) und
+    `@Redirect(at = …)` als einzelne Annotation statt einer Liste (`singleRedirectAt`). Lumora wird gegen Fabrics
+    Mixin gebaut, wo `at` ein Array ist; das MixinExtras in Forge und NeoForge liest dort nur den Einzelwert.
+- **Behoben beim Testen:** Forge ab 1.20.6 startete im Launcher gar nicht. Das von Forges Installer erzeugte, gepatchte
+  Spiel (`forge:<v>:client`, ohne Download-Adresse) fehlte auf dem Klassenpfad, weil `ResolvedVersion` Bibliotheken
+  ohne Adresse verwarf.
+- **Launcher** (`PlayService.playInstance`, `install/LumoraAddon`): Fabric/Quilt bekommen die JAR mit
+  `-Dfabric.addMods` bzw. `-Dloader.addMods`, ohne Kopie in `mods/`. Forge/NeoForge kennen das nicht: Der Launcher legt
+  eine verwaltete Kopie `mods/lumora-client-mc<v>-forge.jar` an, ersetzt sie bei neuen Versionen und entfernt sie, wenn
+  die Option aus ist. Java kommt von der Lumora-Version (1.16.5 startet damit auf Java 21). Alle Varianten liegen mit
+  SHA-512 in `bundled/` und werden vor jedem Start geprüft.
+- **Nicht unterstützt:** Forge und NeoForge vor 1.20.6 (sie nutzen zur Laufzeit SRG-Namen), Legacy Fabric für 1.8.9 und
+  1.12.2. Externe Lumora-Addons, die Minecraft-Klassen direkt nutzen, laufen unter Fabric 1.16.5 bis 1.21.11 nicht
+  (andere Namen); Addons, die nur die Lumora-API nutzen, laufen überall.
+
 ## Referenzanalyse
 
 Zwölf Referenzbilder, jedes einzeln betrachtet. Übernommen werden Ideen, keine Oberflächen.

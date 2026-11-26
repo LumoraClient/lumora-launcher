@@ -52,15 +52,24 @@ public final class Main {
         }
     }
 
-    /** Starts a server; {@code dev} skips the Mojang check (tests, local development) and needs a loopback address. */
+    /** Starts a server on files in {@code data}; {@code dev} skips the Mojang check (tests) and needs a loopback address. */
     public static Running start(InetSocketAddress bind, Path data, SSLContext tls, boolean dev) throws IOException {
+        return start(bind, new FileStore(data), tls, dev, false);
+    }
+
+    /** Starts a server on the given storage (PostgreSQL in production). */
+    static Running start(InetSocketAddress bind, Persistence store, SSLContext tls, boolean dev) throws IOException {
+        return start(bind, store, tls, dev, false);
+    }
+
+    /** @param behindProxy behind a local reverse proxy: the client address comes from X-Real-IP (loopback only) */
+    static Running start(InetSocketAddress bind, Persistence store, SSLContext tls, boolean dev, boolean behindProxy) throws IOException {
         if (dev && !bind.getAddress().isLoopbackAddress()) {
             throw new IllegalArgumentException("--dev-auth only together with --bind 127.0.0.1 (no Mojang check!)");
         }
-        Store store = new Store(data);
         State state = store.load();
         Hub hub = new Hub(store, state, new MojangVerifier(), dev);
-        WsServer ws = new WsServer(bind, tls, hub);
+        WsServer ws = new WsServer(bind, tls, hub, behindProxy);
         return new Running(ws, hub);
     }
 
@@ -69,6 +78,8 @@ public final class Main {
         String bind = "0.0.0.0";
         Path data = Path.of("lumora-social-data");
         Path keystore = null;
+        Path importDir = null;
+        boolean behindProxy = false;
         boolean dev = false;
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -77,6 +88,8 @@ public final class Main {
                 case "--data" -> data = Path.of(args[++i]);
                 case "--tls-keystore" -> keystore = Path.of(args[++i]);
                 case "--dev-auth" -> dev = true;
+                case "--import" -> importDir = Path.of(args[++i]);
+                case "--behind-proxy" -> behindProxy = true;
                 case "--quiet" -> Log.quiet = true;
                 case "--help", "-h" -> {
                     System.out.println("Lumora Social server (protocol " + Rules.PROTOCOL + ")\n"
@@ -84,7 +97,10 @@ public final class Main {
                             + "  --bind <address>       default 0.0.0.0\n"
                             + "  --data <dir>           default ./lumora-social-data\n"
                             + "  --tls-keystore <p12>   TLS (wss://); password in env LUMORA_SOCIAL_TLS_PASSWORD\n"
-                            + "  --dev-auth             no Mojang check, only with --bind 127.0.0.1 (testing)");
+                            + "  --dev-auth             no Mojang check, only with --bind 127.0.0.1 (testing)\n"
+                            + "  --import <dir>         copy a file data directory into an empty database once\n"
+                            + "Database: env LUMORA_DB_URL (jdbc:postgresql://...), LUMORA_DB_USER, LUMORA_DB_PASSWORD;\n"
+                            + "without LUMORA_DB_URL the server keeps its data in files (--data).");
                     return;
                 }
                 default -> {
@@ -97,9 +113,25 @@ public final class Main {
         if (dev) {
             Log.warn("--dev-auth: logins are NOT checked with Mojang. Testing only.");
         }
-        Running r = start(new InetSocketAddress(InetAddress.getByName(bind), port), data, tls, dev);
+        PgStore pg = PgStore.fromEnvironment();
+        Persistence store;
+        String where;
+        if (pg != null) {
+            if (importDir != null) {
+                importInto(pg, importDir);
+            }
+            store = pg;
+            where = "PostgreSQL";
+        } else {
+            if (importDir != null) {
+                throw new IllegalArgumentException("--import needs a database (LUMORA_DB_URL)");
+            }
+            store = new FileStore(data);
+            where = "files in " + data.toAbsolutePath();
+        }
+        Running r = start(new InetSocketAddress(InetAddress.getByName(bind), port), store, tls, dev, behindProxy);
         Log.info("Lumora Social server listening on " + bind + ":" + r.port() + (tls != null ? " (TLS)" : " (no TLS)")
-                + ", data in " + data.toAbsolutePath());
+                + ", data: " + where);
         CountDownLatch stop = new CountDownLatch(1);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Log.info("Stopping");
@@ -107,6 +139,23 @@ public final class Main {
             stop.countDown();
         }));
         stop.await();
+    }
+
+    /** Copies a file data directory (state.json, messages/) into an empty database; refuses a database with data. */
+    static void importInto(PgStore pg, Path dir) throws IOException {
+        if (!pg.empty()) {
+            Log.info("Import skipped: the database already holds players");
+            return;
+        }
+        State s = new FileStore(dir).load();
+        for (var conv : s.messages.values()) {
+            for (var m : conv) {
+                pg.append(m);
+            }
+        }
+        pg.save(s);
+        Log.info("Imported " + s.users.size() + " players, " + s.groups.size() + " groups and " + pg.messageCount()
+                + " messages from " + dir.toAbsolutePath());
     }
 
     private static SSLContext tls(Path keystore) throws Exception {

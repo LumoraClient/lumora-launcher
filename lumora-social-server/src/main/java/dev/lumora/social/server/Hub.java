@@ -63,7 +63,7 @@ final class Hub implements WsServer.Handler {
     /** Messages per user in 10 seconds (raised by tests that page through history). */
     static int messageBurst = 12;
 
-    private final Store store;
+    private final Persistence store;
     private final State state;
     private final Verifier verifier;
     private final boolean dev;
@@ -81,7 +81,7 @@ final class Hub implements WsServer.Handler {
     });
     private boolean dirty;
 
-    Hub(Store store, State state, Verifier verifier, boolean dev) {
+    Hub(Persistence store, State state, Verifier verifier, boolean dev) {
         this.store = store;
         this.state = state;
         this.verifier = verifier;
@@ -118,6 +118,7 @@ final class Hub implements WsServer.Handler {
         timer.shutdownNow();
         verifyPool.shutdownNow();
         saveIfDirty();
+        store.close();
     }
 
     synchronized int onlineUsers() {
@@ -284,6 +285,7 @@ final class Hub implements WsServer.Handler {
         c.profile = p;
         online.computeIfAbsent(p.uuid, k -> new ArrayList<>()).add(c);
         Log.info("Login " + p.name + " (" + c.kind + ", " + c.conn.address() + ")");
+        audit(p.uuid, "login", c.kind, renamed ? "renamed to " + p.name : null);
         c.conn.send(welcome(p.uuid).toString());
         if (renamed) {
             for (String f : friendsOf(p.uuid)) {
@@ -297,6 +299,9 @@ final class Hub implements WsServer.Handler {
             }
         }
         presenceChanged(p.uuid, before);
+        if (c.kind.equals("game")) {
+            badgeChanged(p.uuid);
+        }
     }
 
     private void logout(Client c) {
@@ -332,12 +337,18 @@ final class Hub implements WsServer.Handler {
         if (hadCosmetics) {
             cosmeticsChanged(uuid);
         }
+        if (c.kind.equals("game")) {
+            badgeChanged(uuid);
+        }
     }
 
     // ------------------------------------------------------------------ cosmetics and emotes
 
     /** The loadout {@code viewer} may see of {@code player} (its game session), null if none. */
     private JsonArray visibleCosmetics(String viewer, String player) {
+        if (state.blocked(viewer, player)) {
+            return null;
+        }
         for (Client s : online.getOrDefault(player, List.of())) {
             if (s.cosmetics != null && mayShow(s.cosmeticsScope, viewer, player)) {
                 return s.cosmetics;
@@ -358,6 +369,31 @@ final class Hub implements WsServer.Handler {
             }
             JsonArray l = visibleCosmetics(w.profile.uuid, player);
             w.conn.send(Js.op("cosmetics").put("uuid", player).put("loadout", l == null ? new JsonArray() : l).toString());
+        }
+    }
+
+    /**
+     * Whether {@code viewer} sees the Lumora badge at {@code player}: the player is in the game with Lumora right now,
+     * shows the badge and neither blocked the other. Only the yes/no leaves the server.
+     */
+    private boolean recognized(String viewer, String player) {
+        if (viewer.equals(player) || !state.settingsOf(player).showBadge || state.blocked(viewer, player)) {
+            return false;
+        }
+        for (Client s : online.getOrDefault(player, List.of())) {
+            if (s.kind.equals("game")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Tells every session watching {@code player} whether it now sees the player's Lumora badge. */
+    private void badgeChanged(String player) {
+        for (Client w : List.copyOf(cosmeticWatchers.getOrDefault(player, Set.of()))) {
+            if (w.profile != null) {
+                w.conn.send(Js.op("recognized").put("uuid", player).put("lumora", recognized(w.profile.uuid, player)).toString());
+            }
         }
     }
 
@@ -388,7 +424,7 @@ final class Hub implements WsServer.Handler {
     }
 
     /** Highest presence of all sessions of a player. */
-    private Presence presence(String uuid) {
+    private Presence rawPresence(String uuid) {
         Presence best = Presence.OFFLINE;
         for (Client c : online.getOrDefault(uuid, List.of())) {
             if (c.presence.state.rank() > best.state.rank()) {
@@ -396,6 +432,82 @@ final class Hub implements WsServer.Handler {
             }
         }
         return best;
+    }
+
+    /**
+     * What others see of a player: the activity with the chosen status (busy, away), or OFFLINE while the player is
+     * invisible. Invisibility is applied here on the server, so the real state never reaches anybody.
+     */
+    private Presence presence(String uuid) {
+        Presence raw = rawPresence(uuid);
+        if (!raw.online()) {
+            return raw;
+        }
+        String mode = state.settingsOf(uuid).presenceMode;
+        if (mode.equals("invisible")) {
+            return Presence.OFFLINE;
+        }
+        return mode.equals("online") ? raw : raw.withMode(mode);
+    }
+
+    /** Records a security-relevant action (written with the next save). */
+    private void audit(String actor, String action, String target, String detail) {
+        store.audit(actor, action, target, detail);
+        dirty = true;
+    }
+
+    private JsonObject settingsJson(String uuid) {
+        State.Settings s = state.settingsOf(uuid);
+        return Js.obj().put("requestPolicy", s.requestPolicy).put("presenceMode", s.presenceMode).put("showBadge", s.showBadge).json();
+    }
+
+    private JsonArray blockedJson(String uuid) {
+        List<Profile> l = new ArrayList<>();
+        for (String b : state.blocks.getOrDefault(uuid, Map.of()).keySet()) {
+            l.add(profile(b));
+        }
+        l.sort(Comparator.comparing(p -> p.name.toLowerCase(java.util.Locale.ROOT)));
+        return Js.array(l, Profile::json);
+    }
+
+    private void sendSettings(String uuid) {
+        sendTo(uuid, Js.op("settings").put("settings", settingsJson(uuid)).put("blocked", blockedJson(uuid)).toString());
+    }
+
+    /** Whether {@code a} and {@code b} have friends in common (for "friends of friends" requests). */
+    private boolean commonFriend(String a, String b) {
+        Set<String> fa = friendsOf(a);
+        for (String f : friendsOf(b)) {
+            if (fa.contains(f)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** A message of a conversation (in the kept history), changed by {@code change}; refused if not found. */
+    private ChatMessage changeMessage(String conv, long id, java.util.function.UnaryOperator<ChatMessage> change) {
+        ArrayDeque<ChatMessage> q = state.messages.get(conv);
+        if (q == null) {
+            throw new Refusal("Nachricht nicht gefunden");
+        }
+        List<ChatMessage> l = new ArrayList<>(q);
+        for (int i = 0; i < l.size(); i++) {
+            if (l.get(i).id == id) {
+                ChatMessage m = change.apply(l.get(i));
+                l.set(i, m);
+                q.clear();
+                q.addAll(l);
+                try {
+                    store.update(m, q);
+                } catch (IOException e) {
+                    Log.warn("Writing message change failed: " + e);
+                }
+                dirty = true;
+                return m;
+            }
+        }
+        throw new Refusal("Nachricht nicht gefunden (zu alt zum Ändern)");
     }
 
     private void presenceChanged(String uuid, Presence before) {
@@ -541,7 +653,8 @@ final class Hub implements WsServer.Handler {
         return Js.op("welcome").put("self", profile(uuid).json()).put("friends", friendsJson(uuid))
                 .put("requests", requestsJson(uuid)).put("groups", groups)
                 .put("conversations", Js.array(convs, ConversationInfo::json))
-                .put("party", partyJson(uuid)).put("partyInvites", invitesJson(uuid)).json();
+                .put("party", partyJson(uuid)).put("partyInvites", invitesJson(uuid))
+                .put("settings", settingsJson(uuid)).put("blocked", blockedJson(uuid)).json();
     }
 
     private void sendFriends(String uuid) {
@@ -591,6 +704,9 @@ final class Hub implements WsServer.Handler {
 
     /** The status line {@code viewer} may see of {@code player} (any of the player's sessions), null if none. */
     private String visibleStatus(String viewer, String player, String key) {
+        if (state.blocked(viewer, player)) {
+            return null;
+        }
         for (Client s : online.getOrDefault(player, List.of())) {
             String[] st = s.statuses.get(key);
             if (st != null && (st[1].equals("all") || player.equals(viewer) || st[1].equals("friends") && friends(viewer, player))) {
@@ -702,15 +818,30 @@ final class Hub implements WsServer.Handler {
                     }
                 }
                 JsonObject found = new JsonObject();
+                JsonArray lumora = new JsonArray();
                 for (String u : next) {
                     cosmeticWatchers.computeIfAbsent(u, k -> new HashSet<>()).add(c);
                     JsonArray l = visibleCosmetics(me, u);
                     if (l != null) {
                         found.add(u, l);
                     }
+                    if (recognized(me, u)) {
+                        lumora.add(u);
+                    }
                 }
                 c.watching = next;
-                reply = Js.op("ok").put("rid", rid).put("loadouts", found).json();
+                reply = Js.op("ok").put("rid", rid).put("loadouts", found).put("lumora", lumora).json();
+            }
+            case "lumora.who" -> {
+                // which of these players (the tab list) play with Lumora and show the badge; one-shot, no updates
+                limit(me + ":lumorawho", 20, 60_000, "Zu viele Abfragen, bitte kurz warten.");
+                JsonArray lumora = new JsonArray();
+                for (String u : uuidList(o, "uuids", Rules.LUMORA_LOOKUP_MAX)) {
+                    if (recognized(me, u)) {
+                        lumora.add(u);
+                    }
+                }
+                reply = Js.op("ok").put("rid", rid).put("lumora", lumora).json();
             }
             case "emote.play", "emote.stop" -> {
                 // an emote to the players near the sender (who may see it), no echo, nothing stored
@@ -722,7 +853,7 @@ final class Hub implements WsServer.Handler {
                 if (!c.cosmeticsScope.equals("none")) {
                     String msg = Js.op("emote").put("uuid", me).put("id", id).toString();
                     for (String t : uuidList(o, "targets", Rules.EMOTE_TARGETS_MAX)) {
-                        if (!t.equals(me) && mayShow(c.cosmeticsScope, t, me)) {
+                        if (!t.equals(me) && mayShow(c.cosmeticsScope, t, me) && !state.blocked(t, me)) {
                             sendToGame(t, msg);
                         }
                     }
@@ -746,7 +877,19 @@ final class Hub implements WsServer.Handler {
                 if (friends(me, target.uuid)) {
                     throw new Refusal(target.name + " ist schon dein Freund.");
                 }
-                if (state.requests.getOrDefault(target.uuid, Map.of()).containsKey(me)) {
+                if (state.blocks.getOrDefault(me, Map.of()).containsKey(target.uuid)) {
+                    throw new Refusal("Du hast " + target.name + " blockiert. Entblocke den Spieler zuerst.");
+                }
+                // blocked by the target looks exactly like "accepts no requests" (the block stays private)
+                String policy = state.settingsOf(target.uuid).requestPolicy;
+                boolean theyAsked = state.requests.getOrDefault(target.uuid, Map.of()).containsKey(me);
+                if (!theyAsked && (state.blocked(me, target.uuid) || policy.equals("nobody"))) {
+                    throw new Refusal(target.name + " nimmt keine Freundschaftsanfragen an.");
+                }
+                if (!theyAsked && policy.equals("friends_of_friends") && !commonFriend(me, target.uuid)) {
+                    throw new Refusal(target.name + " nimmt nur Anfragen von Freunden seiner Freunde an.");
+                }
+                if (theyAsked) {
                     befriend(me, target.uuid); // they asked first: accept
                 } else {
                     if (friendsOf(me).size() >= Rules.FRIENDS_MAX) {
@@ -791,6 +934,9 @@ final class Hub implements WsServer.Handler {
                 }
                 if (!online.containsKey(other)) {
                     throw new Refusal(u.name + " ist gerade nicht mit Lumora online.");
+                }
+                if (state.blocked(me, other)) {
+                    throw new Refusal(u.name + " nimmt keine Einladungen von dir an.");
                 }
                 PartyRec p = parties.get(partyOf.getOrDefault(me, ""));
                 if (p == null) {
@@ -883,6 +1029,7 @@ final class Hub implements WsServer.Handler {
                 card.put("groups", shared);
                 PartyRec mine = parties.get(partyOf.getOrDefault(me, ""));
                 PartyRec theirs = parties.get(partyOf.getOrDefault(other, ""));
+                card.put("blocked", state.blocks.getOrDefault(me, Map.of()).containsKey(other));
                 card.put("sameParty", mine != null && mine == theirs);
                 card.put("invited", mine != null && mine.invited.containsKey(other));
                 if (theirs != null && theirs.invited.containsKey(me)) {
@@ -1081,6 +1228,132 @@ final class Hub implements WsServer.Handler {
                 dirty = true;
                 sendConv(me, conv);
             }
+            case "block" -> {
+                limit(me + ":block", 30, 60_000, "Zu viele Änderungen, bitte kurz warten.");
+                String other = uuidArg(o);
+                State.User u = state.users.get(other);
+                if (u == null) {
+                    throw new Refusal("Dieser Spieler nutzt Lumora nicht.");
+                }
+                if (other.equals(me)) {
+                    throw new Refusal("Du kannst dich nicht selbst blockieren.");
+                }
+                state.blocks.computeIfAbsent(me, k -> new HashMap<>()).putIfAbsent(other, System.currentTimeMillis());
+                // a block ends the friendship and every open request in both directions
+                boolean wereFriends = state.friends.getOrDefault(me, new HashMap<>()).remove(other) != null;
+                state.friends.getOrDefault(other, new HashMap<>()).remove(me);
+                boolean requests = state.requests.getOrDefault(me, new HashMap<>()).remove(other) != null;
+                requests |= state.requests.getOrDefault(other, new HashMap<>()).remove(me) != null;
+                PartyRec mine = parties.get(partyOf.getOrDefault(me, ""));
+                if (mine != null && mine.invited.remove(other) != null) {
+                    sendInvites(other);
+                    sendParty(mine);
+                }
+                dirty = true;
+                audit(me, "block", other, null);
+                if (wereFriends) {
+                    sendFriends(me);
+                    sendFriends(other);
+                }
+                if (requests) {
+                    sendRequests(me);
+                    sendRequests(other);
+                }
+                sendSettings(me);
+                cosmeticsChanged(me);
+                cosmeticsChanged(other);
+                badgeChanged(me);
+                badgeChanged(other);
+            }
+            case "unblock" -> {
+                String other = uuidArg(o);
+                if (state.blocks.getOrDefault(me, new HashMap<>()).remove(other) == null) {
+                    throw new Refusal("Dieser Spieler ist nicht blockiert.");
+                }
+                dirty = true;
+                audit(me, "unblock", other, null);
+                sendSettings(me);
+                cosmeticsChanged(me);
+                cosmeticsChanged(other);
+                badgeChanged(me);
+                badgeChanged(other);
+            }
+            case "settings.set" -> {
+                limit(me + ":settings", 30, 60_000, "Zu viele Änderungen, bitte kurz warten.");
+                Presence before = presence(me);
+                State.Settings s = state.editSettings(me);
+                if (o.has("requestPolicy")) {
+                    s.requestPolicy = State.requestPolicy(Js.str(o, "requestPolicy", "everyone"));
+                }
+                if (o.has("presenceMode")) {
+                    s.presenceMode = State.presenceMode(Js.str(o, "presenceMode", "online"));
+                }
+                boolean badgeBefore = s.showBadge;
+                if (o.has("showBadge")) {
+                    s.showBadge = Js.bool(o, "showBadge", true);
+                }
+                s.updated = System.currentTimeMillis();
+                dirty = true;
+                audit(me, "settings", null, "requests=" + s.requestPolicy + " status=" + s.presenceMode + " badge=" + s.showBadge);
+                presenceChanged(me, before);
+                if (badgeBefore != s.showBadge) {
+                    badgeChanged(me);
+                }
+                sendSettings(me);
+            }
+            case "msg.edit" -> {
+                limit(me + ":msgedit", 20, 60_000, "Zu viele Änderungen, bitte kurz warten.");
+                String conv = Js.str(o, "conv", "");
+                if (!canRead(me, conv)) {
+                    throw new Refusal("Unterhaltung nicht gefunden");
+                }
+                String text = Rules.clean(Js.str(o, "text", ""), Rules.MESSAGE_MAX, true);
+                if (text.isEmpty()) {
+                    throw new Refusal("Leere Nachricht");
+                }
+                ChatMessage m = changeMessage(conv, Js.num(o, "id", -1), old -> {
+                    if (!old.sender.equals(me) || old.deleted) {
+                        throw new Refusal("Nur eigene Nachrichten lassen sich bearbeiten.");
+                    }
+                    return old.edited(text, System.currentTimeMillis());
+                });
+                broadcastUpdate(m);
+            }
+            case "msg.delete" -> {
+                limit(me + ":msgedit", 20, 60_000, "Zu viele Änderungen, bitte kurz warten.");
+                String conv = Js.str(o, "conv", "");
+                if (!canRead(me, conv)) {
+                    throw new Refusal("Unterhaltung nicht gefunden");
+                }
+                ChatMessage m = changeMessage(conv, Js.num(o, "id", -1), old -> {
+                    if (!old.sender.equals(me)) {
+                        throw new Refusal("Nur eigene Nachrichten lassen sich löschen.");
+                    }
+                    return old.deleted ? old : old.removed(System.currentTimeMillis());
+                });
+                broadcastUpdate(m);
+            }
+            case "msg.search" -> {
+                limit(me + ":msgsearch", 30, 60_000, "Zu viele Suchen, bitte kurz warten.");
+                String q = Rules.clean(Js.str(o, "q", ""), 64, false).toLowerCase(java.util.Locale.ROOT);
+                if (q.length() < 2) {
+                    throw new Refusal("Bitte mindestens zwei Zeichen eingeben.");
+                }
+                String only = Js.str(o, "conv", "");
+                List<ChatMessage> hits = new ArrayList<>();
+                for (Map.Entry<String, ArrayDeque<ChatMessage>> e : state.messages.entrySet()) {
+                    if ((!only.isEmpty() && !only.equals(e.getKey())) || !canRead(me, e.getKey())) {
+                        continue;
+                    }
+                    for (ChatMessage m : e.getValue()) {
+                        if (!m.deleted && m.text.toLowerCase(java.util.Locale.ROOT).contains(q)) {
+                            hits.add(m);
+                        }
+                    }
+                }
+                hits.sort(Comparator.comparingLong((ChatMessage m) -> m.id).reversed());
+                reply = Js.op("ok").put("rid", rid).put("messages", Js.array(hits.subList(0, Math.min(50, hits.size())), ChatMessage::json)).json();
+            }
             case "msg.send" -> {
                 reply = sendMessage(c, o, rid);
             }
@@ -1134,6 +1407,14 @@ final class Hub implements WsServer.Handler {
         }
         if (rid >= 0) {
             c.conn.send(reply != null ? reply.toString() : Js.op("ok").put("rid", rid).toString());
+        }
+    }
+
+    /** Tells every participant about an edited or deleted message. */
+    private void broadcastUpdate(ChatMessage m) {
+        String msg = Js.op("msg.update").put("message", m.json()).toString();
+        for (String p : participants(m.conv)) {
+            sendTo(p, msg);
         }
     }
 

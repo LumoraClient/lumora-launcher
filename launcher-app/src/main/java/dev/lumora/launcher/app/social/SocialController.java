@@ -71,7 +71,7 @@ public final class SocialController {
     /** (Re)creates the client after a change of server or account. Swing thread. */
     public void apply() {
         Optional<Profile> p = profile();
-        String server = ctx.config.socialServer;
+        String server = dev.lumora.social.Endpoint.configured().toString(); // always the official Lumora backend
         String key = server == null || p.isEmpty() ? null : server + "|" + p.get().uuid;
         if (key != null && key.equals(clientKey)) {
             if (client != null && client.status() == SocialClient.Status.REJECTED) {

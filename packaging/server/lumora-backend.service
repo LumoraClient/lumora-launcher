@@ -1,0 +1,35 @@
+# Lumora backend (Lumora Social): /etc/systemd/system/lumora-backend.service
+# Runs as the unprivileged user "lumora", listens only on 127.0.0.1 (nginx terminates TLS in front of it).
+# Database settings (LUMORA_DB_URL, LUMORA_DB_USER, LUMORA_DB_PASSWORD) come from /opt/lumora/config/backend.env
+# (mode 600, owner root): never from the code or the command line.
+[Unit]
+Description=Lumora backend (friends, chat, presence, cosmetics sync)
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=lumora
+Group=lumora
+EnvironmentFile=/opt/lumora/config/backend.env
+WorkingDirectory=/opt/lumora/backend
+ExecStart=/usr/bin/java -Xms128m -Xmx512m -XX:+UseG1GC -jar /opt/lumora/backend/lumora-social-server.jar --bind 127.0.0.1 --port 25600 --behind-proxy --data /opt/lumora/data
+Restart=always
+RestartSec=5
+# hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/lumora/data /opt/lumora/logs
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+StandardOutput=append:/opt/lumora/logs/backend.log
+StandardError=append:/opt/lumora/logs/backend.log
+
+[Install]
+WantedBy=multi-user.target

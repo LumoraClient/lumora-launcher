@@ -2,3 +2,5 @@
 *.bat text eol=crlf
 *.iss text eol=crlf
 gradlew text eol=lf
+packaging/server/** text eol=lf
+*.sh text eol=lf

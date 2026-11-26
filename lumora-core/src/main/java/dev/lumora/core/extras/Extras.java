@@ -101,6 +101,13 @@ public final class Extras {
                         "Wings, capes, hats, accessories, effects and companions on your player, emotes with menu and wheel (only you see them)",
                         dev.lumora.core.cosmetics.CosmeticsModule.class),
                         () -> new dev.lumora.core.cosmetics.CosmeticsModule(platform, social)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.social.LumoraBadgeModule.ID, "Lumora Badge",
+                        "A Lumora star next to the names of players who play with Lumora, above their heads and in the tab list",
+                        dev.lumora.core.social.LumoraBadgeModule.class),
+                        () -> new dev.lumora.core.social.LumoraBadgeModule(() -> {
+                            dev.lumora.core.social.LumoraSocial ls = social.get();
+                            return ls == null ? null : ls.client();
+                        }, () -> platform == null ? null : platform.world())),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(HiddenArmorModule.ID, "Hidden Armor",
                         "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
                         HiddenArmorModule.class),

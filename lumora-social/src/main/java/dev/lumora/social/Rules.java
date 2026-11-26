@@ -31,6 +31,8 @@ public final class Rules {
     public static final int COSMETICS_MAX = 16;
     public static final int COSMETICS_WATCH_MAX = 128;
     public static final int EMOTE_TARGETS_MAX = 64;
+    /** Players asked for in one Lumora-badge lookup (the tab list). */
+    public static final int LUMORA_LOOKUP_MAX = 256;
     /** Largest cosmetic offset in pixels per axis. */
     public static final double COSMETIC_OFFSET_MAX = 8;
     /** Who sees a shared status: every Lumora player, only friends, nobody (cleared). */

@@ -78,7 +78,6 @@ public final class SocialPage extends JPanel {
     private final JPanel toastBar = new JPanel(new BorderLayout());
     private final JLabel toastText = Ui.label("", 13, Font.PLAIN, Theme.TEXT);
     private final Timer toastTimer = new Timer(6000, e -> toastBar.setVisible(false));
-    private final JLabel setupStatus = Ui.label(" ", 13, Font.PLAIN, Theme.MUTED);
     private String selected;
     private String infoTab = "overview";
     private boolean infoWanted = true;
@@ -89,7 +88,6 @@ public final class SocialPage extends JPanel {
         setOpaque(false);
         this.host = host;
         this.social = social;
-        add(setupView(), "setup");
         add(signInView(), "signin");
         // directly in the viewport (ChatView is Scrollable and tracks the width itself) so it can scroll to the newest message
         chatScroll = new JScrollPane(chat, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -184,10 +182,6 @@ public final class SocialPage extends JPanel {
     /** Rebuilds everything (status change, page shown). */
     public void refresh() {
         SocialClient c = social.client();
-        if (host.ctx().config.socialServer == null) {
-            cards.show(this, "setup");
-            return;
-        }
         if (c == null) {
             cards.show(this, "signin");
             return;
@@ -252,45 +246,6 @@ public final class SocialPage extends JPanel {
 
     // ------------------------------------------------------------------ setup / sign-in
 
-    private JComponent setupView() {
-        JPanel p = new JPanel(new BorderLayout(0, 18));
-        p.setOpaque(false);
-        p.add(Ui.pageTitle(Lang.t("social.title"), Lang.t("social.subtitle")),
-                BorderLayout.NORTH);
-        Card c = new Card(new BorderLayout(0, 14));
-        JPanel col = Ui.column();
-        col.add(Ui.label(Lang.t("social.setup.title"), 17, Font.BOLD, Theme.TEXT));
-        col.add(Box.createVerticalStrut(8));
-        col.add(Ui.wrapText(Lang.t("social.setup.text"), 13.5f, Theme.MUTED));
-        col.add(Box.createVerticalStrut(14));
-        JTextField addr = SocialDialogs.field("", 200, Lang.t("social.setup.address"));
-        addr.setMaximumSize(new Dimension(520, 38));
-        col.add(addr);
-        col.add(Box.createVerticalStrut(10));
-        JButton connect = SocialDialogs.primary(Lang.t("social.setup.connect"));
-        connect.addActionListener(e -> {
-            try {
-                String uri = Endpoint.parse(addr.getText()).toString();
-                setServer(uri);
-            } catch (IllegalArgumentException ex) {
-                setupStatus.setForeground(Theme.FAIL);
-                setupStatus.setText(ex.getMessage());
-            }
-        });
-        addr.addActionListener(e -> connect.doClick());
-        JPanel row = Ui.row(10);
-        row.add(connect);
-        col.add(row);
-        col.add(Box.createVerticalStrut(8));
-        col.add(setupStatus);
-        c.add(col, BorderLayout.CENTER);
-        JPanel north = new JPanel(new BorderLayout());
-        north.setOpaque(false);
-        north.add(c, BorderLayout.NORTH);
-        p.add(north, BorderLayout.CENTER);
-        return p;
-    }
-
     private JComponent signInView() {
         JPanel p = new JPanel(new BorderLayout(0, 18));
         p.setOpaque(false);
@@ -304,10 +259,7 @@ public final class SocialPage extends JPanel {
         JPanel row = Ui.row(10);
         JButton signIn = SocialDialogs.primary(Lang.t("account.sign_in"));
         signIn.addActionListener(e -> host.signIn());
-        JButton server = SocialDialogs.secondary(Lang.t("social.change_server"));
-        server.addActionListener(e -> SocialDialogs.server(this, host.ctx().config.socialServer, this::setServer));
         row.add(signIn);
-        row.add(server);
         col.add(row);
         c.add(col, BorderLayout.CENTER);
         JPanel north = new JPanel(new BorderLayout());
@@ -315,15 +267,6 @@ public final class SocialPage extends JPanel {
         north.add(c, BorderLayout.NORTH);
         p.add(north, BorderLayout.CENTER);
         return p;
-    }
-
-    private void setServer(String uri) {
-        host.ctx().config.socialServer = uri;
-        host.saveConfig();
-        selected = null;
-        setupStatus.setText(" ");
-        social.apply();
-        refresh();
     }
 
     // ------------------------------------------------------------------ layout
@@ -652,9 +595,37 @@ public final class SocialPage extends JPanel {
 
     private JPopupMenu settingsMenu() {
         JPopupMenu m = new JPopupMenu();
-        JMenuItem server = new JMenuItem(Lang.t("social.change_server"));
-        server.addActionListener(e -> SocialDialogs.server(this, host.ctx().config.socialServer, this::setServer));
-        m.add(server);
+        SocialClient c = social.client();
+        if (c != null) {
+            // own status: what friends see (invisible = offline for everyone, applied by the server)
+            JMenu status = new JMenu(Lang.t("social.status_mode"));
+            javax.swing.ButtonGroup sg = new javax.swing.ButtonGroup();
+            for (String mode : List.of("online", "busy", "away", "invisible")) {
+                javax.swing.JRadioButtonMenuItem it = new javax.swing.JRadioButtonMenuItem(Lang.t("social.status_mode." + mode), mode.equals(c.presenceMode()));
+                it.addActionListener(e -> run(c.setPresenceMode(mode)));
+                sg.add(it);
+                status.add(it);
+            }
+            m.add(status);
+            JMenu requests = new JMenu(Lang.t("social.request_policy"));
+            javax.swing.ButtonGroup rg = new javax.swing.ButtonGroup();
+            for (String policy : List.of("everyone", "friends_of_friends", "nobody")) {
+                javax.swing.JRadioButtonMenuItem it = new javax.swing.JRadioButtonMenuItem(Lang.t("social.request_policy." + policy), policy.equals(c.requestPolicy()));
+                it.addActionListener(e -> run(c.setRequestPolicy(policy)));
+                rg.add(it);
+                requests.add(it);
+            }
+            m.add(requests);
+            JMenu blocked = new JMenu(Lang.t("social.blocked", c.blocked().size()));
+            for (Profile p : c.blocked()) {
+                JMenuItem it = new JMenuItem(Lang.t("social.unblock_name", p.name));
+                it.addActionListener(e -> run(c.unblock(p.uuid)));
+                blocked.add(it);
+            }
+            blocked.setEnabled(!c.blocked().isEmpty());
+            m.add(blocked);
+            m.addSeparator();
+        }
         JCheckBoxMenuItem share = new JCheckBoxMenuItem(Lang.t("settings.chat.share_server.title"), host.ctx().config.socialShareServer);
         share.setToolTipText(Lang.t("social.share_server.tip"));
         share.addActionListener(e -> {
@@ -662,15 +633,6 @@ public final class SocialPage extends JPanel {
             host.saveConfig();
         });
         m.add(share);
-        m.addSeparator();
-        JMenuItem off = new JMenuItem(Lang.t("social.off.title"));
-        off.addActionListener(e -> {
-            if (SocialDialogs.confirm(this, Lang.t("social.off.title"), Lang.t("social.off.confirm",
-                    Endpoint.display(java.net.URI.create(host.ctx().config.socialServer))), Lang.t("social.off.button"))) {
-                setServer(null);
-            }
-        });
-        m.add(off);
         return m;
     }
 
@@ -702,7 +664,15 @@ public final class SocialPage extends JPanel {
                 run(c.removeFriend(f.profile.uuid));
             }
         });
+        JMenuItem block = new JMenuItem(Lang.t("social.block"));
+        block.setForeground(Theme.FAIL);
+        block.addActionListener(e -> {
+            if (SocialDialogs.confirm(this, Lang.t("social.block"), Lang.t("social.block.confirm", f.profile.name), Lang.t("social.block"))) {
+                run(c.block(f.profile.uuid));
+            }
+        });
         m.add(remove);
+        m.add(block);
         return m;
     }
 

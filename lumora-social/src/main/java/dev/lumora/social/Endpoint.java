@@ -11,8 +11,22 @@ import java.util.Locale;
  */
 public final class Endpoint {
     public static final int DEFAULT_PORT = 25600;
+    /** The Lumora backend every client connects to (TLS, Let's Encrypt certificate). */
+    public static final String OFFICIAL = "wss://lumora.jardateien.de/";
 
     private Endpoint() {
+    }
+
+    /**
+     * The server to connect to: always the official one. Only developers and the automated tests point a client at a
+     * local test server with {@code -Dlumora.social.server=ws://127.0.0.1:port/} (ws:// only on the local network).
+     */
+    public static URI configured() {
+        String override = System.getProperty("lumora.social.server");
+        if (override != null && !override.isBlank()) {
+            return parse(override);
+        }
+        return URI.create(OFFICIAL);
     }
 
     /** @throws IllegalArgumentException with a German message for the settings dialog */

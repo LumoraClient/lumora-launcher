@@ -220,6 +220,80 @@ class SocialServerTest {
         await(() -> toby2.messages(dm).size() == dmCount, "dm history after restart");
         ChatMessage first = toby2.messages(dm).get(0);
         assertEquals("Moin! Bock auf BedWars?", first.text);
+        checkStorage();
+    }
+
+    @Test
+    void privacyBlockingStatusAndMessageEditing() throws Exception {
+        startServer();
+        SocialClient max = connect(MAX, "launcher");
+        SocialClient toby = connect(TOBY, "game");
+        SocialClient sarah = connect(SARAH, "game");
+
+        // request policy "nobody": refused; "friends_of_friends": only with a friend in common
+        get(max.addFriend("Toby"));
+        get(toby.acceptFriend(MAX.uuid));
+        get(toby.setRequestPolicy("nobody"));
+        await(() -> "nobody".equals(toby.requestPolicy()), "policy at toby");
+        Exception nobody = assertThrows(SocialClient.SocialException.class, () -> get(sarah.addFriend("Toby")));
+        assertTrue(nobody.getMessage().contains("keine Freundschaftsanfragen"), nobody.getMessage());
+        get(toby.setRequestPolicy("friends_of_friends"));
+        Exception fof = assertThrows(SocialClient.SocialException.class, () -> get(sarah.addFriend("Toby")));
+        assertTrue(fof.getMessage().contains("Freunden seiner Freunde"), fof.getMessage());
+        get(max.addFriend("JustSarah"));
+        get(sarah.acceptFriend(MAX.uuid));
+        get(sarah.addFriend("Toby")); // max is a friend of both
+        get(toby.acceptFriend(SARAH.uuid));
+        await(() -> toby.friends().size() == 2, "toby has max and sarah");
+
+        // status: busy is shown with the activity, invisible looks offline to friends (applied on the server)
+        get(toby.setPresenceMode("busy"));
+        await(() -> "busy".equals(max.friend(TOBY.uuid).presence.mode), "busy at max");
+        assertEquals(Presence.State.MENU, max.friend(TOBY.uuid).presence.state);
+        get(toby.setPresenceMode("invisible"));
+        await(() -> !max.friend(TOBY.uuid).presence.online(), "invisible = offline at max");
+        assertFalse(sarah.friend(TOBY.uuid).presence.online());
+        get(toby.setPresenceMode("online"));
+        await(() -> max.friend(TOBY.uuid).presence.online() && "online".equals(max.friend(TOBY.uuid).presence.mode), "visible again");
+
+        // edit, delete and search messages; the other side sees the change live
+        String dm = Conv.dm(MAX.uuid, TOBY.uuid);
+        max.setFocused(dm);
+        toby.setFocused(dm);
+        max.send(dm, "Wir treffen uns um acht");
+        await(() -> toby.messages(dm).size() == 1, "message at toby");
+        long id = toby.messages(dm).get(0).id;
+        assertThrows(SocialClient.SocialException.class, () -> get(toby.editMessage(dm, id, "gefälscht")), "only own messages");
+        get(max.editMessage(dm, id, "Wir treffen uns um neun"));
+        await(() -> toby.messages(dm).get(0).text.equals("Wir treffen uns um neun") && toby.messages(dm).get(0).editedAt > 0, "edit at toby");
+        assertEquals(1, get(toby.searchMessages("um neun", null)).size());
+        assertEquals(0, get(sarah.searchMessages("um neun", null)).size(), "not readable for sarah");
+        get(max.deleteMessage(dm, id));
+        await(() -> toby.messages(dm).get(0).deleted && toby.messages(dm).get(0).text.isEmpty(), "delete at toby");
+        assertEquals(0, get(toby.searchMessages("neun", null)).size(), "deleted messages are not found");
+
+        // block: ends the friendship, the blocked player cannot ask again and sees no hint of the block
+        get(toby.block(SARAH.uuid));
+        await(() -> toby.isBlocked(SARAH.uuid) && toby.friend(SARAH.uuid) == null && sarah.friend(TOBY.uuid) == null, "blocked");
+        Exception blocked = assertThrows(SocialClient.SocialException.class, () -> get(sarah.addFriend("Toby")));
+        assertTrue(blocked.getMessage().contains("keine Freundschaftsanfragen"), blocked.getMessage());
+        Exception ownBlock = assertThrows(SocialClient.SocialException.class, () -> get(toby.addFriend("JustSarah")));
+        assertTrue(ownBlock.getMessage().contains("blockiert"), ownBlock.getMessage());
+
+        // restart: settings, block and the changed message are stored
+        clients.forEach(SocialClient::close);
+        clients.clear();
+        server.close();
+        startServer();
+        SocialClient toby2 = connect(TOBY, "game");
+        assertEquals("friends_of_friends", toby2.requestPolicy());
+        assertTrue(toby2.isBlocked(SARAH.uuid));
+        toby2.setFocused(dm);
+        await(() -> toby2.messages(dm).size() == 1 && toby2.messages(dm).get(0).deleted, "deleted after restart");
+    }
+
+    /** The data really is on disk (overridden by the PostgreSQL variant). */
+    void checkStorage() throws Exception {
         assertTrue(Files.exists(data.resolve("state.json")));
     }
 
@@ -402,6 +476,51 @@ class SocialServerTest {
         max.close();
         await(() -> seen.get(MAX.uuid).size() == 0, "cleared when Max leaves");
         sarah.close();
+    }
+
+    @Test
+    void lumoraBadgeShowsGamePlayersOnly() throws Exception {
+        startServer();
+        SocialClient toby = connect(TOBY, "game");
+        connect(SARAH, "launcher");
+        // nobody near Toby is in the game with Lumora yet (Sarah only has the launcher open)
+        get(toby.watchCosmetics(List.of(MAX.uuid, SARAH.uuid)));
+        assertFalse(toby.isLumoraPlayer(MAX.uuid));
+        assertFalse(toby.isLumoraPlayer(SARAH.uuid), "the launcher alone shows no badge");
+
+        // Max joins with the game: pushed to the watcher, also found by the tab-list lookup
+        SocialClient max = connect(MAX, "game");
+        await(() -> toby.isLumoraPlayer(MAX.uuid), "badge pushed when Max joins");
+        assertEquals(java.util.Set.of(MAX.uuid), get(toby.lookupLumora(List.of(MAX.uuid, SARAH.uuid, TOBY.uuid))));
+        assertFalse(get(max.lookupLumora(List.of(MAX.uuid))).contains(MAX.uuid), "not about oneself");
+
+        // hidden by Max's setting, back when switched on again
+        get(max.setShowBadge(false));
+        await(() -> !max.showBadge() && !toby.isLumoraPlayer(MAX.uuid), "badge hidden");
+        assertTrue(get(toby.lookupLumora(List.of(MAX.uuid))).isEmpty());
+        get(max.setShowBadge(true));
+        await(() -> toby.isLumoraPlayer(MAX.uuid), "badge shown again");
+
+        // a block hides it in both directions
+        get(toby.block(MAX.uuid));
+        await(() -> !toby.isLumoraPlayer(MAX.uuid), "hidden after the block");
+        get(max.watchCosmetics(List.of(TOBY.uuid)));
+        assertFalse(max.isLumoraPlayer(TOBY.uuid), "the blocked player does not see it either");
+        get(toby.unblock(MAX.uuid));
+        await(() -> toby.isLumoraPlayer(MAX.uuid) && max.isLumoraPlayer(TOBY.uuid), "visible after the unblock");
+
+        // gone when Max leaves the game
+        max.close();
+        await(() -> !toby.isLumoraPlayer(MAX.uuid), "badge gone when Max leaves");
+
+        // the setting is stored
+        SocialClient max2 = connect(MAX, "game");
+        get(max2.setShowBadge(false));
+        clients.forEach(SocialClient::close);
+        clients.clear();
+        server.close();
+        startServer();
+        assertFalse(connect(MAX, "game").showBadge(), "kept after a restart");
     }
 
     @Test

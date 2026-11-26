@@ -29,8 +29,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Lumora Social in the game: connects to the server the launcher passes ({@code -Dlumora.social.server}, the address
- * only), proves the account with the game's own session (official Mojang join), keeps the presence up to date
+ * Lumora Social in the game: connects to the official Lumora backend ({@link Endpoint#configured()}; tests point it at a
+ * local server with {@code -Dlumora.social.server}), proves the account with the game's own session (official Mojang join), keeps the presence up to date
  * (menu / singleplayer / server, the server address only if {@code -Dlumora.social.shareServer} allows it) and shows
  * Lumora notifications for new messages, friend requests and friends coming online. Events from the network thread
  * are handled on the client thread in {@link #tick()}.
@@ -64,16 +64,10 @@ public final class LumoraSocial {
     /** Reads the launcher's settings and connects; a disabled instance (with reason) when that is not possible. */
     public static LumoraSocial start(LumoraCore core, Platform platform) {
         boolean share = !"false".equals(System.getProperty("lumora.social.shareServer"));
-        String server = System.getProperty("lumora.social.server");
         boolean de = platform.translations().language().startsWith("de");
-        if (server == null || server.isBlank()) {
-            return new LumoraSocial(core, platform, null, de
-                    ? "Lumora Social ist nicht eingerichtet. Im Launcher unter „Freunde“ einen Server eintragen und das Spiel neu starten."
-                    : "Lumora Social is not set up. Enter a server in the launcher under \"Freunde\" and restart the game.", share);
-        }
         URI uri;
         try {
-            uri = Endpoint.parse(server);
+            uri = Endpoint.configured(); // the official Lumora backend (tests: -Dlumora.social.server)
         } catch (IllegalArgumentException e) {
             return new LumoraSocial(core, platform, null, e.getMessage(), share);
         }

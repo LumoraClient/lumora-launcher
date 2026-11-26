@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Everything the server keeps except message texts (those live in {@code messages/*.jsonl}, see {@link Store}).
+ * Everything the server keeps except message texts (those live in {@code messages/*.jsonl}, see {@link Persistence}).
  * Players are stored by UUID; names come from the last verified login. Not thread-safe: {@link Hub} holds its lock.
  */
 final class State {
@@ -48,6 +48,17 @@ final class State {
         }
     }
 
+    /** Privacy and status settings of a player. */
+    static final class Settings {
+        /** who may send friend requests: everyone, friends_of_friends, nobody */
+        String requestPolicy = "everyone";
+        /** chosen status: online, busy, away, invisible */
+        String presenceMode = "online";
+        /** whether other Lumora players see the Lumora badge at this player's name */
+        boolean showBadge = true;
+        long updated;
+    }
+
     static final class MemberRec {
         String role;
         final long joined;
@@ -68,6 +79,10 @@ final class State {
     final Map<String, Map<String, Long>> reads = new HashMap<>();
     /** uuid -> muted conversations */
     final Map<String, Set<String>> muted = new HashMap<>();
+    /** blocker uuid -> (blocked uuid -> at) */
+    final Map<String, Map<String, Long>> blocks = new HashMap<>();
+    /** uuid -> privacy and status settings (absent = defaults) */
+    final Map<String, Settings> settings = new HashMap<>();
     long nextMessageId = 1;
     /** conv -> newest messages (loaded from the message files, at most Rules.HISTORY_KEPT) */
     final Map<String, ArrayDeque<dev.lumora.social.model.ChatMessage>> messages = new HashMap<>();
@@ -99,6 +114,13 @@ final class State {
         }
         o.add("groups", gs);
         o.add("reads", pairs(reads));
+        o.add("blocks", pairs(blocks));
+        JsonObject st = new JsonObject();
+        for (Map.Entry<String, Settings> e : settings.entrySet()) {
+            st.add(e.getKey(), Js.obj().put("requestPolicy", e.getValue().requestPolicy).put("presenceMode", e.getValue().presenceMode)
+                    .put("showBadge", e.getValue().showBadge).put("updated", e.getValue().updated).json());
+        }
+        o.add("settings", st);
         JsonObject mu = new JsonObject();
         for (Map.Entry<String, Set<String>> e : muted.entrySet()) {
             JsonArray a = new JsonArray();
@@ -109,6 +131,38 @@ final class State {
         }
         o.add("muted", mu);
         return o;
+    }
+
+    /** The settings of a player, created with defaults on first change. */
+    Settings settingsOf(String uuid) {
+        Settings s = settings.get(uuid);
+        return s != null ? s : DEFAULT_SETTINGS;
+    }
+
+    Settings editSettings(String uuid) {
+        return settings.computeIfAbsent(uuid, k -> new Settings());
+    }
+
+    private static final Settings DEFAULT_SETTINGS = new Settings();
+
+    static String requestPolicy(String v) {
+        return switch (v == null ? "" : v) {
+            case "friends_of_friends", "nobody" -> v;
+            default -> "everyone";
+        };
+    }
+
+    static String presenceMode(String v) {
+        return switch (v == null ? "" : v) {
+            case "busy", "away", "invisible" -> v;
+            default -> "online";
+        };
+    }
+
+    boolean blocked(String a, String b) {
+        Map<String, Long> x = blocks.get(a);
+        Map<String, Long> y = blocks.get(b);
+        return (x != null && x.containsKey(b)) || (y != null && y.containsKey(a));
     }
 
     private static JsonObject pairs(Map<String, Map<String, Long>> m) {
@@ -161,6 +215,21 @@ final class State {
         readPairs(Js.obj(o, "friends"), s.friends);
         readPairs(Js.obj(o, "requests"), s.requests);
         readPairs(Js.obj(o, "reads"), s.reads);
+        readPairs(Js.obj(o, "blocks"), s.blocks);
+        JsonObject st = Js.obj(o, "settings");
+        if (st != null) {
+            for (Map.Entry<String, JsonElement> e : st.entrySet()) {
+                if (e.getValue().isJsonObject() && Rules.uuid(e.getKey()) != null) {
+                    JsonObject v = e.getValue().getAsJsonObject();
+                    Settings x = new Settings();
+                    x.requestPolicy = requestPolicy(Js.str(v, "requestPolicy", "everyone"));
+                    x.presenceMode = presenceMode(Js.str(v, "presenceMode", "online"));
+                    x.showBadge = Js.bool(v, "showBadge", true);
+                    x.updated = Js.num(v, "updated", 0);
+                    s.settings.put(e.getKey(), x);
+                }
+            }
+        }
         for (JsonObject g : Js.list(o, "groups", x -> x)) {
             String id = Js.str(g, "id", null);
             String owner = Rules.uuid(Js.str(g, "owner", null));

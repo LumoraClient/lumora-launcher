@@ -1,0 +1,10 @@
+# /etc/systemd/system/lumora-backup.service: one database dump (see lumora-backup.timer)
+[Unit]
+Description=Lumora database backup
+Requires=postgresql.service
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=postgres
+ExecStart=/bin/sh /opt/lumora/backend/lumora-backup.sh

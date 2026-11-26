@@ -59,6 +59,8 @@ final class WsServer implements Closeable {
 
     private final ServerSocket server;
     private final Handler handler;
+    /** Behind a local reverse proxy (nginx): connections from loopback carry the client address in X-Real-IP. */
+    private final boolean behindProxy;
     private final Set<Conn> conns = ConcurrentHashMap.newKeySet();
     private final Map<InetAddress, AtomicInteger> perIp = new ConcurrentHashMap<>();
     private final ScheduledExecutorService pinger = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -69,7 +71,12 @@ final class WsServer implements Closeable {
     private volatile boolean closed;
 
     WsServer(InetSocketAddress bind, SSLContext tls, Handler handler) throws IOException {
+        this(bind, tls, handler, false);
+    }
+
+    WsServer(InetSocketAddress bind, SSLContext tls, Handler handler, boolean behindProxy) throws IOException {
         this.handler = handler;
+        this.behindProxy = behindProxy;
         this.server = tls == null ? new ServerSocket() : tls.getServerSocketFactory().createServerSocket();
         server.setReuseAddress(true);
         server.bind(bind, 128);
@@ -95,6 +102,11 @@ final class WsServer implements Closeable {
                 continue;
             }
             InetAddress ip = s.getInetAddress();
+            if (behindProxy && ip.isLoopbackAddress()) {
+                // through the local reverse proxy: counted per real address after the headers (X-Real-IP)
+                Thread.ofVirtual().name("ws-conn").start(() -> serve(s, true));
+                continue;
+            }
             AtomicInteger n = perIp.computeIfAbsent(ip, k -> new AtomicInteger());
             if (n.incrementAndGet() > MAX_PER_IP) {
                 n.decrementAndGet();
@@ -103,7 +115,7 @@ final class WsServer implements Closeable {
             }
             Thread.ofVirtual().name("ws-conn").start(() -> {
                 try {
-                    serve(s);
+                    serve(s, false);
                 } finally {
                     if (n.decrementAndGet() <= 0) {
                         perIp.remove(ip, n);
@@ -124,9 +136,11 @@ final class WsServer implements Closeable {
         }
     }
 
-    private void serve(Socket s) {
+    private void serve(Socket s, boolean proxied) {
         Conn conn = null;
         Session session = null;
+        InetAddress counted = null;
+        AtomicInteger countedN = null;
         try {
             s.setSoTimeout(10_000);
             s.setTcpNoDelay(true);
@@ -144,8 +158,25 @@ final class WsServer implements Closeable {
             }
             String path = parts[1];
             if (path.equals("/health")) {
+                // monitoring: no address needed, not counted
                 respond(out, "200 OK", "ok");
                 return;
+            }
+            InetAddress client = s.getInetAddress();
+            if (proxied) {
+                client = realAddress(headers.get("x-real-ip"));
+                if (client == null) {
+                    respond(out, "400 Bad Request", "");
+                    return;
+                }
+                AtomicInteger n = perIp.computeIfAbsent(client, k -> new AtomicInteger());
+                if (n.incrementAndGet() > MAX_PER_IP) {
+                    n.decrementAndGet();
+                    respond(out, "429 Too Many Requests", "");
+                    return;
+                }
+                counted = client;
+                countedN = n;
             }
             String key = headers.get("sec-websocket-key");
             if (!"websocket".equalsIgnoreCase(headers.getOrDefault("upgrade", ""))
@@ -159,7 +190,7 @@ final class WsServer implements Closeable {
                     + "Sec-WebSocket-Accept: " + accept + "\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
             out.flush();
             s.setSoTimeout(120_000);
-            conn = new Conn(s, out);
+            conn = new Conn(s, out, client.getHostAddress());
             conns.add(conn);
             session = handler.open(conn);
             readLoop(in, conn, session);
@@ -174,6 +205,9 @@ final class WsServer implements Closeable {
             }
             if (session != null) {
                 session.onClose();
+            }
+            if (countedN != null && countedN.decrementAndGet() <= 0) {
+                perIp.remove(counted, countedN);
             }
         }
     }
@@ -275,6 +309,22 @@ final class WsServer implements Closeable {
         return b;
     }
 
+    /** The client address the proxy reports (an IP literal only, no name lookup), or null. */
+    static InetAddress realAddress(String header) {
+        if (header == null) {
+            return null;
+        }
+        String h = header.strip();
+        if (h.isEmpty() || h.length() > 45 || !h.matches("[0-9A-Fa-f:.]+")) {
+            return null;
+        }
+        try {
+            return InetAddress.getByName(h); // a literal: parsed, no DNS
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     private static String readHead(InputStream in, Map<String, String> headers) throws IOException {
         ByteArrayOutputStream line = new ByteArrayOutputStream();
         String requestLine = null;
@@ -367,6 +417,7 @@ final class WsServer implements Closeable {
     static final class Conn {
         private final Socket socket;
         private final OutputStream out;
+        private final String address;
         private final BlockingQueue<byte[]> outbox = new ArrayBlockingQueue<>(1000);
         private volatile boolean closed;
         volatile long lastFrame = System.currentTimeMillis();
@@ -374,14 +425,15 @@ final class WsServer implements Closeable {
         private double tokens = 60;
         private long refill = System.nanoTime();
 
-        Conn(Socket socket, OutputStream out) {
+        Conn(Socket socket, OutputStream out, String address) {
             this.socket = socket;
             this.out = out;
+            this.address = address;
             Thread.ofVirtual().name("ws-writer").start(this::writeLoop);
         }
 
         String address() {
-            return socket.getInetAddress().getHostAddress();
+            return address;
         }
 
         void send(String text) {

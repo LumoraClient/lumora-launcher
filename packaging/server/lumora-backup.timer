@@ -1,0 +1,11 @@
+# /etc/systemd/system/lumora-backup.timer: daily at 04:00 (missed runs are caught up after a reboot)
+[Unit]
+Description=Daily Lumora database backup
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

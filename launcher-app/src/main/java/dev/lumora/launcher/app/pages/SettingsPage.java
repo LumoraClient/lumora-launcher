@@ -766,20 +766,6 @@ public final class SettingsPage extends JPanel {
         add("storage", Icons.Kind.TERMINAL, Lang.t("settings.storage.logs.title"), Lang.t("settings.storage.logs.desc"), false, logKeep);
 
         // --- Chat (Lumora Social)
-        JTextField social = field(cfg.socialServer == null ? "" : Endpoint.display(java.net.URI.create(cfg.socialServer)),
-                Lang.t("settings.chat.server.placeholder"), 20);
-        JButton apply = button(Lang.t("common.apply"));
-        apply.addActionListener(e -> {
-            String s = social.getText().strip();
-            try {
-                cfg.socialServer = s.isEmpty() ? null : Endpoint.parse(s).toString();
-                save();
-                hooks.socialChanged();
-            } catch (IllegalArgumentException ex) {
-                host.error(Lang.t("settings.chat.server.title"), ex.getMessage());
-            }
-        });
-        add("chat", Icons.Kind.USERS, Lang.t("settings.chat.server.title"), Lang.t("settings.chat.server.desc"), false, row(social, apply));
         add("chat", Icons.Kind.SERVER, Lang.t("settings.chat.share_server.title"),
                 Lang.t("settings.chat.share_server.desc"),
                 false, toggle(cfg.socialShareServer, on -> cfg.socialShareServer = on));

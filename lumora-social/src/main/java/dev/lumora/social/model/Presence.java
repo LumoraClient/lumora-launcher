@@ -25,11 +25,23 @@ public final class Presence {
     public final State state;
     public final String detail;
     public final String version;
+    /** The status the player chose: "online", "busy" or "away" ("invisible" never leaves the server: it sends OFFLINE). */
+    public final String mode;
 
     public Presence(State state, String detail, String version) {
+        this(state, detail, version, "online");
+    }
+
+    public Presence(State state, String detail, String version, String mode) {
         this.state = state;
         this.detail = detail == null ? "" : detail;
         this.version = version == null ? "" : version;
+        this.mode = "busy".equals(mode) || "away".equals(mode) ? mode : "online";
+    }
+
+    /** The same activity with a chosen status. */
+    public Presence withMode(String m) {
+        return new Presence(state, detail, version, m);
     }
 
     public boolean online() {
@@ -51,16 +63,20 @@ public final class Presence {
             s = State.OFFLINE;
         }
         return new Presence(s, Rules.clean(Js.str(o, "detail", ""), Rules.PRESENCE_DETAIL_MAX, false),
-                Rules.clean(Js.str(o, "version", ""), 16, false));
+                Rules.clean(Js.str(o, "version", ""), 16, false), Js.str(o, "mode", "online"));
     }
 
     public JsonObject json() {
-        return Js.obj().put("state", state.name()).put("detail", detail).put("version", version).json();
+        Js.Obj o = Js.obj().put("state", state.name()).put("detail", detail).put("version", version);
+        if (!mode.equals("online")) {
+            o.put("mode", mode);
+        }
+        return o.json();
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Presence p && p.state == state && p.detail.equals(detail) && p.version.equals(version);
+        return o instanceof Presence p && p.state == state && p.detail.equals(detail) && p.version.equals(version) && p.mode.equals(mode);
     }
 
     @Override

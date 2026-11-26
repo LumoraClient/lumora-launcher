@@ -259,11 +259,12 @@ public final class PlayService {
                 sysProps.add("-Dlumora.smokeTest=" + smokeReport.toAbsolutePath());
             }
             sysProps.addAll(target.extraSysProps());
-            if (config.socialServer != null) {
-                // the address only; the game proves the account itself with its own session (no token on the command line)
-                sysProps.add("-Dlumora.social.server=" + config.socialServer);
-                sysProps.add("-Dlumora.social.shareServer=" + config.socialShareServer);
+            // the game connects to the official Lumora backend; only a developer's test server is passed on
+            String socialOverride = System.getProperty("lumora.social.server");
+            if (socialOverride != null && !socialOverride.isBlank()) {
+                sysProps.add("-Dlumora.social.server=" + socialOverride);
             }
+            sysProps.add("-Dlumora.social.shareServer=" + config.socialShareServer);
             List<String> jvmArgs = new ArrayList<>(config.extraJvmArgs);
             jvmArgs.addAll(target.jvmArgs());
             jvmArgs.addAll(dev.lumora.launcher.core.launch.LaunchOptions.jvmArgs(config, paths.diagnostics()));

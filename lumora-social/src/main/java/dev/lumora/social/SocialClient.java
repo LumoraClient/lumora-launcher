@@ -103,6 +103,13 @@ public final class SocialClient implements AutoCloseable {
     private List<FriendRequest> requests = List.of();
     private Party party;
     private List<PartyInvite> partyInvites = List.of();
+    /** Own settings as the server keeps them: who may send requests, the chosen status. */
+    private String requestPolicy = "everyone";
+    private String presenceMode = "online";
+    private boolean showBadge = true;
+    /** Players in this game who play with Lumora and show the badge (from the watched players and tab-list lookups). */
+    private final Set<String> lumoraPlayers = new HashSet<>();
+    private List<Profile> blocked = List.of();
     private final Map<String, Group> groups = new LinkedHashMap<>();
     private final Map<String, ConversationInfo> convs = new HashMap<>();
     private final Map<String, List<ChatMessage>> messages = new HashMap<>();
@@ -445,6 +452,18 @@ public final class SocialClient implements AutoCloseable {
                     l.loadout(u, Rules.cosmetics(o.get("loadout")));
                 }
             }
+            case "recognized" -> {
+                String u = Rules.uuid(Js.str(o, "uuid", null));
+                if (u != null) {
+                    synchronized (this) {
+                        if (Js.bool(o, "lumora", false)) {
+                            lumoraPlayers.add(u);
+                        } else {
+                            lumoraPlayers.remove(u);
+                        }
+                    }
+                }
+            }
             case "emote" -> {
                 CosmeticsListener l = cosmeticsListener;
                 String u = Rules.uuid(Js.str(o, "uuid", null));
@@ -454,6 +473,13 @@ public final class SocialClient implements AutoCloseable {
                 }
             }
             case "msg" -> onMessage(o);
+            case "msg.update" -> onMessageUpdate(o);
+            case "settings" -> {
+                synchronized (this) {
+                    applySettings(Js.obj(o, "settings"), Js.list(o, "blocked", Profile::read));
+                }
+                fire(SocialEvent.of(SocialEvent.Kind.SETTINGS));
+            }
             case "history" -> onHistory(o);
             case "notice" -> fire(new SocialEvent(SocialEvent.Kind.NOTICE, null, null, Rules.clean(Js.str(o, "text", ""), 200, false)));
             case "ok", "error" -> {
@@ -503,6 +529,8 @@ public final class SocialClient implements AutoCloseable {
         List<ConversationInfo> cl = Js.list(o, "conversations", ConversationInfo::read);
         Party pa = Party.read(Js.obj(o, "party"));
         List<PartyInvite> pi = Js.list(o, "partyInvites", PartyInvite::read);
+        JsonObject settingsJson = Js.obj(o, "settings");
+        List<Profile> bl = Js.list(o, "blocked", Profile::read);
         List<Pending> resend;
         Presence p;
         String focus;
@@ -517,6 +545,7 @@ public final class SocialClient implements AutoCloseable {
             requests = List.copyOf(rl);
             party = pa;
             partyInvites = List.copyOf(pi);
+            applySettings(settingsJson, bl);
             groups.clear();
             for (Group g : gl) {
                 groups.put(g.id, g);
@@ -525,6 +554,7 @@ public final class SocialClient implements AutoCloseable {
             for (ConversationInfo c : cl) {
                 convs.put(c.conv, c);
             }
+            lumoraPlayers.clear();
             // history may have changed while offline: reloaded when a conversation is shown
             messages.clear();
             historyComplete.clear();
@@ -547,6 +577,7 @@ public final class SocialClient implements AutoCloseable {
         fire(SocialEvent.of(SocialEvent.Kind.FRIENDS));
         fire(SocialEvent.of(SocialEvent.Kind.REQUESTS));
         fire(SocialEvent.of(SocialEvent.Kind.GROUPS));
+        fire(SocialEvent.of(SocialEvent.Kind.SETTINGS));
         fire(SocialEvent.of(SocialEvent.Kind.PARTY));
         if (focus != null) {
             loadHistory(focus);
@@ -580,6 +611,39 @@ public final class SocialClient implements AutoCloseable {
             }
             fire(new SocialEvent(SocialEvent.Kind.MESSAGE, m.conv, m, null));
         }
+    }
+
+    private void applySettings(JsonObject st, List<Profile> bl) {
+        if (st != null) {
+            requestPolicy = switch (Js.str(st, "requestPolicy", "everyone")) {
+                case "friends_of_friends" -> "friends_of_friends";
+                case "nobody" -> "nobody";
+                default -> "everyone";
+            };
+            presenceMode = switch (Js.str(st, "presenceMode", "online")) {
+                case "busy" -> "busy";
+                case "away" -> "away";
+                case "invisible" -> "invisible";
+                default -> "online";
+            };
+            showBadge = Js.bool(st, "showBadge", true);
+        }
+        blocked = bl == null ? List.of() : List.copyOf(bl);
+    }
+
+    /** An edited or deleted message replaces the copy in the loaded history. */
+    private void onMessageUpdate(JsonObject o) {
+        ChatMessage m = ChatMessage.read(Js.obj(o, "message"));
+        if (m == null) {
+            return;
+        }
+        synchronized (this) {
+            List<ChatMessage> list = messages.get(m.conv);
+            if (list != null) {
+                list.replaceAll(x -> x.id == m.id ? m : x);
+            }
+        }
+        fire(new SocialEvent(SocialEvent.Kind.CONVERSATION, m.conv, m, null));
     }
 
     private void onHistory(JsonObject o) {
@@ -678,6 +742,56 @@ public final class SocialClient implements AutoCloseable {
 
     public CompletableFuture<Void> removeFriend(String uuid) {
         return action(Js.op("friend.remove").put("uuid", uuid));
+    }
+
+    /**
+     * Blocks a player: ends a friendship and open requests in both directions; the player can no longer send you
+     * requests, invitations, cosmetics or emotes. The block is private (they see "accepts no requests").
+     */
+    public CompletableFuture<Void> block(String uuid) {
+        return action(Js.op("block").put("uuid", uuid));
+    }
+
+    public CompletableFuture<Void> unblock(String uuid) {
+        return action(Js.op("unblock").put("uuid", uuid));
+    }
+
+    /** Who may send you friend requests: "everyone", "friends_of_friends" or "nobody". */
+    public CompletableFuture<Void> setRequestPolicy(String policy) {
+        return action(Js.op("settings.set").put("requestPolicy", policy));
+    }
+
+    /** Your status for others: "online", "busy", "away" or "invisible" (others then see you offline). */
+    public CompletableFuture<Void> setPresenceMode(String mode) {
+        return action(Js.op("settings.set").put("presenceMode", mode));
+    }
+
+    /** Whether other Lumora players see the Lumora badge at your name. */
+    public CompletableFuture<Void> setShowBadge(boolean show) {
+        return action(Js.op("settings.set").put("showBadge", show));
+    }
+
+    /** Changes the text of one of your messages (everybody in the conversation sees "bearbeitet"). */
+    public CompletableFuture<Void> editMessage(String conv, long id, String text) {
+        String t = Rules.clean(text, Rules.MESSAGE_MAX, true);
+        if (t.isEmpty()) {
+            return CompletableFuture.failedFuture(new SocialException("Leere Nachricht"));
+        }
+        return action(Js.op("msg.edit").put("conv", conv).put("id", id).put("text", t));
+    }
+
+    /** Deletes one of your messages for everybody (its place stays as "gelöscht"). */
+    public CompletableFuture<Void> deleteMessage(String conv, long id) {
+        return action(Js.op("msg.delete").put("conv", conv).put("id", id));
+    }
+
+    /** Searches your conversations (or only {@code conv} if not null), newest first, at most 50 hits. */
+    public CompletableFuture<List<ChatMessage>> searchMessages(String query, String conv) {
+        Js.Obj body = Js.op("msg.search").put("q", query == null ? "" : query);
+        if (conv != null) {
+            body.put("conv", conv);
+        }
+        return call(body).thenApply(r -> Js.list(r, "messages", ChatMessage::read));
     }
 
     /** Invites a player (UUID) into your party; starts a party if you have none. Only the leader invites. */
@@ -783,6 +897,7 @@ public final class SocialClient implements AutoCloseable {
         uuids.stream().map(Rules::uuid).filter(java.util.Objects::nonNull).distinct().limit(Rules.COSMETICS_WATCH_MAX)
                 .forEach(u -> a.add(Js.prim(u)));
         return call(Js.op("cosmetics.watch").put("uuids", a)).thenApply(r -> {
+            markLumora(a, r);
             Map<String, com.google.gson.JsonArray> m = new HashMap<>();
             JsonObject found = Js.obj(r, "loadouts");
             if (found != null) {
@@ -795,6 +910,50 @@ public final class SocialClient implements AutoCloseable {
             }
             return m;
         });
+    }
+
+    /**
+     * Asks which of these players (the tab list, at most {@link Rules#LUMORA_LOOKUP_MAX}) play with Lumora and show the
+     * badge; the answer also feeds {@link #isLumoraPlayer}. One-shot: ask again when the list changes.
+     */
+    public CompletableFuture<Set<String>> lookupLumora(java.util.Collection<String> uuids) {
+        com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+        uuids.stream().map(Rules::uuid).filter(java.util.Objects::nonNull).distinct().limit(Rules.LUMORA_LOOKUP_MAX)
+                .forEach(u -> a.add(Js.prim(u)));
+        if (a.size() == 0) {
+            return CompletableFuture.completedFuture(Set.of());
+        }
+        return call(Js.op("lumora.who").put("uuids", a)).thenApply(r -> markLumora(a, r));
+    }
+
+    /** Takes the "lumora" answer for the asked players: those listed play with Lumora, the others do not. */
+    private Set<String> markLumora(com.google.gson.JsonArray asked, JsonObject reply) {
+        Set<String> yes = new HashSet<>();
+        com.google.gson.JsonElement l = reply == null ? null : reply.get("lumora");
+        if (l != null && l.isJsonArray()) {
+            for (com.google.gson.JsonElement e : l.getAsJsonArray()) {
+                String u = e.isJsonPrimitive() ? Rules.uuid(e.getAsString()) : null;
+                if (u != null) {
+                    yes.add(u);
+                }
+            }
+        }
+        synchronized (this) {
+            for (com.google.gson.JsonElement e : asked) {
+                String u = e.getAsString();
+                if (yes.contains(u)) {
+                    lumoraPlayers.add(u);
+                } else {
+                    lumoraPlayers.remove(u);
+                }
+            }
+        }
+        return yes;
+    }
+
+    /** Whether {@code uuid} plays with Lumora right now and shows the badge (known for watched and looked-up players). */
+    public synchronized boolean isLumoraPlayer(String uuid) {
+        return uuid != null && lumoraPlayers.contains(uuid);
     }
 
     /** Tells the players near this one ({@code targets}, UUIDs) that this player started emote {@code id}; "" stops it. */
@@ -1153,6 +1312,26 @@ public final class SocialClient implements AutoCloseable {
             }
         }
         return uuid == null ? "?" : uuid.substring(0, Math.min(8, uuid.length()));
+    }
+
+    public synchronized String requestPolicy() {
+        return requestPolicy;
+    }
+
+    public synchronized boolean showBadge() {
+        return showBadge;
+    }
+
+    public synchronized String presenceMode() {
+        return presenceMode;
+    }
+
+    public synchronized List<Profile> blocked() {
+        return blocked;
+    }
+
+    public synchronized boolean isBlocked(String uuid) {
+        return blocked.stream().anyMatch(p -> p.uuid.equals(uuid));
     }
 
     /** Presence of a friend, or OFFLINE for anyone else (presence is only shared between friends). */

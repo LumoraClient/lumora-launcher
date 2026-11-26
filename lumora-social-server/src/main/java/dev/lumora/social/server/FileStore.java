@@ -25,17 +25,18 @@ import java.util.List;
  * </ul>
  * Message texts are stored as plain text: whoever runs the server can read them (documented in SOCIAL.md).
  */
-final class Store {
+final class FileStore implements Persistence {
     private final Path dir;
     private final Path messagesDir;
 
-    Store(Path dir) throws IOException {
+    FileStore(Path dir) throws IOException {
         this.dir = dir;
         this.messagesDir = dir.resolve("messages");
         Files.createDirectories(messagesDir);
     }
 
-    State load() throws IOException {
+    @Override
+    public State load() throws IOException {
         Path f = dir.resolve("state.json");
         State s = Files.isRegularFile(f) ? State.read(Js.object(Files.readString(f, StandardCharsets.UTF_8))) : new State();
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(messagesDir, "*.jsonl")) {
@@ -71,11 +72,13 @@ final class Store {
         return s;
     }
 
-    void save(State s) throws IOException {
+    @Override
+    public void save(State s) throws IOException {
         writeAtomically(dir.resolve("state.json"), s.json().toString());
     }
 
-    void append(ChatMessage m) throws IOException {
+    @Override
+    public void append(ChatMessage m) throws IOException {
         try (BufferedWriter w = Files.newBufferedWriter(file(m.conv), StandardCharsets.UTF_8, StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
             w.write(m.json().toString());
@@ -83,7 +86,13 @@ final class Store {
         }
     }
 
-    void deleteConversation(String conv) throws IOException {
+    @Override
+    public void update(ChatMessage m, java.util.Collection<ChatMessage> conversation) throws IOException {
+        rewrite(m.conv, new ArrayDeque<>(conversation));
+    }
+
+    @Override
+    public void deleteConversation(String conv) throws IOException {
         Files.deleteIfExists(file(conv));
     }
 

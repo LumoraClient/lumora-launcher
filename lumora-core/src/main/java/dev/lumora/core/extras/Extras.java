@@ -25,8 +25,16 @@ public final class Extras {
         return candidates(platform, () -> null);
     }
 
-    /** The modules; {@code social} gives Lumora Social (cosmetics of other players) once it runs. */
     public static List<AddonCandidate> candidates(Platform platform, java.util.function.Supplier<dev.lumora.core.social.LumoraSocial> social) {
+        return candidates(platform, social, () -> null);
+    }
+
+    /**
+     * The modules; {@code social} gives Lumora Social (cosmetics of other players) once it runs, {@code nameTags} the
+     * core's name tag registry (the Lumora Badge before the name).
+     */
+    public static List<AddonCandidate> candidates(Platform platform, java.util.function.Supplier<dev.lumora.core.social.LumoraSocial> social,
+                                                  java.util.function.Supplier<dev.lumora.core.render.NameTagRegistry> nameTags) {
         return List.of(
                 AddonCandidate.of(LumoraCore.builtInDescriptor("lumora-info", "Info Widgets",
                         "Potion effects, item counter, compass, memory, day, resource packs, combo", InfoWidgetsModule.class),
@@ -102,12 +110,12 @@ public final class Extras {
                         dev.lumora.core.cosmetics.CosmeticsModule.class),
                         () -> new dev.lumora.core.cosmetics.CosmeticsModule(platform, social)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(dev.lumora.core.social.LumoraBadgeModule.ID, "Lumora Badge",
-                        "A Lumora star next to the names of players who play with Lumora, above their heads and in the tab list",
+                        "A Lumora star in front of the names of players who play with Lumora, above their heads and in the tab list",
                         dev.lumora.core.social.LumoraBadgeModule.class),
                         () -> new dev.lumora.core.social.LumoraBadgeModule(() -> {
                             dev.lumora.core.social.LumoraSocial ls = social.get();
                             return ls == null ? null : ls.client();
-                        }, () -> platform == null ? null : platform.world())),
+                        }, () -> platform == null ? null : platform.world(), nameTags)),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(HiddenArmorModule.ID, "Hidden Armor",
                         "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
                         HiddenArmorModule.class),

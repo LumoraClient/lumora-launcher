@@ -284,6 +284,16 @@ final class ApiSmoke {
         return tracker;
     }
 
+    /**
+     * The Lumora Badge before the names of the preview players, through the core's leading slot and the name tag
+     * mixins (no Lumora server needed). Unregister the result to remove it.
+     */
+    static dev.lumora.api.Registration badgePreview(Map<java.util.UUID, Integer> states) {
+        var badge = new dev.lumora.api.render.NameTags.Icon("lumora:badge", "\uE000", 0xFFFFFF, "\u00a7b\u2726", "");
+        return core().nameTags().registerLeading((id, place) -> states.containsKey(id)
+                ? java.util.Optional.of(badge) : java.util.Optional.empty());
+    }
+
     private static String fmt(float v) {
         return String.format(Locale.ROOT, "%.3f", v);
     }

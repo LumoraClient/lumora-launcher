@@ -22,6 +22,11 @@ public abstract class NameTagBesideMixin {
             // the label starts at -width/2, so its end is at -x
             font.draw(icon, -x + (int) NameTagIcons.GAP, y, color);
         }
+        // the core's icon (Lumora Badge) left of the label, which starts at x
+        String lead = NameTagIcons.leading();
+        if (lead != null) {
+            font.draw(lead, x - (int) NameTagIcons.GAP - NameTagIcons.width(font, lead), y, color);
+        }
         // lines above and below the name
         String above = NameTagIcons.above();
         if (above != null) {

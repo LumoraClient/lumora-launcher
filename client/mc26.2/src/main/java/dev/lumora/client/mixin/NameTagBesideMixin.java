@@ -26,6 +26,10 @@ public abstract class NameTagBesideMixin {
         if (icon != null) {
             phase.submit(icon);
         }
+        var lead = lumora$lead(submit);
+        if (lead != null) {
+            phase.submit(lead);
+        }
         for (var line : lumora$lines(submit)) {
             phase.submit(line);
         }
@@ -38,6 +42,10 @@ public abstract class NameTagBesideMixin {
         var icon = lumora$beside(submit);
         if (icon != null) {
             phase.submit(icon);
+        }
+        var lead = lumora$lead(submit);
+        if (lead != null) {
+            phase.submit(lead);
         }
         for (var line : lumora$lines(submit)) {
             phase.submit(line);
@@ -62,6 +70,18 @@ public abstract class NameTagBesideMixin {
                     name.color(), name.backgroundColor(), name.displayMode()));
         }
         return lines;
+    }
+
+    /** The core's icon (Lumora Badge) left of the name's box, or {@code null}. */
+    private static NameTagFeatureRenderer.Submit lumora$lead(Object submit) {
+        NameTagIcons.Text lead = NameTagIcons.leading();
+        if (lead == null || !(submit instanceof NameTagFeatureRenderer.Submit name)) {
+            return null;
+        }
+        var font = net.minecraft.client.Minecraft.getInstance().font;
+        // the name starts at x
+        return new NameTagFeatureRenderer.Submit(name.pose(), name.x() - NameTagIcons.GAP - lead.width(font), name.y(), lead.component, name.lightCoords(),
+                name.color(), 0, name.displayMode());
     }
 
     /** The icon right of the name's box, or {@code null} when no icon is pending. */

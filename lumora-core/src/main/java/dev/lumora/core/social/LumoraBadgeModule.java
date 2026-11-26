@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
- * Built-in module "Lumora Badge": a small Lumora star next to the names of players who play with Lumora right now,
+ * Built-in module "Lumora Badge": a small Lumora star in front of the names of players who play with Lumora right now,
  * above their heads and in the tab list. Which players that are, only the official Lumora server knows: this client
  * asks it about the players in the tab list and nearby (one lookup at most every {@link #LOOKUP_MIN_MS} when the list
  * changed, else every {@link #REFRESH_MS}); the server answers only yes or no and leaves out players who hide their
@@ -37,11 +37,10 @@ public final class LumoraBadgeModule implements LumoraAddon {
     static final String K = "lumora.badge.";
     /** Font of the badge glyph ({@code assets/lumora/font/badge.json}). */
     static final String FONT = "lumora:badge";
-    static final String GLYPH = "";
-    /** Drawn on 1.8.9 and 1.12.2 (no custom fonts) in the nearest chat color. */
-    static final String FALLBACK = "✦";
+    static final String GLYPH = "\uE000";
+    /** Drawn on 1.8.9 and 1.12.2 (no custom fonts): an aqua star (the code wins over the white of {@link #COLOR}). */
+    static final String FALLBACK = "\u00a7b\u2726";
     static final int COLOR = 0xFFFFFF;
-    static final int FALLBACK_COLOR = 0x7FA8FF;
     static final long LOOKUP_MIN_MS = 5_000;
     static final long REFRESH_MS = 30_000;
     /** Nearby players asked about first (the rest of the lookup is filled from the tab list). */
@@ -49,6 +48,8 @@ public final class LumoraBadgeModule implements LumoraAddon {
 
     private final Supplier<SocialClient> client;
     private final Supplier<WorldAccess> world;
+    /** The core's registry: the badge goes before the name; without it (tests) after the name like an addon icon. */
+    private final Supplier<dev.lumora.core.render.NameTagRegistry> nameTags;
     BooleanSetting aboveHead;
     BooleanSetting tabList;
     BooleanSetting own;
@@ -66,8 +67,14 @@ public final class LumoraBadgeModule implements LumoraAddon {
     private int ticks;
 
     public LumoraBadgeModule(Supplier<SocialClient> client, Supplier<WorldAccess> world) {
+        this(client, world, () -> null);
+    }
+
+    public LumoraBadgeModule(Supplier<SocialClient> client, Supplier<WorldAccess> world,
+                             Supplier<dev.lumora.core.render.NameTagRegistry> nameTags) {
         this.client = client;
         this.world = world;
+        this.nameTags = nameTags == null ? () -> null : nameTags;
     }
 
     @Override
@@ -164,7 +171,8 @@ public final class LumoraBadgeModule implements LumoraAddon {
     private void updateRegistration() {
         boolean need = !shown.isEmpty() || own.get() && self != null;
         if (need && registration == null && context != null) {
-            registration = context.nameTags().register(this::icon);
+            dev.lumora.core.render.NameTagRegistry core = nameTags.get();
+            registration = core != null ? core.registerLeading(this::icon) : context.nameTags().register(this::icon);
         } else if (!need && registration != null) {
             registration.unregister();
             registration = null;

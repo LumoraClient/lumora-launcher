@@ -167,9 +167,23 @@ public final class NameTagIcons {
         return t;
     }
 
-    /** {@code name} with the icon of {@code player} appended (tab list), or {@code name} unchanged. */
+    /** The core's icon before the name of {@code player} (e.g. the Lumora Badge), or empty. */
+    public static Optional<NameTags.Icon> leadingIcon(UUID player, NameTags.Place place) {
+        var core = LumoraRuntime.core();
+        if (core == null || player == null || !core.nameTags().active()) {
+            return Optional.empty();
+        }
+        return core.nameTags().leading(player, place);
+    }
+
+    /**
+     * {@code name} with the core's icon before it and the addon icon after it (tab list), or {@code name} unchanged.
+     */
     public static Component decorate(Component name, UUID player, NameTags.Place place) {
-        return glyph(player, place).<Component>map(icon -> name.copy().append(" ").append(icon)).orElse(name);
+        Component out = glyph(player, place).<Component>map(icon -> name.copy().append(" ").append(icon)).orElse(name);
+        Optional<Text> lead = leadingIcon(player, place).flatMap(icon -> build(icon, place));
+        // an empty root, so the name does not take the font of the icon
+        return lead.<Component>map(t -> new net.minecraft.network.chat.TextComponent("").append(t.component).append(" ").append(out)).orElse(out);
     }
 
     /** Gap between the end of the name and the icon: the name tag box reaches 1 px past the text. */
@@ -177,18 +191,22 @@ public final class NameTagIcons {
 
     /** Icon of the player whose name tag is drawn right now: drawn next to the box, not inside it. */
     private static Text current;
+    /** The core's icon before the name (Lumora Badge) of the player whose name tag is drawn right now. */
+    private static Text lead;
 
     /** Right before a player's name tag is drawn: remembers the icon for {@link #current()}. */
     public static void begin(UUID player) {
         if (PerformanceEngine.rendering) {
             memo(player);
             current = memoIcon.map(NameTagIcons::glyphText).orElse(null);
+            lead = leadingIcon(player, NameTags.Place.WORLD).map(NameTagIcons::glyphText).orElse(null);
             NameTags.Lines lines = memoLines;
             above = lines == null || lines.above().isEmpty() ? null : lineText(lines.above());
             below = lines == null || lines.below().isEmpty() ? null : lineText(lines.below());
             return;
         }
         current = glyph(player, NameTags.Place.WORLD).map(Text::new).orElse(null);
+        lead = leadingIcon(player, NameTags.Place.WORLD).flatMap(icon -> build(icon, NameTags.Place.WORLD)).orElse(null);
         var lines = lines(player);
         above = lines == null || lines.above().isEmpty() ? null : new Text(new net.minecraft.network.chat.TextComponent(lines.above()));
         below = lines == null || lines.below().isEmpty() ? null : new Text(new net.minecraft.network.chat.TextComponent(lines.below()));
@@ -197,6 +215,7 @@ public final class NameTagIcons {
     /** After the name tag: nothing pending any more. */
     public static void end() {
         current = null;
+        lead = null;
         above = null;
         below = null;
     }
@@ -204,6 +223,11 @@ public final class NameTagIcons {
     /** The icon to draw next to the name tag being drawn, or {@code null}. */
     public static Text current() {
         return current;
+    }
+
+    /** The icon to draw before the name tag being drawn (left of the box), or {@code null}. */
+    public static Text leading() {
+        return lead;
     }
 
     /** Whether an icon was drawn since start (smoke test). */

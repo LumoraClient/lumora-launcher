@@ -70,6 +70,7 @@ public final class SmokeTest {
     private int zoomPhase;
     private Boolean labyVoiceBefore;
     private dev.lumora.core.RegistrationTracker nameTagPreview;
+    private dev.lumora.api.Registration badgePreview;
     private final List<String> extraProblems = new ArrayList<>();
     /** Pitch of the player before the light overlay step looks at the ground. */
     private float lightPitch;
@@ -520,6 +521,7 @@ public final class SmokeTest {
             // preview players in armor (Hidden Armor), with name tag icons when a voice addon is there
             var previewPlayers = addPreviewPlayers(mc);
             ApiSmoke.hiddenArmorPreview();
+            badgePreview = ApiSmoke.badgePreview(previewPlayers);
             if (ApiSmoke.voiceLoaded()) {
                 nameTagPreview = ApiSmoke.nameTagPreview(previewPlayers);
             }
@@ -529,6 +531,10 @@ public final class SmokeTest {
             screenshot(mc, "hud-ingame");
             ApiSmoke.restoreLabyVoice(labyVoiceBefore);
             String armor = ApiSmoke.hiddenArmorDone(extraProblems);
+            if (badgePreview != null) {
+                badgePreview.unregister();
+                badgePreview = null;
+            }
             String icons = "";
             if (nameTagPreview != null) {
                 nameTagPreview.closeAll(dev.lumora.client.api.LumoraRuntime.core().logger(), "smoke");

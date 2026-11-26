@@ -25,7 +25,7 @@ Adresse.
 | Rollen | eigene Rollen (Name, Symbol, Farbe, „darf verwalten“), feste Rollen Owner und Mitglied, Rolle zuweisen, Gruppe übergeben | Anzeige (Symbol und Farbe neben dem Namen) |
 | Chat | Direkt- und Gruppenchat, Tagestrenner, Rollen-Tags, Uhrzeit, ✓ zugestellt / ✓✓ gelesen, ältere Nachrichten beim Hochscrollen, fehlgeschlagene Nachrichten erneut senden; eigene Nachrichten bearbeiten und löschen, Suche (Protokoll) | gleich, Eingabefeld mit Einfügen (Strg+V) |
 | Privatsphäre | Einstellungen unten links: Status (Online, Beschäftigt, Abwesend, Unsichtbar), wer Anfragen schicken darf (alle, Freunde von Freunden, niemand), blockierte Spieler, Server-Adresse für Freunde | Modul „Lumora Badge“: ob andere dein Badge sehen |
-| Lumora-Badge | – | ein Lumora-Stern neben dem Namen anderer Lumora-Spieler, über dem Kopf und in der Tab-Liste (Modul „Lumora Badge“) |
+| Lumora-Badge | – | ein Lumora-Stern vor dem Namen anderer Lumora-Spieler, über dem Kopf und in der Tab-Liste (Modul „Lumora Badge“) |
 | Benachrichtigungen | Zähler an „Freunde“ in der Navigation, Ungelesen-Zähler je Freund und Gruppe, stummschalten | Lumora-Hinweise für neue Nachrichten, Anfragen und Freunde, die online kommen; stummschalten |
 
 Name, Symbol, Beschreibung und Rollen einer Gruppe bearbeitet man im Launcher. Im Spiel gibt es dafür einen Hinweis.
@@ -113,7 +113,7 @@ Migrationsdateien dazu. `GET /health` antwortet mit `ok`.
 - Die Spielansicht ist versionsunabhängig (`lumora-core`, `dev.lumora.core.social.SocialView`). Sie zeichnet mit der
   `HudGraphics`-Schicht der Lumora-API. Pro Minecraft-Version gibt es nur einen kleinen Adapter
   (`client/mc<version>/…/gui/SocialScreen.java`).
-- Lumora-Badge (`dev.lumora.core.social.LumoraBadgeModule`): Namensschild-Dekorator der Lumora-API mit der Bitmap-Schrift
+- Lumora-Badge (`dev.lumora.core.social.LumoraBadgeModule`): eigener Platz vor dem Namen im Namensschild-Register des Kerns (`NameTagRegistry.registerLeading`, Addon-Symbole bleiben hinter dem Namen) mit der Bitmap-Schrift
   `lumora:badge` (auf 1.8.9 und 1.12.2 das Zeichen ✦). Eine Abfrage `lumora.who` für bis zu 256 Spieler (die nahen zuerst),
   höchstens alle 5 s bei Änderungen der Liste, sonst alle 30 s; nahe Spieler kommen zusätzlich als `recognized`-Push über
   `cosmetics.watch`. Beim Zeichnen nur ein Nachschlagen in einer Menge.

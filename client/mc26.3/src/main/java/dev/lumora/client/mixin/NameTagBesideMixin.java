@@ -49,6 +49,17 @@ public abstract class NameTagBesideMixin {
                 submitNameTagPart(beside);
             }
         }
+        // the core's icon (Lumora Badge) left of the name, which starts at x
+        NameTagIcons.Text lead = NameTagIcons.leading();
+        if (lead != null) {
+            var leadFont = net.minecraft.client.Minecraft.getInstance().font;
+            var before = nameTag(pose, x - NameTagIcons.GAP - lead.width(leadFont), y, lead.order(), light, color, 0, mode);
+            if (mode == Font.DisplayMode.SEE_THROUGH) {
+                seeThrough.submit(before);
+            } else {
+                submitNameTagPart(before);
+            }
+        }
         // lines above and below the name (Lumora API 1.7 NameTags.Lines): like the name itself, with its box
         for (int i = 0; i < 2; i++) {
             NameTagIcons.Text line = i == 0 ? NameTagIcons.above() : NameTagIcons.below();

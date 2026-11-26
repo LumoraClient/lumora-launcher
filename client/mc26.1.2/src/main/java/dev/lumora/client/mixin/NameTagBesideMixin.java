@@ -25,6 +25,13 @@ public abstract class NameTagBesideMixin {
             list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), -name.x() + NameTagIcons.GAP, name.y(), icon.component, name.lightCoords(),
                     name.color(), 0, name.distanceToCameraSq()));
         }
+        // the core's icon (Lumora Badge) left of the name, which starts at x
+        NameTagIcons.Text lead = NameTagIcons.leading();
+        if (lead != null && submit instanceof SubmitNodeStorage.NameTagSubmit name) {
+            var font = net.minecraft.client.Minecraft.getInstance().font;
+            list.add(new SubmitNodeStorage.NameTagSubmit(name.pose(), name.x() - NameTagIcons.GAP - lead.width(font), name.y(), lead.component, name.lightCoords(),
+                    name.color(), 0, name.distanceToCameraSq()));
+        }
         if (submit instanceof SubmitNodeStorage.NameTagSubmit name) {
             // lines above and below the name: like the name itself, with its box
             var font = net.minecraft.client.Minecraft.getInstance().font;

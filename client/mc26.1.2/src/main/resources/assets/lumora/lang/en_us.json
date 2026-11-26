@@ -1316,13 +1316,13 @@
   "lumora.badge.section.privacy": "Privacy",
   "lumora.badge.section.show": "Display",
   "lumora.badge.setting.above_head": "Above the head",
-  "lumora.badge.setting.above_head.description": "Shows the star to the right of the name tag above other Lumora players.",
+  "lumora.badge.setting.above_head.description": "Shows the star in front of the name tag above other Lumora players.",
   "lumora.badge.setting.own": "Show own badge",
   "lumora.badge.setting.own.description": "Also shows the star at your own name (in the tab list and in third person).",
   "lumora.badge.setting.share": "Others see my badge",
   "lumora.badge.setting.share.description": "When off, the Lumora server does not tell other players that you play with Lumora. Blocked players never see your badge.",
   "lumora.badge.setting.tab_list": "In the tab list",
-  "lumora.badge.setting.tab_list.description": "Shows the star after the name of Lumora players in the tab list.",
+  "lumora.badge.setting.tab_list.description": "Shows the star in front of the name of Lumora players in the tab list.",
   "lumora.module.lumora-badge": "Lumora Badge",
-  "lumora.module.lumora-badge.description": "A Lumora star next to the names of players who play with Lumora: above their heads and in the tab list"
+  "lumora.module.lumora-badge.description": "A Lumora star in front of the names of players who play with Lumora: above their heads and in the tab list"
 }

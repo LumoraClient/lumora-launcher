@@ -551,7 +551,21 @@ public final class SmokeTest {
             }
             worldStep++;
             ticks = 0;
-        } else if (worldStep == modes.length + 4 && ticks >= SCREEN_TICKS) {
+        } else if (worldStep == modes.length + 4 && ticks == SCREEN_TICKS) {
+            // module "Name Tags": own name tag in third person (with text shadow and background), one screenshot
+            mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
+            if (mc.player != null) {
+                mc.player.setXRot(15f);
+                mc.player.xRotO = 15f;
+            }
+        } else if (worldStep == modes.length + 4 && ticks == SCREEN_TICKS * 2) {
+            screenshot(mc, "nametag-own");
+            mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+            if (mc.player != null) {
+                mc.player.setXRot(70f);
+                mc.player.xRotO = 70f;
+            }
+        } else if (worldStep == modes.length + 4 && ticks >= SCREEN_TICKS * 3) {
             screenshot(mc, "blockoverlay");
             // attack indicator: module on, the attack strength recharging after a (virtual) hit, one shot per style
             ApiSmoke.core().addonManager().setWanted("lumora-attackindicator", true);

@@ -1324,5 +1324,17 @@
   "lumora.badge.setting.tab_list": "In der Tab-Liste",
   "lumora.badge.setting.tab_list.description": "Zeigt den Stern vor dem Namen von Lumora-Spielern in der Tab-Liste.",
   "lumora.module.lumora-badge": "Lumora Badge",
-  "lumora.module.lumora-badge.description": "Ein Lumora-Stern vor den Namen von Spielern, die mit Lumora spielen: über dem Kopf und in der Tab-Liste"
+  "lumora.module.lumora-badge.description": "Ein Lumora-Stern vor den Namen von Spielern, die mit Lumora spielen: über dem Kopf und in der Tab-Liste",
+  "lumora.module.lumora-nametags": "Name Tags",
+  "lumora.module.lumora-nametags.description": "Dein eigenes Namensschild in der Third-Person-Ansicht, Textschatten und Hintergrund der Namensschilder",
+  "lumora.nametags.section.background": "Hintergrund",
+  "lumora.nametags.section.general": "Allgemein",
+  "lumora.nametags.setting.background": "Hintergrund",
+  "lumora.nametags.setting.background.description": "Der dunkle Kasten hinter dem Namen. Aus: nur der Text.",
+  "lumora.nametags.setting.background_color": "Hintergrundfarbe",
+  "lumora.nametags.setting.background_color.description": "Farbe und Deckkraft des Kastens. Minecraft nutzt Schwarz mit 25 %.",
+  "lumora.nametags.setting.show_own": "Eigenes Namensschild zeigen",
+  "lumora.nametags.setting.show_own.description": "Zeigt dein Namensschild über deinem Kopf, wenn du in der Third-Person-Ansicht (F5) bist. In der Ego-Ansicht bleibt es aus.",
+  "lumora.nametags.setting.text_shadow": "Textschatten",
+  "lumora.nametags.setting.text_shadow.description": "Zeichnet den Text der Namensschilder mit Schatten, damit er vor hellem Hintergrund besser lesbar ist. Der Teil, der durch Wände scheint, bleibt ohne Schatten."
 }

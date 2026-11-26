@@ -25,6 +25,7 @@
     "JarFileSystemMixin",
     "RecipeJarFileSystemMixin",
     "NameTagIconMixin",
+    "NameTagOwnMixin",
     "NameTagBesideMixin",
     "TabListIconMixin",
     "ItemTooltipMixin"

@@ -67,14 +67,26 @@ public abstract class NameTagBesideMixin {
                 continue;
             }
             var font = net.minecraft.client.Minecraft.getInstance().font;
-            var part = nameTag(pose, -line.width(font) / 2f, y + (i == 0 ? -NameTagIcons.LINE : NameTagIcons.LINE), line.order(), light, color,
-                    background, mode);
+            var part = lumora$styled(pose, -line.width(font) / 2f, y + (i == 0 ? -NameTagIcons.LINE : NameTagIcons.LINE), line.order(), light,
+                    color, background, mode);
             if (mode == Font.DisplayMode.SEE_THROUGH) {
                 seeThrough.submit(part);
             } else {
                 submitNameTagPart(part);
             }
         }
-        return nameTag(pose, x, y, text, light, color, background, mode);
+        return lumora$styled(pose, x, y, text, light, color, background, mode);
+    }
+
+    /**
+     * A text part of the name tag as Minecraft builds it ({@code nameTag}), with the text shadow and background of the
+     * module "Name Tags" (unchanged while it is off).
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static TextFeatureRenderer.Submit lumora$styled(Matrix4f pose, float x, float y, FormattedCharSequence text, int light, int color,
+            int background, Font.DisplayMode mode) {
+        boolean shadow = dev.lumora.core.extras.NameTagsModule.shadow(false, mode == Font.DisplayMode.SEE_THROUGH);
+        int box = dev.lumora.core.extras.NameTagsModule.background(background);
+        return new TextFeatureRenderer.Submit(pose, mode, light, new TextFeatureRenderer.Content.Text(x, y, text, shadow, color, box, 0));
     }
 }

@@ -16,7 +16,7 @@ public final class Extras {
     public static final List<String> OFF_BY_DEFAULT = List.of("lumora-crosshair", "lumora-togglesprint", "lumora-fullbright",
             "lumora-attackindicator", "lumora-statusbars", "lumora-widgetdesign", "lumora-armor",
             dev.lumora.core.camera.FreelookModule.ID, dev.lumora.core.extras.light.LightOverlayModule.ID,
-            OffHandModule.ID, HiddenArmorModule.ID);
+            OffHandModule.ID, HiddenArmorModule.ID, NameTagsModule.ID);
 
     private Extras() {
     }
@@ -116,6 +116,10 @@ public final class Extras {
                             dev.lumora.core.social.LumoraSocial ls = social.get();
                             return ls == null ? null : ls.client();
                         }, () -> platform == null ? null : platform.world(), nameTags)),
+                AddonCandidate.of(LumoraCore.builtInDescriptor(NameTagsModule.ID, "Name Tags",
+                        "Show your own name tag in third person, text shadow and the background box of name tags",
+                        NameTagsModule.class),
+                        NameTagsModule::new),
                 AddonCandidate.of(LumoraCore.builtInDescriptor(HiddenArmorModule.ID, "Hidden Armor",
                         "Make each piece of your armor invisible or see-through; it shows again for a few seconds when you are hit",
                         HiddenArmorModule.class),

@@ -228,7 +228,8 @@ class HubViewTest {
         HubView.select(0);
         FakeGraphics g = new FakeGraphics();
         view.render(g, 854, 480, 0, 0);
-        assertTrue(g.texts.contains("Zoom"));
+        // the cards are sorted by name: Zoom is far down (below the visible part), Crosshair near the top
+        assertTrue(g.texts.contains("Crosshair"), String.valueOf(g.texts));
         assertTrue(g.texts.stream().anyMatch(t -> t.endsWith(" modules")));
     }
 

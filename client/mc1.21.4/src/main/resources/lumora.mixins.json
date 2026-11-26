@@ -28,6 +28,7 @@
     "EntityRenderStatePlayerIdMixin",
     "NameTagIconMixin",
     "NameTagBesideMixin",
+    "NameTagOwnMixin",
     "PlayerNameTagMixin",
     "TabListIconMixin",
     "ItemTooltipMixin"

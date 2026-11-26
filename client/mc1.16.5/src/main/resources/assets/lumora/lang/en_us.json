@@ -1324,5 +1324,17 @@
   "lumora.badge.setting.tab_list": "In the tab list",
   "lumora.badge.setting.tab_list.description": "Shows the star in front of the name of Lumora players in the tab list.",
   "lumora.module.lumora-badge": "Lumora Badge",
-  "lumora.module.lumora-badge.description": "A Lumora star in front of the names of players who play with Lumora: above their heads and in the tab list"
+  "lumora.module.lumora-badge.description": "A Lumora star in front of the names of players who play with Lumora: above their heads and in the tab list",
+  "lumora.module.lumora-nametags": "Name Tags",
+  "lumora.module.lumora-nametags.description": "Your own name tag in third person, text shadow and the background of name tags",
+  "lumora.nametags.section.background": "Background",
+  "lumora.nametags.section.general": "General",
+  "lumora.nametags.setting.background": "Background",
+  "lumora.nametags.setting.background.description": "The dark box behind the name. Off: only the text.",
+  "lumora.nametags.setting.background_color": "Background color",
+  "lumora.nametags.setting.background_color.description": "Color and opacity of the box. Minecraft uses black at 25 %.",
+  "lumora.nametags.setting.show_own": "Show own name tag",
+  "lumora.nametags.setting.show_own.description": "Shows your name tag above your head in third person (F5). It stays hidden in first person.",
+  "lumora.nametags.setting.text_shadow": "Text shadow",
+  "lumora.nametags.setting.text_shadow.description": "Draws the text of name tags with a shadow so it is easier to read on bright backgrounds. The part that shows through walls stays without a shadow."
 }

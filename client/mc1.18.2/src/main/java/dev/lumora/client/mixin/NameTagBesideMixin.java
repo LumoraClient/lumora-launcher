@@ -1,6 +1,7 @@
 package dev.lumora.client.mixin;
 
 import dev.lumora.client.render.NameTagIcons;
+import dev.lumora.core.extras.NameTagsModule;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,7 +21,7 @@ public abstract class NameTagBesideMixin {
     @Redirect(method = "renderNameTag", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I"))
     private int lumora$drawBeside(Font font, Component text, float x, float y, int color, boolean shadow, Matrix4f pose, MultiBufferSource buffers, boolean seeThrough, int background, int light) {
-        int result = font.drawInBatch(text, x, y, color, shadow, pose, buffers, seeThrough, background, light);
+        int result = font.drawInBatch(text, x, y, color, NameTagsModule.shadow(shadow, seeThrough), pose, buffers, seeThrough, NameTagsModule.background(background), light);
         NameTagIcons.Text icon = NameTagIcons.current();
         if (icon != null) {
             // the name starts at -width/2, so its end is at -x
@@ -34,11 +35,11 @@ public abstract class NameTagBesideMixin {
         // lines above and below the name: like the name itself, with its box
         NameTagIcons.Text above = NameTagIcons.above();
         if (above != null) {
-            font.drawInBatch(above.order(), -above.width(font) / 2f, y - NameTagIcons.LINE, color, shadow, pose, buffers, seeThrough, background, light);
+            font.drawInBatch(above.order(), -above.width(font) / 2f, y - NameTagIcons.LINE, color, NameTagsModule.shadow(shadow, seeThrough), pose, buffers, seeThrough, NameTagsModule.background(background), light);
         }
         NameTagIcons.Text below = NameTagIcons.below();
         if (below != null) {
-            font.drawInBatch(below.order(), -below.width(font) / 2f, y + NameTagIcons.LINE, color, shadow, pose, buffers, seeThrough, background, light);
+            font.drawInBatch(below.order(), -below.width(font) / 2f, y + NameTagIcons.LINE, color, NameTagsModule.shadow(shadow, seeThrough), pose, buffers, seeThrough, NameTagsModule.background(background), light);
         }
         return result;
     }

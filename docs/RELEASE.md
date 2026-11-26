@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.103 (2026-11-26):**
+- **Inhalt:** Client: neues Modul „Name Tags“ (`NameTagsModule`, ab Werk aus): eigenes Namensschild in Third Person (`NameTagOwnMixin`: Kamera-Prüfung in `shouldShowName`, 1.8.9/1.12.2 `hasLabel`), Textschatten (nicht auf dem Teil durch Wände) und Hintergrund an/aus mit Farbe (`NameTagBesideMixin`, 1.8.9 `NameTagIconMixin`, 1.21.11/26.1.2/26.2 `NameTagStyleMixin`), in allen 16 Versionen. 13 neue Texte in allen 32 Client-Sprachdateien. `HubViewTest` prüft eine weiter oben stehende Karte. Mit News-Eintrag (Bild: echter Third-Person-Screenshot aus dem Smoke-Lauf 26.3 dieser Entwicklung im Test-Ordner, auf die Namensschilder zugeschnitten, ohne Spotify-Anzeige und Chat) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 782 Unit-Tests ohne Fehler (neu: `NameTagsModuleTest` (3)). `check-mixins.pl`: neue Einhängepunkte in allen 16 Versionen vorhanden.
+- **Vorab geprüft:** Smoke-Test 26.3 (stumm, Test-Home, Modul eingeschaltet) bestanden: eigenes Namensschild in Third Person, Schatten und Hintergrund bei den Vorschau-Spielern (Screenshots). Die anderen 15 Versionen im Spiel nicht angesehen.
+- **Smoke-Test:** auf Wunsch für das Release nicht ausgeführt.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `LumoraLauncherCli.exe --version` meldet 0.3.103, Modul und Mixins in den Client-Jars (Stichprobe 1.8.9, 1.21.11, 26.2, 26.3), News-Bild im `launcher-core-0.3.103.jar`.
+
 **0.3.102 (2026-11-26):**
 - **Inhalt:** Client: Lumora Badge vor dem Namen. `NameTagRegistry` hat einen eigenen Platz für ein Symbol vor dem Namen (`registerLeading`/`leading`, nicht im Addon-API), `LumoraBadgeModule` nutzt ihn; in allen 16 Versionen zeichnet `NameTagBesideMixin` (1.8.9: `NameTagIconMixin`) das Symbol links neben dem Namensschild, `NameTagIcons.decorate` stellt es in der Tab-Liste voran. Addon-Symbole bleiben dahinter und sind jetzt gleichzeitig sichtbar. 1.8.9/1.12.2: hellblaues ✦. 3 geänderte Texte in allen 32 Client-Sprachdateien. Changelog-Eintrag, auf Wunsch kein News-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 779 Unit-Tests ohne Fehler (neu: `NameTagRegistryTest` (2)).

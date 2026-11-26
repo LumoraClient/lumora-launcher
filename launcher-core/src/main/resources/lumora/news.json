@@ -1,6 +1,24 @@
 {
   "news": [
     {
+      "id": "lumora-nametags-module",
+      "date": "2026-11-26",
+      "author": "Lumora",
+      "version": "0.3.103",
+      "title": "Neues Modul „Name Tags“: dein eigenes Namensschild, Textschatten und Hintergrund",
+      "text": "Sieh dein eigenes Namensschild in der Third-Person-Ansicht, gib Namensschildern einen Textschatten und stell den Hintergrund ein oder ganz ab.",
+      "image": "news-nametags.png",
+      "body": [
+        {"p": "Das neue Modul „Name Tags“ findest du im Hub unter Module. Es ist ab Werk aus; eingeschaltet sind alle drei Funktionen gleich aktiv:"},
+        {"list": [
+          "Eigenes Namensschild zeigen: In der Third-Person-Ansicht (F5) siehst du dein Namensschild über deinem Kopf, so wie andere es sehen. In der Ego-Ansicht bleibt es aus.",
+          "Textschatten: Der Text der Namensschilder bekommt einen Schatten und ist vor hellem Himmel oder Schnee besser lesbar. Der Teil, der durch Wände scheint, bleibt ohne Schatten.",
+          "Hintergrund: Den dunklen Kasten hinter dem Namen schaltest du an oder ab und gibst ihm eine eigene Farbe und Deckkraft. Ab Werk sieht er aus wie bei Minecraft."
+        ]},
+        {"p": "Das Modul gilt für alle Namensschilder, also Spieler, benannte Mobs und Rüstungsständer, und ändert nur, was du siehst. Für alle Versionen von 1.8.9 bis 26.3."}
+      ]
+    },
+    {
       "id": "lumora-backend-badge",
       "date": "2026-11-26",
       "author": "Lumora",

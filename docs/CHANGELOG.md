@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.103 (2026-11-26)
+
+### Client
+- **Neues Modul „Name Tags“** (ab Werk aus, im Hub unter Module): „Eigenes Namensschild zeigen“ zeigt dein Namensschild in der Third-Person-Ansicht (F5), in der Ego-Ansicht bleibt es aus; die übrigen Regeln von Minecraft (unsichtbar, HUD aus, Team-Sichtbarkeit) gelten weiter. „Textschatten“ zeichnet den Text der Namensschilder mit Schatten (der Teil, der durch Wände scheint, bleibt ohne). „Hintergrund“ schaltet den Kasten hinter dem Namen an oder aus, mit eigener Farbe und Deckkraft (Standard wie Minecraft: Schwarz 25 %). Gilt für alle Namensschilder (Spieler, benannte Mobs, Rüstungsständer), in allen Versionen von 1.8.9 bis 26.3.
+
 ## 0.3.102 (2026-11-26)
 
 ### Client

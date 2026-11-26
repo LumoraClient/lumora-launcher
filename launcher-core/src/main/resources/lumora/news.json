@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-backend-badge",
+      "date": "2026-11-26",
+      "author": "Lumora",
+      "version": "0.3.101",
+      "title": "Der offizielle Lumora-Server ist da: mehr Privatsphäre und das Lumora Badge",
+      "text": "Freunde, Chat und Cosmetics laufen jetzt über den offiziellen Lumora-Server. Neu: Status Unsichtbar, Anfragen-Regeln, Blockieren und ein Stern neben dem Namen anderer Lumora-Spieler.",
+      "image": "social.png",
+      "body": [
+        {"p": "Lumora hat jetzt einen eigenen, offiziellen Server. Du musst nichts mehr einrichten: Launcher und Spiel verbinden sich verschlüsselt mit lumora.jardateien.de. Angemeldet wirst du wie auf einem Minecraft-Server über dein Minecraft-Konto bei Mojang; Lumora bekommt weder ein Passwort noch dein Zugriffstoken."},
+        {"list": [
+          "Status: Online, Beschäftigt, Abwesend oder Unsichtbar. Unsichtbar setzt der Server selbst um, deine Freunde sehen dich dann offline.",
+          "Freundschaftsanfragen: Du bestimmst, wer dir welche schicken darf, alle, Freunde von Freunden oder niemand.",
+          "Blockieren: über das Menü am Freund oder in den Einstellungen unten links auf der Seite „Freunde“. Blockierte Spieler sehen keinen Hinweis darauf, dazu keine Cosmetics, keine Emotes und kein Badge von dir.",
+          "Lumora Badge: Ein kleiner Lumora-Stern neben dem Namen von Spielern, die gerade mit Lumora spielen, über dem Kopf und in der Tab-Liste. Im Modul „Lumora Badge“ stellst du ein, wo er erscheint und ob andere deinen sehen."
+        ]},
+        {"p": "Deine Freunde, Gruppen und Nachrichten speichert der Server in einer Datenbank mit täglicher Sicherung. Eigene Lumora-Social-Server lassen sich nicht mehr eintragen, alle treffen sich auf dem offiziellen Server."}
+      ]
+    },
+    {
       "id": "lumora-mods-instances",
       "date": "2026-11-25",
       "author": "Lumora",

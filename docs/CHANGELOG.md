@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.3.101 (2026-11-26)
+
+### Lumora-Backend
+- **Offizieller Lumora-Server:** Freunde, Chat, Gruppen, Status, Cosmetics und Emotes laufen jetzt über den offiziellen Server `wss://lumora.jardateien.de` (TLS, Anmeldung über dein Minecraft-Konto bei Mojang, kein Passwort, kein Token an Lumora). Eigene Server lassen sich nicht mehr eintragen; die Server-Felder im Launcher sind entfernt.
+- **Datenbank:** Der Server speichert in PostgreSQL und schreibt nur, was sich geändert hat. Tägliche Sicherung, Schema mit Versionen.
+- **Privatsphäre:** Status „Online“, „Beschäftigt“, „Abwesend“ oder „Unsichtbar“ (Freunde sehen dich dann offline). Wer dir Freundschaftsanfragen schicken darf: alle, Freunde von Freunden oder niemand. Spieler blockieren und wieder freigeben (Launcher › Freunde › Einstellungen unten links und Menü am Freund). Blockierte Spieler sehen keinen Hinweis, keine Cosmetics, keine Emotes und kein Badge.
+- **Nachrichten:** eigene Nachrichten bearbeiten und löschen, Suche im Verlauf (Protokoll und Server; Bedienung folgt).
+
+### Client
+- **Lumora Badge:** Neues Modul. Ein kleiner Lumora-Stern neben dem Namen von Spielern, die gerade mit Lumora spielen, über dem Kopf und in der Tab-Liste. Einstellungen: über dem Kopf, Tab-Liste, eigenes Badge, „Andere sehen mein Badge“. Der Server verrät nur Ja oder Nein und lässt ausgeblendete und blockierte Spieler weg. Auf 1.8.9 und 1.12.2 als ✦.
+
 ## 0.3.100 (2026-11-26)
 
 ### Launcher

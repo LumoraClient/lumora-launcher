@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.102 (2026-11-26)
+
+### Client
+- **Lumora Badge vor dem Namen:** Der Lumora-Stern steht jetzt vor dem Namen statt dahinter, über dem Kopf und in der Tab-Liste, in allen Versionen von 1.8.9 bis 26.3. Symbole von Addons (z. B. der Lautsprecher von LumoraVoice) bleiben hinter dem Namen, und beide sind jetzt gleichzeitig zu sehen. Auf 1.8.9 und 1.12.2 ist das ✦ hellblau.
+
 ## 0.3.101 (2026-11-26)
 
 ### Lumora-Backend

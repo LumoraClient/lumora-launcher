@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.104 (2026-11-26):**
+- **Inhalt:** Client: neues Modul „Server Info“ (`ServerInfoModule`, ab Werk an): Karte zum aktuellen Server oben im Pause-Menü (Icon, Name aus `servers.dat`, MOTD, Spieler, Signalbalken; Banner und Spielmodi aus den Server-Mappings über das gemeinsame `ServerBrowserView.picture`), Ping im Hintergrund nur bei offenem Pause-Menü (höchstens alle 20 s); Haken in `LumoraRuntime` aller 16 Versionen. Chat: „Smooth Chat“ (`ChatWindows`: neueste Nachricht gleitet von unten herein und blendet sich ein, Dauer 50–500 ms, ab Werk an). Lumora Badge: „Eigenes Badge zeigen“ ab Werk an. 13 neue Texte in allen 32 Client-Sprachdateien. Changelog-Eintrag, auf Wunsch kein News-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 784 Unit-Tests ohne Fehler (neu: `smoothChatSlidesTheNewestMessageInFromBelow`, `LumoraBadgeModuleTest`).
+- **Nicht geprüft:** Server-Karte und Smooth Chat im Spiel (die Karte braucht einen echten Mehrspieler-Server, das Test-Home hat nur ein Offline-Konto).
+- **Smoke-Test:** auf Wunsch nicht ausgeführt.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `LumoraLauncherCli.exe --version` meldet 0.3.104, `ServerInfoModule` in den Client-Jars (Stichprobe 1.8.9, 1.20.1, 26.3).
+
 **0.3.103 (2026-11-26):**
 - **Inhalt:** Client: neues Modul „Name Tags“ (`NameTagsModule`, ab Werk aus): eigenes Namensschild in Third Person (`NameTagOwnMixin`: Kamera-Prüfung in `shouldShowName`, 1.8.9/1.12.2 `hasLabel`), Textschatten (nicht auf dem Teil durch Wände) und Hintergrund an/aus mit Farbe (`NameTagBesideMixin`, 1.8.9 `NameTagIconMixin`, 1.21.11/26.1.2/26.2 `NameTagStyleMixin`), in allen 16 Versionen. 13 neue Texte in allen 32 Client-Sprachdateien. `HubViewTest` prüft eine weiter oben stehende Karte. Mit News-Eintrag (Bild: echter Third-Person-Screenshot aus dem Smoke-Lauf 26.3 dieser Entwicklung im Test-Ordner, auf die Namensschilder zugeschnitten, ohne Spotify-Anzeige und Chat) und Changelog-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 782 Unit-Tests ohne Fehler (neu: `NameTagsModuleTest` (3)). `check-mixins.pl`: neue Einhängepunkte in allen 16 Versionen vorhanden.

@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.104 (2026-11-26)
+
+### Client
+- **Neues Modul „Server Info“:** Oben im Pause-Menü eine Karte zum Server, auf dem du spielst, wie in der Serverliste: Icon, Name, beide MOTD-Zeilen, Spielerzahl und Ping als Signalbalken. Bekannte Server (Server-Mappings, z. B. Hypixel) zeigen ihr Banner und ihre Spielmodi. Der Server wird nur abgefragt, während das Pause-Menü offen ist; im Einzelspieler erscheint keine Karte.
+- **Smooth Chat:** Neue Chat-Nachrichten gleiten von unten herein, statt einfach aufzutauchen (Chat-Modul, ab Werk an, Dauer 50–500 ms einstellbar).
+- **Lumora Badge:** „Eigenes Badge zeigen“ ist jetzt ab Werk an, du siehst deinen Stern in der Tab-Liste und (mit „Name Tags“) über deinem Kopf in der Third-Person-Ansicht.
+
 ## 0.3.103 (2026-11-26)
 
 ### Client

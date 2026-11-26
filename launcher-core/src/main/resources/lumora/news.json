@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-hub-sections",
+      "date": "2026-11-26",
+      "author": "Lumora",
+      "version": "0.3.105",
+      "title": "Lumora Hub neu geordnet: Addons, Freunde, Cosmetics und Emotes",
+      "text": "Die Seitenleiste des Hubs hat jetzt vier Bereiche: deine Addons und Module, deine Freunde mit Chat, deine Cosmetics und deine Emotes.",
+      "image": "news-hub-sections.png",
+      "body": [
+        {"p": "Im Lumora Hub (Rechte Umschalttaste) findest du oben in der Seitenleiste jetzt vier Bereiche:"},
+        {"list": [
+          "Addons: alle Module und Addons auf einen Blick. Die Kategorien wie Anzeige, Spieler, Kampf oder Welt und deine Favoriten sind Reiter oben auf der Seite, die Addon-Bibliothek findest du im Reiter „Bibliothek“.",
+          "Freunde: öffnet deine Freundesliste mit dem Chat. Daneben siehst du, wie viele Freunde gerade online sind.",
+          "Cosmetics: alle Cosmetics, die du hast, mit Vorschau und Varianten.",
+          "Emotes: alle Emotes, die du hast, zum Abspielen und für dein Emote-Rad."
+        ]},
+        {"p": "Schließt du die Freundesliste, Cosmetics oder Emotes, landest du wieder im Hub. Themes, HUD-Editor, Profile und System stehen wie gewohnt unter „Allgemein“."}
+      ]
+    },
+    {
       "id": "lumora-nametags-module",
       "date": "2026-11-26",
       "author": "Lumora",

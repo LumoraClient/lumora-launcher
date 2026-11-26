@@ -66,6 +66,13 @@ Die erzeugten EXEs sind **nicht signiert**. Windows SmartScreen warnt deshalb be
 
 ## Teststatus dieses Standes
 
+**0.3.105 (2026-11-26):**
+- **Inhalt:** Client: Lumora Hub neu geordnet (`HubView`): Seitenleiste oben mit Addons (Kategorien, Favoriten und Bibliothek als Reiter der Seite, `categoryTabs`), Freunde (`HubHost.openFriends`, in allen 16 Versionen über `SocialScreen`, Zähler online/alle), Cosmetics und Emotes (Menüs von `CosmeticsModule`, Anzahl aus der Registry); „Allgemein“ ohne Addons. Symbol `shirt` in `HubGlyphs`. `HubViewTest` angepasst, neuer Test der Bereiche. Mit News-Eintrag (Bild: echter Screenshot der neuen Addons-Seite aus dem Smoke-Lauf 26.3 dieser Entwicklung im Test-Ordner) und Changelog-Eintrag.
+- **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 785 Unit-Tests ohne Fehler.
+- **Vorab geprüft:** Smoke-Test 26.3 (stumm, Test-Home) bestanden, Hub-Seiten Addons und Bibliothek per Screenshot angesehen. Freunde, Cosmetics und Emotes aus dem Hub im Spiel nicht angeklickt.
+- **Smoke-Test:** auf Wunsch für das Release nicht ausgeführt.
+- **Release:** `SHA256SUMS.txt.sig` gegen `update-key.pub` geprüft, `sha256sum -c` ohne Fehler, `LumoraLauncherCli.exe --version` meldet 0.3.105, News-Bild im `launcher-core-0.3.105.jar`, `openFriends` in den Client-Jars (Stichprobe 1.8.9, 26.3).
+
 **0.3.104 (2026-11-26):**
 - **Inhalt:** Client: neues Modul „Server Info“ (`ServerInfoModule`, ab Werk an): Karte zum aktuellen Server oben im Pause-Menü (Icon, Name aus `servers.dat`, MOTD, Spieler, Signalbalken; Banner und Spielmodi aus den Server-Mappings über das gemeinsame `ServerBrowserView.picture`), Ping im Hintergrund nur bei offenem Pause-Menü (höchstens alle 20 s); Haken in `LumoraRuntime` aller 16 Versionen. Chat: „Smooth Chat“ (`ChatWindows`: neueste Nachricht gleitet von unten herein und blendet sich ein, Dauer 50–500 ms, ab Werk an). Lumora Badge: „Eigenes Badge zeigen“ ab Werk an. 13 neue Texte in allen 32 Client-Sprachdateien. Changelog-Eintrag, auf Wunsch kein News-Eintrag.
 - **Build:** `gradlew clean build :launcher-core:integrationTest :launcher-app:portableExe :launcher-app:releaseDist` (mit `--max-workers=2`, `--no-build-cache`) erfolgreich, 784 Unit-Tests ohne Fehler (neu: `smoothChatSlidesTheNewestMessageInFromBelow`, `LumoraBadgeModuleTest`).

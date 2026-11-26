@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.105 (2026-11-26)
+
+### Client
+- **Lumora Hub neu geordnet:** Die Seitenleiste hat oben vier Bereiche. „Addons“ zeigt alle Module und Addons; die Kategorien (Anzeige, Spieler, Kampf, Welt, Server, Zeit, Addons, Favoriten) und die Addon-Bibliothek sind jetzt Reiter oben auf der Seite. „Freunde“ öffnet deine Freundesliste mit Chat und zeigt, wie viele Freunde online sind. „Cosmetics“ und „Emotes“ öffnen deine Cosmetics und Emotes mit ihrer Anzahl. Alle kehren beim Schließen ins Hub zurück. Unter „Allgemein“ bleiben Themes, HUD-Editor, Profile und System.
+
 ## 0.3.104 (2026-11-26)
 
 ### Client

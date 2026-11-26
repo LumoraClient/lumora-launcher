@@ -46,6 +46,8 @@ dependencies {
     for (v in gradle.extra["lumoraForgeVersions"] as List<String>) {
         bundledMod(project(path = ":client-mc$v", configuration = "forgeElements")) { isTransitive = false }
     }
+    // LumoraVoice, built into the client but shipped once (bundled/lumora-voice.jar, -Dlumora.builtinAddons)
+    bundledMod(project(path = ":lumora-voice", configuration = "runtimeElements")) { isTransitive = false }
     // the Lumora Loader (starts profiles with loader "lumora" without a mod loader)
     bundledMod(project(path = ":lumora-loader", configuration = "runtimeElements")) { isTransitive = false }
 }

@@ -1802,7 +1802,10 @@ public final class HubView implements AddonView {
         }
         String label;
         boolean action = false;
-        switch (e.status()) {
+        // an addon that is part of the client now (LumoraVoice): nothing to install or update from the library
+        boolean builtIn = core.addonManager().record(e.id()).map(r -> r.descriptor().builtIn()).orElse(false);
+        switch (builtIn ? dev.lumora.core.addon.AddonLibrary.Status.INSTALLED : e.status()) {
+            case INSTALLED -> label = builtIn ? t("Fest eingebaut", "Built in") : t("Installiert", "Installed");
             case AVAILABLE -> {
                 label = t("Installieren", "Install");
                 action = true;
@@ -1811,7 +1814,6 @@ public final class HubView implements AddonView {
                 label = t("Aktualisieren", "Update");
                 action = true;
             }
-            case INSTALLED -> label = t("Installiert", "Installed");
             case RESTART -> label = t("Nach Neustart aktiv", "Active after restart");
             case INCOMPATIBLE -> {
                 dev.lumora.core.addon.VersionSupport.Problem p = e.descriptor() == null ? null

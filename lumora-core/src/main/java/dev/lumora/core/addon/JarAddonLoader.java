@@ -97,6 +97,27 @@ public final class JarAddonLoader implements AutoCloseable {
         return out;
     }
 
+    /**
+     * Reads the client's own addon jars ({@link BuiltInAddons}): like a jar from the folder, but the addon counts as
+     * built-in (shown among the modules, not removable, every permission).
+     */
+    public List<AddonCandidate> builtIn(List<Path> jars) {
+        List<AddonCandidate> out = new ArrayList<>();
+        for (Path jar : jars) {
+            AddonCandidate c = read(jar);
+            AddonDescriptor d = c.descriptor();
+            if (d == null) {
+                out.add(AddonCandidate.broken("built-in/" + jar.getFileName(), c.error()));
+                continue;
+            }
+            AddonDescriptor own = new AddonDescriptor(d.id(), d.name(), d.version(), d.description(), d.authors(), d.apiVersion(),
+                    d.minecraftVersions(), d.entrypoint(), d.dependencies(), d.permissions(), true, "built-in");
+            out.add(new AddonCandidate(own, null, "built-in", c.factory(), jar));
+            log.info("Built-in addon " + d.id() + " " + d.version() + " from " + jar.getFileName());
+        }
+        return out;
+    }
+
     AddonCandidate read(Path jar) {
         String source = "addons/" + jar.getFileName();
         AddonDescriptor d;

@@ -180,8 +180,24 @@ public final class LumoraCore implements Lumora {
         if (candidates.stream().noneMatch(c -> c.descriptor() != null && c.descriptor().id().equals("lumora-info"))) {
             all.addAll(Math.min(1, all.size()), dev.lumora.core.extras.Extras.candidates(platform, this::social, () -> nameTags));
         }
-        // addon jars from the addons folder, loaded by Lumora itself (after the adapter's own candidates)
-        all.addAll(jarAddons.discover());
+        // the client's own addon jars shipped by the launcher (LumoraVoice): built-in modules
+        List<AddonCandidate> builtIn = jarAddons.builtIn(dev.lumora.core.addon.BuiltInAddons.jars());
+        java.util.Set<String> builtInIds = new java.util.HashSet<>();
+        for (AddonCandidate c : builtIn) {
+            if (c.descriptor() != null) {
+                builtInIds.add(c.descriptor().id());
+            }
+        }
+        all.addAll(builtIn);
+        // addon jars from the addons folder, loaded by Lumora itself (after the adapter's own candidates); an older
+        // copy of a built-in addon (e.g. LumoraVoice from the addon library) is left out, the file stays
+        for (AddonCandidate c : jarAddons.discover()) {
+            if (c.descriptor() != null && builtInIds.contains(c.descriptor().id())) {
+                log.info("Addon " + c.descriptor().id() + " is built into the client: " + c.source() + " is not loaded");
+                continue;
+            }
+            all.add(c);
+        }
         addons.offByDefault(dev.lumora.core.extras.Extras.OFF_BY_DEFAULT);
         addons.load(all);
         addons.initializeAll();

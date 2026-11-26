@@ -1,0 +1,10 @@
+{
+  "providers": [
+    {"type": "bitmap", "file": "lumoravoice:icon/speaker.png", "ascent": 7, "height": 8, "chars": [""]},
+    {"type": "bitmap", "file": "lumoravoice:icon/speaker_muted.png", "ascent": 7, "height": 8, "chars": [""]},
+    {"type": "bitmap", "file": "lumoravoice:icon/plug_disconnected.png", "ascent": 7, "height": 8, "chars": [""]},
+    {"type": "bitmap", "file": "lumoravoice:icon/speaker_idle.png", "ascent": 7, "height": 8, "chars": [""]},
+    {"type": "bitmap", "file": "lumoravoice:icon/mic_server_muted.png", "ascent": 7, "height": 8, "chars": [""]},
+    {"type": "bitmap", "file": "lumoravoice:icon/speaker_group.png", "ascent": 7, "height": 8, "chars": [""]}
+  ]
+}

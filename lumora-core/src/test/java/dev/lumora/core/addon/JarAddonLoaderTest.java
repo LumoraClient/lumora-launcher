@@ -184,6 +184,29 @@ class JarAddonLoaderTest {
     }
 
     @Test
+    void builtInJarsLoadAsBuiltInModules() throws Exception {
+        Path file = sampleJar();
+        List<AddonCandidate> found = loader().builtIn(List.of(file));
+        assertEquals(1, found.size());
+        AddonCandidate c = found.get(0);
+        assertNull(c.error());
+        assertTrue(c.descriptor().builtIn(), "counts as built-in (modules page, every permission)");
+        assertEquals("built-in", c.descriptor().source());
+        assertEquals("built-in", c.source());
+        assertEquals(file, c.jar(), "assets and translations still come from the jar");
+        assertInstanceOf(AddonClassLoader.class, c.factory().create().getClass().getClassLoader());
+    }
+
+    @Test
+    void builtInPropertyListsExistingJarsOnly() throws IOException {
+        Path file = sampleJar();
+        String sep = java.io.File.pathSeparator;
+        assertEquals(List.of(file), BuiltInAddons.parse(file + sep + addons.resolve("missing.jar") + sep + " " + sep + file));
+        assertTrue(BuiltInAddons.parse(null).isEmpty());
+        assertTrue(BuiltInAddons.parse(addons.toString()).isEmpty(), "a folder is no jar");
+    }
+
+    @Test
     void protectedPackages() {
         assertTrue(AddonClassLoader.isProtected("net.minecraft.client.Minecraft"));
         assertTrue(AddonClassLoader.isProtected("dev.lumora.core.LumoraCore"));

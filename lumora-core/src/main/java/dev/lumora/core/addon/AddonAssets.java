@@ -52,7 +52,9 @@ public final class AddonAssets {
     public static Path prepare(Path addonsDir, Path target, byte[] packMeta, Consumer<String> warn) {
         // jars replaced from the addon library go first, otherwise the old copy (first by name) would win the assets
         AddonLibrary.removePending(addonsDir);
-        List<Path> jars = jars(addonsDir);
+        // the client's own addon jars first: their assets win over an older copy in the addons folder
+        List<Path> jars = new ArrayList<>(BuiltInAddons.jars());
+        jars.addAll(jars(addonsDir));
         String stamp = stamp(jars, packMeta);
         Path marker = target.resolve(MARKER);
         try {

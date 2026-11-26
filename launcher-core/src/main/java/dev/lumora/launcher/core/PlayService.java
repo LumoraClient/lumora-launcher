@@ -265,6 +265,14 @@ public final class PlayService {
                 sysProps.add("-Dlumora.social.server=" + socialOverride);
             }
             sysProps.add("-Dlumora.social.shareServer=" + config.socialShareServer);
+            if (target.lumora()) {
+                // the client's own addons shipped once by the launcher (LumoraVoice)
+                String builtIn = dev.lumora.launcher.core.mods.BuiltInAddons.sysProp(dev.lumora.launcher.core.mods.BundledMods.locate(),
+                        prepared.layout().lumoraDir(), Log::warn);
+                if (builtIn != null) {
+                    sysProps.add(builtIn);
+                }
+            }
             List<String> jvmArgs = new ArrayList<>(config.extraJvmArgs);
             jvmArgs.addAll(target.jvmArgs());
             jvmArgs.addAll(dev.lumora.launcher.core.launch.LaunchOptions.jvmArgs(config, paths.diagnostics()));

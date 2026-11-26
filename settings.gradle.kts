@@ -27,6 +27,8 @@ include(":lumora-social-server")
 include(":lumora-loader")
 // Runs the Lumora Client inside Fabric, Quilt, Forge and NeoForge (copied into the loader variants of the client jars).
 include(":lumora-bridge")
+// LumoraVoice (voice chat), built into the client; the launcher ships its jar once (bundled/lumora-voice.jar).
+include(":lumora-voice")
 // Example addon that only uses the public API (no Minecraft classes) and therefore runs on every version.
 include(":examples:session-timer-addon")
 

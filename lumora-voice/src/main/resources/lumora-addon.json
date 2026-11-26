@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "id": "lumoravoice",
+  "name": "LumoraVoice",
+  "version": "${version}",
+  "description": "Sprachchat mit Laby Voice, Simple Voice Chat und Plasmo Voice, räumlichem Klang und Sprecheranzeige (fest im Client)",
+  "authors": ["Lumora"],
+  "api": "1.5.0",
+  "minecraft": ["*"],
+  "entrypoint": "dev.lumora.voice.lumora.LumoraVoiceAddon",
+  "depends": { "lumora": ">=1.5.0" },
+  "permissions": ["hud", "keybinds", "notifications", "game", "tasks", "screens", "players", "session", "network", "nametags", "playermenu", "chat"]
+}

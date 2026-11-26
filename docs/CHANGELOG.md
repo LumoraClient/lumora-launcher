@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.3.100 (2026-11-26)
+
+### Launcher
+- **Lumora Client neben Mod-Loadern:** Eigene Instanzen mit Fabric, Quilt, Forge oder NeoForge können den Lumora Client mitstarten („Lumora Client mitladen“ beim Erstellen, vorausgewählt, und in den Einstellungen der Instanz). Lumora-Menü, HUD, Addons und Cosmetics laufen dann neben deinen Mods. Fabric und Quilt ab 1.16.5, Forge und NeoForge ab 1.20.6, jeweils bis 26.3. Bei Fabric und Quilt bleibt der `mods`-Ordner unberührt; bei Forge und NeoForge legt der Launcher eine eigene Kopie in `mods/` und entfernt sie wieder, wenn die Option aus ist. Für 1.16.5 und 1.17.1 nimmt der Launcher automatisch Java 21. Greift eine Lumora-Funktion neben einem anderen Loader oder einer Mod nicht, schaltet sie nur sich selbst ab, statt das Spiel zu beenden. Instanzen mit Lumora tragen auf ihrer Karte eine Lumora-Plakette und „+ Lumora“ beim Loader.
+- **Behoben:** Forge ab 1.20.6 startete nicht (das von Forge gepatchte Spiel fehlte beim Start).
+- **Behoben:** Eigene Instanzen mit Loader „Lumora“ stürzten beim Start ab.
+
 ## 0.3.99 (2026-11-26)
 
 ### Launcher

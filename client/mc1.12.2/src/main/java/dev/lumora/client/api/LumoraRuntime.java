@@ -126,6 +126,9 @@ public final class LumoraRuntime {
                 int my = s.height - org.lwjgl.input.Mouse.getY() * s.height / mc.height - 1;
                 dev.lumora.core.extras.ChatModule.renderChatScreen(GRAPHICS.with(g), mx, my);
             }
+            if (mc.currentScreen instanceof net.minecraft.client.gui.screen.GameMenuScreen pause) {
+                dev.lumora.core.browser.ServerInfoModule.renderPause(GRAPHICS.with(g), pause.width, pause.height);
+            }
             core.renderNotifications(GRAPHICS.with(g), width);
         }
     }

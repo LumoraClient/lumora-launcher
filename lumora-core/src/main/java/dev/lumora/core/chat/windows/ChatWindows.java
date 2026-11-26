@@ -63,6 +63,16 @@ public final class ChatWindows {
 
         int fadeSeconds();
 
+        /** Smooth chat: new messages slide in from below instead of appearing at once. */
+        default boolean smooth() {
+            return false;
+        }
+
+        /** How long the slide of a new message takes (milliseconds). */
+        default int smoothMs() {
+            return 150;
+        }
+
         double backgroundOpacity(double vanilla);
 
         boolean textShadow();
@@ -386,9 +396,29 @@ public final class ChatWindows {
             w.scroll = clamp(w.scroll, 0, Math.max(0, total - rows));
         }
         int skip = focused ? w.scroll : 0;
+        // smooth chat: the newest message slides in from below (the lines above move up with it) and fades in
+        ChatEntry newest = null;
+        float slide = 0;
+        float newestAlpha = 1f;
+        if (skip == 0 && host.smooth() && !entries.isEmpty()) {
+            ChatEntry last = entries.get(entries.size() - 1);
+            double p = (double) (now - last.time()) / Math.max(1, host.smoothMs());
+            if (p < 1) {
+                double eased = 1 - Math.pow(1 - Math.max(0, p), 3);
+                newest = last;
+                slide = (float) ((1 - eased) * lh * Math.max(1, lines(text, cache, last, wrapW, heads).size()));
+                newestAlpha = (float) eased;
+            }
+        }
+        if (slide > 0) {
+            g.enableScissor(b.x(), b.top(), b.right(), b.bottom());
+        }
         g.push();
         g.translate(b.x(), b.bottom());
         g.scale((float) s);
+        if (slide > 0) {
+            g.translate(0, slide);
+        }
         int row = 0;
         int seen = 0;
         outer:
@@ -403,6 +433,9 @@ public final class ChatWindows {
                 if (alpha <= 1.0e-3f) {
                     break; // older messages faded out too
                 }
+            }
+            if (e == newest) {
+                alpha *= newestAlpha;
             }
             List<Object> ls = lines(text, cache, e, wrapW, heads);
             boolean head = heads && e.head() != null;
@@ -446,6 +479,9 @@ public final class ChatWindows {
             }
         }
         g.pop();
+        if (slide > 0) {
+            g.disableScissor();
+        }
         if (focused) {
             drawScrollbar(g, b, rows, total, w.scroll);
             drawBar(g, w, b);

@@ -185,6 +185,7 @@ class ChatWindowsTest {
         int width = 120;
         int height = 90;
         boolean custom;
+        boolean smooth;
 
         @Override public ChatText text() { return text; }
         @Override public String own() { return "Me"; }
@@ -198,6 +199,8 @@ class ChatWindowsTest {
         @Override public int heightMax() { return 800; }
         @Override public boolean fade() { return true; }
         @Override public int fadeSeconds() { return 10; }
+        @Override public boolean smooth() { return smooth; }
+        @Override public int smoothMs() { return 150; }
         @Override public double backgroundOpacity(double vanilla) { return vanilla; }
         @Override public boolean textShadow() { return true; }
         @Override public int history() { return 500; }
@@ -338,6 +341,29 @@ class ChatWindowsTest {
         // right-click: message menu with "Filter"
         assertTrue(w.click(b.x() + 20, b.bottom() - 4, 1));
         assertTrue(w.menu.items.stream().anyMatch(i -> i.label().equals("tabs.filter")));
+    }
+
+    @Test
+    void smoothChatSlidesTheNewestMessageInFromBelow() {
+        FakeHost host = new FakeHost();
+        host.smooth = true;
+        ChatWindows w = new ChatWindows(host, new ChatLayout(null));
+        w.received("hello", false);
+        long arrived = w.store().all().get(w.store().size() - 1).time();
+        FakeGraphics g = new FakeGraphics();
+        w.render(g, 400, 300, false, false, arrived + 30);
+        assertEquals(1, g.scissors.size(), "clipped at the bottom of the window while sliding");
+        assertTrue(g.translations.stream().anyMatch(t -> t[0] == 0 && t[1] > 0), "moved down, sliding up");
+        assertEquals(List.of("hello"), host.text.drawn, "drawn while it slides in");
+
+        FakeGraphics done = new FakeGraphics();
+        w.render(done, 400, 300, false, false, arrived + 1000);
+        assertTrue(done.scissors.isEmpty(), "settled: drawn as usual");
+
+        host.smooth = false;
+        FakeGraphics off = new FakeGraphics();
+        w.render(off, 400, 300, false, false, arrived + 30);
+        assertTrue(off.scissors.isEmpty(), "off: appears at once");
     }
 
     @Test

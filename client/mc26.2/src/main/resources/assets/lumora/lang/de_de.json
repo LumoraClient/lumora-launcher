@@ -1336,5 +1336,17 @@
   "lumora.nametags.setting.show_own": "Eigenes Namensschild zeigen",
   "lumora.nametags.setting.show_own.description": "Zeigt dein Namensschild über deinem Kopf, wenn du in der Third-Person-Ansicht (F5) bist. In der Ego-Ansicht bleibt es aus.",
   "lumora.nametags.setting.text_shadow": "Textschatten",
-  "lumora.nametags.setting.text_shadow.description": "Zeichnet den Text der Namensschilder mit Schatten, damit er vor hellem Hintergrund besser lesbar ist. Der Teil, der durch Wände scheint, bleibt ohne Schatten."
+  "lumora.nametags.setting.text_shadow.description": "Zeichnet den Text der Namensschilder mit Schatten, damit er vor hellem Hintergrund besser lesbar ist. Der Teil, der durch Wände scheint, bleibt ohne Schatten.",
+  "lumora.extras.chat.smooth": "Smooth Chat",
+  "lumora.extras.chat.smooth.description": "Neue Nachrichten gleiten von unten herein, statt einfach aufzutauchen.",
+  "lumora.extras.chat.smooth_ms": "Dauer des Hereingleitens",
+  "lumora.module.lumora-serverinfo": "Server Info",
+  "lumora.module.lumora-serverinfo.description": "Eine Karte zum Server, auf dem du spielst, oben im Pause-Menü: Icon, Name, MOTD, Spieler, Ping und Spielmodi",
+  "lumora.serverinfo.section.pause": "Pause-Menü",
+  "lumora.serverinfo.setting.banner": "Banner und Icon bekannter Server",
+  "lumora.serverinfo.setting.banner.description": "Für bekannte Server (Server-Mappings) das Banner als Hintergrund und ihr Icon.",
+  "lumora.serverinfo.setting.gamemodes": "Spielmodi",
+  "lumora.serverinfo.setting.gamemodes.description": "Für bekannte Server die Spielmodi als kleine Chips unter der MOTD.",
+  "lumora.serverinfo.setting.pause_menu": "Im Pause-Menü zeigen",
+  "lumora.serverinfo.setting.pause_menu.description": "Zeigt oben im Pause-Menü eine Karte zum aktuellen Server wie in der Serverliste. Im Einzelspieler erscheint sie nicht."
 }

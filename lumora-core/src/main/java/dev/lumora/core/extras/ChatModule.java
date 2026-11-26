@@ -63,6 +63,8 @@ public final class ChatModule implements LumoraAddon {
     BooleanSetting textShadow;
     BooleanSetting fade;
     IntegerSetting fadeSeconds;
+    BooleanSetting smooth;
+    IntegerSetting smoothMs;
     BooleanSetting menu;
     BooleanSetting mention;
     IntegerSetting mentionVolume;
@@ -127,6 +129,8 @@ public final class ChatModule implements LumoraAddon {
         heads = s.toggle("heads", true).name(k + "heads").description(k + "heads.description");
         fade = s.toggle("fade", true).name(k + "fade").description(k + "fade.description");
         fadeSeconds = s.slider("fade_seconds", 10, 2, 120).unit(" s").name(k + "fade_seconds").requires(fade);
+        smooth = s.toggle("smooth", true).name(k + "smooth").description(k + "smooth.description");
+        smoothMs = s.slider("smooth_ms", 150, 50, 500).step(25).unit(" ms").name(k + "smooth_ms").requires(smooth);
 
         windowsOn = s.toggle("windows", true).name(k + "windows").description(k + "windows.description")
                 .section(k + "section.window");
@@ -470,6 +474,16 @@ public final class ChatModule implements LumoraAddon {
         @Override
         public int fadeSeconds() {
             return fadeSeconds.get();
+        }
+
+        @Override
+        public boolean smooth() {
+            return smooth.get();
+        }
+
+        @Override
+        public int smoothMs() {
+            return smoothMs.get();
         }
 
         @Override

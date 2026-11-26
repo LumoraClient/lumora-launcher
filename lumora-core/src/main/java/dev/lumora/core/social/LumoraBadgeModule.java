@@ -86,7 +86,7 @@ public final class LumoraBadgeModule implements LumoraAddon {
         aboveHead = s.toggle("above_head", true).name(K + "setting.above_head")
                 .description(K + "setting.above_head.description").section(K + "section.show");
         tabList = s.toggle("tab_list", true).name(K + "setting.tab_list").description(K + "setting.tab_list.description");
-        own = s.toggle("own", false).name(K + "setting.own").description(K + "setting.own.description");
+        own = s.toggle("own", true).name(K + "setting.own").description(K + "setting.own.description");
         share = s.toggle("share", true).name(K + "setting.share").description(K + "setting.share.description")
                 .section(K + "section.privacy");
         share.onChange(v -> synced = null);

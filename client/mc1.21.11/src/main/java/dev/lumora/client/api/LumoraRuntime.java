@@ -56,6 +56,9 @@ public final class LumoraRuntime {
             if (s instanceof net.minecraft.client.gui.screens.ChatScreen) {
                 dev.lumora.core.extras.ChatModule.renderChatScreen(GRAPHICS.with(g), mx, my);
             }
+            if (s instanceof net.minecraft.client.gui.screens.PauseScreen && !s.children().isEmpty()) {
+                dev.lumora.core.browser.ServerInfoModule.renderPause(GRAPHICS.with(g), s.width, s.height);
+            }
             core.renderNotifications(GRAPHICS.with(g), s.width);
         });
         Hooks.chatClick((s, e) -> !dev.lumora.core.extras.ChatModule.chatClick(e.x(), e.y(), e.button()) && !core.hudClick(e.x(), e.y(), e.button()));

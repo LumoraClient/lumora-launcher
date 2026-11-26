@@ -1336,5 +1336,17 @@
   "lumora.nametags.setting.show_own": "Show own name tag",
   "lumora.nametags.setting.show_own.description": "Shows your name tag above your head in third person (F5). It stays hidden in first person.",
   "lumora.nametags.setting.text_shadow": "Text shadow",
-  "lumora.nametags.setting.text_shadow.description": "Draws the text of name tags with a shadow so it is easier to read on bright backgrounds. The part that shows through walls stays without a shadow."
+  "lumora.nametags.setting.text_shadow.description": "Draws the text of name tags with a shadow so it is easier to read on bright backgrounds. The part that shows through walls stays without a shadow.",
+  "lumora.extras.chat.smooth": "Smooth Chat",
+  "lumora.extras.chat.smooth.description": "New messages slide in from below instead of just appearing.",
+  "lumora.extras.chat.smooth_ms": "Slide duration",
+  "lumora.module.lumora-serverinfo": "Server Info",
+  "lumora.module.lumora-serverinfo.description": "A card for the server you play on at the top of the pause menu: icon, name, message of the day, players, ping and game modes",
+  "lumora.serverinfo.section.pause": "Pause menu",
+  "lumora.serverinfo.setting.banner": "Banner and icon of known servers",
+  "lumora.serverinfo.setting.banner.description": "For known servers (server mappings) their banner as background and their icon.",
+  "lumora.serverinfo.setting.gamemodes": "Game modes",
+  "lumora.serverinfo.setting.gamemodes.description": "For known servers their game modes as small chips under the message of the day.",
+  "lumora.serverinfo.setting.pause_menu": "Show in the pause menu",
+  "lumora.serverinfo.setting.pause_menu.description": "Shows a card for the current server at the top of the pause menu, like in the server list. Not in singleplayer."
 }

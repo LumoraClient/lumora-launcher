@@ -64,6 +64,7 @@ public final class FakeGraphics implements HudGraphics {
 
     @Override
     public void translate(float x, float y) {
+        translations.add(new float[]{x, y});
         tx += x;
         ty += y;
     }
@@ -72,8 +73,14 @@ public final class FakeGraphics implements HudGraphics {
     public void scale(float x, float y) {
     }
 
+    /** Scissor areas opened so far (x1, y1, x2, y2). */
+    public final List<int[]> scissors = new ArrayList<>();
+    /** Every translate call (x, y). */
+    public final List<float[]> translations = new ArrayList<>();
+
     @Override
     public void enableScissor(int x1, int y1, int x2, int y2) {
+        scissors.add(new int[]{x1, y1, x2, y2});
     }
 
     @Override

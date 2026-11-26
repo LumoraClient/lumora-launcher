@@ -114,6 +114,11 @@ public final class ServerBrowserView extends BrowserView {
      * or if there is none. Render thread.
      */
     private Picture picture(ServerMappings.Mapping m, boolean background) {
+        return picture(platform, mappings, m, background);
+    }
+
+    /** The same for other views (the server card in the pause menu). Render thread. */
+    static Picture picture(Platform platform, ServerMappings mappings, ServerMappings.Mapping m, boolean background) {
         String sha = background ? m.backgroundSha() : m.iconSha();
         if (noTextures || sha == null || FAILED.contains(sha)) {
             return null;

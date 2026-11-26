@@ -44,6 +44,10 @@ public interface HubHost {
     /** Opens the HUD editor; it returns to the hub. */
     void openHudEditor();
 
+    /** Opens the friends list with the chat (Lumora Social); it returns to the hub. */
+    default void openFriends() {
+    }
+
     /** Opens Lumora's settings view for a group of settings and keys ({@code hudEditor}: with the HUD editor button); it returns to the hub. */
     void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds, Runnable onClose,
                       boolean hudEditor);

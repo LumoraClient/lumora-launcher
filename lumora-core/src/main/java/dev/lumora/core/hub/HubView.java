@@ -646,45 +646,23 @@ public final class HubView implements AddonView {
         int ih = compact ? 13 : 17;
         int gap = compact ? 1 : 2;
         int buttonH = compact ? 12 : 14;
-        int bottomH = buttonH + (compact ? 4 : 6) + (compact ? 10 : 12) + 5 * ih + (compact ? 6 : 12);
+        int bottomH = buttonH + (compact ? 4 : 6) + (compact ? 10 : 12) + 4 * ih + (compact ? 6 : 12);
         sideLeft = x;
         sideRight = x + w;
         sideTop = by + (compact ? 25 : 34);
         sideBottom = y + h - bottomH - 4;
-        List<String> cats = new ArrayList<>(categories(cards));
-        Set<String> favs = favorites.all();
-        int favCount = (int) cards.stream().filter(k -> favs.contains(k.id())).count();
-        if (favCount > 0) {
-            cats.add(1, FAVORITES);
-        } else if (FAVORITES.equals(category)) {
-            category = ALL; // the last heart was taken away
-        }
-        int listH = cats.size() * (ih + gap);
-        sideMax = Math.max(0, listH - (sideBottom - sideTop));
-        sideScroll = Math.max(0, Math.min(sideMax, sideScroll));
-        g.enableScissor(x, sideTop, x + w, sideBottom);
-        int iy = sideTop - Math.round(sideScroll);
-        for (String c : cats) {
-            boolean selected = page == Page.MODULES && c.equals(category);
-            int count = ALL.equals(c) ? cards.size() : FAVORITES.equals(c) ? favCount
-                    : (int) cards.stream().filter(k -> k.category().equals(c)).count();
-            sideItem(g, x + 8, iy, w - 16, ih, categoryGlyph(c), categoryName(c), String.valueOf(count), selected, mx, my,
-                    iy >= sideTop - ih && iy < sideBottom, () -> openCategory(c));
-            iy += ih + gap;
-        }
-        if (sideMax > 0) {
-            // more categories below / above: fade the list edge
-            for (int i = 0; i < 6; i++) {
-                int a = 0xE0 - i * 0x24;
-                if (sideScroll < sideMax) {
-                    g.fill(x, sideBottom - 1 - i, x + w, sideBottom - i, LumoraTheme.alpha(SIDE, a));
-                }
-                if (sideScroll > 0) {
-                    g.fill(x, sideTop + i, x + w, sideTop + i + 1, LumoraTheme.alpha(SIDE, a));
-                }
-            }
-        }
-        g.disableScissor();
+        // the sections of the hub: addons (modules and addons, categories as tabs), friends, cosmetics, emotes
+        sideMax = 0;
+        sideScroll = 0;
+        int iy = sideTop;
+        sideItem(g, x + 8, iy, w - 16, ih, "all", "Addons", String.valueOf(cards.size()), page == Page.MODULES || page == Page.ADDONS,
+                mx, my, true, () -> open(Page.MODULES));
+        iy += ih + gap;
+        sideItem(g, x + 8, iy, w - 16, ih, "heart_full", t("Freunde", "Friends"), friendsBadge(), false, mx, my, true, host::openFriends);
+        iy += ih + gap;
+        sideItem(g, x + 8, iy, w - 16, ih, "shirt", "Cosmetics", cosmeticsBadge(false), false, mx, my, true, () -> openCosmetics(false));
+        iy += ih + gap;
+        sideItem(g, x + 8, iy, w - 16, ih, "player", "Emotes", cosmeticsBadge(true), false, mx, my, true, () -> openCosmetics(true));
 
         int yb = y + h - bottomH;
         String label = t("+ Neues Profil", "+ New profile");
@@ -699,11 +677,6 @@ public final class HubView implements AddonView {
         spaced(g, t("ALLGEMEIN", "GENERAL"), x + 12, yb, DIM);
         yb += compact ? 10 : 12;
         sideItem(g, x + 8, yb, w - 16, ih, "themes", "Themes", null, page == Page.THEMES, mx, my, true, () -> open(Page.THEMES));
-        yb += ih;
-        sideItem(g, x + 8, yb, w - 16, ih, "addons", "Addons", null, page == Page.ADDONS, mx, my, true, () -> {
-            open(Page.ADDONS);
-            libraryScannedAt = 0; // read the folder again
-        });
         yb += ih;
         sideItem(g, x + 8, yb, w - 16, ih, "hudeditor", t("HUD-Editor", "HUD editor"), null, false, mx, my, true, host::openHudEditor);
         yb += ih;
@@ -736,6 +709,94 @@ public final class HubView implements AddonView {
         }
     }
 
+    /** Friends: online ones of all ("2/6"), or all; empty without Lumora Social. */
+    private String friendsBadge() {
+        dev.lumora.core.social.LumoraSocial social = core.social();
+        dev.lumora.social.SocialClient c = social == null ? null : social.client();
+        if (c == null) {
+            return null;
+        }
+        java.util.List<dev.lumora.social.model.Friend> friends = c.friends();
+        long online = friends.stream().filter(f -> f.presence != null && f.presence.online()).count();
+        return online > 0 ? online + "/" + friends.size() : String.valueOf(friends.size());
+    }
+
+    /** Cosmetics or emotes you have (the built-in ones and your own files), empty while the module is off. */
+    private static String cosmeticsBadge(boolean emotes) {
+        dev.lumora.core.cosmetics.Cosmetics c = dev.lumora.core.cosmetics.Cosmetics.get();
+        if (c == null) {
+            return null;
+        }
+        return String.valueOf(emotes ? c.registry().emotes().size() : c.registry().cosmetics().size());
+    }
+
+    /** Opens the cosmetics or emote menu of the module "Cosmetics & Emotes"; it returns to the hub. */
+    private void openCosmetics(boolean emotes) {
+        dev.lumora.core.cosmetics.CosmeticsModule m = dev.lumora.core.cosmetics.CosmeticsModule.active();
+        if (m == null) {
+            toast(t("Schalte das Modul „Cosmetics & Emotes“ ein.", "Switch on the module \"Cosmetics & Emotes\"."));
+            return;
+        }
+        if (emotes) {
+            m.openEmotes();
+        } else {
+            m.openMenu();
+        }
+    }
+
+    /**
+     * The tabs of the Addons page: all, favorites and the categories, then the addon library. Returns the height used.
+     */
+    private int categoryTabs(HudGraphics g, int x, int y, int w, List<Card> cards, int mx, int my) {
+        List<String> cats = new ArrayList<>(categories(cards));
+        Set<String> favs = favorites.all();
+        int favCount = (int) cards.stream().filter(k -> favs.contains(k.id())).count();
+        if (favCount > 0) {
+            cats.add(1, FAVORITES);
+        } else if (FAVORITES.equals(category)) {
+            category = ALL; // the last heart was taken away
+        }
+        int h = 14;
+        int cx = x;
+        int cy = y;
+        for (String c : cats) {
+            int count = ALL.equals(c) ? cards.size() : FAVORITES.equals(c) ? favCount
+                    : (int) cards.stream().filter(k -> k.category().equals(c)).count();
+            String label = categoryName(c) + " §8" + count;
+            int tw = g.textWidth(label) + HubGlyphs.SIZE + 14;
+            if (cx + tw > x + w && cx > x) {
+                cx = x;
+                cy += h + 4;
+            }
+            tab(g, cx, cy, tw, h, categoryGlyph(c), label, page == Page.MODULES && c.equals(category), mx, my, () -> openCategory(c));
+            cx += tw + 4;
+        }
+        String lib = t("Bibliothek", "Library");
+        int tw = g.textWidth(lib) + HubGlyphs.SIZE + 14;
+        if (cx + tw > x + w && cx > x) {
+            cx = x;
+            cy += h + 4;
+        }
+        tab(g, cx, cy, tw, h, "download", lib, page == Page.ADDONS, mx, my, () -> {
+            open(Page.ADDONS);
+            libraryScannedAt = 0; // read the folder again
+        });
+        return cy + h - y;
+    }
+
+    private void tab(HudGraphics g, int x, int y, int w, int h, String glyph, String label, boolean selected, int mx, int my,
+                     Runnable action) {
+        int accent = LumoraTheme.accent();
+        boolean hover = in(mx, my, x, y, w, h);
+        g.roundedRect(x, y, w, h, 4, selected ? LumoraTheme.alpha(accent, 0x38) : hover ? 0x1CFFFFFF : 0x0EFFFFFF);
+        if (selected) {
+            g.fill(x + 3, y + h - 1, x + w - 3, y + h, accent);
+        }
+        HubGlyphs.draw(g, glyph, x + 5, y + (h - HubGlyphs.SIZE) / 2, selected ? LumoraTheme.accentHover() : hover ? TEXT : DIM);
+        g.text(label, x + 9 + HubGlyphs.SIZE, y + (h - 8) / 2, selected || hover ? TEXT : MUTED, false);
+        hit(x, y, w, h, action);
+    }
+
     // ---- main area
 
     private void main(HudGraphics g, int x, int y, int w, int h, boolean compact, List<Card> cards, int mx, int my) {
@@ -746,11 +807,11 @@ public final class HubView implements AddonView {
         float titleScale = compact ? 1.5f : 2f;
         int titleH = Math.round(8 * titleScale);
         String title = switch (page) {
-            case MODULES -> categoryName(category);
+            case MODULES -> "Addons";
             case THEMES -> "Themes";
             case PROFILES -> t("Profile", "Profiles");
             case SYSTEM -> "System";
-            case ADDONS -> "Addons";
+            case ADDONS -> t("Addon-Bibliothek", "Addon library");
         };
         int titleX = left;
         g.push();
@@ -778,6 +839,9 @@ public final class HubView implements AddonView {
         int ly = ty + titleH + (compact ? 8 : 12);
         accentLine(g, x, ly, w);
         contentTop = ly + (compact ? 8 : 10);
+        if (page == Page.MODULES || page == Page.ADDONS) {
+            contentTop += categoryTabs(g, left, contentTop, right - left, cards, mx, my) + (compact ? 6 : 8);
+        }
         contentBottom = y + h - (compact ? 6 : 10);
         scroll += (scrollTarget - scroll) * 0.4f;
         if (Math.abs(scrollTarget - scroll) < 0.5f) {

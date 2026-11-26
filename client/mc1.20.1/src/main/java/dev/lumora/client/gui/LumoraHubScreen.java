@@ -152,6 +152,11 @@ public final class LumoraHubScreen {
         }
 
         @Override
+        public void openFriends() {
+            show(new dev.lumora.client.gui.SocialScreen(current()));
+        }
+
+        @Override
         public void openSettings(String title, String description, SettingsGroup settings, List<Keybind> keybinds,
                                  Runnable onClose, boolean hudEditor) {
             show(SettingsScreen.create(current(), title, description, settings, keybinds, onClose, hudEditor));

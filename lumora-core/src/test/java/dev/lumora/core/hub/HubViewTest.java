@@ -53,6 +53,8 @@ class HubViewTest {
         @Override public boolean fontSupported() { return fonts; }
         @Override public String zoomKey() { return "C"; }
         @Override public void openHudEditor() { editorOpened++; }
+        int friendsOpened;
+        @Override public void openFriends() { friendsOpened++; }
         String openedTitle;
         List<SettingsView.Section> openedSections = List.of();
         boolean openedWithEditor;
@@ -299,6 +301,32 @@ class HubViewTest {
     }
 
     @Test
+    void sidebarHasTheSectionsAddonsFriendsCosmeticsEmotes() {
+        LumoraCore core = core();
+        FakeHost host = new FakeHost();
+        HubView view = new HubView(core, host);
+        HubView.select(0);
+        FakeGraphics g = new FakeGraphics();
+        view.render(g, 854, 480, 0, 0);
+        for (String s : List.of("Addons", "Cosmetics", "Emotes")) {
+            assertTrue(g.texts.contains(s), s + " in " + g.texts);
+        }
+        assertTrue(g.texts.contains("Friends") || g.texts.contains("Freunde"));
+        assertTrue(g.texts.contains("Themes") && g.texts.contains("System"), "general section stays");
+        // the categories are tabs of the Addons page now
+        assertTrue(g.texts.stream().anyMatch(t -> t.startsWith("All") || t.startsWith("Alle")));
+        // a click on "Friends" opens the friends list
+        for (int y = 20; y < 200 && host.friendsOpened == 0; y += 2) {
+            for (int x = 0; x < 260 && host.friendsOpened == 0; x += 8) {
+                view.render(new FakeGraphics(), 854, 480, x, y);
+                view.mouseClicked(x, y, 0);
+            }
+        }
+        assertEquals(1, host.friendsOpened, "friends opened from the sidebar");
+        core.stopping();
+    }
+
+    @Test
     void theHeartMarksAFavoriteThatComesFirst() {
         LumoraCore core = core();
         HubView view = new HubView(core, new FakeHost());
@@ -310,11 +338,12 @@ class HubViewTest {
         HubView.select(0);
         FakeGraphics g = new FakeGraphics();
         view.render(g, 854, 480, 0, 0);
-        assertTrue(g.texts.contains("Favorites") || g.texts.contains("Favoriten"), "own sidebar entry");
+        assertTrue(g.texts.stream().anyMatch(t -> t.startsWith("Favorites") || t.startsWith("Favoriten")), "own tab on the Addons page");
         // a click on the heart of the first card (top left) takes the favorite away again
         boolean clicked = false;
-        for (int y = 40; y < 200 && !clicked; y++) {
+        for (int y = 40; y < 320 && !clicked; y++) {
             for (int x = 150; x < 600 && !clicked; x++) {
+                HubView.select(0); // a click on a tab (category, library) must not leave the cards
                 view.render(new FakeGraphics(), 854, 480, x, y);
                 view.mouseClicked(x, y, 0);
                 clicked = view.favorites().isEmpty();
@@ -336,7 +365,8 @@ class HubViewTest {
         HubView.select(5);
         FakeGraphics g = new FakeGraphics();
         view.render(g, 854, 480, 0, 0);
-        assertTrue(g.texts.contains("§lAddons"), "page title");
+        assertTrue(g.texts.contains("§lAddon library") || g.texts.contains("§lAddon-Bibliothek"), "page title");
+        assertTrue(g.texts.contains("Library") || g.texts.contains("Bibliothek"), "reached through the tab of the Addons page");
         assertTrue(g.texts.stream().anyMatch(t -> t.contains("voice name")), g.texts.toString());
         String install = g.texts.contains("Installieren") ? "Installieren" : "Install";
         assertTrue(g.texts.contains(install));

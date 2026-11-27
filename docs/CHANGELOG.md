@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.106 (2026-11-27)
+
+### Client
+- **LumoraVoice fest im Client:** Der Sprachchat (Laby Voice, Simple Voice Chat, Plasmo Voice, räumlicher Klang, Sprecheranzeige, Kanäle und Gruppen) ist jetzt ein eingebautes Modul und muss nicht mehr als Addon installiert werden. Der Launcher liefert ihn mit und gibt ihn jeder Lumora-Instanz mit. Deine Voice-Einstellungen bleiben erhalten; eine ältere LumoraVoice-Kopie im Addons-Ordner wird übergangen (die Datei bleibt liegen), in der Addon-Bibliothek steht „Fest eingebaut“. VoiceChat ist wie bisher ab Werk aus und wird in den Einstellungen des Moduls aktiviert.
+- **Voice im Client-Design:** Die Voice-Fenster (Lautstärke eines Spielers, Kanäle, Gruppen, Geräteauswahl, Sperrliste) übernehmen die Farben des Clients und folgen der Akzentfarbe aus dem Hub.
+
 ## 0.3.105 (2026-11-26)
 
 ### Client

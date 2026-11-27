@@ -1,6 +1,25 @@
 {
   "news": [
     {
+      "id": "lumora-voice-builtin",
+      "date": "2026-11-27",
+      "author": "Lumora",
+      "version": "0.3.106",
+      "title": "LumoraVoice ist jetzt fest im Client – im Lumora-Design",
+      "text": "Der Sprachchat muss nicht mehr als Addon installiert werden: LumoraVoice ist ein eingebautes Modul und seine Fenster sehen jetzt aus wie der Rest von Lumora.",
+      "image": "news-voice-builtin.png",
+      "body": [
+        {"p": "LumoraVoice gehört ab sofort fest zum Lumora Client:"},
+        {"list": [
+          "Eingebaut: Der Launcher liefert den Sprachchat mit, du findest ihn im Hub unter den Modulen. Installieren oder aktualisieren musst du nichts mehr.",
+          "Alles wie gewohnt: Laby Voice, Simple Voice Chat und Plasmo Voice, räumlicher Klang, Sprecheranzeige im HUD und am Namensschild, Kanäle und Gruppen. Deine Einstellungen bleiben erhalten.",
+          "Im Lumora-Design: Die Voice-Fenster (Lautstärke eines Spielers, Kanäle, Gruppen, Geräteauswahl, Sperrliste) nutzen die Farben des Clients und folgen deiner Akzentfarbe aus dem Hub.",
+          "Hast du LumoraVoice vorher als Addon installiert, wird diese Kopie einfach übergangen. In der Addon-Bibliothek steht jetzt „Fest eingebaut“."
+        ]},
+        {"p": "VoiceChat ist wie bisher ab Werk aus. Du schaltest ihn in den Einstellungen des Moduls ein; das Mikrofon öffnet sich erst, wenn du sprichst."}
+      ]
+    },
+    {
       "id": "lumora-hub-sections",
       "date": "2026-11-26",
       "author": "Lumora",

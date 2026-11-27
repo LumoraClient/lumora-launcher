@@ -20,7 +20,9 @@ val bundled: Configuration = configurations.create("bundled") {
 }
 
 val lwjgl = "3.3.3"
-val rnnoisePlatforms = listOf("linux-x86_64", "linux-aarch64", "darwin-x86_64", "darwin-aarch64", "windows-x86_64")
+// the launcher and the game run on Windows only: one RNNoise native (5 MB) instead of five (26 MB), which keeps the
+// portable EXE below the update limit of older launchers (200 MiB)
+val rnnoisePlatforms = listOf("windows-x86_64")
 val libraries = listOf(
     "io.github.jaredmdobson:concentus:1.0.2",
     "cn.enaium.rnnoise:rnnoise-kmp-jvm:1.0.2",

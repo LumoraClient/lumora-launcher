@@ -47,7 +47,11 @@ public final class LauncherUpdate {
     /** Hosts of the GitHub API and of release downloads (assets are served from GitHub's object storage). */
     static final Set<String> HOSTS = Set.of("api.github.com", "github.com", "objects.githubusercontent.com",
             "release-assets.githubusercontent.com");
-    static final long MAX_EXE = 200L * 1024 * 1024;
+    /**
+     * Largest update EXE accepted (protection against a wrong or endless download). Launchers up to 0.3.106 had 200 MiB;
+     * the build keeps the EXE below that, so they can still reach this version.
+     */
+    static final long MAX_EXE = 512L * 1024 * 1024;
 
     /** A newer release found on GitHub. */
     public record Release(String version, String name, String notes, String pageUrl, URI exe, long exeSize, URI sums, URI sig) {

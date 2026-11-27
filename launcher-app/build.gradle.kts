@@ -257,6 +257,11 @@ val portableExe = tasks.register("portableExe") {
         stage.resolve("LumoraClient.exe").copyTo(out, true)
         project.delete(stage)
         println("Portable EXE: $out (${out.length() / 1048576} MB)")
+        // launchers up to 0.3.106 refuse self-updates above 200 MiB (LauncherUpdate.MAX_EXE was 200 MiB): a bigger EXE
+        // would strand them on their version
+        check(out.length() <= 200L * 1024 * 1024) {
+            "Portable EXE is ${out.length() / 1048576} MiB: older launchers only update up to 200 MiB, make it smaller"
+        }
     }
 }
 

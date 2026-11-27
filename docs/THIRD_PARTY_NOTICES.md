@@ -25,7 +25,7 @@ Lumora Client (Launcher und Begleit-Mod) © Lumora Client contributors, lizenzie
 | Namensliste `lumora/mappings.tiny` in `lumora-client-mc1.8.9.jar` und `-mc1.12.2.jar` (zusammengeführt aus Legacy Fabric **Intermediary** und **Yarn** 1.8.9+build.604 / 1.12.2+build.604; keine Mojang-Namen) | – | CC0-1.0 | Legacy Fabric und Mitwirkende | im JAR |
 | LumoraVoice `bundled/lumora-voice.jar` (Sprachchat, fest im Client; vom Launcher einmal mitgeliefert und dem Spiel als eingebautes Modul übergeben) | 1.0.0 | GPL-3.0-or-later | Lumora Client contributors | im JAR (`LICENSE-lumoravoice.txt`) |
 | ↳ darin: **Concentus** (Opus-Codec in Java, `io.github.jaredmdobson:concentus`) | 1.0.2 | BSD-3-Clause | Skype Limited, Xiph.Org Foundation, Jean-Marc Valin, Logan Stromberg u. a. | im JAR (`LICENSE-concentus.txt`) |
-| ↳ darin: **rnnoise-kmp** (Rauschunterdrückung, mit nativen Bibliotheken für Windows, Linux, macOS) | 1.0.2 | MIT | Enaium | im JAR (`LICENSE-rnnoise-kmp.txt`) |
+| ↳ darin: **rnnoise-kmp** (Rauschunterdrückung, mit der nativen Bibliothek für Windows x64) | 1.0.2 | MIT | Enaium | im JAR (`LICENSE-rnnoise-kmp.txt`) |
 | ↳ darin: **RNNoise** (in rnnoise-kmp enthalten) | – | BSD-3-Clause | Mozilla, Jean-Marc Valin, Xiph.Org Foundation, Mark Borgerding | im JAR (`LICENSE-rnnoise.txt`) |
 | ↳ darin: **Kotlin-Standardbibliothek** (von rnnoise-kmp benötigt) | 2.4.10 | Apache-2.0 | JetBrains s.r.o. und Mitwirkende | im JAR (`LICENSE-kotlin.txt`) |
 | Lumora Social Server `LumoraSocialServer/lumora-social-server.jar` (eigener Code mit eingebettetem **Gson 2.14.0** und Error Prone Annotations 2.48.0, beide Apache-2.0) | 0.1.0 | GPL-3.0-or-later (eigener Code), Apache-2.0 (Gson) | Lumora Client contributors; Google LLC | `licenses/Apache-2.0.txt` |

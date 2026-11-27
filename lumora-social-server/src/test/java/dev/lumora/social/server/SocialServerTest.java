@@ -252,7 +252,7 @@ class SocialServerTest {
         assertEquals(Presence.State.MENU, max.friend(TOBY.uuid).presence.state);
         get(toby.setPresenceMode("invisible"));
         await(() -> !max.friend(TOBY.uuid).presence.online(), "invisible = offline at max");
-        assertFalse(sarah.friend(TOBY.uuid).presence.online());
+        await(() -> !sarah.friend(TOBY.uuid).presence.online(), "invisible = offline at sarah too"); // pushed to each friend on its own
         get(toby.setPresenceMode("online"));
         await(() -> max.friend(TOBY.uuid).presence.online() && "online".equals(max.friend(TOBY.uuid).presence.mode), "visible again");
 

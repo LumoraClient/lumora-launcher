@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.107 (2026-11-27)
+
+### Launcher
+- **Behoben:** Das Update auf 0.3.106 schlug mit „Das Update ist unerwartet groß“ fehl. Der Launcher nimmt nur Updates bis 200 MiB an, 0.3.106 war durch den eingebauten Sprachchat 214 MiB groß. Der Sprachchat bringt jetzt nur noch die Rauschunterdrückung für Windows mit (statt für fünf Systeme), damit ist der Launcher wieder unter 200 MiB und das Update klappt. Neue Launcher nehmen künftig Updates bis 512 MiB an, und der Build verhindert, dass ein Release die alte Grenze überschreitet.
+
 ## 0.3.106 (2026-11-27)
 
 ### Client
